@@ -5,3 +5,15 @@ __pycache__/
 
 #python generated files
 *.pyc
+
+
+**/*.swp
+**/*~
+**/*.sage.py
+**/*.pyc
+**/*.sig
+**/.ropeproject*
+database/gce*full.txt
+odds_and_ends/*
+intrinsics_inventory.txt
+TODO.txt
