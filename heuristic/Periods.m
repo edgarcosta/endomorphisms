@@ -14,11 +14,11 @@
  * Christian Neurohr et al. */
 
 
-intrinsic PeriodMatrix(eqsCC::SeqEnum : HaveOldenburg := false) -> AlgMatElt
+intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum : HaveOldenburg := false) -> AlgMatElt
 {Computes a (big) period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
-RCC := Parent(eqsCC[1]);
+RCC := Parent(eqsCC[1]); CC := BaseRing(RCC);
 if #GeneratorsSequence(RCC) eq 1 then
     if #eqsCC eq 2 then
         fCC, hCC := Explode(eqsCC);
@@ -28,17 +28,23 @@ if #GeneratorsSequence(RCC) eq 1 then
     end if;
     if not HaveOldenburg then
         JCC := AnalyticJacobian(gCC);
-        return Transpose(Matrix(BaseRing(gCC), BigPeriodMatrix(JCC)));
+        return Transpose(Matrix(CC, BigPeriodMatrix(JCC)));
     end if;
-    return Transpose(Matrix(BaseRing(gCC), PeriodMatrix(gCC)));
+    return Transpose(Matrix(CC, PeriodMatrix(gCC : Prec := Precision(CC))));
 elif #GeneratorsSequence(RCC) eq 3 then
-    F := Explode(eqsCC);
-    SCC<x0,x1,x2> := Parent(F); CC := BaseRing(SCC); RCC<x,y> := PolynomialRing(CC, 2);
-    h := hom<SCC -> RCC | [x,y,1]>; f := h(F);
     if not HaveOldenburg then
         error "No functionality for plane curves available";
     end if;
-    return Transpose(Matrix(BaseRing(Parent(F)), PeriodMatrix(f)));
+    F := Explode(eqsK);
+    S<x0,x1,x2> := Parent(F); K := BaseRing(S); R<x,y> := PolynomialRing(K, 2);
+    h := hom<S -> R | [x,y,1]>; f := h(F);
+    return Transpose(Matrix(CC, PeriodMatrix(f : Prec := Precision(CC))));
+    /*
+    FCC := Explode(eqsCC);
+    SCC<x0,x1,x2> := Parent(FCC); CC := BaseRing(SCC); RCC<x,y> := PolynomialRing(CC, 2);
+    h := hom<SCC -> RCC | [x,y,1]>; fCC := h(FCC);
+    return Transpose(Matrix(CC, PeriodMatrix(fCC)));
+    */
 else
     error "No functionality for general curves available";
 end if;

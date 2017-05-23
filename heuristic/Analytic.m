@@ -86,7 +86,8 @@ for r in Rows(Ker) do
     Comm := JP * ChangeRing(genHom, RR) - ChangeRing(genHom, RR) * JQ;
     if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
         genApp := AnalyticRepresentationIsogeny(genHom, P, Q);
-        Append(~gens, [* genApp, genHom *]);
+        // Transpose for usual left action
+        Append(~gens, [* Transpose(genApp), Transpose(genHom) *]);
     end if;
 end for;
 return gens;

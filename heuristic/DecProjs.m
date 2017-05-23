@@ -156,7 +156,7 @@ idemTan, idemHom, idemApp := Explode(idem);
 CC := BaseRing(P); RR := RealField(CC);
 
 // Create analytic idempotent and project:
-PEllHuge := P * idemApp;
+PEllHuge := P * Transpose(idemApp);
 
 // Compute rank of projection
 gQuotient := NumericalRank(PEllHuge : Epsilon := RR`epsinv);

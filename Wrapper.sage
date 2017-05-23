@@ -18,6 +18,7 @@ class EndomorphismData:
         self.bound = magma(bound)
         self.have_oldenburg = magma(have_oldenburg)
         self._eqsCC_ = magma.EmbedCurveEquations(self.X, self.prec)
+        self._eqsF_ = magma.DefiningEquations(self.X)
         if periods:
             self._P_ = periods
         else:
@@ -28,7 +29,7 @@ class EndomorphismData:
         return repr_endomorphism_data(self)
 
     def period_matrix(self):
-        self._P_ = magma.PeriodMatrix(self._eqsCC_, HaveOldenburg = self.have_oldenburg)
+        self._P_ = magma.PeriodMatrix(self._eqsCC_, self._eqsF_, HaveOldenburg = self.have_oldenburg)
         return self._P_
 
     def _calculate_geometric_representation_(self):
