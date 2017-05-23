@@ -1,0 +1,16 @@
+Done:
+1) proving that two elliptic curves are non-isogenous, over the ground field or over the algebraic closure (NonIsogenous.sage)
+2) proving that an abelian surface is not QM (NonQM.sage)
+3) proving that an abelian variety is absolutely irreducible, modulo waiting for a better bound on the minimal field of definition of a splitting (GeometricallyIrreducible)
+4) if J is geometrically simple of dimension 2 or 3 (or 1, I guess, but I didn't test it) and has commutative endomorphism ring, spit out a bound for the rank of End_{K bar}(J) over ZZ (EndomorphismRankBound.sage)
+5) Tested (4) with full CM, Picard curves, and RM (Test.sage)
+6) if 
+- J has dimension 3
+- there is a map J \to E
+- the complement abelian surface A is irreducible with commutative endomorphism ring
+then can perform same computations as in (4), only way less tested
+
+To do:
+- compute the genus 2 factor when it exists
+- put everything together with Jeroen's code to provide full certification
+- find a less painful way to obtain L-polynomials! Ask drew about this
