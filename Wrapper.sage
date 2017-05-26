@@ -160,6 +160,21 @@ class OverField:
         self._test_alg_ = True
         return self._test_alg_
 
+    def verify_algebra_NS(self):
+        assert self.g == 2, "for now the upper bounds are only implemented for genus = 2";
+        # X: y^2 = g(x)
+        g = PolynomialRing(QQ, "x")(magma.Coefficients(magma.HyperellipticPolynomials(magma.SimplifiedModel(X))));
+        factorsRR_geom = self._desc_[_index_dict_['desc_RR']];
+        algebra = self._list_[_index_dict_['algebra']][_index_dict_['alg_QQ']];
+        if factorsRR_geom ==  ['RR', 'RR'] and len(magma.DirectSumDecomposition(algebra)) == 1:
+            RM_coeff =  list(magma.Coefficients(magma.DefiningPolynomial(magma.BaseRing(magma.AlgebraOverCenter(algebra)))))
+        else:
+            RM_coeff = None;
+
+        b, _, _ =  bounds.NeronSeveriBound.verify_curve(g = g, factorsRR_geom = factorsRR_geom, RM_coeff = RM_coeff);
+        return b;
+
+
     def verify_saturated(self):
         self._sat_test_, self._sat_cert_ =  magma.VerifySaturated(self._list_[1], self._P_, nvals = 2)
         return self._sat_test_

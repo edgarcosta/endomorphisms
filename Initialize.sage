@@ -44,5 +44,10 @@ load(__boundsdir__ + "PointCounting.sage")
 load(__boundsdir__ + "NonSquareCM.sage")
 load(__boundsdir__ + "ProductsEC.sage")
 
+import bounds.NeronSeveriBound
+
+
+
+
 os.chdir(cur)
 magma.chdir(cur)
