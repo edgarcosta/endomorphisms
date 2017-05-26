@@ -28,10 +28,9 @@ load('../Initialize.sage')
 F = QQ
 R.<x> = PolynomialRing(F)
 
-# Curve input: specify g and h in its equation y^2 + h y = g.
-# Hyperelliptic:
-f = -4*x^8 + 105*x^6 - 945*x^4 + 2100*x^2 - 5895*x + 420
-h = x^4
+# Curve:
+f = x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1
+h = R(0)
 X = mHyperellipticCurve(f, h)
 
 print X
@@ -42,7 +41,7 @@ print "Field of definition:"
 print Endo.endomorphism_field()
 
 print "Geometric representation:"
-overK = Endo.geometric()
-print overK.representation()
-print overK.has_generator()
-print overK.few_generators()
+print Endo.geometric().representation()
+
+print "Lattice:"
+print Endo.lattice().pretty_print()

@@ -1,4 +1,5 @@
-AttachSpec("../spec");
+AttachSpec("../../spec");
+SetVerbose("EndoCheck", 0);
 
 F := Rationals();
 R<x> := PolynomialRing(F);

@@ -22,27 +22,32 @@
 """
 
 # Add if no initilization script set:
-load('../Initialize.sage')
+load('../../Initialize.sage')
 
 # Ambient ring:
 F = QQ
 R.<x> = PolynomialRing(F)
 
-# Curve input: specify g and h in its equation y^2 + h y = g.
-# Hyperelliptic:
-f = -4*x^8 + 105*x^6 - 945*x^4 + 2100*x^2 - 5895*x + 420
-h = x^4
+# Curve:
+f = x^8 - 12*x^7 + 50*x^6 - 108*x^5 + 131*x^4 - 76*x^3 - 10*x^2 + 44*x - 19
+h = R(0)
 X = mHyperellipticCurve(f, h)
 
 print X
-# The main functionality
-Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
-
-print "Field of definition:"
-print Endo.endomorphism_field()
+Endo = EndomorphismData(X, prec = 300, have_oldenburg = False)
 
 print "Geometric representation:"
-overK = Endo.geometric()
-print overK.representation()
-print overK.has_generator()
-print overK.few_generators()
+overK = Endo.over_field("geometric")
+endodict = overK.full()
+rep = overK.representation()
+print rep
+
+print "Decomposition:"
+Dec = Endo.decomposition()
+print Dec.field
+
+print Dec.idempotents()
+print Dec.projections()
+print Dec.factors()
+print Dec.verify()
+print Dec.correspondences()

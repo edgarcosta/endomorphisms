@@ -22,27 +22,22 @@
 """
 
 # Add if no initilization script set:
-load('../Initialize.sage')
+load('../../Initialize.sage')
 
 # Ambient ring:
 F = QQ
-R.<x> = PolynomialRing(F)
+P2.<x,y,z> = ProjectiveSpace(F, 2)
 
-# Curve input: specify g and h in its equation y^2 + h y = g.
-# Hyperelliptic:
-f = -4*x^8 + 105*x^6 - 945*x^4 + 2100*x^2 - 5895*x + 420
-h = x^4
-X = mHyperellipticCurve(f, h)
+# Curve:
+f = x^4 + 8*x^3*z + 2*x^2*y*z + 25*x^2*z^2 - x*y^3 + 2*x*y^2*z + 8*x*y*z^2 \
+    + 36*x*z^3 + y^4 - 2*y^3*z + 5*y^2*z^2 + 9*y*z^3 + 20*z^4
+X = mPlaneCurve(f)
 
 print X
-# The main functionality
 Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
 
-print "Field of definition:"
-print Endo.endomorphism_field()
-
 print "Geometric representation:"
-overK = Endo.geometric()
-print overK.representation()
-print overK.has_generator()
-print overK.few_generators()
+overK = Endo.over_field("geometric")
+endodict = overK.full()
+rep = overK.representation()
+print rep

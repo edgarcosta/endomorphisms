@@ -23,7 +23,8 @@ class EndomorphismData:
             self._P_ = periods
         else:
             self._P_ = self.period_matrix()
-        self._calculate_geometric_representation_()
+        if prec > 100:
+            self._calculate_geometric_representation_()
 
     def __repr__(self):
         return repr_endomorphism_data(self)
@@ -154,6 +155,11 @@ class OverField:
 
     def dimension_algebra(self):
         return len(self._list_)
+    def has_generator(self, B = 1):
+        return magma.HasGenerator(self._list_, B = B, nvals = 2)
+
+    def few_generators(self):
+        return magma.FewGenerators(self._list_)
 
     def verify_algebra(self):
         # TODO: Integrate over Davide and Edgar

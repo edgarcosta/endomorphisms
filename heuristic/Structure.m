@@ -231,3 +231,59 @@ end if;
 return GensC, [ Integers() ! ind, -1 ];
 
 end intrinsic;
+
+
+intrinsic HasGenerator(EndoStruct::List : B := 1) -> BoolElt, .
+{Determines whether a single generator for the endomorphism ring exists, and returns it if it does.}
+
+g := #Rows(EndoStruct[1][1][1]);
+EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
+C, GensC := Explode(EndoAlg);
+OC := Order(Integers(), GensC); DOC := Discriminant(OC);
+Dom := [-B..B]; CP := CartesianPower(Dom, #GensC);
+min := -1;
+for tup in CP do
+    gen := &+[ tup[i] * GensC[i] : i in [1..#GensC] ];
+    minpol := MinimalPolynomial(gen);
+    if Degree(minpol) eq #GensC then
+        discgen := Abs(Discriminant(minpol));
+        //discgen := Abs(Discriminant(EquationOrder(minpol)));
+        if discgen eq Abs(DOC) then
+            return true, gen;
+        else
+            if min lt 0 then
+                min := discgen;
+            end if;
+            min := Minimum(min, discgen);
+        end if;
+    end if;
+end for;
+return false, min;
+
+end intrinsic;
+
+
+intrinsic FewGenerators(EndoStruct::List) -> SeqEnum
+{Determines a small generating set.}
+
+g := #Rows(EndoStruct[1][1][1]);
+EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
+C, GensC := Explode(EndoAlg);
+OC := Order(Integers(), GensC); DOC := Discriminant(OC);
+Ds := DirectSumDecomposition(C);
+if #Ds eq 1 then
+    E,f := AlgebraOverCenter(C);
+    F := BaseRing(E);
+    ZF := Integers(F);
+    GensF := [ F ! f(gen) : gen in GensC ];
+    for i:=1 to #GensC do
+        gens := GensF[1..i];
+        if Maximum([ Degree(MinimalPolynomial(gen)) : gen in gens ]) eq #GensC then
+            if Abs(Discriminant(sub< ZF | gens >)) eq Abs(DOC) then
+                return i;
+            end if;
+        end if;
+    end for;
+end if;
+
+end intrinsic;

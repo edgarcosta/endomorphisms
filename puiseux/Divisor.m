@@ -248,7 +248,7 @@ return divs;
 end function;
 
 
-function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs)
+function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := false)
 /*
  * Input:   Two curves X and Y,
  *          a basis of divisor equations fs,
@@ -283,11 +283,13 @@ hX := hom<X`R -> Rprod | [ Rprod.4, Rprod.2 ]>; hY := hom<Y`R -> Rprod | [ Rprod
 eqs := [ &+[ b[i] * fs[i] : i in [1..#fs] ] : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
 
-vprintf EndoCheck, 2 : "Calculating Groebner basis... ";
-GB := GroebnerBasis(ideal< Rprod | eqs >);
-vprint EndoCheck, 3 : GB;
-vprintf EndoCheck, 2 : "done.\n";
-Append(~eqs, GB[#GB]);
+if DivPP1 then
+    vprintf EndoCheck, 2 : "Calculating Groebner basis... ";
+    GB := GroebnerBasis(ideal< Rprod | eqs >);
+    vprint EndoCheck, 3 : GB;
+    vprintf EndoCheck, 2 : "done.\n";
+    Append(~eqs, GB[#GB]);
+end if;
 
 /* Corresponding scheme: */
 A := AffineSpace(Rprod);
@@ -331,7 +333,7 @@ return false;
 end function;
 
 
-intrinsic DivisorFromMatrix(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
+intrinsic DivisorFromMatrix(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), DivPP1 := false) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent
 representation of a projection morphism on the standard basis of differentials,
 returns a corresponding divisor (if it exists). The parameter Margin specifies
@@ -358,7 +360,7 @@ while true do
 
     /* Fit a divisor to it: */
     vprintf EndoCheck : "Solving linear system... ";
-    ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs);
+    ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
     vprintf EndoCheck : "done.\n";
 
     for S in ICs do
@@ -388,7 +390,7 @@ end while;
 end intrinsic;
 
 
-intrinsic DivisorFromMatrixSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
+intrinsic DivisorFromMatrixSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), DivPP1 := false, B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent
 representation of a projection morphism on the standard basis of differentials,
 returns a corresponding divisor (if it exists). The parameter Margin specifies
@@ -444,7 +446,7 @@ while true do
 
         /* Fit a divisor to it: */
         vprintf EndoCheck, 2 : "Solving linear system... ";
-        ICs_red := IrreducibleComponentsFromBranches(X_red, Y_red, fs_red, P_red, Qs_red);
+        ICs_red := IrreducibleComponentsFromBranches(X_red, Y_red, fs_red, P_red, Qs_red : DivPP1 := DivPP1);
         vprintf EndoCheck, 2 : "done.\n";
 
         for S_red_it in ICs_red do

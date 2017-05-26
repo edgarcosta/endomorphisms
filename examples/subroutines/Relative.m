@@ -9,7 +9,7 @@
  *  See LICENSE.txt for license details.
  */
 
-AttachSpec("../spec");
+AttachSpec("../../spec");
 
 print "Over QQ:";
 

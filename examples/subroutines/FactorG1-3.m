@@ -1,4 +1,4 @@
-AttachSpec("spec");
+AttachSpec("../../spec");
 SetVerbose("EndoCheck", 0);
 
 /* PLEASE NOTE: Give your elliptic curve as a HyperellipticCurve for now */
@@ -38,4 +38,3 @@ m := map<AX -> AY | fs >;
 print "Degree:", Degree(ProjectiveClosure(m));
 
 exit;
-

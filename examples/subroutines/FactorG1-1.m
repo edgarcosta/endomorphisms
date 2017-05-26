@@ -1,4 +1,4 @@
-AttachSpec("../spec");
+AttachSpec("../../spec");
 
 F := Rationals();
 R<x> := PolynomialRing(F);

@@ -30,8 +30,8 @@ R.<x> = PolynomialRing(F)
 
 # Curve input: specify g and h in its equation y^2 + h y = g.
 # Hyperelliptic:
-f = -4*x^8 + 105*x^6 - 945*x^4 + 2100*x^2 - 5895*x + 420
-h = x^4
+f = x^7 - 14*x^6 + 210*x^5 - 658*x^4 + 245*x^3 + 588*x^2 + 637*x - 686
+h = 0
 X = mHyperellipticCurve(f, h)
 
 print X
@@ -43,6 +43,6 @@ print Endo.endomorphism_field()
 
 print "Geometric representation:"
 overK = Endo.geometric()
-print overK.representation()
-print overK.has_generator()
+rep = overK.representation()
+print overK.has_generator(B = 10)
 print overK.few_generators()
