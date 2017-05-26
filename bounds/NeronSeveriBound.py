@@ -7,9 +7,11 @@ from sage.all import HyperellipticCurve, ZZ, GF, next_prime
 def is_ordinary(a):
     assert len(a) == 5
     p = sqrt(a[-1]);
-    return not ((p^2).divides(a[2]) or p.divides(a[1]))
+    return not ((p**2).divides(a[2]) or p.divides(a[1]))
 
 def is_totally_split(L, p):
+    if L.discriminant() % p == 0:
+        return False;
     return len(PolynomialRing(FiniteField(p),'z')(L.absolute_polynomial().list()).factor()) == L.absolute_polynomial().degree()
 
 def RM_and_notCM(ef, RM_coeff):
@@ -61,9 +63,9 @@ def P2_4factor(a):
     b = [0]*5;
     b[0] = 1
     b[1] = 2*q - a[2]
-    b[2] = (2*q^2 + a[1]^2 * q - 2*a[2]*q)
-    b[3] = q^2*b[1]
-    b[4] = q^4
+    b[2] = (2*q ** 2 + a[1]**2 * q - 2*a[2]*q)
+    b[3] = q**2*b[1]
+    b[4] = q**4
     return q, b
 
 def rank_disc(P1):
@@ -92,10 +94,10 @@ def rank_disc(P1):
     assert n_cp * t_cp == cp
     e = 1
     assert rank == n_cp.degree() + 2
-    while (T-1)^(rank - 2) != characteristic_polynomial_extension(n_cp, e):
+    while (T-1)**(rank - 2) != characteristic_polynomial_extension(n_cp, e):
         e += 1
     
-    disc = (-1) * characteristic_polynomial_extension(t_cp, e)(1) * p^e
+    disc = (-1) * characteristic_polynomial_extension(t_cp, e)(1) * p**e
     assert rank % 2 == 0
     return p, rank, disc.squarefree_part()
 
@@ -112,7 +114,7 @@ def characteristic_polynomial_extension(cp, r):
     for i in range(n):
         A[i, n-1] = -cplist[i]
         
-    A = A^r
+    A = A**r
     cpnewlist = list(A.charpoly())
     cpnew =  cp.parent()(cpnewlist)    
     return cpnew
@@ -137,7 +139,7 @@ def upperrank(ef, verbose = False):
         print rd
     return rank, disc
 
-def verify_curve(g, factorsRR_geom, bound = 500, RM_coeff = None):
+def verify_curve(g, factorsRR_geom, bound = 300, RM_coeff = None):
     D = ZZ(g.discriminant());
     C = HyperellipticCurve(g)
     p = 3;
