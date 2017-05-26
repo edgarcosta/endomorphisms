@@ -22,10 +22,11 @@
 """
 
 # Add if no initilization script set:
-load('Initialize.sage')
+load('../Initialize.sage')
 
 # Ambient ring:
-R.<x> = PolynomialRing(QQ)
+F = QQ
+R.<x> = PolynomialRing(F)
 
 # Curve input: specify g and h in its equation y^2 + h y = g.
 # Hyperelliptic:
@@ -33,30 +34,17 @@ f = -15*x^8 + 420*x^6 - 3780*x^4 + 8400*x^2 - 23580*x + 1680
 h = 0
 f = x^7 - 14*x^6 + 210*x^5 - 658*x^4 + 245*x^3 + 588*x^2 + 637*x - 686
 h = 0
+X = mHyperellipticCurve(f, h)
 
-End = EndomorphismData(f, h, prec = 200)
-AsAlg, As, Rs = End.geometric_representations()
-print AsAlg
-print [ magma.Discriminant(magma.MinimalPolynomial(A)) for A in AsAlg ]
+print X
+# The main functionality
+Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
 
-dim = len(AsAlg)
-B = 1
-D = [-B..B]
-CP = cartesian_product([ D for i in range(dim) ])
-deg_min = 10^6
-for tup in CP:
-    print tup
-    R = sum([ tup[i]*Rs[i+1] for i in range(dim) ])
-    A = sum([ tup[i]*AsAlg[i+1] for i in range(dim) ])
-    p = magma.MinimalPolynomial(R)
-    deg = End.degree_estimate(A)
-    if magma.Degree(p) == dim:
-        if deg < deg_min:
-            deg_min = deg
-            R_min = R
-            A_min = A
-print deg_min
-print R_min
-print A_min
-print magma.Parent(A_min[1,1])
+print "Field of definition:"
+print Endo.endomorphism_field()
 
+print "Geometric representation:"
+print Endo.geometric().representation()
+
+print "Lattice:"
+print Endo.lattice().pretty_print()

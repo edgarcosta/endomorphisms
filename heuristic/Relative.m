@@ -262,17 +262,27 @@ end intrinsic;
 intrinsic RelativeCompositum(K::Fld, L::Fld) -> Fld
 {Relative compositum.}
 
-F := BaseRing(K); M := K;
-R<x> := PolynomialRing(F);
-if Type(Parent(L.1)) eq FldRat then
-    g := x - L.1;
+if Type(K) eq FldRat and Type(L) eq FldRat then
+    M := K;
+    phiK := hom<K -> M | >;
+    phiL := hom<L -> M | >;
+elif Type(K) eq FldRat then
+    M := L;
+    phiK := hom<K -> M | >;
+    phiL := hom<L -> M | L.1>;
+elif Type(L) eq FldRat then
+    M := K;
+    phiK := hom<K -> M | K.1>;
+    phiL := hom<L -> M | >;
 else
+    F := BaseRing(K); M := K;
+    R<x> := PolynomialRing(F);
     g := MinimalPolynomial(L.1, F);
+    tup := Factorization(g, K)[1];
+    M := ExtendRelativeSplittingField(K, F, tup[1]);
+    M := ClearFieldDenominator(M);
+    testK, phiK := IsSubfield(K, M); testL, phiL := IsSubfield(L, M);
 end if;
-tup := Factorization(g, K)[1];
-M := ExtendRelativeSplittingField(K, F, tup[1]);
-M := ClearFieldDenominator(M);
-testK, phiK := IsSubfield(K, M); testL, phiL := IsSubfield(L, M);
 return M, phiK, phiL;
 
 end intrinsic;

@@ -291,6 +291,8 @@ class Decomposition:
             fac['factor']['base_point'] = magma.NonWeierstrassBasePoint(Y, K)
 
     def correspondence(self, fac):
+        if fac['factor']['algebraic'] == 0:
+            return ''
         self.set_base_point()
         self.set_base_point_factor(fac)
         P = self.base_point
@@ -309,3 +311,6 @@ class Decomposition:
             else:
                 fac['proj']['corresp'] = corresp
         return self._facs_test_
+
+    def correspondences(self):
+        return [ self.correspondence(fac) for fac in self._facs_ ]

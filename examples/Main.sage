@@ -120,6 +120,9 @@ Xs.append(mHyperellipticCurve(f, h))
 #2051*z^4
 #Xs.append(mPlaneCurve(f))
 #
+#f = y^3*z - (x^4 + 2*x^2*z^2 + 5*z^4)
+#Xs.append(mPlaneCurve(f))
+#
 #a = 2
 #b = 3
 #f = b*z^4 + z*(x^3+y^3) + a*z^2*x*y + x^2*y^2

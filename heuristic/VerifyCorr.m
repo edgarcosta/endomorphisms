@@ -172,7 +172,6 @@ end intrinsic;
 
 intrinsic Correspondence(X::Crv, P::SeqEnum, Y::Crv, Q::SeqEnum, A::.) -> .
 {Gives certificate.}
-// TODO: Add relative compositum (currently we assume that Q is defined over the field for P)
 
 K := Parent(P[1]); L := Parent(Q[1]);
 M, phiK, phiL := RelativeCompositum(K, L);
@@ -184,9 +183,10 @@ AM := ChangeRing(A, M);
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";
 elif Genus(Y) eq 1 then
-    return CantorMorphismFromMatrixSplit(XM, PM, YM, QM, AM);
+    return CantorMorphismFromMatrixSplit(XM, PM, YM, QM, AM/2);
 else
-    return DivisorFromMatrixSplit(XM, PM, YM, QM, AM);
+    return "";
+    //return DivisorFromMatrixSplit(XM, PM, YM, QM, AM);
 end if;
 
 end intrinsic;

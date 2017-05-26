@@ -17,9 +17,11 @@ g := #Rows(Transpose(Lat));
 if g eq 1 then
     return FactorReconstructG1(Lat, K);
 elif g eq 2 then
-    return FactorReconstructG2(Lat, K);
+    return 0;
+    //return FactorReconstructG2(Lat, K);
 else
-    error "Reconstruction in genus larger than 2 not implemented yet";
+    return 0;
+    //error "Reconstruction in genus larger than 2 not implemented yet";
 end if;
 
 end intrinsic;
@@ -37,7 +39,7 @@ g6CC := 280 * (1/P[1])^6 * ZetaFunction(RR, 6) * Eisenstein(6, P);
 g4 := AlgebraizeElementInRelativeField(g4CC, K);
 g6 := AlgebraizeElementInRelativeField(g6CC, K);
 // Division by 16 because of our conventions on period matrices
-R<x> := PolynomialRing(K); f := (4*x^3 - g4*x - g6)/16; h := 0;
+R<x> := PolynomialRing(K); f := (4*x^3 - g4*x - g6)/4; h := 0;
 return HyperellipticCurve(f, h);
 
 end intrinsic;
