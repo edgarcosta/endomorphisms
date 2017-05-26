@@ -162,7 +162,6 @@ def verify_curve(g, factorsRR_geom, bound = 300, RM_coeff = None):
 
 def verify_curve_lmfdb(label, Lhash = None):
     from lmfdb import getDBconnection
-    import pymongo
     C = getDBconnection()
     curve = C.genus2_curves.curves.find_one({"label" : label})
     endo_query = C.genus2_curves.endomorphisms.find_one({'label': label})
@@ -188,6 +187,7 @@ def verify_curve_lmfdb(label, Lhash = None):
 
 def verify_batch(start = 0, limitN = 7000, verbose = False):
     from lmfdb import getDBconnection
+    import pymongo
     C = getDBconnection()
     i = 0 
     bound = 0;
@@ -195,7 +195,7 @@ def verify_batch(start = 0, limitN = 7000, verbose = False):
     for curve in C.genus2_curves.curves.find().sort([("cond", pymongo.ASCENDING), ("label", pymongo.ASCENDING)]).limit(limitN).skip(start):
         label = curve['label']
         Lhash = curve['Lhash'];
-        q, rendo, reuler = verify_curve_lmfd_lmfdb(label, Lhash)
+        q, rendo, reuler = verify_curve_lmfdb(label, Lhash)
         if not q:
             print "FAILED at label = %s" % label 
         if verbose:
