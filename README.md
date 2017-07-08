@@ -1,3 +1,11 @@
+# Proceed with caution
+
+We are in the process of merging two repositories:
+
+* https://github.com/JRSijsling/heuristic_endomorphisms
+* https://github.com/edgarcosta/genus2_endomorphisms
+
+and some functionality might be broken.
 # Description
 
 This repository contains a mix of Magma, Pari and Sage code for calculating a heuristic (and usually correct) approximation of the endomorphism algebras and rings of Jacobian varieties of hyperelliptic curves.
