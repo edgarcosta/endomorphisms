@@ -25,54 +25,75 @@ end if;
 end function;
 
 
-intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum : Optimize := false) -> SeqEnum
+intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum, F::Fld : VarName := "s") -> List
 {Returns the lattice of endomorphisms by (conjugacy class of) subfield.}
 
-gensTan := [ gen[1] : gen in GeoEndoRep ];
-gensHom := [ gen[2] : gen in GeoEndoRep ];
-gensApp := [ gen[3] : gen in GeoEndoRep ];
-L := BaseRing(gensTan[1]);
-Gp, Gf, Gphi := AutomorphismGroup(L);
+F_seq := FieldDescription(F, BaseRing(F));
+base := [* F_seq, F *];
 
+L := BaseRing(GeoEndoRep[1][1][1]);
+if (not IsRelativeExtension(L, F)) then
+    entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F : VarName := VarName);
+    entries := [ entry ];
+    return [* base, entries *];
+end if;
+
+Gp, Gf, Gphi := AutomorphismGroup(L);
 Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
 Sort(~Hs, CompareGroups);
 
-Lat := [ ];
-// The code of this first (geometric) step is a copy of that below except for
-// shorthand extraction. Of course it could be simpler, but there is no time
-// loss as a result.
-OverK := [* *];
-gensH := [ ]; GalK := [* gensH, Gphi *];
-K := L;
-
-// TODO: Indicate class group and treat the relative case (scaffolding in place).
-K_seq := [ Integers() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
-K_desc := [* K_seq, K *];
-EndoStruct := EndomorphismStructure(GeoEndoRep, GalK);
-Append(~OverK, K_desc);
-Append(~OverK, EndoStruct);
-Append(~Lat, OverK);
-Shorthand := SatoTateShorthand(EndoStruct);
-
+entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F : VarName := VarName);
+entries := [ entry ];
 for H in Hs[2..#Hs] do
-    OverK := [* *];
     gensH := Generators(H); GalK := [* gensH, Gphi *];
-    K := FixedField(L, [ Gphi(genH) : genH in gensH ]);
-
-    K := ClearFieldDenominator(K);
-    if (Type(K) eq FldNum and Optimize) then
-        K := OptimizedRepresentation(K);
-        K := ClearFieldDenominator(K);
-    end if;
-
-    // TODO: Indicate class group and treat the relative case (scaffolding in place).
-    K_seq := [ Integers() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
-    K_desc := [* K_seq, K *];
-    EndoStruct := EndomorphismStructure(GeoEndoRep, GalK : Shorthand := Shorthand);
-    Append(~OverK, K_desc);
-    Append(~OverK, EndoStruct);
-    Append(~Lat, OverK);
+    entry := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand, F : VarName := VarName);
+    Append(~entries, entry);
 end for;
-return Lat;
+return [* base, entries *];
+
+end intrinsic;
+
+
+intrinsic EndomorphismLatticeGeometricStep(GeoEndoRep::SeqEnum, F::Fld : VarName := "s") -> List
+{Part of the above.}
+
+entry := [* *];
+
+L := BaseRing(GeoEndoRep[1][1][1]);
+L_seq := FieldDescription(L, F);
+L_desc := [* L_seq, L *];
+Append(~entry, L_desc);
+
+GalL := [* [ ], [ ] *];
+EndoStruct := EndomorphismStructure(GeoEndoRep, GalL, F);
+Append(~entry, EndoStruct);
+
+//Append(~entry, ClassNumber(AbsoluteField(K)));
+
+Shorthand := SatoTateShorthand(EndoStruct);
+return entry, Shorthand;
+
+end intrinsic;
+
+
+intrinsic EndomorphismLatticeGeneralStep(GeoEndoRep::SeqEnum, GalK::List, Shorthand::MonStgElt, F::Fld : VarName := "s") -> List
+{Part of the above.}
+
+entry := [* *];
+
+L := BaseRing(GeoEndoRep[1][1][1]);
+gensH, Gphi := Explode(GalK);
+K := GeneralFixedField(L, [ Gphi(genH) : genH in gensH ]);
+K := ClearFieldDenominator(K);
+K_seq := FieldDescription(K, F);
+K_desc := [* K_seq, K *];
+Append(~entry, K_desc);
+
+EndoStruct := EndomorphismStructure(GeoEndoRep, GalK, F : Shorthand := Shorthand);
+Append(~entry, EndoStruct);
+
+//Append(~entry, ClassNumber(AbsoluteField(K)));
+
+return entry;
 
 end intrinsic;

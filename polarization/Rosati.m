@@ -56,3 +56,19 @@ else
 end if;
 
 end intrinsic;
+
+
+intrinsic RosatiFixedModule(GeoEndoRep::SeqEnum) -> .
+{Gives the ZZ-module of homological representations that are fixed under Rosati.}
+
+gensTan := [ gen[1] : gen in GeoEndoRep ];
+gensHom := [ gen[2] : gen in GeoEndoRep ]; Rs := gensHom;
+gensApp := [ gen[3] : gen in GeoEndoRep ];
+J := StandardSymplecticMatrix(#Rows(Rs[1]) div 2);
+Rdiffs := [ (-J * Transpose(rep[2]) * J) - rep[2] : rep in GeoEndoRep ];
+M := Matrix([ Eltseq(MatrixInBasis(Rdiff, Rs)) : Rdiff in Rdiffs ]);
+B := Basis(Kernel(M));
+Rsfixed := [ &+[ b[i]*Rs[i] : i in [1..#Rs] ] : b in B ];
+return Rsfixed;
+
+end intrinsic;

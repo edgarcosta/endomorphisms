@@ -13,6 +13,7 @@
     Structure.m
     SatoTate.m
     Lattice.m
+    Optimize.m
 
     Sagify.m
     VerifySat.m

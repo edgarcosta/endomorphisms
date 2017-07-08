@@ -10,10 +10,10 @@
  */
 
 
-intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, GalK::List) -> List
+intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, GalK::List, F::Fld) -> List
 {Gives the endomorphism structure over the subfield corresponding to GalK, starting from a list of representations.}
 
-EndoRep := EndomorphismRepresentation(GeoEndoRep, GalK);
+EndoRep := EndomorphismRepresentation(GeoEndoRep, GalK, F);
 EndoAlg, EndoDesc := EndomorphismAlgebraAndDescriptionBase(EndoRep);
 EndoStructBase := [* EndoRep, EndoAlg, EndoDesc *];
 return EndoStructBase;
@@ -21,22 +21,22 @@ return EndoStructBase;
 end intrinsic;
 
 
-intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, K::Fld) -> List
+intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, K::Fld, F::Fld) -> List
 {Gives the endomorphism structure over the subfield K, starting from a list of representations.}
 
 L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K);
-return EndomorphismStructureBase(GeoEndoRep, GalK);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
+return EndomorphismStructureBase(GeoEndoRep, GalK, F);
 
 end intrinsic;
 
 
-intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> List
+intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> List
 {Gives the endomorphism structure over the subfield corresponding to GalK, starting from a list of representations.}
 
-EndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalK);
+EndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalK, F);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoStructBase);
-SatoTate := SatoTateGroup(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
+SatoTate := SatoTateGroup(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
 Append(~EndoAlg, SatoTate); Append(~EndoDesc, SatoTate);
 EndoStruct := [* EndoRep, EndoAlg, EndoDesc *];
 return EndoStruct;
@@ -44,12 +44,12 @@ return EndoStruct;
 end intrinsic;
 
 
-intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, K::Fld : Shorthand := "") -> List
+intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, K::Fld, F::Fld : Shorthand := "") -> List
 {Gives the endomorphism structure over the subfield K, starting from a list of representations.}
 
 L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K);
-return EndomorphismStructure(GeoEndoRep, GalK);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
+return EndomorphismStructure(GeoEndoRep, GalK, F);
 
 end intrinsic;
 
@@ -93,7 +93,7 @@ for D in Ds do
     F := BaseRing(E1);
     E2 := ChangeRing(E1, F);
     F := ClearFieldDenominator(F);
-    if (Type(F) eq FldNum and Optimize) then
+    if (not IsQQ(F)) and Optimize then
         F := OptimizedRepresentation(F);
         F := ClearFieldDenominator(F);
     end if;
@@ -206,7 +206,7 @@ Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
     //F := ClearFieldDenominator(BaseRing(E1));
-    //if (Type(F) eq FldNum and Optimize) then
+    //if (not IsQQ(F)) and Optimize then
     //    F := OptimizedRepresentation(F);
     //    F := ClearFieldDenominator(F);
     //end if;
@@ -214,7 +214,8 @@ if #Ds eq 1 then
     F := BaseRing(E1);
     E2 := E1;
     test, d := IsSquare(Dimension(E2));
-    if d eq 2 and Type(F) eq FldRat then
+
+    if d eq 2 and IsQQ(F) then
         test, Q, f3 := IsQuaternionAlgebra(E2);
         if test then
             //f := f1 * f2 * f3;

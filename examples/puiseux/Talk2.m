@@ -1,5 +1,5 @@
 AttachSpec("../../spec");
-SetVerbose("EndoCheck", 1);
+SetVerbose("EndoCheck", 0);
 
 R<t> := PolynomialRing(Rationals());
 F<r> := NumberField(t^2 - 2);
@@ -23,11 +23,21 @@ print "Tangent representation:";
 print M;
 
 print "Calculating divisor:";
-test, D := DivisorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1, DivPP1 := true);
+time test, D := DivisorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1, DivPP1 := false);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print D;
+
+exit;
+
+print "Calculating Cantor representation...";
+time test, fs := CantorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+R<x,y> := Parent(fs[1]);
+print "Cantor representation:";
+print fs;
+
+exit;
 
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);

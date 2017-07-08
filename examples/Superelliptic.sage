@@ -11,8 +11,6 @@
 
 load("../Initialize.sage")
 
-
-# Plane tests
 F = QQ
 P2.<x,y,z> = ProjectiveSpace(F, 2)
 
@@ -24,8 +22,8 @@ f = y^3*z - (x^4 + 2*x^2*z^2 + 3*x*z^3 + 5*z^4)
 f = y^3*z - (x^4 + 2*x^2*z^2 + 5*z^4)
 X = mPlaneCurve(f)
 
-prec = 300
 
+prec = 300
 print X
 Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
 

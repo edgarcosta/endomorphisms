@@ -17,12 +17,100 @@ declare attributes FldNum : iota;
 declare attributes FldRat : iota;
 
 
+intrinsic IsQQ(F::Fld) -> BoolElt
+{Whether or not F is QQ.}
+
+return Type(F) eq FldRat;
+
+end intrinsic;
+
+
+intrinsic HasBaseQQ(F::Fld) -> BoolElt
+{Whether or not F has QQ as a base ring.}
+
+return Type(BaseRing(F)) eq FldRat;
+
+end intrinsic;
+
+
+intrinsic GiveName(~K::Fld, F::Fld, str::MonStgElt)
+{Give a name to a generator if such a generator is indeed present.}
+
+if IsRelativeExtension(K, F) then
+    AssignNames(~K, [ str ]);
+end if;
+
+end intrinsic;
+
+
+intrinsic IsRelativeExtension(K::Fld, F::Fld) -> Fld
+{Checks if K is given as an extension of F.}
+
+testrat := IsQQ(F) and IsQQ(K);
+testnonrat := (not IsQQ(F)) and (BaseRing(K) ne F);
+return not (testrat or testnonrat);
+
+end intrinsic;
+
+
+intrinsic MakeExtension(K::Fld, F::Fld) -> Fld
+{Our conventions on field extensions.}
+
+// TODO: Both versions should work in the end, but the first is far more
+// user-friendly
+return K;
+return MakeRelative(K, F);
+
+end intrinsic;
+
+
+intrinsic MakeRelative(K::Fld, F::Fld) -> Fld
+{Takes a linear extension if needed.}
+
+if not IsRelativeExtension(K, F) then
+    R<x> := PolynomialRing(F);
+    K := NumberField(x - 1: DoLinearExtension := true);
+end if;
+return K;
+
+end intrinsic;
+
+
+intrinsic FieldDescription(K::Fld, F::Fld) -> SeqEnum
+{Gives a list describing the field K as an extension of F.}
+
+K := MakeRelative(K, F);
+if IsQQ(F) then
+    K_seq := [ Integers() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
+else
+    K_seq := [ [ Integers() ! c : c in Eltseq(F ! coeff) ] : coeff in Eltseq(MinimalPolynomial(K.1)) ];
+end if;
+return K_seq;
+
+end intrinsic;
+
+
+intrinsic ElementDescription(r::., F::Fld) -> .
+{Gives a list describing the field element r.}
+
+K := Parent(r);
+if IsQQ(K) then
+    return r;
+elif (IsQQ(F) and (Degree(K) gt 1)) or (not IsRelativeExtension(K, F)) then
+    return [ Rationals() ! c : c in Eltseq(r) ];
+else
+    return [ [ Rationals() ! c : c in Eltseq(d) ] : d in Eltseq(r) ];
+end if;
+
+end intrinsic;
+
+
 intrinsic SetInfinitePlace(K::FldNum, iota::.)
 {Creates a complex field with some extra needed parameters.}
 
 K`iota := iota;
 F := BaseRing(K);
-if Type(F) eq FldNum then
+if not IsQQ(F) then
     for iotaF in InfinitePlaces(F) do
         if Extends(iota, iotaF) then
             SetInfinitePlace(F, iotaF);
@@ -47,7 +135,7 @@ intrinsic DefineOrExtendInfinitePlace(K::Fld)
 {Extends an infinite place over a relative field extension.}
 
 F := BaseRing(K);
-if not assigned F`iota or Type(F) eq FldRat then
+if not assigned F`iota or IsQQ(F) then
     SetInfinitePlace(K, InfinitePlaces(K)[1]);
 else
     for iotaK in InfinitePlaces(K) do
@@ -63,7 +151,7 @@ end intrinsic;
 intrinsic RestrictInfinitePlace(L::Fld, K::Fld)
 {Restricts an infinite place over a relative field extension.}
 
-if Type(K) eq FldRat then
+if IsQQ(K) then
     SetInfinitePlace(K, InfinitePlaces(K)[1]);
 else
     for iotaK in InfinitePlaces(K) do
@@ -152,7 +240,7 @@ intrinsic ClearFieldDenominator(K::Fld) -> Fld
 
 F := BaseRing(K); d := Degree(K);
 if d eq 1 then
-    return F;
+    return MakeExtension(K, F);
 end if;
 r := K.1;
 coeffs := Coefficients(MinimalPolynomial(r, Rationals()));
@@ -163,9 +251,11 @@ if #primes eq 0 then
 else
     common_den := &*[ p^Maximum([ Ceiling(Valuation(dens[k], p)/k) : k in [1..#dens] | dens[k] ne 0 ]) : p in primes ];
 end if;
-f := MinimalPolynomial(common_den*r);
-K := NumberField(f);
-return K;
+
+R := PolynomialRing(F);
+f := MinimalPolynomial(common_den*r, F);
+K := NumberField(R ! f);
+return MakeExtension(K, F);
 
 end intrinsic;
 
@@ -180,6 +270,7 @@ if Degree(F) eq 1 then
     end if;
     return K;
 end if;
+
 while true do
     factors := [ tup[1] : tup in Factorization(f, K) | Degree(tup[1]) gt 1 ];
     if #factors eq 0 then
@@ -188,7 +279,7 @@ while true do
     if K eq F then
         K := NumberField(factors[1]);
     else
-        // TODO: This step can cost a lot of time
+        // FIXME: This step can cost a lot of time
         K := RelativeField(F, NumberField(factors[1]));
     end if;
 end while;
@@ -216,7 +307,7 @@ intrinsic RelativeSplittingField(fs::SeqEnum) -> FldNum
 
 // FIXME: This code below is relatively bad; I would prefer to first define K
 // as a linear extension and then to update it. This removes certain
-// dichotomies. However, Magma is not happy with it.
+// dichotomies. However, Magma then takes much more time for some reason.
 F := BaseRing(fs[1]); K := F;
 fs := Reverse(Sort(fs, CompareFields));
 for f in fs do
@@ -228,7 +319,7 @@ for f in fs do
         end for;
     end if;
 end for;
-return K;
+return MakeExtension(K, F);
 
 end intrinsic;
 
@@ -262,19 +353,20 @@ end intrinsic;
 intrinsic RelativeCompositum(K::Fld, L::Fld) -> Fld
 {Relative compositum.}
 
-if Type(K) eq FldRat and Type(L) eq FldRat then
+if IsQQ(K) and IsQQ(L) then
     M := K;
     phiK := hom<K -> M | >;
     phiL := hom<L -> M | >;
-elif Type(K) eq FldRat then
+elif IsQQ(K) then
     M := L;
     phiK := hom<K -> M | >;
     phiL := hom<L -> M | L.1>;
-elif Type(L) eq FldRat then
+elif IsQQ(L) then
     M := K;
     phiK := hom<K -> M | K.1>;
     phiL := hom<L -> M | >;
 else
+
     F := BaseRing(K); M := K;
     R<x> := PolynomialRing(F);
     g := MinimalPolynomial(L.1, F);
@@ -294,5 +386,30 @@ intrinsic RelativeCompositumExtra(K::Fld, L::Fld) -> Fld
 M := RelativeCompositum(K, L);
 DefineOrExtendInfinitePlace(M);
 return M;
+
+end intrinsic;
+
+
+intrinsic RelativeFixedField(L::Fld, gens::SeqEnum) -> Fld
+{Fixed subfield of L determined by the automorphisms in gens.}
+
+dL := Degree(L); F := BaseRing(L);
+Ms := [ Matrix([ Eltseq(gen(L.1^i) - L.1^i) : i in [0..(dL - 1)] ]) : gen in gens ];
+Ker := &meet[ Kernel(M) : M in Ms ];
+B := [ &+[ b[i + 1]*L.1^i : i in [0..(dL - 1)] ] : b in Basis(Ker) ];
+K := sub< L | B >;
+return MakeExtension(K, F);
+
+end intrinsic;
+
+
+intrinsic GeneralFixedField(L::Fld, gens::SeqEnum) -> Fld
+{Fixed subfield of L determined by the automorphisms in gens.}
+
+if HasBaseQQ(L) then
+    return MakeExtension(FixedField(L, gens), Rationals());
+else
+    return MakeExtension(RelativeFixedField(L, gens), BaseRing(L));
+end if;
 
 end intrinsic;

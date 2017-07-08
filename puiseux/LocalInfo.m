@@ -16,7 +16,6 @@ forward InitializeMatrix;
 forward PuiseuxRamificationIndex;
 forward InitializeImageBranch;
 
-forward RootWithHensel;
 forward DevelopPoint;
 
 forward InitializeLift;
@@ -121,7 +120,7 @@ return [ P[i] * wK + O(wK^2) : i in [1..g] ], h(G[#G]);
 end function;
 
 
-function RootWithHensel(f, P0, n)
+function DevelopPoint(X, P0, n)
 /*
  * Input:   An algebraic relation f between two variables,
  *          a point P0 that satisfies this,
@@ -131,6 +130,7 @@ function RootWithHensel(f, P0, n)
  * The relation f has to be non-singular when developing in y,
  * and the x-coordinate can be specified as a Puiseux series. */
 
+f := X`DEs[1];
 if Type(P0[1]) in [ RngSerPuisElt, RngSerPowElt ] then
     F := BaseRing(Parent(P0[1]));
 else
@@ -165,34 +165,6 @@ return [x, y];
 end function;
 
 
-function DevelopPoint(X, P0, n)
-/*
- * Input:   A curve X,
- *          a point P0 on it (may be over a series ring),
- *          and a precision n.
- * Output:  A development to precision n of P in a uniformizing parameter.
- *          The correct branch at P0 is chosen,
- *          and a coordinate is used in the case of a plane curve.
- */
-
-if not X`is_planar then
-    /* Here only for constant points, in which case we fall back to the given
-     * base point. We do get an expansion that may not be in our uniformizer. */
-    return [ Expand(X`K ! c, Place(X`P0) : AbsPrec := n) : c in GeneratorsSequence(X`R) ];
-end if;
-f := X`DEs[1];
-if X`unif_index eq 1 then
-    return RootWithHensel(f, P0, n);
-else
-    f_swap := Evaluate(f, [(X`R).2, (X`R).1]);
-    P0_swap := [ P0[2], P0[1] ];
-    P := RootWithHensel(f_swap, P0_swap, n);
-    return [ P[2], P[1] ];
-end if;
-
-end function;
-
-
 function InitializeLift(X, Y, M)
 
 P0 := X`P0; Q0 := Y`P0;
@@ -202,13 +174,13 @@ PR := Parent(tjs0[1]);
 
 /* Creating P */
 P := [ PR ! P0[1], PR ! P0[2] ];
-P[X`unif_index] +:= PR.1;
+P[1] +:= PR.1;
 P := [ PR ! c : c in DevelopPoint(X, P, X`g + 1) ];
 
 /* Creating Qs */
 Qs := [ [ PR ! Q0[1], PR ! Q0[2] ] : i in [1..Y`g] ];
 for i in [1..Y`g] do
-    Qs[i][Y`unif_index] +:= tjs0[i];
+    Qs[i][1] +:= tjs0[i];
 end for;
 Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 1) ] : Qj in Qs ];
 return P, Qs;
@@ -218,11 +190,8 @@ end function;
 
 function CreateLiftIterator(X, Y, M)
 
-X_unif_index := X`unif_index; X_other_index := (X_unif_index mod 2) + 1;
-fX := X`DEs[1]; dfX := Derivative(fX, X_other_index); BX := X`NormB; gX := X`g;
-
-Y_unif_index := Y`unif_index; Y_other_index := (Y_unif_index mod 2) + 1;
-fY := Y`DEs[1]; dfY := Derivative(fY, Y_other_index); BY := Y`NormB; gY := Y`g;
+fX := X`DEs[1]; dfX := Derivative(fX, X`y); BX := X`NormB; gX := X`g;
+fY := Y`DEs[1]; dfY := Derivative(fY, Y`y); BY := Y`NormB; gY := Y`g;
 
 e := PuiseuxRamificationIndex(M);
 
@@ -237,17 +206,17 @@ e := PuiseuxRamificationIndex(M);
     Qs := [ [ LiftPuiseuxSeries(c, PR, e) : c in Qj ] : Qj in Qs ];
     for i in [1..gY] do
         h := -Evaluate(fY, Qs[i])/Evaluate(dfY, Qs[i]);
-        Qs[i][Y_other_index] +:= h;
+        Qs[i][2] +:= h;
     end for;
 
     /* Calculate P to higher precision: */
     P := [ LiftPuiseuxSeries(c, PR, 1) : c in P ];
-    P[X_unif_index] := Coefficient(P[X_unif_index], 0) + PR.1;
+    P[1] := Coefficient(P[1], 0) + PR.1;
     h := -Evaluate(fX, P)/Evaluate(dfX, P);
-    P[X_other_index] +:= h;
+    P[2] +:= h;
 
     /* Calculate LHS: */
-    dtjs := [ Derivative(Qj[Y_unif_index]) : Qj in Qs ];
+    dtjs := [ Derivative(Qj[1]) : Qj in Qs ];
     BQs := Matrix([ [ Evaluate(BY[i], Qs[j]) : j in [1..gY] ] : i in [1..gY] ]);
     F_ev := Matrix([ [ Integral(&+[ BQs[i,j] * dtjs[j] : j in [1..gY] ]) : i in [1..gY] ] ]);
     DF_ev := Transpose(BQs);
@@ -261,9 +230,9 @@ e := PuiseuxRamificationIndex(M);
 
     /* Calculate Qs to higher precision: */
     for i in [1..gY] do
-        Qs[i][Y_unif_index] +:= H[1,i];
+        Qs[i][1] +:= H[1,i];
         h := -Evaluate(fY, [Qs[i][1], Qs[i][2]])/Evaluate(dfY, [Qs[i][1], Qs[i][2]]);
-        Qs[i][Y_other_index] +:= h;
+        Qs[i][2] +:= h;
     end for;
     return P, Qs;
 

@@ -105,13 +105,13 @@ return HyperellipticCurve(d * g);
 end intrinsic;
 
 
-intrinsic FactorDescription(X::Crv) -> List
+intrinsic FactorDescription(X::Crv, F::Fld) -> List
 {Describes factor by recursive list of strings and integers.}
 
 if Type(X) eq CrvHyp then
-    return FactorDescriptionHyperelliptic(X);
+    return FactorDescriptionHyperelliptic(X, F);
 elif Type(X) eq CrvPln then
-    return FactorDescriptionPlane(X);
+    return FactorDescriptionPlane(X, F);
 else
     error "No implementation for general curves yet";
 end if;
@@ -119,55 +119,54 @@ end if;
 end intrinsic;
 
 
-intrinsic FactorDescriptionHyperelliptic(X::CrvHyp) -> List
+intrinsic FactorDescriptionHyperelliptic(X::CrvHyp, F::Fld) -> List
 {Describes factor by recursive list of strings and integers.}
 
-entry1 := "hyp";
+// TODO: Modify as functionality starts working
+if Genus(X) eq 1 then
+    desc := "ell";
 
-// TODO: Fractions may occur. Also, relative case will need slight changes.
-F := BaseRing(X);
-F_seq := Eltseq(MinimalPolynomial(F.1));
-F_seq := [ Rationals() ! coeff : coeff in F_seq ];
-// NOTE for relative case:
-//F_seq := [ [ Rationals() ! c : c in coeff ] : coeff in F_seq ];
-entry2 := F_seq;
+    K := BaseRing(X); F := BaseRing(K);
+    K_seq := FieldDescription(K, F);
+    field := K_seq;
 
-f, h := HyperellipticPolynomials(X);
-f_seq := Eltseq(f); h_seq := Eltseq(h);
-f_seq_seq := [ [ Rationals() ! c : c in Eltseq(coeff) ] : coeff in f_seq ];
-h_seq_seq := [ [ Rationals() ! c : c in Eltseq(coeff) ] : coeff in h_seq ];
-entry3 := [ f_seq_seq, h_seq_seq ];
+    f, h := HyperellipticPolynomials(X);
+    f_seq := Eltseq(f); h_seq := Eltseq(h);
+    f_seq_seq := [ ElementDescription(coeff, F) : coeff in f_seq ];
+    h_seq_seq := [ ElementDescription(coeff, F) : coeff in h_seq ];
+    coeffs := [ f_seq_seq, h_seq_seq ];
 
-L := [* entry1, entry2, entry3 *];
-return L;
+else
+    desc := "hyp";
+    field := [ ];
+    coeffs := [ ];
+end if;
+
+return [* desc, field, coeffs *];
 
 end intrinsic;
 
 
-intrinsic FactorDescriptionPlane(X::CrvPln) -> List
+intrinsic FactorDescriptionPlane(X::CrvPln, F::Fld) -> List
 {Describes factor by recursive list of strings and integers.}
 
-entry1 := "pln";
+desc := "pln";
 
-// TODO: Fractions may occur. Also, relative case will need slight changes.
-F := BaseRing(X);
-F_seq := Eltseq(MinimalPolynomial(F.1));
-F_seq := [ Rationals() ! coeff : coeff in F_seq ];
-// NOTE for relative case:
-//F_seq := [ [ Rationals() ! c : c in coeff ] : coeff in F_seq ];
-entry2 := F_seq;
+K := BaseRing(X); F := BaseRing(K);
+
+K_seq := FieldDescription(K, F);
+field := K_seq;
 
 f := DefiningPolynomials(X)[1];
 mons := Monomials(f);
-entry3 := [ ];
+coeffsexps := [ ];
 for mon in mons do
     coeff := MonomialCoefficient(f, mon);
-    coeff_seq := [ Rationals() ! c : c in Eltseq(coeff) ];
+    coeff_seq := ElementDescription(coeff, F);
     exp := Exponents(mon);
-    Append(~entry3, [* coeff_seq, exp *]);
+    Append(~coeffsexps, [* coeff_seq, exp *]);
 end for;
 
-L := [* entry1, entry2, entry3 *];
-return L;
+return [* desc, field, coeffsexps *];
 
 end intrinsic;

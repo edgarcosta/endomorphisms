@@ -22,6 +22,7 @@ magma.load('~/.magmarc')
 magma.AttachSpec('spec')
 
 load('heuristic/Curves.sage')
+load('heuristic/Optimize.sage')
 load('heuristic/Relative.sage')
 load('heuristic/Reprs.sage')
 load('heuristic/Dicts.sage')

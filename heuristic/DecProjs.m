@@ -10,23 +10,24 @@
  */
 
 
-intrinsic IdempotentsFromLattice(Lat::SeqEnum) -> .
+intrinsic IdempotentsFromLattice(Lat::List) -> .
 {Finds idempotents over the smallest possible field by running over Lat.}
 
-Lat := Reverse(Lat);
-GeoEndoStruct := Lat[#Lat][2];
-L := Lat[#Lat][1][2];
+entries := Lat[2];
+entries := Reverse(entries);
+GeoEndoStruct := entries[#entries][2];
+L := entries[#entries][1][2];
 num_idemsgeo := NumberOfIdempotentsFromStructure(GeoEndoStruct);
 if num_idemsgeo eq 1 then
-    K := Lat[1][1][2];
+    K := entries[1][1][2];
     RestrictInfinitePlace(L, K);
     return [ ], K;
 end if;
 
-n := #Lat; i := 1;
+n := #entries; i := 1;
 while i le n do
-    K := Lat[i][1][2];
-    EndoStruct := Lat[i][2];
+    K := entries[i][1][2];
+    EndoStruct := entries[i][2];
     num_idems := NumberOfIdempotentsFromStructure(EndoStruct);
     if num_idems eq num_idemsgeo then
         idems := IdempotentsFromStructure(EndoStruct);

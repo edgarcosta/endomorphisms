@@ -10,12 +10,17 @@
 """
 
 _index_dict_ = dict()
-# Magma indices for Lattice
+# Magma indices for lattice
+_index_dict_['base'] = 1
+_index_dict_['entries'] = 2
+# Magma indices for lattice entries
 _index_dict_['field'] = 1
 _index_dict_['structure'] = 2
-# Magma indices for field key
+# Magma indices for base and field key
 _index_dict_['seq'] = 1
 _index_dict_['magma'] = 2
+# Class number not used because of performance:
+#_index_dict_['h'] = 3
 # Magma indices for OverField
 _index_dict_['representation'] = 1
 _index_dict_['algebra'] = 2
@@ -36,7 +41,7 @@ _index_dict_['desc_RR'] = 2
 _index_dict_['sato_tate'] = 3
 # Sage indices for a factor_QQ
 _index_dict_['albert_type'] = 0
-_index_dict_['base_field'] = 1
+_index_dict_['center'] = 1
 _index_dict_['dim_sqrt'] = 2
 _index_dict_['disc'] = 3
 # Sage indices for desc_ZZ key
@@ -52,20 +57,32 @@ def sagify_description(desc_list):
     return eval(repr(magma.SagifyDescription(desc_list)))
 
 def dict_lattice(lattice):
+    dikt = dict()
+    dikt['base'] = dict_base(lattice[_index_dict_['base']])
+    dikt['entries'] = dict_entries(lattice[_index_dict_['entries']])
+    return dikt
+
+def desc_lattice(lattice):
+    desc = [ ]
+    desc.append(desc_base(lattice[_index_dict_['base']]))
+    desc.append(desc_entries(lattice[_index_dict_['entries']]))
+    return desc
+
+def dict_entries(entries):
     dicts = [ ]
-    for tup in lattice:
+    for tup in entries:
         dikt = dict()
         dikt['field'] = dict_field(tup[_index_dict_['field']])
         dikt['structure'] = dict_structure(tup[_index_dict_['structure']])
         dicts.append(dikt)
     return dicts
 
-def desc_lattice(lattice):
+def desc_entries(entries):
     descs = [ ]
-    for tup in lattice:
+    for tup in entries:
         desc = [ ]
-        desc.append(sagify_description(tup[_index_dict_['field']][_index_dict_['seq']]))
-        desc.append(sagify_description(tup[_index_dict_['structure']][_index_dict_['description']]))
+        desc.append(desc_field(tup[_index_dict_['field']]))
+        desc.append(desc_structure(tup[_index_dict_['structure']]))
         descs.append(desc)
     return descs
 
@@ -80,11 +97,23 @@ def dict_structure(structure):
 def desc_structure(structure):
     return sagify_description(structure[_index_dict_['description']])
 
+def dict_base(base):
+    dikt = dict()
+    dikt['seq'] = base[_index_dict_['seq']]
+    dikt['magma'] = base[_index_dict_['magma']]
+    return dikt
+
+def desc_base(base):
+    return sagify_description(base[_index_dict_['seq']])
+
 def dict_field(field):
     dikt = dict()
     dikt['seq'] = field[_index_dict_['seq']]
     dikt['magma'] = field[_index_dict_['magma']]
     return dikt
+
+def desc_field(field):
+    return sagify_description(field[_index_dict_['seq']])
 
 def dict_rep(rep):
     return [ dict_gen(gen) for gen in rep ]
@@ -115,7 +144,7 @@ def dict_description(desc):
 def dict_factor_QQ(factor_QQ):
     dikt = dict()
     dikt['albert_type'] = factor_QQ[_index_dict_['albert_type']]
-    dikt['base_field'] = factor_QQ[_index_dict_['base_field']]
+    dikt['center'] = factor_QQ[_index_dict_['center']]
     dikt['dim_sqrt'] = factor_QQ[_index_dict_['dim_sqrt']]
     dikt['disc'] = factor_QQ[_index_dict_['disc']]
     return dikt

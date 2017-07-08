@@ -13,26 +13,24 @@ load("../Initialize.sage")
 
 Xs = [ ]
 
-# RM over QQ
-#R.<x> = PolynomialRing(QQ)
-#f,h = [2*x^5-3*x^4+x^3+x^2-x,1]
-#Xs.append(mHyperellipticCurve(f, h))
-
-# Example by Haluk
+# An example by Haluk Sengun
 R.<t> = PolynomialRing(QQ)
-F.<u> = NumberField(t^2 - t + 1)
+F.<r> = NumberField(t^2 - t + 1)
 R.<x> = PolynomialRing(F)
-f = R([ -30*u + 42, -156*u + 312, -66*u + 186, -1456*u + 1040, -90*u + 126, 156*u - 312, -22*u + 62 ])
+f = R([ -30*r + 42, -156*r + 312, -66*r + 186, -1456*r + 1040, -90*r + 126, 156*r - 312, -22*r + 62 ])
+h = R(0)
+Xs.append(mHyperellipticCurve(f, h))
+
+R.<t> = PolynomialRing(QQ)
+F.<r> = NumberField(t^2 + 1)
+R.<x> = PolynomialRing(F)
+f = x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1
 h = R(0)
 Xs.append(mHyperellipticCurve(f, h))
 
 for X in Xs:
     print X
-    # The main functionality
-    Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
-
-    print "Period matrix:"
-    print Endo.period_matrix()
+    Endo = EndomorphismData(X, prec = 300, have_oldenburg = False)
 
     print "Field of definition:"
     print Endo.endomorphism_field()
@@ -40,5 +38,7 @@ for X in Xs:
     print "Geometric representation:"
     Geo = Endo.geometric()
     print Geo.representation()
-    print Geo.algebra()
     print Geo.pretty_print()
+
+    print "Lattice:"
+    print Endo.lattice().pretty_print()

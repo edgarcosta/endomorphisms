@@ -36,7 +36,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
     end if;
     test, fCC, e := IsSuperelliptic(eqsCC);
     if test then
-        P := Transpose(Matrix(CC, SE_BigPeriodMatrix(fCC, e : Prec := Precision(CC))));
+        P := Transpose(Matrix(CC, PeriodMatrix(fCC, e : Prec := Precision(CC))));
         P := SuperellipticCompatibility(P, e);
         return P;
     else

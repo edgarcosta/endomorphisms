@@ -40,8 +40,8 @@ return Matrix(RR, [ [MonomialCoefficient(c, var) : c in Comm] : var in vars ]);
 end intrinsic;
 
 
-intrinsic AnalyticRepresentationIsogeny(R::., P::., Q::.) -> .
-{Given a rational representation R of an isogeny and two period matrices P and Q, finds an analytic representation of that same isogeny.}
+intrinsic TangentRepresentationIsogeny(R::., P::., Q::.) -> .
+{Given a homology representation R of an isogeny and two period matrices P and Q, finds an analytic representation of that same isogeny.}
 
 // FIXME: We may not want to recalculate this every time and pass on P0 and s0
 // as data. On the other hand, this is not a huge deal.
@@ -56,10 +56,30 @@ return Transpose(NumericalLeftSolve(Transpose(P0), Transpose(RQ0)));
 end intrinsic;
 
 
-intrinsic AnalyticRepresentationEndomorphism(R::., P::.) -> .
-{Given a rational representation R of an endomorphism and a period matrix P, finds an analytic representation of that same endomorphism.}
+intrinsic TangentRepresentationEndomorphism(R::., P::.) -> .
+{Given a homology representation R of an endomorphism and a period matrix P, finds an analytic representation of that same endomorphism.}
 
-return AnalyticRepresentationIsogeny(R, P, P);
+return TangentRepresentationIsogeny(R, P, P);
+
+end intrinsic;
+
+
+intrinsic HomologyRepresentationIsogeny(A::., P::., Q::.) -> .
+{Given a tangent representation A of an isogeny and two period matrices P and Q, finds an homology representation of that same isogeny.}
+
+SplitPA := SplitMatrix(P * A);
+SplitQ := SplitMatrix(Q);
+RRR := SplitPA * SplitQ^(-1);
+R := Matrix(Integers(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
+return R;
+
+end intrinsic;
+
+
+intrinsic HomologyRepresentationEndomorphism(A::., P::.) -> .
+{Given a tangent representation A of an endomorphism and a period matrix P, finds an tangent representation of that same endomorphism.}
+
+return HomologyRepresentationIsogeny(A, P, P);
 
 end intrinsic;
 
@@ -85,7 +105,7 @@ for r in Rows(Ker) do
     // Culling the correct transformations from holomorphy condition
     Comm := JP * ChangeRing(genHom, RR) - ChangeRing(genHom, RR) * JQ;
     if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
-        genApp := AnalyticRepresentationIsogeny(genHom, P, Q);
+        genApp := TangentRepresentationIsogeny(genHom, P, Q);
         // Transpose for usual left action
         Append(~gens, [* Transpose(genApp), Transpose(genHom) *]);
     end if;

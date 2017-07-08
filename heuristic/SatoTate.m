@@ -9,12 +9,13 @@
  *  See LICENSE.txt for license details.
  */
 
-intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
 {Determines Sato-Tate group by subgroup of Galois group.}
 
 g := #Rows(EndoStructBase[1][1][1]);
-if g eq 2 then
-    return SatoTateGroupG2(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
+F := Parent(EndoStructBase[1][1][1][1,1]);
+if g eq 2 and HasBaseQQ(F) then
+    return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
 else
     // TODO: Add other cases when they appear.
     return "undef";
@@ -23,20 +24,36 @@ end if;
 end intrinsic;
 
 
-intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld, F::Fld : Shorthand := "") -> MonStgElt
 {Determines Sato-Tate group over K.}
 
 L := BaseRing(EndoStructBase[1][1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K);
-return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
+return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
 
 end intrinsic;
 
 
-intrinsic SatoTateGroupG2(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroupG2QQ(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
 {Determines the Sato-Tate group in genus 2.}
 
 GensH, Gphi := Explode(GalK);
+if #GensH eq 0 then
+    Shorthand := SatoTateShorthandG2(EndoStructBase);
+    if Shorthand eq "A" then
+        return "USp(4)";
+    elif Shorthand eq "B" then
+        return "G_{3,3}";
+    elif Shorthand eq "C" then
+        return "G_{1,3}";
+    elif Shorthand eq "D" then
+        return "F";
+    elif Shorthand eq "E" then
+        return "E_1";
+    elif Shorthand eq "F" then
+        return "C_1";
+    end if;
+end if;
 H := sub< Domain(Gphi) | GensH >;
 L := BaseRing(GeoEndoRep[1][1]);
 GalL := [* sub< Domain(Gphi) |  [ ] >, Gphi *];
@@ -63,11 +80,11 @@ end if;
 
 // Determine the Shorthand if needed:
 if Shorthand eq "" then
-    GeoEndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalL);
+    GeoEndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalL, F);
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
 end if;
 descRR := EndoStructBase[3][3];
-K := FixedField(L, H);
+K := GeneralFixedField(L, [ Gphi(gen) : gen in GensH ]);
 
 // Usually the shorthand and endomorphism structure of the base field determine
 // everything; in the rare cases where they do not we recalculate a bit.
@@ -141,7 +158,7 @@ elif Shorthand eq "F" then
             H_prime := Center(H);
             GensH_prime := Generators(H_prime);
             GalK_prime := [* GensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
+            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime, F);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "D_{6,1}";
@@ -183,7 +200,7 @@ elif Shorthand eq "F" then
             H_prime := Subgroups(H : OrderEqual := 2)[1]`subgroup;
             GensH_prime := Generators(H_prime);
             GalK_prime := [* GensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
+            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime, F);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "C_{6,1}";
@@ -237,7 +254,7 @@ elif Shorthand eq "F" then
         return "C_1";
     end if;
 end if;
-error Error("All cases in SatoTateGroupG2 fell through");
+error Error("All cases in SatoTateGroupG2QQ fell through");
 
 end intrinsic;
 

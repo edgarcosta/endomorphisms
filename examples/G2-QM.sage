@@ -21,21 +21,17 @@
  *  Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-# Add if no initilization script set:
 load('../Initialize.sage')
 
-# Ambient ring:
 F = QQ
 R.<x> = PolynomialRing(F)
 
-# Curve:
 f = x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1
 h = R(0)
 X = mHyperellipticCurve(f, h)
 
 print X
-# The main functionality
-Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
+Endo = EndomorphismData(X, prec = 300, have_oldenburg = False)
 
 print "Field of definition:"
 print Endo.endomorphism_field()

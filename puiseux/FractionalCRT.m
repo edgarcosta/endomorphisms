@@ -27,14 +27,27 @@ forward ReduceCurveSplit;
 
 
 function RandomSplitPrime(f, B)
-/* For a relative Galois extension defined as the splitting field of a
- * polynomial f */
+/* Input:  A polynomial f over a general absolute field and a positive integer
+ *         B
+ * Output: A totally split prime of the rationals of size roughly 2^B and a
+ *         root of f modulo that prime
+ */
+
+/*
+ * In the relative case things are more complicated, in the sense that we may
+ * not actually get a totally reduced prime and the reduction below may fail.
+ * The algorithm only sees the relative polynomial after all, which may not
+ * give an absolute generators. Yet we need the current form since alternative
+ * approaches like using IsTotallySplit seem to use much more time.
+ *
+ * One option, arguably the easiest, is to change base to an absolute field
+ * before verifying. This is what we do for now.
+ */
 
 F := BaseRing(Parent(f));
 while true do
     p := RandomPrime(B : Proof := false);
     FF := FiniteField(p);
-    // TODO: Only absolute number fields can be dealt with in this speedup.
     if Type(F) eq FldRat then
         test := true; rt := 1;
     else
@@ -56,14 +69,7 @@ function RandomSplitPrimes(f, B, n)
 ps_rts := [* *];
 while #ps_rts lt n do
     p_rt_new := RandomSplitPrime(f, B);
-    test := true;
-    for p_rt in ps_rts do
-        if p_rt[1] eq p_rt_new[1] then
-            test := false;
-            break;
-        end if;
-    end for;
-    if test then
+    if not p_rt_new[1] in [ p_rt[1] : p_rt in ps_rts ] then
         Append(~ps_rts, p_rt_new);
     end if;
 end while;
@@ -84,15 +90,20 @@ end function;
 
 
 function FractionalCRTSplit(rs, prs, OK, I, BOK, BI, K)
-/* Need distinct primes downstairs and do not check for this */
+/* rs is a set of remainders at the set of split primes prs,
+ * I is an ideal in OK < K,
+ * BOK and BI are eltseq of basis of OK and I
+ */
 
 if Type(OK) eq RngInt then
+    //print "QQ";
     return FractionalCRTQQ(rs, [ Norm(p) : p in prs ]);
 end if;
 n := CRT([ Integers() ! r : r in rs ], [ Norm(p) : p in prs ]);
 M := Matrix(Integers(), [ [ b[i] : b in BOK ] cat [ KroneckerDelta(1, i)*n ] cat [ b[i] : b in BI ] : i in [1..#BOK] ]);
 Lat := Lattice(Kernel(Transpose(M)));
 v := ShortestVectors(Lat)[1];
+// This should never happen
 if v[#BOK + 1] eq 0 then
     error "Division by zero";
 end if;
@@ -127,6 +138,8 @@ function ReducePolynomialSplit(f, p, rt);
 
 FF := FiniteField(p); R_red := PolynomialRing(FF, Rank(Parent(f)));
 f_red := &+[ ReduceConstantSplit(MonomialCoefficient(f, mon), p, rt) * Monomial(R_red, Exponents(mon)) : mon in Monomials(f) ];
+// Magma subtlety: we have to coerce to a univariate polynomial ring instead of
+// a multivariate ring in one variable
 if Rank(Parent(f)) eq 1 then
     return PolynomialRing(FF) ! f_red;
 end if;
@@ -147,6 +160,8 @@ end function;
 
 function ReduceBasisOfDifferentialsSplit(B, p, rt)
 
+// Recall that we consider differentials as rational functions by fixing a
+// uniformizer in a canonical way
 FF := FiniteField(p); K_red := RationalFunctionField(FF, Rank(Parent(B[1])));
 return [ K_red ! ReduceRationalFunctionSplit(b, p, rt) : b in B ];
 
@@ -165,27 +180,18 @@ end function;
 function ReduceCurveSplit(X, p, rt)
 /* NOTE: This only gives an affine patch (which is enough for our algorithms) */
 
-U := ReduceAffinePatchSplit(X`U, p, rt);
+U := ReduceAffinePatchSplit(X`U, p, rt); U`U := U;
 U`is_hyperelliptic := X`is_hyperelliptic; U`is_planar := X`is_planar; U`is_smooth := X`is_smooth;
 U`g := X`g; U`is_plane_quartic := X`is_plane_quartic;
-U`U := U;
 U`P0 := U ! ReducePointSplit(X`P0, p, rt);
-U`patch_index := X`patch_index;
 U`A := Ambient(U`U); U`R := CoordinateRing(U`A);
-if X`is_hyperelliptic and (X`patch_index eq 3) then
-    U`x := U`R.2; U`y := U`R.1;
-else
-    U`x := U`R.1; U`y := U`R.2;
-end if;
 U`F := BaseRing(U`R); U`K := FieldOfFractions(U`R);
+U`x := U`R.1; U`y := U`R.2;
 U`DEs := DefiningEquations(U`U);
-U`unif_index := X`unif_index; U`unif := (U`R).(U`unif_index);
 U`OurB := ReduceBasisOfDifferentialsSplit(X`OurB, p, rt);
 U`NormB := ReduceBasisOfDifferentialsSplit(X`NormB, p, rt);
 U`T := ReduceMatrixSplit(X`T, p, rt);
-if U`is_planar then
-    U`cantor_equations := [* ReducePolynomialSplit(cantor_eq, p, rt) : cantor_eq in X`cantor_equations *];
-end if;
+U`cantor_equations := [* ReducePolynomialSplit(cantor_eq, p, rt) : cantor_eq in X`cantor_equations *];
 U`initialized := true;
 return U;
 

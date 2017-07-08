@@ -9,7 +9,7 @@
  *  See LICENSE.txt for license details.
 """
 
-def Relative_Splitting_Field(fs, bound = 0):
+def Relative_Splitting_Field_Extra(fs, bound = 0):
     bound_set = (bound != 0)
     F = magma.BaseRing(fs[1])
     overQQ = (magma.Degree(F) == 1)
@@ -28,7 +28,9 @@ def Relative_Splitting_Field(fs, bound = 0):
                 else:
                     K = magma.ClearFieldDenominator(K)
                 if bound_set and magma.Degree(K) >= bound:
+                    K = magma.MakeExtension(K, F)
                     K = magma.DefineOrExtendInfinitePlaceFunction(K);
                     return K
+    K = magma.MakeExtension(K, F)
     K = magma.DefineOrExtendInfinitePlaceFunction(K);
     return K
