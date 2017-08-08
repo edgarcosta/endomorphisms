@@ -13,6 +13,4 @@ def mHyperellipticCurve(f, h):
     return magma.HyperellipticCurve(magma(f), magma(h))
 
 def mPlaneCurve(f):
-    mf = magma(f)
-    mP2 = magma.ProjectiveSpace(magma.Parent(mf))
-    return magma.Curve(magma.Scheme(mP2, mf))
+    return magma.PlaneCurve(magma(f))

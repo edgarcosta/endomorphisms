@@ -10,6 +10,20 @@
  */
 
 
+intrinsic PlaneCurve(f::RngMPolElt) -> Crv
+{Returns the plane curve defined by f.}
+
+R := Parent(f); gens := GeneratorsSequence(R);
+if #gens eq 3 then
+    return Curve(Scheme(ProjectiveSpace(R), f));
+end if;
+F := BaseRing(R); S := PolynomialRing(F, 3); x := S.1; y := S.2; z := S.3;
+fhom := S ! (z^(Degree(f)) * Evaluate(f, [ x/z, y/z ]));
+return Curve(Scheme(ProjectiveSpace(S), fhom));
+
+end intrinsic;
+
+
 intrinsic CurveType(X::Crv) -> MonStgElt
 {String that gives type.}
 
