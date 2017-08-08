@@ -1,5 +1,5 @@
 AttachSpec("../../spec");
-SetVerbose("EndoCheck", 0);
+SetVerbose("EndoCheck", 1);
 
 R<t> := PolynomialRing(Rationals());
 F<r> := NumberField(t^2 - 2);
@@ -9,47 +9,30 @@ f := -f;
 X := HyperellipticCurve(f);
 P0 := X ! [0, 1];
 
-M := Matrix(F, [
-[ -1,  r],
-[  r, -1]
+T := Matrix(F, [
+[ 1, -r],
+[ -r, 1]
 ]);
-//M := -M;
+//T := -T;
 
 print "Field:";
 print F;
 print "Curve:";
 print X;
 print "Tangent representation:";
-print M;
+print T;
 
 print "Calculating divisor:";
-time test, D := DivisorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1, DivPP1 := false);
+time test, D := DivisorFromMatrixSplit(X, P0, X, P0, T : LowerBound := 10);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print D;
 
-exit;
-
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+time test, fs := CantorFromMatrixSplit(X, P0, X, P0, T : LowerBound := 20);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;
-
-exit;
-
-eqs := DefiningEquations(D);
-R<y2,y1,x2,x1> := Parent(eqs[1]);
-S<x2,x1> := PolynomialRing(F, 2);
-res := hom<R -> S | [0, 0, x2, x1]>;
-I := ideal<S | res(eqs[#eqs])>;
-G := GroebnerBasis(I);
-
-A := AffineSpace(S);
-D := Scheme(A, G);
-Is := IrreducibleComponents(D);
-print "Divisor on PP^1 x PP^1:";
-print Is;
 
 exit;
