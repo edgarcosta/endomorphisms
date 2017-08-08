@@ -21,8 +21,8 @@ intrinsic ComplexFieldExtra(prec::RngIntElt) -> FldCom
 
 CC := ComplexField(prec);
 RR := RealField(CC);
-CC`epscomp := RR ! (10^(-prec + 30)); CC`epsLLL  := RR ! (5^(-prec + 7)); CC`epsinv  := RR ! (2^(-prec + 30));
-RR`epscomp := RR ! (10^(-prec + 30)); RR`epsLLL  := RR ! (5^(-prec + 7)); RR`epsinv  := RR ! (2^(-prec + 30));
+CC`epscomp := RR ! (10^(-prec + 10)); CC`epsLLL  := RR ! (5^(-prec + 2)); CC`epsinv  := RR ! (2^(-prec + 10));
+RR`epscomp := RR ! (10^(-prec + 10)); RR`epsLLL  := RR ! (5^(-prec + 2)); RR`epsinv  := RR ! (2^(-prec + 10));
 return CC;
 
 end intrinsic;

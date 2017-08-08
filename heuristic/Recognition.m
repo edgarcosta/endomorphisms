@@ -21,10 +21,10 @@ degF := Degree(F); R<x> := PolynomialRing(F);
 CC := Parent(a); RR := RealField(CC); prec := Precision(CC);
 RCC := PolynomialRing(CC);
 
-// NOTE: Here height is a parameter to play with.
-degf := 0; height := 1; height0 := 100;
-gen := CC ! Evaluate(F.1, F`iota : Precision := prec);
-powersgen := [ gen^i : i in [0..(degF - 1)] ];
+// NOTE: Here the height is a parameter to play with.
+height0 := 10;
+degf := 0; height := 1;
+powersgen := [ CC ! Evaluate(F.1^i, F`iota : Precision := prec) : i in [0..(degF - 1)] ];
 
 // Create first entry corresponding to constant term
 powera := CC ! 1;
@@ -34,7 +34,9 @@ MLine cat:= [ powergen * powera : powergen in powersgen ];
 // Successively adding other entries to find relations
 while true do
     // Increase height and number of possible relations
-    degf +:= 1; height *:= height0;
+    degf +:= 1;
+    //height *:= height0;
+    height := height0*degf^3;
     powera *:= a;
     MLine cat:= [ powergen * powera : powergen in powersgen ];
     M := Transpose(Matrix(CC, [ MLine ]));
@@ -114,10 +116,12 @@ F := BaseField(K); degF := Degree(F);
 CC := Parent(a); RR := RealField(CC); prec := Precision(CC);
 
 genK := CC ! Evaluate(K.1, K`iota : Precision := prec); genF := CC ! Evaluate(F.1, F`iota : Precision := prec);
-powersgenK := [ genK^i : i in [0..(degK - 1)] ]; powersgenF := [ genF^i : i in [0..(degF - 1)] ];
+powersgenK := [ CC ! Evaluate(K.1^i, K`iota : Precision := prec) : i in [0..(degK - 1)] ];
+powersgenF := [ CC ! Evaluate(F.1^i, F`iota : Precision := prec) : i in [0..(degF - 1)] ];
 MLine := &cat[ [ powergenF * powergenK : powergenF in powersgenF ] : powergenK in powersgenK ] cat [-a];
 M := Transpose(Matrix(CC, [ MLine ]));
 
+/* TODO: Add height condition? */
 // Now split and take an IntegralLeftKernel
 MSplit := SplitMatrix(M);
 Ker := IntegralLeftKernel(MSplit);
