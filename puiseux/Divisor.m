@@ -74,12 +74,12 @@ X`A := Ambient(X`U); X`R := CoordinateRing(X`A);
 X`DEs := DefiningEquations(X`U);
 
 /* Modify coordinates and equations to make x the uniformizer */
-X`unif_index := AlgebraicUniformizerIndex(X);
 X`x := X`R.1; X`y := X`R.2;
+X`unif_index := AlgebraicUniformizerIndex(X);
 if X`unif_index eq 2 then
     X`DEs := [ X`R ! Evaluate(DE, [ X`y, X`x ]) : DE in X`DEs ];
     X`U := Scheme(X`A, X`DEs);
-    X`P0 := X`U ! [ P0[2], P0[1] ];
+    X`P0 := X`U ! [ X`P0[2], X`P0[1] ];
 end if;
 X`K := FieldOfFractions(X`R);
 
@@ -96,8 +96,15 @@ X`BOF := Basis(X`OF);
 
 X`OurB := OurBasisOfDifferentials(X);
 X`NormB, X`T := NormalizedBasisOfDifferentials(X);
+_<x,y> := Parent(X`OurB[1]);
+vprintf EndoCheck, 3 : "Standard basis of differentials:";
+vprint EndoCheck, 3 : X`OurB;
+vprintf EndoCheck, 3 : "Normalized basis of differentials:";
+vprint EndoCheck, 3 : X`NormB;
 
 X`cantor_equations := CantorEquations(X);
+vprintf EndoCheck, 3 : "Cantor equations:";
+vprint EndoCheck, 3 : X`cantor_equations;
 X`initialized := true;
 return 0;
 
@@ -110,7 +117,7 @@ function AlgebraicUniformizerIndex(X)
  * Output:  Index of the uniformizer.
  */
 
-if X`is_hyperelliptic then
+if X`is_hyperelliptic or X`g eq 1 then
     if X`patch_index eq 1 then
         return 1;
     else
@@ -242,6 +249,7 @@ function VariableOrder()
 
 /* x(P) to 4th comp, y(P) to 2nd comp, etc */
 // TODO: Test better ones
+//return [1, 2, 3, 4];
 return [4, 2, 3, 1];
 
 end function;
@@ -404,19 +412,29 @@ intrinsic DivisorFromMatrix(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4
 
 output := InitializeCurve(X, P0); output := InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
+vprintf EndoCheck, 3 : "Tangent representation:\n";
+vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
+vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
+vprint EndoCheck, 3 : NormM;
 
 d := LowerBound;
 while true do
     vprintf EndoCheck : "Trying degree %o...\n", d;
     fs := CandidateDivisors(X, Y, d);
     n := #fs + Margin;
-    vprintf EndoCheck : "Number of digits in expansion: %o.\n", n;
+    vprintf EndoCheck : "Number of terms in expansion: %o.\n", n;
 
     /* Take non-zero image branch */
     vprintf EndoCheck : "Expanding... ";
     P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n);
-    vprint EndoCheck, 3 : P, Qs;
+    vprintf EndoCheck, 3 : "Base point:\n";
+    _<t> := Parent(P[1]);
+    _<r> := BaseRing(Parent(P[1]));
+    vprint EndoCheck, 3 : P;
+    vprintf EndoCheck, 3 : "Resulting branches:\n";
+    vprint EndoCheck, 3 : Qs;
+    vprint EndoCheck, 3 : BaseRing(Parent(P[1]));
     vprintf EndoCheck : "done.\n";
 
     /* Fit a divisor to it */
@@ -551,7 +569,11 @@ vprintf EndoCheck : "Number of digits in expansion: %o.\n", n;
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
 P_red, Qs_red := ApproximationsFromTangentAction(X_red, Y_red, NormM_red, n);
-vprint EndoCheck, 3 : P_red, Qs_red;
+vprintf EndoCheck, 3 : "Base point:\n";
+_<t> := Parent(P_red[1]);
+vprint EndoCheck, 3 : P_red;
+vprintf EndoCheck, 3 : "Resulting branches:\n";
+vprint EndoCheck, 3 : Qs_red;
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */

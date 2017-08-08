@@ -15,8 +15,8 @@ M := Matrix(F, [ [1, 1] ]);
 
 time D := DivisorFromMatrix(X, P0, Y, Q0, M);
 time D := DivisorFromMatrixSplit(X, P0, Y, Q0, M);
-time fs := CantorMorphismFromMatrix(X, P0, Y, Q0, M);
-time fs := CantorMorphismFromMatrixSplit(X, P0, Y, Q0, M);
+time fs := CantorFromMatrix(X, P0, Y, Q0, M);
+time fs := CantorFromMatrixSplit(X, P0, Y, Q0, M);
 print fs;
 
 /* Check that the answer is a projection: */

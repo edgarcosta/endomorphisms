@@ -29,7 +29,7 @@ print "Divisor:";
 print D;
 
 print "Calculating Cantor representation...";
-time test, fs := CantorMorphismFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+time test, fs := CantorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
 R<x,y> := Parent(fs[1]);
 print fs;
 

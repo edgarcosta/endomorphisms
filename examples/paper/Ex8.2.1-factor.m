@@ -26,7 +26,7 @@ print Y;
 print "Tangent representation:";
 print M;
 print "Calculating Cantor representation...";
-time test, fs := CantorMorphismFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 1);
+time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 1);
 K<x,y> := Parent(fs[1]);
 print fs;
 
