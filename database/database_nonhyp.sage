@@ -41,15 +41,18 @@ def step(line):
     global R
     global prec
     global outputstream
-    linestrip = line.rstrip()
-    linesplit = linestrip.split(':')
-    pol_list = eval(linesplit[f_index].replace('^', '**'))
-    f = R(pol_list[0])
-    X = mPlaneCurve(f)
-    # Regular version:
-    Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
-    Lat_str = Endo.lattice()._desc_
-    return repr(Lat_str).replace('\n', '').replace(' ', '')
+    try:
+        linestrip = line.rstrip()
+        linesplit = linestrip.split(':')
+        pol_list = eval(linesplit[f_index].replace('^', '**'))
+        f = R(pol_list[0])
+        X = mPlaneCurve(f)
+        # Regular version:
+        Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
+        Lat_str = Endo.lattice()._desc_
+        return repr(Lat_str).replace('\n', '').replace(' ', '')
+    except:
+        return "Error"
 
 with open(inputfile) as inputstream:
     with open(outputfile, 'w') as outputstream:
