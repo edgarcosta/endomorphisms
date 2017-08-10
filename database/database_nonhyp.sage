@@ -29,7 +29,6 @@ import os, shutil
 # Specify input and output:
 base_string = 'gce_genus3_nonhyperelliptic'
 inputfile = base_string + '.txt'
-intermediatefile = base_string + '_temp.txt'
 outputfile = base_string + '_endos.txt'
 
 # Ambient ring:
@@ -52,10 +51,16 @@ def step(line):
         Lat_str = Endo.lattice()._desc_
         return repr(Lat_str).replace('\n', '').replace(' ', '')
     except:
+        print linesplit[0]
+        print linesplit[f_index]
         return "Error"
 
 with open(inputfile) as inputstream:
     with open(outputfile, 'w') as outputstream:
         inputlist = [ line for line in inputstream ]
+        outputlist = [ ]
         for tup in list(step(inputlist)):
-            outputstream.write(tup[0][0][0].rstrip() + ':' + tup[1] + '\n')
+            outputlist.append(tup[0][0][0].rstrip() + ':' + tup[1] + '\n')
+        outputlist.sort(key = lambda line: int(line.split(':')[0]))
+        for line in outputlist:
+            outputstream.write(line)
