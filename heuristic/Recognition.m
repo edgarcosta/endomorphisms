@@ -35,8 +35,8 @@ MLine cat:= [ powergen * powera : powergen in powersgen ];
 while true do
     // Increase height and number of possible relations
     degf +:= 1;
-    //height *:= height0;
-    height := height0*degf^3;
+    //height := height0*degf^3;
+    height *:= height0;
     powera *:= a;
     MLine cat:= [ powergen * powera : powergen in powersgen ];
     M := Transpose(Matrix(CC, [ MLine ]));

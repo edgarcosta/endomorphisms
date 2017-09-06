@@ -23,6 +23,7 @@
   }
   polarization
   {
+    Polarizations.m
     Rosati.m
   }
   puiseux

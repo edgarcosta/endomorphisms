@@ -183,7 +183,7 @@ AM := ChangeRing(A, M);
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";
 elif Genus(Y) eq 1 then
-    return CantorMorphismFromMatrixSplit(XM, PM, YM, QM, AM/2);
+    return CantorFromMatrixSplit(XM, PM, YM, QM, AM/2);
 else
     return "";
     //return DivisorFromMatrixSplit(XM, PM, YM, QM, AM);

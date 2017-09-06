@@ -18,7 +18,7 @@ if g eq 1 then
     return FactorReconstructG1(Lat, K);
 elif g eq 2 then
     return 0;
-    //return FactorReconstructG2(Lat, K);
+    return FactorReconstructG2(Lat, K);
 else
     return 0;
     //error "Reconstruction in genus larger than 2 not implemented yet";
@@ -51,12 +51,35 @@ intrinsic FactorReconstructG2(P::., K::Fld) -> .
 // Recover small period matrix:
 CC := BaseRing(P); RCC<xCC> := PolynomialRing(CC);
 g := #Rows(Transpose(P));
+T := Matrix(CC, [
+[-1,  2, -2,  1],
+[ 1,  2,  1,  2],
+[ 2, -1,  1,  0],
+[ 1, -2,  0, -2]
+]);
+//T := Matrix(CC, [
+//[ 2, -2,  0, -1],
+//[ 2, -1,  0, -2],
+//[ 1, -2,  2, -1],
+//[ 0,  0, -1, -1]
+//]);
+//T := Matrix(CC, [
+//[-1,  2,  2, -2],
+//[-2, -2, -1,  1],
+//[ 0, -1, -2,  2],
+//[ 2,  1,  0,  1]
+//]);
+T := T^(-1);
+P := T*P;
 Omega1 := Submatrix(P, 1, 1, g, g); Omega2 := Submatrix(P, g + 1, 1, g, g);
 PSmall := Omega2 * Omega1^(-1);
+PSmall := -PSmall;
 
 rosensCC := RosenhainInvariants(PSmall);
 fCC := xCC * (xCC - 1) * &*[ xCC - rosenCC : rosenCC in rosensCC ];
 g2sCC := G2Invariants(HyperellipticCurve(fCC));
+return g2sCC;
+
 g2s := [ AlgebraizeElementInRelativeField(g2CC, K) : g2CC in g2sCC ];
 X := HyperellipticCurveFromG2Invariants(g2s);
 if Type(BaseRing(X)) eq FldRat then

@@ -11,25 +11,34 @@
 
 load("../Initialize.sage")
 
-# Plane test
 F = QQ
-P2.<x,y,z> = ProjectiveSpace(F, 2)
-Xs = [ ]
+R.<x> = PolynomialRing(F)
+f, h = [x^6+3*x^5+2*x^4+7*x^3+11*x^2+14, x^2+x]
+f, h = [x^7+x^6-4*x^5+4*x^3-5*x^2+2*x-1, x^4+x^3+x+1]
+f, h = [-3*x^7-3*x^6-3*x^5+x^2+x, x^3+1]
+#f, h = [-x^8+3*x^7-3*x^6-2*x^5-2*x^4+x^2, x^4+x^3+x+1]
+#f, h = [x^5 -3*x^4 -2*x - 1, x^3 + x^2 + x + 1]
+#f, h = [x^4 + 7, x^3 + x]
+#f, h = [x^4 - 7, x^3 + x]
+#f, h = [x^4 + x^2, x^3 + 1]
+#f, h = [ -38*x^6 + 102*x^5 + 77*x^4 - 276*x^3 - 118*x^2 + 232*x + 132, 0 ]
 
-f = x^4 - x^3*y + 2*x^3*z + 2*x^2*y*z + 2*x^2*z^2 - 2*x*y^2*z + 4*x*y*z^2 - y^3*z + 3*y^2*z^2 + 2*y*z^3 + z^4
-Xs.append(mPlaneCurve(f))
+X = mHyperellipticCurve(f, h)
 
-for X in Xs:
-    print X
-    Endo = EndomorphismData(X, prec = 50, have_oldenburg = True)
+print X
+Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
 
-    print "Field of definition:"
-    print Endo.endomorphism_field()
+print ""
+print "Field of definition:"
+print Endo.endomorphism_field()
 
-    print "Geometric representation:"
-    print Endo.geometric().representation()
+print ""
+print "Lattice:"
+print Endo.lattice().pretty_print()
 
-    print "Lattice:"
-    print Endo.lattice().pretty_print()
-    Endo.lattice().optimize_representations()
-    print Endo.lattice().representations()
+Dec = Endo.decomposition()
+print ""
+print "Decomposition:"
+print Dec.field
+print Dec.factors()
+print Dec.verify()

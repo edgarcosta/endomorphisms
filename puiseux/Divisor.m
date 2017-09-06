@@ -117,6 +117,11 @@ function AlgebraicUniformizerIndex(X)
  * Output:  Index of the uniformizer.
  */
 
+if X`g eq 1 then
+    /* FIXME: Make this more general */
+    return 1;
+end if;
+
 if X`is_hyperelliptic or X`g eq 1 then
     if X`patch_index eq 1 then
         return 1;
@@ -156,6 +161,11 @@ function OurBasisOfDifferentials(X)
 g := X`g; R := X`R; x := X`x; y := X`y; f := X`DEs[1];
 if g eq 0 then
     return [ ];
+
+elif g eq 1 then
+    /* FIXME: Make this more general */
+    y := X`R.1; x := X`R.2;
+    return [ 2 / Derivative(f, x) ];
 
 elif X`is_hyperelliptic or (g eq 1) then
     /* (Hyper)elliptic case: we use x^i dx / y */

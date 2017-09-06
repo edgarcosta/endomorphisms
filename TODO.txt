@@ -1,0 +1,12 @@
+Index of uniformizer in (hyper)elliptic case (case non-symm in y)
+No more separate step modulo p
+Use ChangeFunctions in intermediate steps
+Riemann-Roch spaces
+Debug LocalInfo
+Convert to absolute field
+Test everything under the sun
+
+ST in genus 2 and general case (perhaps this is 0 lines)
+Add factors to database run, recognition of curves on upload
+
+Genus2Factor
