@@ -27,9 +27,10 @@ if #GeneratorsSequence(RCC) eq 1 then
     end if;
     if not HaveOldenburg then
         JCC := AnalyticJacobian(gCC);
-        return Transpose(Matrix(CC, BigPeriodMatrix(JCC)));
+        /* We divide by 2 because we integrate wrt x^i dx / 2y */
+        return Transpose(Matrix(CC, BigPeriodMatrix(JCC))) / 2;
     end if;
-    return Transpose(Matrix(CC, PeriodMatrix(gCC : Prec := Precision(CC))));
+    return Transpose(Matrix(CC, PeriodMatrix(gCC : Prec := Precision(CC)))) / 2;
 elif #GeneratorsSequence(RCC) eq 3 then
     if not HaveOldenburg then
         error "No functionality for plane curves available";

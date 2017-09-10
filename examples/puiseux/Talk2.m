@@ -7,7 +7,7 @@ R<x> := PolynomialRing(F);
 f := x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1;
 f := -f;
 X := HyperellipticCurve(f);
-P0 := X ! [0, 1];
+P0 := X ! [0, 1, 1];
 
 T := Matrix(F, [
 [ 1, -r],

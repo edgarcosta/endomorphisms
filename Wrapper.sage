@@ -139,8 +139,8 @@ class OverField:
 
     def optimize_representation(self):
         optrep = Optimize_Representation(self.representation())
-        for i in [1..len(optrep)]:
-            self._dict_['representation'][i - 1]['tangent'] = optrep[i]
+        for i in range(len(optrep)):
+            self._dict_['representation'][i]['tangent'] = optrep[i + 1]
 
     def algebra(self):
         self._calculate_dictionary_()
@@ -241,8 +241,8 @@ class Lattice:
             structure = dict_pair['structure']
             rep = magma([ gen['tangent'] for gen in structure['representation'] ])
             optrep = Optimize_Representation(rep)
-            for i in [1..len(optrep)]:
-                structure['representation'][i - 1]['tangent'] = optrep[i]
+            for i in range(len(optrep)):
+                structure['representation'][i]['tangent'] = optrep[i + 1]
 
     def representations(self):
         self._calculate_dictionary_()

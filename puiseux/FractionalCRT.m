@@ -186,7 +186,7 @@ U`g := X`g; U`is_plane_quartic := X`is_plane_quartic;
 U`P0 := U ! ReducePointSplit(X`P0, p, rt);
 U`A := Ambient(U`U); U`R := CoordinateRing(U`A);
 U`F := BaseRing(U`R); U`K := FieldOfFractions(U`R);
-U`x := U`R.1; U`y := U`R.2;
+U`unif_index := X`unif_index;
 U`DEs := DefiningEquations(U`U);
 U`OurB := ReduceBasisOfDifferentialsSplit(X`OurB, p, rt);
 U`NormB := ReduceBasisOfDifferentialsSplit(X`NormB, p, rt);

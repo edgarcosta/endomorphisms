@@ -10,43 +10,53 @@
 """
 
 _index_dict_ = dict()
+
 # Magma indices for lattice
 _index_dict_['base'] = 1
 _index_dict_['entries'] = 2
+
 # Magma indices for lattice entries
 _index_dict_['field'] = 1
 _index_dict_['structure'] = 2
+
 # Magma indices for base and field key
 _index_dict_['seq'] = 1
 _index_dict_['magma'] = 2
 # Class number not used because of performance:
 #_index_dict_['h'] = 3
+
 # Magma indices for OverField
 _index_dict_['representation'] = 1
 _index_dict_['algebra'] = 2
 _index_dict_['description'] = 3
+
 # Magma indices for representation key
 _index_dict_['tangent'] = 1
 _index_dict_['homology'] = 2
 _index_dict_['approx'] = 3
+
 # Magma indices for algebra key
 _index_dict_['alg_QQ'] = 1
 _index_dict_['alg_ZZ'] = 2
 _index_dict_['alg_RR'] = 3
 _index_dict_['alg_ST'] = 4
+
 # Sage indices for description key
 _index_dict_['factors_QQ'] = 0
 _index_dict_['desc_ZZ'] = 1
 _index_dict_['desc_RR'] = 2
 _index_dict_['sato_tate'] = 3
+
 # Sage indices for a factor_QQ
 _index_dict_['albert_type'] = 0
 _index_dict_['center'] = 1
 _index_dict_['dim_sqrt'] = 2
 _index_dict_['disc'] = 3
+
 # Sage indices for desc_ZZ key
 _index_dict_['index'] = 0
 _index_dict_['is_eichler'] = 1
+
 # Decomposition. Note the compatility of the first field with what went before.
 _index_dict_['field'] = 1
 _index_dict_['idem'] = 2

@@ -12,17 +12,18 @@
 
 declare attributes Crv : is_hyperelliptic, is_planar, is_smooth, is_plane_quartic;
 declare attributes Crv : g, U, P0, A, DEs;
-declare attributes Crv : patch_index, R, x, y, K;
+declare attributes Crv : patch_index, unif_index;
+declare attributes Crv : R, K;
 declare attributes Crv : F, rF, OF, BOF;
 declare attributes Crv : OurB, NormB, T;
 declare attributes Crv : initialized;
 declare attributes Crv : cantor_equations;
-declare attributes Crv : unif_index;
 
-declare verbose EndoCheck, 3;
+declare verbose EndoCheck, 4;
 
 
 forward InitializeCurve;
+forward OurAffinePatch;
 forward AlgebraicUniformizerIndex;
 forward OurBasisOfDifferentials;
 forward ChangeTangentAction;
@@ -39,7 +40,7 @@ forward CheckIrreducibleComponent;
 
 forward DivisorFromMatrix;
 forward DivisorFromMatrixSplit;
-forward DivisorFromMatrixSplitStepModP;
+forward DivisorFromMatrixByDegree;
 
 
 import "LocalInfo.m": DevelopPoint, InitializeImageBranch;
@@ -47,41 +48,44 @@ import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSpli
 import "Cantor.m": CantorEquations;
 
 
-function InitializeCurve(X, P0)
+procedure InitializeCurve(X, P0)
 /* This is written in a silly way; it is essentially a procedure */
 
 if not assigned X`initialized then
     X`initialized := false;
 end if;
 if X`initialized then
-    return 0;
+    return;
 end if;
 
+vprintf EndoCheck, 3 : "Curve:\n";
+vprint EndoCheck, 3 : X;
 X`is_hyperelliptic := IsHyperelliptic(X); X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
 X`g := Genus(X); X`is_plane_quartic := (X`is_planar) and (X`is_smooth) and (X`g eq 3);
-
 if not X`is_planar then
     error "Please give your curve in planar form";
 end if;
 
-/* Find affine patch */
-if IsAffine(X) then
-    X`U := X; X`P0 := P0; X`patch_index := 1;
-else
-    X`U, X`P0, X`patch_index := AffinePatch(X, P0);
-end if;
-X`A := Ambient(X`U); X`R := CoordinateRing(X`A);
-X`DEs := DefiningEquations(X`U);
+/* Find affine patch: */
+X`U, X`DEs, X`P0, X`patch_index := OurAffinePatch(X, P0);
+X`A := Ambient(X`U); X`R := CoordinateRing(X`A); X`K := FieldOfFractions(X`R);
 
-/* Modify coordinates and equations to make x the uniformizer */
-X`x := X`R.1; X`y := X`R.2;
+/* Put uniformizer first: */
 X`unif_index := AlgebraicUniformizerIndex(X);
 if X`unif_index eq 2 then
-    X`DEs := [ X`R ! Evaluate(DE, [ X`y, X`x ]) : DE in X`DEs ];
+    X`DEs := [ X`R ! Evaluate(DE, [ (X`R).2, (X`R).1 ]) : DE in X`DEs ];
     X`U := Scheme(X`A, X`DEs);
     X`P0 := X`U ! [ X`P0[2], X`P0[1] ];
 end if;
-X`K := FieldOfFractions(X`R);
+
+vprintf EndoCheck, 3 : "Index of affine patch: ";
+vprint EndoCheck, 3 : X`patch_index;
+vprintf EndoCheck, 3 : "Index of uniformizer: ";
+vprint EndoCheck, 3 : X`unif_index;
+vprintf EndoCheck, 3 : "Affine patch:\n";
+vprint EndoCheck, 3 : X`U;
+vprintf EndoCheck, 3 : "Point:\n";
+vprint EndoCheck, 3 : X`P0;
 
 /* Construct equation order */
 X`F := BaseRing(X`R);
@@ -96,17 +100,51 @@ X`BOF := Basis(X`OF);
 
 X`OurB := OurBasisOfDifferentials(X);
 X`NormB, X`T := NormalizedBasisOfDifferentials(X);
-_<x,y> := Parent(X`OurB[1]);
-vprintf EndoCheck, 3 : "Standard basis of differentials:";
+_<u,v> := Parent(X`OurB[1]);
+vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
 vprint EndoCheck, 3 : X`OurB;
-vprintf EndoCheck, 3 : "Normalized basis of differentials:";
+vprintf EndoCheck, 3 : "Normalized basis of differentials:\n";
 vprint EndoCheck, 3 : X`NormB;
 
 X`cantor_equations := CantorEquations(X);
-vprintf EndoCheck, 3 : "Cantor equations:";
+vprintf EndoCheck, 3 : "Cantor equations:\n";
 vprint EndoCheck, 3 : X`cantor_equations;
 X`initialized := true;
-return 0;
+return;
+
+end procedure;
+
+
+function OurAffinePatch(X, P0);
+
+if IsAffine(X) then
+    return X, DefiningEquations(X), P0, 1;
+
+elif X`is_hyperelliptic or (X`g eq 1) then
+    /* Probably this does nothing... but still */
+    U, P0, patch_index := AffinePatch(X, P0);
+    DEs := DefiningEquations(AffinePatch(X, 1));
+    R := Parent(DEs[1]);
+    d := 2*(X`g) + 2;
+    if patch_index eq 3 then
+        DEs := [ R ! (-R.2^d * Evaluate(DE, [ 1/R.2, R.1/(R.2^(d div 2)) ])) : DE in DEs ];
+    end if;
+    U := Curve(AffineSpace(R), DEs);
+    return U, DEs, P0, patch_index;
+
+elif X`is_planar then
+    U, P0, patch_index := AffinePatch(X, P0);
+    DEs := DefiningEquations(AffinePatch(X, 1));
+    R := Parent(DEs[1]);
+    d := Degree(DEs[1]);
+    if patch_index eq 2 then
+        DEs := [ R ! (R.2^d * Evaluate(DE, [ R.1/R.2, 1/R.2 ])) : DE in DEs ];
+    elif patch_index eq 3 then
+        DEs := [ R ! (R.2^d * Evaluate(DE, [ 1/R.2, R.1/R.2 ])) : DE in DEs ];
+    end if;
+    U := Curve(AffineSpace(R), DEs);
+    return U, DEs, P0, patch_index;
+end if;
 
 end function;
 
@@ -118,33 +156,40 @@ function AlgebraicUniformizerIndex(X)
  */
 
 if X`g eq 1 then
-    /* FIXME: Make this more general */
-    return 1;
-end if;
+    fX := X`DEs[1]; R := X`R; P0 := X`P0;
+    // Prefer coordinate on PP^1:
+    /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
+     * since evaluating x at (0, 0) can be 0 */
+    if Degree(fX, R.2) eq 2 then
+        if Evaluate(Derivative(fX, R.2), Eltseq(P0)) ne 0 then
+            return 1;
+        else
+            return 2;
+        end if;
+    else
+        if Evaluate(Derivative(fX, R.1), Eltseq(P0)) ne 0 then
+            return 2;
+        else
+            return 1;
+        end if;
+    end if;
 
-if X`is_hyperelliptic or X`g eq 1 then
+elif X`is_hyperelliptic then
+    // In this case we always get the coordinate on PP^1, since we avoid
+    // Weierstrass points.
     if X`patch_index eq 1 then
         return 1;
     else
         return 2;
     end if;
-end if;
 
-if X`is_planar then
-    fX := X`DEs[1]; R := X`R; x := X`x; y := X`y; P0 := X`P0;
-    if X`patch_index eq 3 then
-        if Evaluate(Derivative(fX, x), P0) ne 0 then
-            return 2;
-        else
-            return 1;
-        end if;
-
+else
+    // Here we do the usual test, without the preference of the elliptic case.
+    fX := X`DEs[1]; R := X`R; P0 := X`P0;
+    if Evaluate(Derivative(fX, R.1), P0) ne 0 then
+        return 1;
     else
-        if Evaluate(Derivative(fX, y), P0) ne 0 then
-            return 1;
-        else
-            return 2;
-        end if;
+        return 2;
     end if;
 end if;
 
@@ -158,23 +203,28 @@ function OurBasisOfDifferentials(X)
  *          the rational function field by using our choice of uniformizer
  */
 
-g := X`g; R := X`R; x := X`x; y := X`y; f := X`DEs[1];
+g := X`g; R := X`R; u := X`R.1; v := X`R.2; f := X`DEs[1];
 if g eq 0 then
     return [ ];
 
 elif g eq 1 then
-    /* FIXME: Make this more general */
-    y := X`R.1; x := X`R.2;
-    return [ 2 / Derivative(f, x) ];
+    /* Elliptic case: we use dx / 2y */
+    if Degree(f, v) eq 2 then
+        s := MonomialCoefficient(f, v^2);
+        return [ s / Derivative(f, v) ];
+    else
+        s := MonomialCoefficient(f, u^2);
+        return [ -s / Derivative(f, v) ];
+    end if;
 
-elif X`is_hyperelliptic or (g eq 1) then
-    /* (Hyper)elliptic case: we use x^i dx / y */
-    s := MonomialCoefficient(f, y^2);
-    return [ 2*s*x^(i-1) / Derivative(f, y) : i in [1..g] ];
+elif X`is_hyperelliptic then
+    /* (Hyper)elliptic case: we use x^i dx / 2y */
+    s := MonomialCoefficient(f, v^2);
+    return [ s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
 
 elif X`is_plane_quartic then
     /* Plane quartic case: we use ({x,y,1} / (dF / dy)) dx */
-    return [ X`K ! ( n / Derivative(f, y)) : n in [X`x, X`y, 1] ];
+    return [ X`K ! ( n / Derivative(f, v)) : n in [u, v, 1] ];
 
 else
     error "OurBasisOfDifferentials not implemented yet for this curve";
@@ -192,43 +242,53 @@ function ChangeTangentAction(X, Y, M)
 
 F := X`F;
 /* M acts on the right, so to precompose with the operation on X we multiply on
- * the left; we modify the rows. */
+ * the right; we modify the columns. */
+M := Transpose(M);
+rows := [ Eltseq(row) : row in Rows(M) ];
 if X`g eq 1 or X`is_hyperelliptic then
     if X`patch_index eq 3 then
-        M := Matrix(F, [ Reverse([ -c : c in Eltseq(row)]) : row in Rows(M) ]);
+        vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
+        M := -Matrix(F, Reverse(rows));
     end if;
 
 elif X`is_plane_quartic then
     if X`patch_index eq 2 then
-        M := Matrix(F, [ [ -row[1], -row[3], -row[2] ] : row in Rows(M) ]);
+        vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
+        M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
     elif X`patch_index eq 3 then
-        M := Matrix(F, [ [ row[2], row[3], row[1] ] : row in Rows(M) ]);
+        vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
+        M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
     if X`unif_index eq 2 then
-        M := Matrix(F, [ [ -row[2], -row[1], -row[3] ] : row in Rows(M) ]);
+        vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of X";
+        M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
     end if;
 end if;
+M := Transpose(M);
 
 /* For y we postcompose, hence we have to modify columns; we therefore take a
  * transpose and go back */
-M := Transpose(M);
+rows := [ Eltseq(row) : row in Rows(M) ];
 if Y`g eq 1 or Y`is_hyperelliptic then
     if Y`patch_index eq 3 then
-        M := Matrix(F, [ Reverse([ -c : c in Eltseq(row)]) : row in Rows(M) ]);
+        vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of Y";
+        M := -Matrix(F, Reverse(rows));
     end if;
 
 elif Y`is_plane_quartic then
     if Y`patch_index eq 2 then
-        M := Matrix(F, [ [ -row[1], -row[3], -row[2] ] : row in Rows(M) ]);
+        vprint EndoCheck, 3 : "Modifying tangent action for patch index of Y";
+        M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
     elif Y`patch_index eq 3 then
-        M := Matrix(F, [ [ row[2], row[3], row[1] ] : row in Rows(M) ]);
+        vprint EndoCheck, 3 : "Modifying tangent action for patch index of Y";
+        M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
-    if X`unif_index eq 2 then
-        M := Matrix(F, [ [ -row[2], -row[1], -row[3] ] : row in Rows(M) ]);
+    if Y`unif_index eq 2 then
+        vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of Y";
+        M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
     end if;
 end if;
 
-M := Transpose(M);
 return M;
 
 end function;
@@ -279,6 +339,7 @@ function ExtractHomomorphisms(X, Y)
 
 RX := X`R; RY := Y`R;
 varord := VariableOrder();
+// TODO: Test other orderings
 Rprod := PolynomialRing(X`F, 4, "lex");
 seqX := [ Rprod.Index(varord, i) : i in [1..2] ];
 seqY := [ Rprod.Index(varord, i) : i in [3..4] ];
@@ -295,8 +356,18 @@ function CandidateDivisors(X, Y, d)
  * Output:  Equations for divisors of degree d coming from the ambient of X.
  */
 
-gX := X`g; fX := X`DEs[1]; RX := X`R; xX := X`x; yX := X`y;
-gY := Y`g; fY := Y`DEs[1]; RY := Y`R; xY := Y`x; yY := Y`y;
+gX := X`g; fX := X`DEs[1]; RX := X`R;
+xX := RX.1; yX := RX.2;
+/* Change in hyperelliptic case for greater effectiveness: */
+if Degree(fX, RX.1) eq 2 then
+    xX := RX.2; yX := RX.1;
+end if;
+gY := Y`g; fY := Y`DEs[1]; RY := Y`R;
+xY := RY.1; yY := RY.2;
+/* Change in hyperelliptic case for greater effectiveness: */
+if Degree(fY, RY.1) eq 2 then
+    xY := RY.2; yY := RY.1;
+end if;
 
 if X`is_hyperelliptic then
     divsX := [ xX^i : i in [0..(d div 2)] ] cat [ xX^i*yX : i in [0..((d - gX - 1) div 2)] ];
@@ -420,7 +491,7 @@ end function;
 intrinsic DivisorFromMatrix(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), DivPP1 := false) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-output := InitializeCurve(X, P0); output := InitializeCurve(Y, Q0);
+InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
 vprintf EndoCheck, 3 : "Tangent representation:\n";
 vprint EndoCheck, 3 : NormM;
@@ -430,45 +501,10 @@ vprint EndoCheck, 3 : NormM;
 
 d := LowerBound;
 while true do
-    vprintf EndoCheck : "Trying degree %o...\n", d;
-    fs := CandidateDivisors(X, Y, d);
-    n := #fs + Margin;
-    vprintf EndoCheck : "Number of terms in expansion: %o.\n", n;
-
-    /* Take non-zero image branch */
-    vprintf EndoCheck : "Expanding... ";
-    P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n);
-    vprintf EndoCheck, 3 : "Base point:\n";
-    _<t> := Parent(P[1]);
-    _<r> := BaseRing(Parent(P[1]));
-    vprint EndoCheck, 3 : P;
-    vprintf EndoCheck, 3 : "Resulting branches:\n";
-    vprint EndoCheck, 3 : Qs;
-    vprint EndoCheck, 3 : BaseRing(Parent(P[1]));
-    vprintf EndoCheck : "done.\n";
-
-    /* Fit a divisor to it */
-    vprintf EndoCheck : "Solving linear system... ";
-    ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
-    vprintf EndoCheck : "done.\n";
-
-    for S in ICs do
-        DEs := DefiningEquations(S);
-        vprintf EndoCheck : "Checking:\n";
-        vprintf EndoCheck : "Step 1... ";
-        test1 := CheckEquations(X, Y, P, Qs, DEs);
-        vprintf EndoCheck : "done.\n";
-        if test1 then
-            vprintf EndoCheck : "Step 2... ";
-            test2 := CheckIrreducibleComponent(X, Y, S);
-            vprintf EndoCheck : "done.\n";
-            if test2 then
-                vprintf EndoCheck : "Divisor found!\n";
-                return true, S;
-            end if;
-        end if;
-    end for;
-
+    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := false, have_to_check := true);
+    if found then
+        return true, S;
+    end if;
     /* If that does not work, give up and try one degree higher */
     d +:= 1;
     if d gt UpperBound then
@@ -483,7 +519,7 @@ intrinsic DivisorFromMatrixSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin :
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
-output := InitializeCurve(X, P0); output := InitializeCurve(Y, Q0);
+InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
 tjs0, f := InitializeImageBranch(NormM);
@@ -515,7 +551,7 @@ while true do
     BI := Basis(I);
 
     while true do
-        found, S_red := DivisorFromMatrixSplitStepModP(X_red, Y_red, NormM_red, d : Margin := Margin, DivPP1 := DivPP1, have_to_check := have_to_check);
+        found, S_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, DivPP1 := DivPP1, have_to_check := have_to_check);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -554,7 +590,7 @@ while true do
     vprintf EndoCheck : "done.\n";
 
     if test1 then
-        vprintf EndoCheck : "Step 2...\n";
+        vprintf EndoCheck : "Step 2... ";
         S := Scheme(AffineSpace(Rprod), DEs);
         test2 := CheckIrreducibleComponent(X, Y, S);
         vprintf EndoCheck : "done.\n";
@@ -568,44 +604,44 @@ end while;
 end intrinsic;
 
 
-function DivisorFromMatrixSplitStepModP(X_red, Y_red, NormM_red, d : Margin := 2^4, DivPP1 := false, have_to_check := true)
-/* Step mod p of the above */
+function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := false, have_to_check := true)
 
-vprintf EndoCheck : "Trying degree %o...\n", d;
-fs_red := CandidateDivisors(X_red, Y_red, d);
-n := #fs_red + Margin;
-vprintf EndoCheck : "Number of digits in expansion: %o.\n", n;
+vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+fs := CandidateDivisors(X, Y, d);
+n := #fs + Margin;
+vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
-P_red, Qs_red := ApproximationsFromTangentAction(X_red, Y_red, NormM_red, n);
-vprintf EndoCheck, 3 : "Base point:\n";
-_<t> := Parent(P_red[1]);
-vprint EndoCheck, 3 : P_red;
-vprintf EndoCheck, 3 : "Resulting branches:\n";
-vprint EndoCheck, 3 : Qs_red;
+P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n);
+vprintf EndoCheck, 4 : "Base point:\n";
+_<t> := Parent(P[1]);
+_<r> := BaseRing(Parent(P[1]));
+vprint EndoCheck, 4 : P;
+vprintf EndoCheck, 4 : "Resulting branches:\n";
+vprint EndoCheck, 4 : Qs;
+vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */
 vprintf EndoCheck, 2 : "Solving linear system... ";
-ICs_red := IrreducibleComponentsFromBranches(X_red, Y_red, fs_red, P_red, Qs_red : DivPP1 := DivPP1);
+ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
 vprintf EndoCheck, 2 : "done.\n";
 
-for S_red in ICs_red do
+for S in ICs do
+    DEs := DefiningEquations(S);
     vprintf EndoCheck, 2 : "Checking:\n";
     vprintf EndoCheck, 2 : "Step 1... ";
-
-    if not have_to_check then
-        vprintf EndoCheck, 2 : "done.\n";
-        vprintf EndoCheck, 2 : "Divisor found!\n";
-        return true, S_red;
-    end if;
-
-    test := CheckIrreducibleComponent(X_red, Y_red, S_red);
+    test1 := CheckEquations(X, Y, P, Qs, DEs);
     vprintf EndoCheck, 2 : "done.\n";
-    if test then
-        vprintf EndoCheck, 2 : "Divisor found!\n";
-        return true, S_red;
+    if test1 then
+        vprintf EndoCheck, 2 : "Step 2... ";
+        test2 := CheckIrreducibleComponent(X, Y, S);
+        vprintf EndoCheck, 2 : "done.\n";
+        if test2 then
+            vprintf EndoCheck, 2 : "Divisor found!\n";
+            return true, S;
+        end if;
     end if;
 end for;
 return false, [ ];

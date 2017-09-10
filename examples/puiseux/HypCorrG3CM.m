@@ -14,7 +14,7 @@ f /:= 2;
 X := HyperellipticCurve(f);
 //print RationalPoints(X : Bound := 100);
 print [ Evaluate(f, n) : n in [-3..3] ];
-P0 := X ! [1, 1];
+P0 := X ! [1, 1, 1];
 
 Ms := [ ];
 

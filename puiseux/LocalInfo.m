@@ -190,8 +190,8 @@ end function;
 
 function CreateLiftIterator(X, Y, M)
 
-fX := X`DEs[1]; dfX := Derivative(fX, X`y); BX := X`NormB; gX := X`g;
-fY := Y`DEs[1]; dfY := Derivative(fY, Y`y); BY := Y`NormB; gY := Y`g;
+fX := X`DEs[1]; dfX := Derivative(fX, X`R.2); BX := X`NormB; gX := X`g;
+fY := Y`DEs[1]; dfY := Derivative(fY, Y`R.2); BY := Y`NormB; gY := Y`g;
 
 e := PuiseuxRamificationIndex(M);
 
