@@ -44,4 +44,5 @@ print ""
 print "Decomposition:"
 print Dec.field
 print Dec.factors()
+print Dec._factors_desc_()
 #print Dec.verify()

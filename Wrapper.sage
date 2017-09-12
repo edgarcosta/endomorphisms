@@ -316,6 +316,15 @@ class Decomposition:
         return [ fac['factor']['algebraic'] for fac in self._facs_ ]
 
     def _factors_desc_(self):
+        # TODO: Temp starts
+        descs = [ ]
+        for fac in self.factors():
+            if fac == 0:
+                descs.append(0)
+            else:
+                descs.append(sagify_description(magma.FactorDescription(fac, self.F)))
+        return descs
+        # TODO: Temp ends
         return [ sagify_description(magma.FactorDescription(fac, self.F)) for fac in self.factors() ]
 
     def set_base_point(self):

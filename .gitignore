@@ -13,6 +13,4 @@ __pycache__/
 **/*.pyc
 **/*.sig
 **/.ropeproject*
-database/gce*full.txt
-database/upload*.sage
 odds_and_ends/*

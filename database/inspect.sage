@@ -19,13 +19,14 @@ index = 2
 # A priori boring output:
 boring = ["[[-1,1],[[[-1,1],[[['I',[-1,1],1,1]],[1,-1],['RR'],'undef']]]]"]
 
-entries = _index_dict_['entries'] - 1
 geom = 0
 base = -1
+entries = _index_dict_['entries'] - 1
 structure = _index_dict_['structure'] - 1
 factors_QQ = _index_dict_['factors_QQ']
 desc_ZZ = _index_dict_['desc_ZZ']
 desc_ZZ_index = _index_dict_['index']
+disc = _index_dict_['disc']
 
 interesting = 0
 with open(inputfile) as inputstream:
@@ -34,19 +35,17 @@ with open(inputfile) as inputstream:
         linesplit = linestrip.split(':')
         if not linesplit[index] in boring:
             L = eval(linesplit[index])
+            EDs = L[entries]
             # All interesting cases:
             if True:
             # Geometrically simple:
-            #if len(L[entries][geom][structure][factors_QQ]) == 1 and not any("M" in string for string in L[entries][geom][structure][2]):
-            #if len(L[entries][geom][structure][factors_QQ]) == 1 and any("M" in string for string in L[entries][geom][structure][2]):
-            # Non-geometrically simple:
-            #if len(L[entries][base][structure][factors_QQ]) == 1 and not any("M" in string for string in L[entries][geom][structure][2]) and not (len(L[entries][geom][structure][factors_QQ]) == 1 and not any("M" in string for string in L[entries][geom][structure][2])):
+            #if len(EDs[geom][structure][factors_QQ]) == 1 and EDs[geom][structure][factorsQQ][0][disc] == 1:
             # Three distinct geometric factors:
-            #if len(L[entries][geom][structure][factors_QQ]) == 3:
+            #if len(EDs[geom][structure][factors_QQ]) == 3:
             # Two distinct geometric factors:
-            #if len(L[entries][geom][structure][factors_QQ]) == 2:
+            #if len(EDs[geom][structure][factors_QQ]) == 2:
             # Two distinct geometric factors and index divisibility:
-            #if (len(L[entries][geom][structure][factors_QQ]) == 2) and (L[entries][geom][structure][desc_ZZ][desc_ZZ_index] % 2 == 0):
+            #if (len(EDs[geom][structure][factors_QQ]) == 2) and (EDs[geom][structure][desc_ZZ][desc_ZZ_index] % 2 == 0):
                 interesting += 1
                 print ""
                 print linesplit[0:index]

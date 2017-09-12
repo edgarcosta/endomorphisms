@@ -1,3 +1,4 @@
+Cantor change
 Simplification at the end
 Use Riemann-Roch spaces
 Debug LocalInfo if needed
@@ -6,13 +7,15 @@ Add factors to database run, recognition of curves on upload
 
 Get rid of Weierstrass condition on X and normalization (after everything else!)
 Genus 3 experimentation (automate isogeny to principally polarized, inspect resulting extensions, degree 2 largest degree, genus 2 factor, better recognition)
+Better idempotent
+Factor description in database run (skip trivial cases in second run)
 
 /* Proof!
 f = y^4 - x^3 + x + 1 to y^2 = x^3 + x + 1
 (x, y) --> (x, y^2)
 dx / 2y becomes dx / 2y^2; it could not be simpler
 dx / 2y^2 = y (dx / 2y^3) = 2y (dx / 4 y^3)
-This depends on normalizations... crap. Do patches by hand?
+This depends on normalizations, so we need to fix the defining equation.
 If we do that, then matrix is [ 0, 4, 0 ]
 
 f = 1 - y^3*x - y*x^3 - x^4 to y^2 = x^3 + x + 1

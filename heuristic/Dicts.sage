@@ -41,7 +41,7 @@ _index_dict_['alg_ZZ'] = 2
 _index_dict_['alg_RR'] = 3
 _index_dict_['alg_ST'] = 4
 
-# Sage indices for description key
+# Sage indices for description key (and subcases, see below)
 _index_dict_['factors_QQ'] = 0
 _index_dict_['desc_ZZ'] = 1
 _index_dict_['desc_RR'] = 2
@@ -57,11 +57,16 @@ _index_dict_['disc'] = 3
 _index_dict_['index'] = 0
 _index_dict_['is_eichler'] = 1
 
-# Decomposition. Note the compatility of the first field with what went before.
+# Magma indices for decomposition.
 _index_dict_['field'] = 1
 _index_dict_['idem'] = 2
 _index_dict_['factor'] = 3
 _index_dict_['proj'] = 4
+
+# Sage indices for decomposition factor
+_index_dict_['fac_type'] = 0
+_index_dict_['fac_field'] = 1
+_index_dict_['fac_coeffs'] = 2
 
 def sagify_description(desc_list):
     return eval(repr(magma.SagifyDescription(desc_list)))
