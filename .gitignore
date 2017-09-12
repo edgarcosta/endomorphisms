@@ -6,11 +6,10 @@ __pycache__/
 #python generated files
 *.pyc
 
-
+# Other secondary files
 **/*.swp
 **/*~
 **/*.sage.py
 **/*.pyc
 **/*.sig
 **/.ropeproject*
-odds_and_ends/*

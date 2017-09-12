@@ -1,5 +1,0 @@
-Curves are given by a single planar defining equation, possibly with a singularity
-We take a non-Weierstrass base point
-We use an affine patch, by default the standard one, unless the base point used is at infinity
-A uniformizer is chosen in a standard preferred way, as is a basis of differentials
-Differentials are represented by rational functions times the differential of the given uniformizer

@@ -62,8 +62,7 @@ function CandidateFunctions(X, d)
 
 g := X`g; f := X`DEs[1]; R := X`R;
 x := R.1; y := R.2;
-/* Change in hyperelliptic case for greater effectiveness: */
-if Degree(f, x) eq 2 then
+if Degree(f, x) lt Degree(f, y) then
     x := R.2; y := R.1;
 end if;
 
@@ -72,7 +71,6 @@ if X`is_hyperelliptic or (g eq 1) then
     dens := [ x^i : i in [0..(d div 2)] ];
 elif X`is_planar then
     nums := [ x^i*y^j : i in [0..d], j in [0..(Degree(f, y) - 1)] | i + j le d ];
-    dens := [ x^i : i in [0..d] ];
     dens := nums;
 end if;
 return dens, nums;
@@ -337,7 +335,9 @@ function ChangeFunctions(X, Y, fs)
  * Especially relevant when considering elliptic curve factors.
  */
 
+/* For now we only do this in genus 1: */
 g := X`g; R := X`R; K := X`K;
+if Y`g eq 1 then
 subsX := [ K ! X`R.1, K ! X`R.2 ];
 if X`is_hyperelliptic or (X`g eq 1) then
     if X`patch_index eq 3 then
@@ -358,10 +358,10 @@ if X`unif_index eq 2 then
     subsX := [ subsX[2], subsX[1] ];
 end if;
 fs := [ X`K ! Evaluate(f, subsX) : f in fs ];
+end if;
 
 // TODO: Transform to Y in general by thinking about how the Cantor equation
-// changes.
-// If Y has genus 1, then we add a minus for passage from Cantor to naive
+// changes. But this is nasty.
 if Y`g eq 1 then
     fs := [ -fs[1], fs[2] ];
     if Y`unif_index eq 2 then

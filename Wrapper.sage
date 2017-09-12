@@ -339,7 +339,7 @@ class Decomposition:
 
     def correspondence(self, fac):
         if fac['factor']['algebraic'] == 0:
-            return ''
+            return 'to be implemented'
         self.set_base_point()
         self.set_base_point_factor(fac)
         P = self.base_point

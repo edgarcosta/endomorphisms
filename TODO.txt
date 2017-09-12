@@ -1,14 +1,12 @@
-Cantor change
-Simplification at the end
-Use Riemann-Roch spaces
+Projection degree 7
+Database run for endos
+Database run for splittings
 Debug LocalInfo if needed
-Test everything under the sun (hyp, nonhyp with conversions, genus 3 to genus 2 and dual) and retain these files for all later builds
-Add factors to database run, recognition of curves on upload
+Description of package and conventions
+Test everything under the sun (genus 3 to genus 2 and dual) and retain these files for all later builds
 
 Get rid of Weierstrass condition on X and normalization (after everything else!)
 Genus 3 experimentation (automate isogeny to principally polarized, inspect resulting extensions, degree 2 largest degree, genus 2 factor, better recognition)
-Better idempotent
-Factor description in database run (skip trivial cases in second run)
 
 /* Proof!
 f = y^4 - x^3 + x + 1 to y^2 = x^3 + x + 1

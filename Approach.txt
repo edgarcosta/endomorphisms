@@ -1,0 +1,3 @@
+Add a description of the package
+
+Mention Cantor, idempotents over small fields.
