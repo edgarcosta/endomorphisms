@@ -90,7 +90,6 @@ end intrinsic;
 intrinsic IdempotentsFromFactorG3(D::., C::.) -> .
 {Idempotents originating from the factor D.}
 
-// TODO: This 
 E1, f1 := AlgebraOverCenter(D);
 //F := ClearFieldDenominator(BaseRing(E1));
 //if Type(F) eq FldNum then
@@ -165,7 +164,7 @@ gQuotient := NumericalRank(PEllHuge : Epsilon := RR`epsinv);
 PEllHugeSplit := SplitMatrix(PEllHuge);
 
 PEllBigSplit, row_numbers := SubmatrixOfRank(PEllHugeSplit, 2*gQuotient : ColumnsOrRows := "Rows"); // extract 2g independent rows
-PEllBigSplit, M := SaturateLattice(PEllHugeSplit, PEllBigSplit); // ensure that these rows generate the full lattice
+PEllBigSplit, M := SaturateLattice(PEllHugeSplit, PEllBigSplit); // correct to generate the full lattice
 
 PEllBig := CombineMatrix(PEllBigSplit, CC); // go back to the complex representation
 
@@ -184,6 +183,49 @@ d := IdempotentDenominator(idem);
 proj := [* d*projTan, d*projHom, d*projApp *];
 
 return LatticeMatrix, proj;
+end intrinsic;
+
+
+intrinsic IdempotentDenominator(idem::.) -> RngIntElt
+{Degree of morphism from given idempotent.}
+
+idemTan, idemHom, idemApp := Explode(idem);
+return LCM([ Denominator(c) : c in Eltseq(idemHom) ]);
+
+end intrinsic;
+
+
+intrinsic ProjectionFromIdempotentNew(P::., idem::List) -> List
+{From an idempotent, extracts corresponding lattice and projection.}
+
+A, R, ACC := Explode(idem); g := Rank(A);
+CC := BaseRing(ACC); RR := RealField(CC);
+//print ComplexField(5) ! Minimum([ Abs(c) : c in Eltseq(ChangeRing(Transpose(R), CC)*P - P*Transpose(ACC)) ]);
+
+/* Find good columns and modify A by it: */
+QLarge, indices := SubmatrixOfRank(P * Transpose(ACC), g : ColumnsOrRows := "Columns");
+rowsA := Rows(A); rowsACC := Rows(ACC);
+B := Matrix([ [ c : c in Eltseq(rowsA[i]) ] : i in indices ]);
+BCC := Matrix([ [ c : c in Eltseq(rowsACC[i]) ] : i in indices ]);
+
+/* Find good rows: */
+QLargeSplit := SplitMatrix(QLarge);
+QSplit, indices := SubmatrixOfRank(QLargeSplit, 2*g : ColumnsOrRows := "Rows");
+Q := CombineMatrix(QSplit, CC);
+//print ComplexField(5) ! Minimum([ Abs(c) : c in Eltseq(ChangeRing(Transpose(R), CC)*QLarge - P*Transpose(BCC)) ]);
+
+/* Express rest in these rows: */
+TCC := NumericalLeftSolve(QSplit, QLargeSplit);
+T := Matrix(Rationals(), [ [ FractionalApproximation(c) : c in Eltseq(row) ] : row in Rows(TCC) ]);
+BLT := Basis(Lattice(T));
+U := Matrix(Rationals(), [ Eltseq(b) : b in BLT ]);
+Q := ChangeRing(U, CC) * Q;
+S := Transpose(U^(-1)) * Transpose(T) * R;
+//print ComplexField(5) ! Minimum([ Abs(c) : c in Eltseq(ChangeRing(Transpose(S), CC)*Q - P*Transpose(BCC)) ]);
+
+proj := [* B, S, BCC *];
+return Q, proj;
+
 end intrinsic;
 
 

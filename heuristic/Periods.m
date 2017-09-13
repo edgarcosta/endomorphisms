@@ -21,7 +21,7 @@ RCC := Parent(eqsCC[1]); CC := BaseRing(RCC);
 if #GeneratorsSequence(RCC) eq 1 then
     if #eqsCC eq 2 then
         fCC, hCC := Explode(eqsCC);
-        gCC := 4*fCC + hCC^2;
+        gCC := (4*fCC + hCC^2) / 4;
     else
         gCC := Explode(eqsCC);
     end if;

@@ -32,7 +32,7 @@ inputfile = base_string + '.txt'
 outputfile = base_string + '_endos.txt'
 
 # Ambient ring:
-R.<x,y,z> = PolynomialRing(QQ)
+R.<x,y,z> = PolynomialRing(QQ, 3)
 
 @parallel(ncpus=4)
 def step(line):
@@ -46,13 +46,11 @@ def step(line):
         pol_list = eval(linesplit[f_index].replace('^', '**'))
         f = R(pol_list[0])
         X = mPlaneCurve(f)
-        # Regular version:
         Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
         Lat_str = Endo.lattice()._desc_
         return repr(Lat_str).replace('\n', '').replace(' ', '')
     except:
-        print linesplit[0]
-        print linesplit[f_index]
+        print linestrip
         return "Error"
 
 with open(inputfile) as inputstream:

@@ -197,6 +197,7 @@ intrinsic CantorFromMatrixSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin :
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
 vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);
 vprintf EndoCheck, 3 : "Tangent matrix after change of basis: ";

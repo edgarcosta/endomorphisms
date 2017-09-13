@@ -13,23 +13,16 @@ load("../Initialize.sage")
 
 F = QQ
 R.<x> = PolynomialRing(F)
-f, h = [x^6+3*x^5+2*x^4+7*x^3+11*x^2+14, x^2+x]
-f, h = [x^7+x^6-4*x^5+4*x^3-5*x^2+2*x-1, x^4+x^3+x+1]
-f, h = [-3*x^7-3*x^6-3*x^5+x^2+x, x^3+1]
-#f, h = [-x^8+3*x^7-3*x^6-2*x^5-2*x^4+x^2, x^4+x^3+x+1]
-#f, h = [x^5 -3*x^4 -2*x - 1, x^3 + x^2 + x + 1]
-#f, h = [x^4 + 7, x^3 + x]
-#f, h = [x^4 - 7, x^3 + x]
-#f, h = [x^4 + x^2, x^3 + 1]
-#f, h = [ -38*x^6 + 102*x^5 + 77*x^4 - 276*x^3 - 118*x^2 + 232*x + 132, 0 ]
+f, h = x^6 + 3*x^5 + 2*x^4 + 7*x^3 + 11*x^2 + 14, x^2 + x
 X = mHyperellipticCurve(f, h)
 
 #R.<x,y,z> = PolynomialRing(F)
 #f = x^3*z + x^2*y*z + x^2*z^2 - x*y^3 - x*y*z^2 - x*z^3 + y^2*z^2
+#f = x^3*z + y^4 + y^3*z + y^2*z^2 + y*z^3
 #X = mPlaneCurve(f)
 
 print X
-Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
+Endo = EndomorphismData(X, prec = 100, have_oldenburg = True)
 
 print ""
 print "Field of definition:"
@@ -44,5 +37,5 @@ print ""
 print "Decomposition:"
 print Dec.field
 print Dec.factors()
-print Dec._factors_desc_()
-#print Dec.verify()
+print Dec.idempotents()
+print Dec.verify()

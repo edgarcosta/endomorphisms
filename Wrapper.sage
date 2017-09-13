@@ -86,15 +86,15 @@ class EndomorphismData:
     def correspondence(self, A):
         # TODO: Add bounds
         self.set_base_point()
-        test, cert = magma.Correspondence(self.X, self.base_point, self.X, self.base_point, A, nvals = 2)
-        return cert
+        test, corresp = magma.Correspondence(self.X, self.base_point, self.X, self.base_point, A, nvals = 2)
+        return test, corresp
 
     def verify_representation(self):
         self._rep_test_ = True
         for gen in self._geo_rep_dict_:
             genTan = gen['tangent']
-            corresp = self.correspondence(genTan)
-            if not corresp:
+            test, corresp = self.correspondence(genTan)
+            if not test:
                 self._rep_test_ = False
             else:
                 gen['corresp'] = corresp
@@ -289,7 +289,7 @@ class Decomposition:
             fac = dict()
             fac['field'] = self.field
             fac['idem'] = dict_gen(idem)
-            lat, proj = magma.ProjectionFromIdempotent(self._P_, idem, nvals = 2)
+            lat, proj = magma.ProjectionFromIdempotentNew(self._P_, idem, nvals = 2)
             fac['proj'] = dict_gen(proj);
             fac['factor'] = { 'analytic': lat }
             self._facs_.append(fac)
@@ -316,15 +316,6 @@ class Decomposition:
         return [ fac['factor']['algebraic'] for fac in self._facs_ ]
 
     def _factors_desc_(self):
-        # TODO: Temp starts
-        descs = [ ]
-        for fac in self.factors():
-            if fac == 0:
-                descs.append(0)
-            else:
-                descs.append(sagify_description(magma.FactorDescription(fac, self.F)))
-        return descs
-        # TODO: Temp ends
         return [ sagify_description(magma.FactorDescription(fac, self.F)) for fac in self.factors() ]
 
     def set_base_point(self):

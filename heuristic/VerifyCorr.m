@@ -170,23 +170,63 @@ end if;
 end intrinsic;
 
 
-intrinsic Correspondence(X::Crv, P::SeqEnum, Y::Crv, Q::SeqEnum, A::.) -> .
+intrinsic Correspondence(X::Crv, P::., Y::Crv, Q::., A::.) -> .
 {Gives certificate.}
 
 K := Parent(P[1]); L := Parent(Q[1]);
 M, phiK, phiL := RelativeCompositum(K, L);
 XM := ChangeRing(X, M); YM := ChangeRing(Y, M);
-PM := [ phiK(c) : c in P ]; PM := XM ! P;
-QM := [ phiL(c) : c in Q ]; QM := YM ! Q;
+PM := [ phiK(c) : c in Eltseq(P) ]; PM := XM ! P;
+QM := [ phiL(c) : c in Eltseq(Q) ]; QM := YM ! Q;
 AM := ChangeRing(A, M);
 
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";
 elif Genus(Y) eq 1 then
-    return CantorFromMatrixSplit(XM, PM, YM, QM, AM/2);
+    test, fs := CantorFromMatrixSplit(XM, PM, YM, QM, AM);
+    /* TODO: Temporary sanity check */
+    if not CorrespondenceVerifyG1(XM, PM, YM, QM, AM, fs) then
+        error "Pullback incorrect";
+    end if;
+    /* TODO: End of temporary sanity check */
+    return true, fs;
 else
-    return "";
-    //return DivisorFromMatrixSplit(XM, PM, YM, QM, AM);
+    return DivisorFromMatrixSplit(XM, PM, YM, QM, AM);
 end if;
+
+end intrinsic;
+
+
+intrinsic CorrespondenceVerifyG1(X::Crv, P::Pt, Y::Crv, Q::Pt, A::., fs::SeqEnum) -> .
+{Checks alleged properties of fs.}
+
+F := BaseRing(Parent(fs[1]));
+/* Check that the answer is a projection: */
+R<x,y> := PolynomialRing(F, 2);
+K := FieldOfFractions(R);
+fX := R ! DefiningEquation(AffinePatch(X, 1)); fY := R ! DefiningEquation(AffinePatch(Y, 1));
+IX := ideal<R | fX>;
+if not R ! Numerator(K ! Evaluate(R ! fY, fs)) in IX then
+    return false;
+end if;
+
+/*
+AX := AffinePatch(X, 1); AY := AffinePatch(Y, 1);
+KX := FunctionField(AX); KY := FunctionField(AY);
+m := map<AX -> AY | fs >;
+print "Degree:", Degree(ProjectiveClosure(m));
+*/
+
+/* Check that the action on differentials is correct: */
+fX := R ! DefiningEquation(AffinePatch(X, 1));
+fY := R ! DefiningEquation(AffinePatch(Y, 1));
+dx := K ! 1;
+dy := K ! -Derivative(fX, 1) / Derivative(fX, 2);
+ev := ((K ! Derivative(fs[1], 1))*dx + (K ! Derivative(fs[1], 2))*dy) / (K ! (2*fs[2]));
+if not R ! Numerator(K ! (ev - &+[ A[1,i]*x^(i - 1) : i in [1..Genus(X)] ]/(Derivative(fX, 2)/MonomialCoefficient(fX, y^2)))) in IX then
+    return false;
+end if;
+
+return true;
 
 end intrinsic;

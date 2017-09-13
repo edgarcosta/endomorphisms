@@ -1,4 +1,4 @@
-Projection degree 7
+Point issue
 Database run for endos
 Database run for splittings
 Debug LocalInfo if needed
