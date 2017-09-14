@@ -15,22 +15,20 @@
 # by lists of integers. These polynomials (and the conjectural Sato-Tate group,
 # if provided) need to be at a consistent index in the provided lines.
 
-# Specify indices of defining polynomials and Sato-Tate group here;
-# making the latter negative ignores the corresponding check.
-fh_index = 1
-st_index = -1
+# Specify indices of defining polynomials
+fh_index = 2
 # Precision:
-prec = 300
+prec = 100
 
 import os, shutil
 
 # Specify input and output:
-base_string = 'special_curves'
+base_string = 'special_curves_nonhyp'
 inputfile = base_string + '.txt'
 outputfile = base_string + '_decomp.txt'
 
 # Ambient ring:
-R.<x> = PolynomialRing(QQ)
+R.<x,y,z> = QQ[]
 
 with open(inputfile) as inputstream:
     with open(outputfile, 'w') as outputstream:
@@ -41,15 +39,14 @@ with open(inputfile) as inputstream:
                 linesplit = linestrip.split(':')
                 pol_list = eval(linesplit[fh_index].replace('^', '**'))
                 f = R(pol_list[0])
-                h = R(pol_list[1])
-                X = HyperellipticCurve(f, h)
+                X = mPlaneCurve(f)
                 Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
                 Dec = Endo.decomposition()
                 facs = Dec.factors()
                 idems = Dec.idempotents()
                 test = Dec.verify()
-                print test
                 if not test:
+                    print test
                     raise AssertionError('test returned False')
                 outputstream.write(linestrip + ':' + 'Success' + '\n')
             except:

@@ -1,12 +1,9 @@
-Point issue
-Database run for endos
-Database run for splittings
+Genus 3 experimentation (automate isogeny to principally polarized, inspect resulting extensions, degree 2 largest degree, genus 2 factor, better recognition)
+Point issue in instrinsic declaration
 Debug LocalInfo if needed
 Description of package and conventions
-Test everything under the sun (genus 3 to genus 2 and dual) and retain these files for all later builds
 
-Get rid of Weierstrass condition on X and normalization (after everything else!)
-Genus 3 experimentation (automate isogeny to principally polarized, inspect resulting extensions, degree 2 largest degree, genus 2 factor, better recognition)
+Get rid of Weierstrass condition on X and normalization on that curve (after everything else!)
 
 /* Proof!
 f = y^4 - x^3 + x + 1 to y^2 = x^3 + x + 1

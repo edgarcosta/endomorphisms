@@ -223,10 +223,14 @@ fY := R ! DefiningEquation(AffinePatch(Y, 1));
 dx := K ! 1;
 dy := K ! -Derivative(fX, 1) / Derivative(fX, 2);
 ev := ((K ! Derivative(fs[1], 1))*dx + (K ! Derivative(fs[1], 2))*dy) / (K ! (2*fs[2]));
-if not R ! Numerator(K ! (ev - &+[ A[1,i]*x^(i - 1) : i in [1..Genus(X)] ]/(Derivative(fX, 2)/MonomialCoefficient(fX, y^2)))) in IX then
-    return false;
+if X`is_hyperelliptic then
+    if not R ! Numerator(K ! (ev - &+[ A[1,i]*x^(i - 1) : i in [1..Genus(X)] ]/(Derivative(fX, 2)/MonomialCoefficient(fX, y^2)))) in IX then
+        return false;
+    end if;
+elif X`is_planar then
+    mults := [ x, y, 1 ];
+    print "Correct pullback?", R ! Numerator(K ! (ev - &+[ A[1,i]*mults[i] : i in [1..Genus(X)] ]/Derivative(fX, 2))) in IX;
 end if;
-
 return true;
 
 end intrinsic;

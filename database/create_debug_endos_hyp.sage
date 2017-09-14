@@ -15,17 +15,15 @@
 # by lists of integers. These polynomials (and the conjectural Sato-Tate group,
 # if provided) need to be at a consistent index in the provided lines.
 
-# Specify indices of defining polynomials and Sato-Tate group here;
-# making the latter negative ignores the corresponding check.
+# Specify indices of defining polynomials
 fh_index = 1
-st_index = -1
 # Precision:
 prec = 300
 
 import os, shutil
 
 # Specify input and output:
-base_string = 'special_curves'
+base_string = 'special_curves_hyp'
 inputfile = base_string + '.txt'
 outputfile = base_string + '_endos.txt'
 
@@ -45,8 +43,8 @@ with open(inputfile) as inputstream:
                 X = HyperellipticCurve(f, h)
                 Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
                 test = Endo.verify()
-                print test
                 if not test:
+                    print test
                     raise AssertionError('test returned False')
                 outputstream.write(linestrip + ':' + 'Success' + '\n')
             except:
