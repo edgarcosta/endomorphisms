@@ -10,15 +10,6 @@
  */
 
 
-intrinsic StandardSymplecticMatrix(g::RngIntElt) -> .
-{Standard symplectic 2 g x 2 g matrix.}
-
-A := ScalarMatrix(g, 0); B := ScalarMatrix(g, -1); C := -B; D := A;
-return VerticalJoin(HorizontalJoin(A, B), HorizontalJoin(C, D));
-
-end intrinsic;
-
-
 intrinsic RosatiInvolution(GeoEndoRep::SeqEnum, A::.) -> .
 {Returns the Rosati involution of A.}
 

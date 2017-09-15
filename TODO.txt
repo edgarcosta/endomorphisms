@@ -1,8 +1,7 @@
-Genus 3 experimentation (automate isogeny to principally polarized, inspect resulting extensions, degree 2 largest degree, genus 2 factor, better recognition)
+Induced polarization, recognition afterwards, mutual 2 <--> 3, example over QQ
 Point issue in instrinsic declaration
 Debug LocalInfo if needed
 Description of package and conventions
-
 Get rid of Weierstrass condition on X and normalization on that curve (after everything else!)
 
 /* Proof!
