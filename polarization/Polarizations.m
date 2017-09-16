@@ -22,6 +22,7 @@ function IntegralSymplecticBasisRecursive(E)
 /* {Given an alternating integral matrix E, outputs an integral matrix T such
  * that T * E * Transpose(T) is in alternative symplectic standard form.} */
 
+E := Matrix(Integers(), [ [ c : c in Eltseq(row) ] : row in Rows(E) ]);
 /* Use the Smith normal form to find two elements with smallest possible
  * pairing value and that can be extended to a basis: */
 d := #Rows(E);
@@ -71,19 +72,34 @@ return T;
 end intrinsic;
 
 
+intrinsic PrincipalBasisRandom(E::AlgMatElt) -> AlgMatElt
+{Given an alternating integral matrix E, outputs a matrix T such that T * E * Transpose(T) is in principal standard form.}
+
+g := #Rows(E) div 2; E0 := StandardSymplecticMatrix(g);
+B := 2; D := [-B..B];
+while true do
+    T := Matrix(Rationals(), 2*g, 2*g, [ Random(D) : i in [1..(4*g^2)] ]);
+    if E eq T*E0*Transpose(T) then
+        return T^(-1);
+    end if;
+end while;
+
+end intrinsic;
+
+
 intrinsic FindPolarizationBasis(P::.) -> .
 {Determines a basis of the alternating forms giving rise to a polarization on the period matrix P.}
 
 JP :=ComplexStructure(P); RR := BaseRing(JP);
-gP := #Rows(JP) div 2; n := 4 * gP ^2;
+gP := #Rows(JP) div 2; n := 4 * gP^2;
 
 /* Building a formal matrix corresponding to all possible polarisations */
 R := PolynomialRing(RR, n); vars := GeneratorsSequence(R);
 M := Matrix(R, 2 * gP, 2 *gP, vars);
 JP_R := ChangeRing(JP, R);
 
-/* Conditions that ensure that E(ix,iy) = E(x,y) and that E is anti-symmetric */
-Comm := Eltseq(JP_R* M * Transpose(JP_R)- M) cat Eltseq(M+Transpose(M));
+/* Conditions that ensure that E(ix,iy) = E(x,y) and that E is antisymmetric */
+Comm := Eltseq(JP_R * M * Transpose(JP_R) - M) cat Eltseq(M + Transpose(M));
 
 /* Splitting previous linear equations by formal variable */
 M :=  Matrix(RR, [ [MonomialCoefficient(c, var) : c in Comm] :var in vars ]);
@@ -113,6 +129,7 @@ intrinsic FindSymplecticBasis(M::.) -> .
 
 V := SymplecticSpace(Matrix(M));
 S := HyperbolicSplitting(V);
+n := #S;
 B := &cat[ [ Vector(v) : v in S[1][i] ] : i in [1..n] ];
 return Matrix(B);
 end intrinsic;

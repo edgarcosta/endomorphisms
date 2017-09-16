@@ -10,83 +10,65 @@
  */
 
 
-intrinsic FactorReconstruct(Lat::., K::Fld) -> Crv
+intrinsic FactorReconstruct(P::., Q::., A::., R::., K::Fld) -> Crv
 {Recovers algebraic expressions for the factors.}
 
-g := #Rows(Transpose(Lat));
+g := #Rows(Transpose(Q));
 if g eq 1 then
-    return FactorReconstructG1(Lat, K);
+    return FactorReconstructG1(P, Q, A, R, K);
 elif g eq 2 then
-    return 0;
-    return FactorReconstructG2(Lat, K);
+    return FactorReconstructG2(P, Q, A, R, K);
 else
     return 0;
-    //error "Reconstruction in genus larger than 2 not implemented yet";
 end if;
 
 end intrinsic;
 
 
-intrinsic FactorReconstructG1(P::., K::Fld) -> .
+intrinsic FactorReconstructG1(P::., Q::., A::., R::., K::Fld) -> .
 {Reconstructs elliptic curve factor from a period lattice.}
 
-P := Eltseq(P); CC := Parent(P[1]); RR := RealField(CC);
-if Im(P[2]/P[1]) lt 0 then
-    P := [ P[2], P[1] ];
+Q := Eltseq(Q); CC := Parent(Q[1]); RR := RealField(CC);
+if Im(Q[2]/Q[1]) lt 0 then
+    Q := [ Q[2], Q[1] ];
 end if;
-g4CC := 120 * (1/P[1])^4 * ZetaFunction(RR, 4) * Eisenstein(4, P);
-g6CC := 280 * (1/P[1])^6 * ZetaFunction(RR, 6) * Eisenstein(6, P);
+g4CC := 120 * (1/Q[1])^4 * ZetaFunction(RR, 4) * Eisenstein(4, Q);
+g6CC := 280 * (1/Q[1])^6 * ZetaFunction(RR, 6) * Eisenstein(6, Q);
 g4 := AlgebraizeElementInRelativeField(g4CC, K);
 g6 := AlgebraizeElementInRelativeField(g6CC, K);
-// Division by 16 because of our conventions on period matrices
 R<x> := PolynomialRing(K); f := (4*x^3 - g4*x - g6)/4; h := 0;
 return HyperellipticCurve(f, h);
 
 end intrinsic;
 
 
-intrinsic FactorReconstructG2(P::., K::Fld) -> .
+intrinsic FactorReconstructG2(P::., Q::., A::., R::., K::Fld) -> .
 {Reconstructs genus 2 factor.}
 
-// Recover small period matrix:
 CC := BaseRing(P); RCC<xCC> := PolynomialRing(CC);
-g := #Rows(Transpose(P));
-T := Matrix(CC, [
-[-1,  2, -2,  1],
-[ 1,  2,  1,  2],
-[ 2, -1,  1,  0],
-[ 1, -2,  0, -2]
-]);
-//T := Matrix(CC, [
-//[ 2, -2,  0, -1],
-//[ 2, -1,  0, -2],
-//[ 1, -2,  2, -1],
-//[ 0,  0, -1, -1]
-//]);
-//T := Matrix(CC, [
-//[-1,  2,  2, -2],
-//[-2, -2, -1,  1],
-//[ 0, -1, -2,  2],
-//[ 2,  1,  0,  1]
-//]);
-T := T^(-1);
-P := T*P;
-Omega1 := Submatrix(P, 1, 1, g, g); Omega2 := Submatrix(P, g + 1, 1, g, g);
-PSmall := Omega2 * Omega1^(-1);
-PSmall := -PSmall;
-
-rosensCC := RosenhainInvariants(PSmall);
+gY := #Rows(Transpose(Q));
+//return Max([ Abs(c) : c in Eltseq(P*Transpose(A) - ChangeRing(Transpose(R), CC)*Q) ]);
+EQ := FindPolarizationBasis(Q)[1];
+T := PrincipalBasisRandom(EQ);
+Qnew := ChangeRing(T, CC) * Q;
+Omega1 := Submatrix(Qnew, 1, 1, gY, gY); Omega2 := Submatrix(Qnew, gY + 1, 1, gY, gY);
+tau := Omega2 * Omega1^(-1);
+tauIm := Matrix(RealField(CC), [ [ Im(c) : c in Eltseq(row) ] : row in Rows(tau) ]);
+if not IsPositiveDefinite(ChangeRing(tauIm, RealField(Precision(CC) - 10))) then
+    tau *:= -1;
+end if;
+rosensCC := RosenhainInvariants(tau);
 fCC := xCC * (xCC - 1) * &*[ xCC - rosenCC : rosenCC in rosensCC ];
 g2sCC := G2Invariants(HyperellipticCurve(fCC));
 return g2sCC;
 
 g2s := [ AlgebraizeElementInRelativeField(g2CC, K) : g2CC in g2sCC ];
-X := HyperellipticCurveFromG2Invariants(g2s);
-if Type(BaseRing(X)) eq FldRat then
-    X := ReducedMinimalWeierstrassModel(X);
+Y := HyperellipticCurveFromG2Invariants(g2s);
+if Type(BaseRing(Y)) eq FldRat then
+    Y := ReducedMinimalWeierstrassModel(Y);
 end if;
-X := TwistDifferentialBasis(X, P);
-return X;
+Y := TwistDifferentialBasis(Y, Qnew);
+return Y;
 
 end intrinsic;
 
@@ -145,7 +127,6 @@ end intrinsic;
 intrinsic FactorDescriptionHyperelliptic(X::CrvHyp, F::Fld) -> List
 {Describes factor by recursive list of strings and integers.}
 
-// TODO: Modify as functionality starts working
 if Genus(X) eq 1 then
     desc := "ell";
 

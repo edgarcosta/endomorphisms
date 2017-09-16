@@ -1,3 +1,4 @@
+Better dictionary access in decomposition
 Induced polarization, recognition afterwards, mutual 2 <--> 3, example over QQ
 Point issue in instrinsic declaration
 Debug LocalInfo if needed

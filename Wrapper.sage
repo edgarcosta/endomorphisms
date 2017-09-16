@@ -308,8 +308,9 @@ class Decomposition:
 
     def _calculate_factors_(self):
         for fac in self._facs_:
-            if not 'algebraic' in fac['factor'].keys():
-                fac['factor']['algebraic'] = magma.FactorReconstruct(fac['factor']['analytic'], fac['field'])
+            # TODO: Recalculate for now, because of reconstruction issues
+            #if not 'algebraic' in fac['factor'].keys():
+            fac['factor']['algebraic'] = magma.FactorReconstruct(self._P_, fac['factor']['analytic'], fac['proj']['approx'], fac['proj']['homology'], fac['field'])
 
     def factors(self):
         self._calculate_factors_()

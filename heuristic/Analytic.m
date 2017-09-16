@@ -41,7 +41,7 @@ end intrinsic;
 
 
 intrinsic TangentRepresentationIsogeny(R::., P::., Q::.) -> .
-{Given a homology representation R of an isogeny and two period matrices P and Q, finds an analytic representation of that same isogeny.}
+{Given a homology representation R of an isogeny and two period matrices P and Q, finds an analytic representation A of that same isogeny, so that P A = R Q.}
 
 // FIXME: We may not want to recalculate this every time and pass on P0 and s0
 // as data. On the other hand, this is not a huge deal.
@@ -57,7 +57,7 @@ end intrinsic;
 
 
 intrinsic TangentRepresentationEndomorphism(R::., P::.) -> .
-{Given a homology representation R of an endomorphism and a period matrix P, finds an analytic representation of that same endomorphism.}
+{Given a homology representation R of an endomorphism and a period matrix P, finds an analytic representation of that same endomorphism, so that P A = R P.}
 
 return TangentRepresentationIsogeny(R, P, P);
 
@@ -65,7 +65,7 @@ end intrinsic;
 
 
 intrinsic HomologyRepresentationIsogeny(A::., P::., Q::.) -> .
-{Given a tangent representation A of an isogeny and two period matrices P and Q, finds an homology representation of that same isogeny.}
+{Given a tangent representation A of an isogeny and two period matrices P and Q, finds a homology representation R of that same isogeny, so that P A = R Q.}
 
 SplitPA := SplitMatrix(P * A);
 SplitQ := SplitMatrix(Q);
@@ -77,7 +77,7 @@ end intrinsic;
 
 
 intrinsic HomologyRepresentationEndomorphism(A::., P::.) -> .
-{Given a tangent representation A of an endomorphism and a period matrix P, finds an tangent representation of that same endomorphism.}
+{Given a tangent representation A of an endomorphism and a period matrix P, finds a homology representation R of that same endomorphism, so that P A = R P.}
 
 return HomologyRepresentationIsogeny(A, P, P);
 
@@ -85,7 +85,7 @@ end intrinsic;
 
 
 intrinsic GeometricIsogenyRepresentationPartial(P::., Q::.) -> SeqEnum
-{Starting from period matrices P and Q, determines isogenies between the corresponding abelian varieties.}
+{Starting from period matrices P and Q, determines isogenies between the corresponding abelian varieties, returned as a tangent representation A and a homology representation R for which P A = R Q.}
 
 // Basic invariants
 gP := #Rows(Transpose(P)); gQ := #Rows(Transpose(Q));
@@ -123,13 +123,11 @@ return GeometricIsogenyRepresentationPartial(P, P);
 end intrinsic;
 
 
-// TODO: Also for isogenies, naming issues
 intrinsic GeometricEndomorphismRepresentation(P::., F::Fld : Bound := Infinity()) -> SeqEnum
 {Starting from a period matrix P, determines the endomorphisms of the corresponding abelian variety.}
 
 gensPart := GeometricEndomorphismRepresentationPartial(P);
 gensPol := RelativeMinimalPolynomialsPartial(gensPart, F);
-// TODO: Use Bound?
 L := RelativeSplittingField(gensPol);
 gens := [ ];
 for gen in gensPart do
