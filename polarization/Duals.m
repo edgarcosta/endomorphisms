@@ -2,13 +2,14 @@
  *  Dualizing a morphism between PPAVs
  *
  *  Copyright (C) 2016-2017
- *            Jeroen Hanselman  (jeroen.hanselman@uni-ulm.de)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
  */
 
-function Dualization(R, EL, EM);
+intrinsic Dualization(R::., EL::AlgMatElt, EM::AlgMatElt) -> .
+{Dualizes a homology representation with respect to the alternating pairings EL
+and EM on the source and target.}
 
 rowsEM := Rows(EM); rowsEL := Rows(EL); rowsR := Rows(R);
 rowsDual := [ ];
@@ -22,4 +23,4 @@ for rowEM in rowsEM do
 end for;
 return Matrix(rowsDual);
 
-end function;
+end intrinsic;

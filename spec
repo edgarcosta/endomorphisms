@@ -23,6 +23,8 @@
   }
   polarization
   {
+    Abelian.m
+    Duals.m
     Polarizations.m
     Rosati.m
   }

@@ -46,7 +46,6 @@ intrinsic TangentRepresentationIsogeny(R::., P::., Q::.) -> .
 // FIXME: We may not want to recalculate this every time and pass on P0 and s0
 // as data. On the other hand, this is not a huge deal.
 P0, s0 := InvertibleSubmatrix(P);
-
 R := Matrix(BaseRing(P), R);
 RowsRQ := Rows(R * Q);
 RQ0 := Matrix(BaseRing(P), [ Eltseq(RowsRQ[i]) : i in s0 ]);
