@@ -1,5 +1,7 @@
+Riemann-Roch
 Better dictionary access in decomposition
-Induced polarization, recognition afterwards, mutual 2 <--> 3, example over QQ
+Prym
+Recognition
 Point issue in instrinsic declaration
 Debug LocalInfo if needed
 Description of package and conventions
