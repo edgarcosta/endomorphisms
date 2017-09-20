@@ -35,7 +35,7 @@ end intrinsic;
 
 
 intrinsic Coker(h::., P::., Q::.) -> .
-{Returns cokernel of the morphism h = (A, R) from P to Q.}
+{Returns the cokernel of the morphism h = (A, R) from P to Q.}
     A := h[1]; R := h[2];
     L := PureLattice(Lattice(R)); Zd := StandardLattice(Degree(L));
     CL, projL := quo< Zd | L >; gensCL := [ gen : gen in Generators(CL) ];
@@ -54,6 +54,20 @@ intrinsic Coker(h::., P::., Q::.) -> .
     /* TODO: See if there is a better way to do this */
     ptan := TangentRepresentationIsogeny(phom, Q, C);
     return C, [* ptan, phom *];
+end intrinsic;
+
+
+intrinsic Img(h::., P::., Q::.) -> .
+{Returns the image of the morphism h = (A, R) from P to Q.}
+
+C, proj := Coker(h, P, Q);
+if C eq 0 then
+    A := IdentityMatrix(BaseRing(Q), #Rows(Transpose(Q)));
+    R := IdentityMatrix(Integers(), #Rows(Q));
+    return Q, [* A, R *];
+end if;
+return Ker0(proj, Q, C);
+
 end intrinsic;
 
 /* TODO: Factorizations */

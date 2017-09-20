@@ -45,7 +45,7 @@ else
     print "trivial";
 end if;
 
-print "Cokernel";
+print "Cokernel:";
 C, proj := Coker(h, P, Q);
 ptan, phom := Explode(proj);
 if C ne 0 then
@@ -58,19 +58,22 @@ if C ne 0 then
     phomCC := ChangeRing(phom, CC);
     comm := Q*ptan - phomCC*C;
     print Maximum([ Abs(c) : c in Eltseq(comm) ]);
-    print "Image:";
-    //KCCG := KerModKer0(proj, Q, C);
-    //print KCCG;
-    K, inc := Ker0(proj, Q, C);
-    itan, ihom := Explode(inc);
-    print ChangeRing(K, ComplexField(5));
+else
+    print "trivial";
+end if;
+
+print "Image:";
+I, inc := Img(h, P, Q);
+itan, ihom := Explode(inc);
+if I ne 0 then
+    print ChangeRing(I, ComplexField(5));
     print "Inclusion on tangent:";
     print ChangeRing(itan, ComplexField(5));
     print "Inclusion on homology:";
     print ihom;
     print "Test almost 0:";
     ihomCC := ChangeRing(ihom, CC);
-    comm := K*itan - ihomCC*Q;
+    comm := I*itan - ihomCC*Q;
     print Maximum([ Abs(c) : c in Eltseq(comm) ]);
 else
     print "trivial";
