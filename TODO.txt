@@ -1,13 +1,13 @@
-Riemann-Roch
-Better dictionary access in decomposition
-Prym
-Recognition
-Point issue in instrinsic declaration
-Debug LocalInfo if needed
-Description of package and conventions
-Get rid of Weierstrass condition on X and normalization on that curve (after everything else!)
+Prym experiment
 
-/* Proof!
+Triple extension
+Riemann-Roch
+Better dictionary in decomposition
+Recognition if needed
+Debug LocalInfo if needed
+Get rid of Weierstrass condition and normalization on X
+
+/* Proof! This goes to a description file
 f = y^4 - x^3 + x + 1 to y^2 = x^3 + x + 1
 (x, y) --> (x, y^2)
 dx / 2y becomes dx / 2y^2; it could not be simpler

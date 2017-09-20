@@ -99,7 +99,7 @@ if #Ps_nW ne 0 then
     min, ind := Minimum(Hts);
     L := K;
     P := Ps_nW[ind];
-    return P;
+    return Eltseq(P);
 end if;
 
 f := DefiningPolynomial(X);
@@ -122,13 +122,13 @@ if #Ps ne 0 then
             fac := tup[1];
             L := NumberField(fac);
             rt := Roots(fac, L)[1][1];
-            XL := ChangeRing(X, L);
             if z0 ne 0 then
-                P := XL ! [ n0*rt + x0, rt + y0, z0 ];
+                P := [ n0*rt + x0, rt + y0, z0 ];
             else
-                P := XL ! [ n0*rt + x0, y0, rt + z0 ];
+                P := [ n0*rt + x0, y0, rt + z0 ];
             end if;
-            if not IsWeierstrassPlace(Place(P)) then
+            XL := ChangeRing(X, L);
+            if not IsWeierstrassPlace(Place(XL ! P)) then
                 return P;
             end if;
         end for;
@@ -144,9 +144,9 @@ while true do
     for tup in Fac do
         L := NumberField(tup[1]);
         rt := Roots(h(f), L)[1][1];
+        P := [ n0, rt, 1 ];
         XL := ChangeRing(X, L);
-        P := XL ! [ n0, rt, 1 ];
-        if not IsWeierstrassPlace(Place(P)) then
+        if not IsWeierstrassPlace(Place(XL ! P)) then
             return P;
         end if;
     end for;
@@ -170,28 +170,29 @@ end if;
 end intrinsic;
 
 
-intrinsic Correspondence(X::Crv, P::., Y::Crv, Q::., A::.) -> .
+intrinsic Correspondence(X::Crv, P::SeqEnum, Y::Crv, Q::SeqEnum, A::.) -> .
 {Gives certificate.}
 
 K := Parent(P[1]); L := Parent(Q[1]);
-M, phiK, phiL := RelativeCompositum(K, L);
-XM := ChangeRing(X, M); YM := ChangeRing(Y, M);
-PM := [ phiK(c) : c in Eltseq(P) ]; PM := XM ! P;
-QM := [ phiL(c) : c in Eltseq(Q) ]; QM := YM ! Q;
-AM := ChangeRing(A, M);
+M, phis := RelativeCompositum(K, L);
+phiK, phiL := Explode(phis);
+XK := ChangeRing(X, K); YL := ChangeRing(Y, L);
+XM := ChangeRingCurve(XK, phiK); YM := ChangeRingCurve(YL, phiL);
+PM := [ phiK(c) : c in Eltseq(P) ]; PM := XM ! PM;
+QM := [ phiL(c) : c in Eltseq(Q) ]; QM := YM ! QM;
+AL := ChangeRing(A, L);
+AM := Matrix(M, [ [ phiL(c) : c in Eltseq(row) ] : row in Rows(AL) ]);
 
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";
 elif Genus(Y) eq 1 then
-    test, fs := CantorFromMatrixSplit(XM, PM, YM, QM, AM);
-    /* TODO: Temporary sanity check */
-    if not CorrespondenceVerifyG1(XM, PM, YM, QM, AM, fs) then
+    test, fs := CantorFromMatrixSplit(XM, PM, YM, QM, AM : UpperBound := 50);
+    if test and (not CorrespondenceVerifyG1(XM, PM, YM, QM, AM, fs)) then
         error "Pullback incorrect";
     end if;
-    /* TODO: End of temporary sanity check */
-    return true, fs;
+    return test, fs;
 else
-    return DivisorFromMatrixSplit(XM, PM, YM, QM, AM);
+    return DivisorFromMatrixSplit(XM, PM, YM, QM, AM : UpperBound := 50);
 end if;
 
 end intrinsic;

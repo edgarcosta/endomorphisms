@@ -44,8 +44,8 @@ with open(inputfile) as inputstream:
                 Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
                 test = Endo.verify()
                 if not test:
-                    print test
-                    raise AssertionError('test returned False')
-                outputstream.write(linestrip + ':' + 'Success' + '\n')
+                    print 'False'
+                    outputstream.write(linestrip + ':' + 'False' + '\n')
             except:
+                print 'Error'
                 outputstream.write(linestrip + ':' + 'Error' + '\n')

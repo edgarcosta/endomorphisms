@@ -84,7 +84,6 @@ class EndomorphismData:
             self.base_point = magma.NonWeierstrassBasePoint(self.X, self._endo_fod_)
 
     def correspondence(self, A):
-        # TODO: Add bounds
         self.set_base_point()
         test, corresp = magma.Correspondence(self.X, self.base_point, self.X, self.base_point, A, nvals = 2)
         return test, corresp
@@ -308,15 +307,15 @@ class Decomposition:
 
     def _calculate_factors_(self):
         for fac in self._facs_:
-            # TODO: Recalculate for now, because of reconstruction issues
-            #if not 'algebraic' in fac['factor'].keys():
-            fac['factor']['algebraic'] = magma.FactorReconstruct(self._P_, fac['factor']['analytic'], fac['proj']['approx'], fac['proj']['homology'], fac['field'])
+            if not 'algebraic' in fac['factor'].keys():
+                fac['factor']['algebraic'] = magma.FactorReconstruct(self._P_, fac['factor']['analytic'], fac['proj']['approx'], fac['proj']['homology'], fac['field'])
 
     def factors(self):
         self._calculate_factors_()
         return [ fac['factor']['algebraic'] for fac in self._facs_ ]
 
     def _factors_desc_(self):
+        self._calculate_factors_()
         return [ sagify_description(magma.FactorDescription(fac, self.F)) for fac in self.factors() ]
 
     def set_base_point(self):
@@ -330,8 +329,9 @@ class Decomposition:
             fac['factor']['base_point'] = magma.NonWeierstrassBasePoint(Y, K)
 
     def correspondence(self, fac):
+        # TODO: Deal with bounds well instead of kicking it to Magma
         if fac['factor']['algebraic'] == 0:
-            return 'to be implemented'
+            return True, 'to be implemented'
         self.set_base_point()
         self.set_base_point_factor(fac)
         P = self.base_point
@@ -339,17 +339,20 @@ class Decomposition:
         Q = fac['factor']['base_point']
         A = fac['proj']['tangent']
         test, cert = magma.Correspondence(self.X, P, Y, Q, A, nvals = 2)
-        return cert
+        return [test, cert]
 
     def verify(self):
-        self._facs_test_ = True
-        for fac in self._facs_:
-            corresp = self.correspondence(fac)
-            if not corresp:
-                self._facs_test_ = False
-            else:
-                fac['proj']['corresp'] = corresp
+        if not hasattr(self, "_facs_test_") or not self._facs_test_:
+            self._facs_test_ = True
+            for fac in self._facs_:
+                if not 'corresp' in fac['proj'].keys():
+                    test, corresp = self.correspondence(fac)
+                    if not test:
+                        self._facs_test_ = False
+                    else:
+                        fac['proj']['corresp'] = corresp
         return self._facs_test_
 
     def correspondences(self):
-        return [ self.correspondence(fac) for fac in self._facs_ ]
+        self.verify()
+        return [ fac['proj']['corresp'] for fac in self._facs_ if 'corresp' in fac['proj'].keys() ]

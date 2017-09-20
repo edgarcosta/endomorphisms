@@ -12,6 +12,7 @@
 
 intrinsic IdempotentsFromLattice(Lat::List) -> .
 {Finds idempotents over the smallest possible field by running over Lat.}
+/* TODO: Change field in individual cases if smaller is possible */
 
 entries := Lat[2];
 entries := Reverse(entries);
@@ -26,11 +27,11 @@ end if;
 
 n := #entries; i := 1;
 while i le n do
-    K := entries[i][1][2];
     EndoStruct := entries[i][2];
     num_idems := NumberOfIdempotentsFromStructure(EndoStruct);
     if num_idems eq num_idemsgeo then
         idems := IdempotentsFromStructure(EndoStruct);
+        K := BaseRing(idems[1][1]);
         RestrictInfinitePlace(L, K);
         return idems, K;
     end if;

@@ -46,8 +46,8 @@ with open(inputfile) as inputstream:
                 idems = Dec.idempotents()
                 test = Dec.verify()
                 if not test:
-                    print test
-                    raise AssertionError('test returned False')
-                outputstream.write(linestrip + ':' + 'Success' + '\n')
+                    print 'False'
+                    outputstream.write(linestrip + ':' + 'False' + '\n')
             except:
+                print 'Error'
                 outputstream.write(linestrip + ':' + 'Error' + '\n')

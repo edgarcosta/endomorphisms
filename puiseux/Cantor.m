@@ -186,7 +186,7 @@ while true do
     /* If that does not work, give up and try one degree higher: */
     d +:= 1;
     if d gt UpperBound then
-        return false, "";
+        return false, [];
     end if;
 end while;
 
@@ -240,7 +240,7 @@ while true do
         end if;
         d +:= 1;
         if d gt UpperBound then
-            return false, "";
+            return false, [];
         end if;
     end while;
     have_to_check := false;

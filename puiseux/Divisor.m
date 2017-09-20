@@ -186,7 +186,7 @@ elif X`is_hyperelliptic then
 else
     // Here we do the usual test, without the preference of the elliptic case.
     fX := X`DEs[1]; R := X`R; P0 := X`P0;
-    if Evaluate(Derivative(fX, R.1), P0) ne 0 then
+    if Evaluate(Derivative(fX, R.2), P0) ne 0 then
         return 1;
     else
         return 2;
@@ -508,7 +508,7 @@ while true do
     /* If that does not work, give up and try one degree higher */
     d +:= 1;
     if d gt UpperBound then
-        return false, "";
+        return false, [];
     end if;
 end while;
 
@@ -560,7 +560,7 @@ while true do
         end if;
         d +:= 1;
         if d gt UpperBound then
-            return false, "";
+            return false, [];
         end if;
     end while;
     have_to_check := false;

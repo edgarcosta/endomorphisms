@@ -152,12 +152,13 @@ intrinsic RestrictInfinitePlace(L::Fld, K::Fld)
 {Restricts an infinite place over a relative field extension.}
 
 if IsQQ(K) then
-    SetInfinitePlace(K, InfinitePlaces(K)[1]);
+    SetInfinitePlace(K, InfinitePlaces(K)[1]); return;
 else
+    /* TODO: This invocation is ridiculous */
+    IsSubfield(K, L);
     for iotaK in InfinitePlaces(K) do
         if Extends(L`iota, iotaK) then
-            K`iota := iotaK;
-            break;
+            K`iota := iotaK; return;
         end if;
     end for;
 end if;
@@ -375,17 +376,23 @@ else
     M := ClearFieldDenominator(M);
     testK, phiK := IsSubfield(K, M); testL, phiL := IsSubfield(L, M);
 end if;
-return M, phiK, phiL;
+return M, [* phiK, phiL *];
 
 end intrinsic;
 
 
-intrinsic RelativeCompositumExtra(K::Fld, L::Fld) -> Fld
-{Relative compositum with an embedding. The latter will in general not be compatible.}
+intrinsic RelativeCompositum(Ks::SeqEnum) -> Fld, SeqEnum
+{Relative compositum.}
 
-M := RelativeCompositum(K, L);
-DefineOrExtendInfinitePlace(M);
-return M;
+if #Ks eq 1 then
+    return Ks[1], hom< Ks[1] -> Ks[1] | Ks[1].1 >;
+elif #Ks eq 2 then
+    L, psis := RelativeCompositum(Ks[1], Ks[2]);
+    return L, psis;
+end if;
+L, psis := RelativeCompositum(Ks[1..(#Ks - 1)]);
+M, phis := RelativeCompositum(L, Ks[#Ks]);
+return M, [ psi * phis[1] : psi in psis ] cat [ phis[2] ];
 
 end intrinsic;
 

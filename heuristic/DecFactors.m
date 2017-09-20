@@ -45,6 +45,7 @@ end intrinsic;
 intrinsic FactorReconstructG2(P::., Q::., A::., R::., K::Fld) -> .
 {Reconstructs genus 2 factor.}
 
+return 0;
 CC := BaseRing(P); RCC<xCC> := PolynomialRing(CC);
 gY := #Rows(Transpose(Q));
 //return Max([ Abs(c) : c in Eltseq(P*Transpose(A) - ChangeRing(Transpose(R), CC)*Q) ]);
