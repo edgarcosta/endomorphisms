@@ -1,10 +1,10 @@
 Prym experiment
+Good description file
 
-Triple extension
 Riemann-Roch
 Better dictionary in decomposition
-Recognition if needed
-Debug LocalInfo if needed
+Better recognition if needed
+Better LocalInfo if needed
 Get rid of Weierstrass condition and normalization on X
 
 /* Proof! This goes to a description file
