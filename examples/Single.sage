@@ -32,7 +32,6 @@ Dec = Endo.decomposition()
 print "Factors:"
 facs = Dec.factors()
 print facs
-print Dec.idempotents()
 print "Verify:"
 test = Dec.verify()
 print test
