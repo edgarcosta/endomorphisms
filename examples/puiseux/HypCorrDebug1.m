@@ -1,6 +1,8 @@
 AttachSpec("../../spec");
 SetVerbose("EndoCheck", 3);
 
+/* Example whose degree is too high */
+
 F := Rationals();
 R<t> := PolynomialRing(F);
 F := SplittingField((t^2 - t + 2)*(t^2 - 21));
