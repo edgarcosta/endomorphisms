@@ -245,7 +245,7 @@ if d eq 1 then
 end if;
 r := K.1;
 coeffs := Coefficients(MinimalPolynomial(r, Rationals()));
-dens := Reverse([ Denominator(coeff) : coeff in coeffs ]);
+dens := Reverse([ Denominator(coeff) : coeff in coeffs ]); dens := dens[2..#dens];
 primes := &join[ Set([ tup[1] : tup in Factorization(den) ]) : den in dens | den ne 0 ];
 if #primes eq 0 then
     common_den := 1;

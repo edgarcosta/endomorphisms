@@ -12,11 +12,11 @@
 # Inspects endomorphism representations in a list by pretty-printing a dummy
 import os, shutil
 
-inputfile = 'gce_genus3_nonhyperelliptic_endos.txt'
-outputfile = 'special_curves.txt'
+inputfile = 'gce_genus3_hyperelliptic_endos.txt'
+outputfile = 'special_curves_hyp.txt'
 
 # Index of the criterion:
-index = 3
+index = 2
 # A priori boring output:
 boring = ["[[-1,1],[[[-1,1],[[['I',[-1,1],1,1]],[1,-1],['RR'],'undef']]]]"]
 

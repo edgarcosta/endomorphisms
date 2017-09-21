@@ -28,23 +28,22 @@ if #GeneratorsSequence(RCC) eq 1 then
     if not HaveOldenburg then
         JCC := AnalyticJacobian(gCC);
         /* We divide by 2 because we integrate wrt x^i dx / 2y */
-        return Transpose(Matrix(CC, BigPeriodMatrix(JCC))) / 2;
+        return Transpose(ChangeRing(BigPeriodMatrix(JCC), CC)) / 2;
     end if;
-    return Transpose(Matrix(CC, PeriodMatrix(gCC : Prec := Precision(CC)))) / 2;
+    return Transpose(ChangeRing(PeriodMatrix(gCC : Prec := Precision(CC)), CC)) / 2;
 elif #GeneratorsSequence(RCC) eq 3 then
     if not HaveOldenburg then
         error "No functionality for plane curves available";
     end if;
     test, fCC, e := IsSuperelliptic(eqsCC);
     if test then
-        P := Transpose(Matrix(CC, PeriodMatrix(fCC, e : Prec := Precision(CC))));
+        P := Transpose(ChangeRing(PeriodMatrix(fCC, e : Prec := Precision(CC)), CC));
         P := SuperellipticCompatibility(P, e);
         return P;
     else
         F := Explode(eqsK);
-        S<x0,x1,x2> := Parent(F); K := BaseRing(S); R<x,y> := PolynomialRing(K, 2);
-        h := hom<S -> R | [x,y,1]>; f := h(F);
-        return Transpose(Matrix(CC, PeriodMatrix(f : Prec := Precision(CC))));
+        X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
+        return Transpose(ChangeRing(PeriodMatrix(f : Prec := Precision(CC)), CC));
     end if;
 else
     error "No functionality for general curves available";

@@ -186,7 +186,9 @@ elif X`is_hyperelliptic then
 else
     // Here we do the usual test, without the preference of the elliptic case.
     fX := X`DEs[1]; R := X`R; P0 := X`P0;
-    if Evaluate(Derivative(fX, R.2), P0) ne 0 then
+    /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
+     * since evaluating x at (0, 0) can be 0 */
+    if Evaluate(Derivative(fX, R.2), Eltseq(P0)) ne 0 then
         return 1;
     else
         return 2;
@@ -244,23 +246,26 @@ F := X`F;
 /* M acts on the right, so to precompose with the operation on X we multiply on
  * the right; we modify the columns. */
 M := Transpose(M);
-rows := [ Eltseq(row) : row in Rows(M) ];
 if X`g eq 1 or X`is_hyperelliptic then
     if X`patch_index eq 3 then
         vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, Reverse(rows));
     end if;
 
 elif X`is_plane_quartic then
     if X`patch_index eq 2 then
         vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
     elif X`patch_index eq 3 then
         vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
     if X`unif_index eq 2 then
         vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of X";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
     end if;
 end if;
@@ -268,23 +273,26 @@ M := Transpose(M);
 
 /* For y we postcompose, hence we have to modify columns; we therefore take a
  * transpose and go back */
-rows := [ Eltseq(row) : row in Rows(M) ];
 if Y`g eq 1 or Y`is_hyperelliptic then
     if Y`patch_index eq 3 then
         vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of Y";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, Reverse(rows));
     end if;
 
 elif Y`is_plane_quartic then
     if Y`patch_index eq 2 then
         vprint EndoCheck, 3 : "Modifying tangent action for patch index of Y";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
     elif Y`patch_index eq 3 then
         vprint EndoCheck, 3 : "Modifying tangent action for patch index of Y";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
     if Y`unif_index eq 2 then
         vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of Y";
+        rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
     end if;
 end if;

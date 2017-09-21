@@ -1,22 +1,27 @@
 AttachSpec("../../spec");
 SetVerbose("EndoCheck", 3);
 
-/* Shows that developing global points to a precision that is too small does
- * not suffice */
+/* An absolutely obscene example */
 
 F := Rationals();
+R<t> := PolynomialRing(F);
+F<r> := NumberField(t^2 - t + 1);
 P2<x,y,z> := ProjectiveSpace(F, 2);
 
-fX := x^4 - x^2*y^2 - x*y^3 + y^4 + 2*x^3*z + 2*x^2*y*z - 2*x*y^2*z - y^3*z - x^2*z^2 + x*y*z^2 + 2*y^2*z^2 - 2*x*z^3 - y*z^3 + z^4;
+fX := x^3*z + x^2*z^2 + x*y^2*z + x*y*z^2 + x*z^3 - y^4 - 2*y^3*z - 2*y^2*z^2 - y*z^3;
 X := Curve(P2, fX);
-P0 := X ! [1, 1, 0];
+P0 := X ! [0, -r, 1];
 
 S<t> := PolynomialRing(F);
-fY := t^3 - 16*t;
+fY := t^3 - 675*t - 27675/4;
+fY := t^3 - 432/625*t + 556416/15625;
+fY := t^3 - 432*t + 556416;
 Y := HyperellipticCurve(fY);
 Q0 := Y ! [1, 0, 0];
 
-M := Matrix(F, [ [ -1/2, 1/2, 1/2 ] ]);
+M := Matrix(F, [ [ 1/3, 0, 1/3 ] ]);
+M := Matrix(F, [ [ 5/12, -5/12, -5/12 ] ]);
+M := Matrix(F, [ [ 1/4, 5/12, 1/12 ] ]);
 
 print "";
 print "Field:";

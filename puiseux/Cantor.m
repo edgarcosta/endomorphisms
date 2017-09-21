@@ -138,6 +138,15 @@ function CheckApproximation(X, Y, P, Qs, fs)
  * Verifies if the given functions approximate well
  */
 
+/* TODO: If this check fails, add some more precision in the global case */
+//dens := [ Denominator(f) : f in fs ];
+//for den in dens do
+//    print Evaluate(den, P);
+//    if IsWeaklyZero(Evaluate(den, P)) then
+//        return false;
+//    end if;
+//end for;
+
 g := Y`g;
 as := fs[1..g]; bs := fs[(g + 1)..(2*g)];
 for Q in Qs do
@@ -207,7 +216,8 @@ tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
 gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF; RX := X`R; KX := X`K;
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, gY + 1);
+/* TODO: Add decent margin here, + 1 already goes wrong occasionally */
+P, Qs := ApproximationsFromTangentAction(X, Y, NormM, gY + 2);
 
 ps_rts := [ ]; prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
