@@ -177,18 +177,23 @@ end intrinsic;
 intrinsic Correspondence(X::Crv, P::SeqEnum, Y::Crv, Q::SeqEnum, A::.) -> .
 {Gives certificate.}
 
-K := Parent(P[1]); L := Parent(Q[1]);
-M, phis := RelativeCompositum(K, L);
-phiK, phiL := Explode(phis);
-XK := ChangeRing(X, K); YL := ChangeRing(Y, L);
-XM := ChangeRingCurve(XK, phiK); YM := ChangeRingCurve(YL, phiL);
-PM := [ phiK(c) : c in Eltseq(P) ]; PM := XM ! PM;
-QM := [ phiL(c) : c in Eltseq(Q) ]; QM := YM ! QM;
-AL := ChangeRing(A, L);
-AM := Matrix(M, [ [ phiL(c) : c in Eltseq(row) ] : row in Rows(AL) ]);
-M := AbsoluteField(M); XM := ChangeRing(XM, M); YM := ChangeRing(YM, M);
-PM := XM ! [ M ! c : c in Eltseq(PM) ]; QM := YM ! [ M ! c : c in Eltseq(QM) ];
-AM := Matrix(M, [ [ M ! c : c in Eltseq(row) ] : row in Rows(AM) ]);
+/* Change everything to common extension: */
+KY := BaseRing(Y); KP := Parent(P[1]); KQ := Parent(Q[1]); KA := Parent(A[1,1]);
+L, phis := RelativeCompositum([* KY, KP, KQ, KA *]);
+phiY, phiP, phiQ, phiA := Explode(phis);
+XL := ChangeRing(X, L);
+YL := ChangeRingCurve(Y, phiY);
+PL := [ phiP(c) : c in Eltseq(P) ]; PL := XL ! PL;
+QL := [ phiQ(c) : c in Eltseq(Q) ]; QL := YL ! QL;
+AL := Matrix(L, [ [ phiA(c) : c in Eltseq(row) ] : row in Rows(A) ]);
+
+/* Make absolute: */
+M := AbsoluteField(L);
+XM := ChangeRing(XL, M);
+YM := ChangeRing(YL, M);
+PM := [ M ! c : c in Eltseq(PL) ]; PM := XM ! PM;
+QM := [ M ! c : c in Eltseq(QL) ]; QM := YM ! QM;
+AM := Matrix(M, [ [ M ! c : c in Eltseq(row) ] : row in Rows(AL) ]);
 
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";

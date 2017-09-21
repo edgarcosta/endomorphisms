@@ -381,7 +381,7 @@ return M, [* phiK, phiL *];
 end intrinsic;
 
 
-intrinsic RelativeCompositum(Ks::SeqEnum) -> Fld, SeqEnum
+intrinsic RelativeCompositum(Ks::List) -> Fld, List
 {Relative compositum.}
 
 if #Ks eq 1 then
@@ -392,7 +392,7 @@ elif #Ks eq 2 then
 end if;
 L, psis := RelativeCompositum(Ks[1..(#Ks - 1)]);
 M, phis := RelativeCompositum(L, Ks[#Ks]);
-return M, [ psi * phis[1] : psi in psis ] cat [ phis[2] ];
+return M, [* psi * phis[1] : psi in psis *] cat [* phis[2] *];
 
 end intrinsic;
 

@@ -1,6 +1,8 @@
 Prym experiment
 Good description file
 
+Hyperelliptic trick with rational base point
+Idempotents: find better ones, and to find Prym, take kernel of sum of all others times denominator
 Riemann-Roch
 Better dictionary in decomposition
 Better recognition if needed
