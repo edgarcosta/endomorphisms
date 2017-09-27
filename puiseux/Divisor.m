@@ -42,6 +42,11 @@ forward DivisorFromMatrix;
 forward DivisorFromMatrixSplit;
 forward DivisorFromMatrixByDegree;
 
+forward ExtractHomomorphismsField;
+forward CandidateDivisorsNew;
+forward IrreducibleComponentsFromBranchesNew;
+forward DivisorFromMatrixByDegreeNew;
+
 
 import "LocalInfo.m": DevelopPoint, InitializeImageBranch;
 import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
@@ -634,6 +639,143 @@ vprintf EndoCheck, 2 : "done.\n";
 /* Fit a divisor to it */
 vprintf EndoCheck, 2 : "Solving linear system... ";
 ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
+vprintf EndoCheck, 2 : "done.\n";
+
+for S in ICs do
+    DEs := DefiningEquations(S);
+    vprintf EndoCheck, 2 : "Checking:\n";
+    vprintf EndoCheck, 2 : "Step 1... ";
+    test1 := CheckEquations(X, Y, P, Qs, DEs);
+    vprintf EndoCheck, 2 : "done.\n";
+    if test1 then
+        vprintf EndoCheck, 2 : "Step 2... ";
+        test2 := CheckIrreducibleComponent(X, Y, S);
+        vprintf EndoCheck, 2 : "done.\n";
+        if test2 then
+            vprintf EndoCheck, 2 : "Divisor found!\n";
+            return true, S;
+        end if;
+    end if;
+end for;
+return false, [ ];
+
+end function;
+
+
+function ExtractHomomorphismsField(X, Y)
+
+KX := X`K; KY := Y`K;
+varord := VariableOrder();
+// TODO: Test other orderings
+Kprod := RationalFunctionField(X`F, 4);
+seqX := [ Kprod.Index(varord, i) : i in [1..2] ];
+seqY := [ Kprod.Index(varord, i) : i in [3..4] ];
+hX := hom<KX -> Kprod | seqX >;
+hY := hom<KY -> Kprod | seqY >;
+return [ hX, hY ];
+
+end function;
+
+
+function CandidateDivisorsNew(X, Y, d)
+/*
+ * Input:   Two curves X and Y and a degree d.
+ * Output:  Equations for divisors of degree d coming from the ambient of X.
+ */
+
+gX := X`g; fX := X`DEs[1]; RX := X`R; P := X`P0;
+gY := Y`g; fY := Y`DEs[1]; RY := Y`R; Q := Y`P0;
+V, phiV := RiemannRochSpace(d*Divisor(P));
+divsX := [ phiV(v) : v in Basis(V) ];
+W, phiW := RiemannRochSpace(d*Divisor(Q));
+divsY := [ phiW(w) : w in Basis(W) ];
+//Reverse(~divsX); Reverse(~divsY);
+
+hs := ExtractHomomorphismsField(X, Y);
+CP := [ [* divX, divY *] : divX in divsX, divY in divsY ];
+divs := [ &*[ hs[i](tup[i]) : i in [1..2] ] : tup in CP ];
+divs := Reverse(Sort(divs));
+return divs;
+
+end function;
+
+
+function IrreducibleComponentsFromBranchesNew(X, Y, fs, P, Qs : DivPP1 := false)
+/*
+ * Input:   Two curves X and Y,
+ *          a basis of divisor equations fs,
+ *          the precision n used when determining these,
+ *          and branch expansions P and Qs.
+ * Output:  The irreducible components that fit the given data.
+ */
+
+/* Recovering a linear system */
+e := Maximum([ Maximum([ Denominator(Valuation(c - Coefficient(c, 0))) : c in Q ]) : Q in Qs ]);
+prec := Precision(Parent(P[1]));
+M := [ ];
+for f in fs do
+    r := [ ];
+    for Q in Qs do
+        seq := ExtractPoints(X, Y, P, Q);
+        ev := Evaluate(f, seq); ve := e*Valuation(ev);
+        r cat:= [ Coefficient(ev, i/e) : i in [ve..prec - X`g + ve] ];
+    end for;
+    Append(~M, r);
+end for;
+B := Basis(Kernel(Matrix(M)));
+print B;
+/* Coerce back to ground field (possible because of echelon form) */
+B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
+
+/* Corresponding equations */
+hX, hY := Explode(ExtractHomomorphisms(X, Y));
+Rprod := Codomain(hX);
+eqs := [ Rprod ! Numerator(&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
+eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
+
+if DivPP1 then
+    vprintf EndoCheck, 2 : "Calculating final element in Groebner basis... ";
+    Rprod := Codomain(hX);
+    GB := GroebnerBasis(ideal< Rprod | eqs >);
+    vprint EndoCheck, 3 : GB;
+    vprintf EndoCheck, 2 : "done.\n";
+    Append(~eqs, GB[#GB]);
+end if;
+
+/* Corresponding scheme */
+A := AffineSpace(Rprod);
+S := Scheme(A, eqs);
+return [ S ];
+
+/* TODO: These steps may be a time sink and should be redundant, so we avoid
+ *       them. They get eliminated as the degree increases anyway. */
+return [ ReducedSubscheme(I) : I in IrreducibleComponents(S) ];
+
+end function;
+
+
+function DivisorFromMatrixByDegreeNew(X, Y, NormM, d : Margin := 2^4, DivPP1 := false, have_to_check := true)
+
+vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+fs := CandidateDivisorsNew(X, Y, d);
+n := #fs + Margin;
+vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
+
+/* Take non-zero image branch */
+vprintf EndoCheck, 2 : "Expanding... ";
+P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n);
+vprintf EndoCheck, 4 : "Base point:\n";
+_<t> := Parent(P[1]);
+_<r> := BaseRing(Parent(P[1]));
+vprint EndoCheck, 4 : P;
+vprintf EndoCheck, 4 : "Resulting branches:\n";
+vprint EndoCheck, 4 : Qs;
+vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
+vprintf EndoCheck, 2 : "done.\n";
+
+/* Fit a divisor to it */
+vprintf EndoCheck, 2 : "Solving linear system... ";
+ICs := IrreducibleComponentsFromBranchesNew(X, Y, fs, P, Qs : DivPP1 := DivPP1);
 vprintf EndoCheck, 2 : "done.\n";
 
 for S in ICs do
