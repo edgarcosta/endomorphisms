@@ -31,7 +31,7 @@ forward NormalizedBasisOfDifferentials;
 
 forward VariableOrder;
 forward ExtractPoints;
-forward ExtractHomomorphisms;
+forward ExtractHomomorphismsRing;
 
 forward CandidateDivisors;
 forward IrreducibleComponentsFromBranches;
@@ -348,7 +348,7 @@ return [ seq[varord[i]] : i in [1..#varord] ];
 end function;
 
 
-function ExtractHomomorphisms(X, Y)
+function ExtractHomomorphismsRing(X, Y)
 
 RX := X`R; RY := Y`R;
 varord := VariableOrder();
@@ -394,7 +394,7 @@ elif X`is_planar then
     Reverse(~divsX); Reverse(~divsY);
 end if;
 
-hs := ExtractHomomorphisms(X, Y);
+hs := ExtractHomomorphismsRing(X, Y);
 CP := [ [* divX, divY *] : divX in divsX, divY in divsY ];
 divs := [ &*[ hs[i](tup[i]) : i in [1..2] ] : tup in CP ];
 divs := Reverse(Sort(divs));
@@ -430,7 +430,7 @@ B := Basis(Kernel(Matrix(M)));
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
-hX, hY := Explode(ExtractHomomorphisms(X, Y));
+hX, hY := Explode(ExtractHomomorphismsRing(X, Y));
 Rprod := Codomain(hX);
 eqs := [ Rprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
@@ -712,23 +712,18 @@ function IrreducibleComponentsFromBranchesNew(X, Y, fs, P, Qs : DivPP1 := false)
 /* Recovering a linear system */
 e := Maximum([ Maximum([ Denominator(Valuation(c - Coefficient(c, 0))) : c in Q ]) : Q in Qs ]);
 prec := Precision(Parent(P[1]));
-M := [ ];
-for f in fs do
-    r := [ ];
-    for Q in Qs do
-        seq := ExtractPoints(X, Y, P, Q);
-        ev := Evaluate(f, seq); ve := e*Valuation(ev);
-        r cat:= [ Coefficient(ev, i/e) : i in [ve..prec - X`g + ve] ];
-    end for;
-    Append(~M, r);
-end for;
-B := Basis(Kernel(Matrix(M)));
-print B;
+evss := [ [ Evaluate(f, ExtractPoints(X, Y, P, Q)) : Q in Qs ] : f in fs ];
+min := Minimum([ Valuation(ev) : ev in &cat(evss) ]);
+max := Minimum([ AbsolutePrecision(ev) : ev in &cat(evss) ]);
+M := Matrix([ &cat[ [ Coefficient(ev, i/e) : i in [(e*min)..(e*max - 10)] ] : ev in evs ] : evs in evss ]);
+B := Basis(Kernel(M));
+vprint EndoCheck, 3 : "Basis of kernel:";
+vprint EndoCheck, 3 : B;
 /* Coerce back to ground field (possible because of echelon form) */
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
-hX, hY := Explode(ExtractHomomorphisms(X, Y));
+hX, hY := Explode(ExtractHomomorphismsRing(X, Y));
 Rprod := Codomain(hX);
 eqs := [ Rprod ! Numerator(&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
@@ -745,7 +740,7 @@ end if;
 /* Corresponding scheme */
 A := AffineSpace(Rprod);
 S := Scheme(A, eqs);
-return [ S ];
+//return [ S ];
 
 /* TODO: These steps may be a time sink and should be redundant, so we avoid
  *       them. They get eliminated as the degree increases anyway. */
