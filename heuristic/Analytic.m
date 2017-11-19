@@ -122,10 +122,10 @@ return GeometricIsogenyRepresentationPartial(P, P);
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::., F::Fld : Bound := Infinity()) -> SeqEnum
+intrinsic GeometricIsogenyRepresentation(P::., Q::., F::Fld : Bound := Infinity()) -> SeqEnum
 {Starting from a period matrix P, determines the endomorphisms of the corresponding abelian variety.}
 
-gensPart := GeometricEndomorphismRepresentationPartial(P);
+gensPart := GeometricIsogenyRepresentationPartial(P, Q);
 gensPol := RelativeMinimalPolynomialsPartial(gensPart, F);
 L := RelativeSplittingField(gensPol);
 gens := [ ];
@@ -135,6 +135,14 @@ for gen in gensPart do
     Append(~gens, [* genTan, genHom, genApp *]);
 end for;
 return gens;
+
+end intrinsic;
+
+
+intrinsic GeometricEndomorphismRepresentation(P::., F::Fld : Bound := Infinity()) -> SeqEnum
+{Starting from a period matrix P, determines the endomorphisms of the corresponding abelian variety.}
+
+return GeometricIsogenyRepresentation(P, P, F : Bound := Bound);
 
 end intrinsic;
 

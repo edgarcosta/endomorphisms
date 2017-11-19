@@ -792,3 +792,24 @@ end for;
 return false, [ ];
 
 end function;
+
+
+intrinsic BiDimDeg(X::., Y::., I::.) -> .
+{bla}
+
+A4 := Ambient(I); R4 := CoordinateRing(A4);
+R2 := PolynomialRing(X`F, 2); A2 := AffineSpace(R2);
+seq1 := [ X`P0[1], X`P0[2], R2.1, R2.2 ];
+seq2 := [ R2.1, R2.2, X`P0[1], X`P0[2] ];
+varord := VariableOrder();
+seq1 := [ seq1[varord[i]] : i in [1..#varord] ];
+seq2 := [ seq2[varord[i]] : i in [1..#varord] ];
+h1 := hom< R4 -> R2 | seq1 >;
+h2 := hom< R4 -> R2 | seq2 >;
+eqs1 := [ h1(eq4) : eq4 in DefiningEquations(I) ];
+eqs2 := [ h2(eq4) : eq4 in DefiningEquations(I) ];
+S1 := Scheme(A2, eqs1);
+S2 := Scheme(A2, eqs2);
+return [ [ Dimension(S1), Dimension(S2) ], [ Degree(S1), Degree(S2) ] ];
+
+end intrinsic;
