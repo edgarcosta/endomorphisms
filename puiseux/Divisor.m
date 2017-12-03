@@ -386,18 +386,18 @@ if X`is_hyperelliptic then
     divsX := [ xX^i : i in [0..(d div 2)] ] cat [ xX^i*yX : i in [0..((d - gX - 1) div 2)] ];
     divsY := [ xY^i : i in [0..(d div 2)] ] cat [ xY^i*yY : i in [0..((d - gX - 1) div 2)] ];
     divsY := [ xY^i : i in [0..gY] ] cat [ yY ];
-    Reverse(~divsX); Reverse(~divsY);
+    //Reverse(~divsX); Reverse(~divsY);
 elif X`is_planar then
     divsX := [ xX^i*yX^j : i in [0..d] , j in [0..(Degree(fX, yX) - 1)] | i + j le d  ];
     divsY := [ xY^i*yY^j : i in [0..gY], j in [0..(Degree(fY, yY) - 1)] | i + j le gY ];
     //divsY := [ xY^i : i in [0..gY] ] cat [ yY ];
-    Reverse(~divsX); Reverse(~divsY);
+    //Reverse(~divsX); Reverse(~divsY);
 end if;
 
 hs := ExtractHomomorphismsRing(X, Y);
 CP := [ [* divX, divY *] : divX in divsX, divY in divsY ];
 divs := [ &*[ hs[i](tup[i]) : i in [1..2] ] : tup in CP ];
-divs := Reverse(Sort(divs));
+//divs := Reverse(Sort(divs));
 return divs;
 
 end function;
@@ -621,7 +621,9 @@ function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := fal
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 fs := CandidateDivisors(X, Y, d);
+fsNew := CandidateDivisorsNew(X, Y, d);
 n := #fs + Margin;
+n := 450;
 vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
 /* Take non-zero image branch */
@@ -639,6 +641,7 @@ vprintf EndoCheck, 2 : "done.\n";
 /* Fit a divisor to it */
 vprintf EndoCheck, 2 : "Solving linear system... ";
 ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
+//ICsNew := IrreducibleComponentsFromBranchesNew(X, Y, fsNew, P, Qs : DivPP1 := DivPP1);
 vprintf EndoCheck, 2 : "done.\n";
 
 for S in ICs do
@@ -683,18 +686,18 @@ function CandidateDivisorsNew(X, Y, d)
  * Output:  Equations for divisors of degree d coming from the ambient of X.
  */
 
-gX := X`g; fX := X`DEs[1]; RX := X`R; P := X`P0;
-gY := Y`g; fY := Y`DEs[1]; RY := Y`R; Q := Y`P0;
+gX := X`g; fX := X`DEs[1]; RX := X`R; KX := X`K; P := X`P0;
+gY := Y`g; fY := Y`DEs[1]; RY := Y`R; KY := Y`K; Q := Y`P0;
 V, phiV := RiemannRochSpace(d*Divisor(P));
-divsX := [ phiV(v) : v in Basis(V) ];
-W, phiW := RiemannRochSpace(d*Divisor(Q));
-divsY := [ phiW(w) : w in Basis(W) ];
-//Reverse(~divsX); Reverse(~divsY);
+divsX := [ KX ! phiV(v) : v in Basis(V) ];
+W, phiW := RiemannRochSpace(3*gY*Divisor(Q));
+divsY := [ KY ! phiW(w) : w in Basis(W) ];
+divsX := [ divsX[#divsX] ] cat divsX[1..(#divsX - 1)];
+divsY := [ divsY[#divsY] ] cat divsY[1..(#divsY - 1)];
 
 hs := ExtractHomomorphismsField(X, Y);
 CP := [ [* divX, divY *] : divX in divsX, divY in divsY ];
 divs := [ &*[ hs[i](tup[i]) : i in [1..2] ] : tup in CP ];
-divs := Reverse(Sort(divs));
 return divs;
 
 end function;
@@ -716,18 +719,43 @@ evss := [ [ Evaluate(f, ExtractPoints(X, Y, P, Q)) : Q in Qs ] : f in fs ];
 min := Minimum([ Valuation(ev) : ev in &cat(evss) ]);
 max := Minimum([ AbsolutePrecision(ev) : ev in &cat(evss) ]);
 M := Matrix([ &cat[ [ Coefficient(ev, i/e) : i in [(e*min)..(e*max - 10)] ] : ev in evs ] : evs in evss ]);
+min := -9;
+max := 300/2;
+M := Matrix([ &cat[ [ Coefficient(ev, i/e) : i in [(e*min)..(e*max)] ] : ev in evs ] : evs in evss ]);
 B := Basis(Kernel(M));
-vprint EndoCheck, 3 : "Basis of kernel:";
-vprint EndoCheck, 3 : B;
 /* Coerce back to ground field (possible because of echelon form) */
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
 hX, hY := Explode(ExtractHomomorphismsRing(X, Y));
 Rprod := Codomain(hX);
+Aprod := AffineSpace(Rprod);
+//Sprod := Scheme(Aprod, [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ]);
+eqs := [ &+[ b[i] * fs[i] : i in [1..#fs] ] : b in B ];
 eqs := [ Rprod ! Numerator(&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
-eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
+S := Scheme(Aprod, [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ] cat eqs);
 
+I := DefiningIdeal(S);
+varord := VariableOrder();
+J1 := ideal<Rprod | [ hX(DE) : DE in X`DEs ] cat [ Rprod.Index(varord, i + 2) - (X`P0)[i] : i in [1..2] ]>;
+J2 := ideal<Rprod | [ hY(DE) : DE in Y`DEs ] cat [ Rprod.Index(varord, i) - (Y`P0)[i] : i in [1..2] ]>;
+vprintf EndoCheck, 3 : "Calculating colon ideals... ";
+repeat
+    Iold := I;
+    I := ColonIdeal(I, J1);
+until I eq Iold;
+repeat
+    Iold := I;
+    I := ColonIdeal(I, J2);
+until I eq Iold;
+vprintf EndoCheck, 3 : "done.\n";
+S := Scheme(Aprod, I);
+vprint EndoCheck, 3 : "Dimension:";
+vprint EndoCheck, 3 : Dimension(S);
+vprint EndoCheck, 3 : "Degree and dimensions to factors:";
+vprint EndoCheck, 3 : BiDimDeg(X, X, S);
+
+/*
 if DivPP1 then
     vprintf EndoCheck, 2 : "Calculating final element in Groebner basis... ";
     Rprod := Codomain(hX);
@@ -736,15 +764,26 @@ if DivPP1 then
     vprintf EndoCheck, 2 : "done.\n";
     Append(~eqs, GB[#GB]);
 end if;
+*/
 
 /* Corresponding scheme */
-A := AffineSpace(Rprod);
-S := Scheme(A, eqs);
-//return [ S ];
+/*
+Kprod := FieldOfFractions(Rprod);
+for f in eqs do
+    //S := Scheme(Aprod, DefiningEquations(Sprod) cat [ Rprod ! Numerator(f) ]);
+    Scl := ProjectiveClosure(Sprod);
+    Ccl := FieldOfFractions(CoordinateRing(Scl));
+    h := hom< Kprod -> Ccl | [ Ccl.1, Ccl.2, Ccl.3, Ccl.4 ] >;
+    S := Divisor(Scl, h(Kprod ! f));
+    //S := Support(SignDecomposition(D));
+    vprint EndoCheck, 3 : "Dimension:";
+    vprint EndoCheck, 3 : Dimension(S);
+    vprint EndoCheck, 3 : BiDimDeg(X, X, S);
+end for;
+*/
 
-/* TODO: These steps may be a time sink and should be redundant, so we avoid
- *       them. They get eliminated as the degree increases anyway. */
-return [ ReducedSubscheme(I) : I in IrreducibleComponents(S) ];
+//return [ S ];
+return 0;
 
 end function;
 
@@ -795,7 +834,7 @@ end function;
 
 
 intrinsic BiDimDeg(X::., Y::., I::.) -> .
-{bla}
+{Gives dimension and degree of both projections.}
 
 A4 := Ambient(I); R4 := CoordinateRing(A4);
 R2 := PolynomialRing(X`F, 2); A2 := AffineSpace(R2);
