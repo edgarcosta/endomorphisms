@@ -26,6 +26,7 @@ load('../../Initialize.sage')
 
 # Ambient ring:
 F = QQ
+CCSmall = magma.ComplexField(5)
 R.<x> = PolynomialRing(F)
 
 # Curve:
@@ -34,15 +35,24 @@ h = R(0)
 X = mHyperellipticCurve(f, h)
 
 print X
-Endo = EndomorphismData(X, prec = 600, have_oldenburg = False)
+Endo = EndomorphismData(X, prec = 100, have_oldenburg = False)
 
 print "Period matrix:"
-print Endo._P_
+P = magma.Transpose(Endo._P_)
+print magma.ChangeRing(P, CCSmall)
 
 print "Endomorphism over QQ (sqrt (2)):"
 R.<t> = PolynomialRing(F)
 K.<s> = NumberField(t^2 - 2)
 overK = Endo.over_field(K)
 endodict = overK.full()
-print endodict['representation'][1]['tangent']
-print endodict['representation'][1]['homology']
+M = endodict['representation'][1]['tangent']
+MCC = endodict['representation'][1]['approx']
+R = endodict['representation'][1]['homology']
+print M
+print R
+
+#CC = magma.BaseRing(P)
+#MCC = magma.ChangeRing(MCC, CC)
+#RCC = magma.ChangeRing(R, CC)
+#print magma.ChangeRing(MCC * P - P * RCC, CCSmall)
