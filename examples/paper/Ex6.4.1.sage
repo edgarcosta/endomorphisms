@@ -43,3 +43,6 @@ overK = Endo.over_field(K)
 endodict = overK.full()
 print endodict['representation'][1]['tangent']
 print endodict['representation'][1]['homology']
+
+print "Test for saturation:"
+print Endo.verify_saturated()

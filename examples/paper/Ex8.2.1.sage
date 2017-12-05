@@ -42,6 +42,9 @@ endodict = overK.full()
 rep = overK.representation()
 print rep
 
+print "Verifying endomorphisms:"
+print Endo.verify()
+
 print "Decomposition:"
 Dec = Endo.decomposition()
 print Dec.field

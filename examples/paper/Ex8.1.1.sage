@@ -43,3 +43,7 @@ overK = Endo.over_field(K)
 endodict = overK.full()
 print endodict['representation'][0]['tangent'] + endodict['representation'][1]['tangent']
 print endodict['representation'][0]['homology'] + endodict['representation'][1]['homology']
+
+print "Verifying endomorphisms:"
+test = Endo.verify()
+print test

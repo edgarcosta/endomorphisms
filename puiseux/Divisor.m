@@ -97,11 +97,12 @@ X`F := BaseRing(X`R);
 if Type(X`F) eq FldRat then
     X`rF := 1;
     X`OF := Integers();
-else
+    X`BOF := Basis(X`OF);
+elif Type(X`F) eq FldNum then
     X`rF := Denominator(X`F.1) * X`F.1;
     X`OF := Order([ X`rF^i : i in [0..Degree(X`F) - 1] ]);
+    X`BOF := Basis(X`OF);
 end if;
-X`BOF := Basis(X`OF);
 
 X`OurB := OurBasisOfDifferentials(X);
 X`NormB, X`T := NormalizedBasisOfDifferentials(X);
@@ -390,7 +391,7 @@ if X`is_hyperelliptic then
 elif X`is_planar then
     divsX := [ xX^i*yX^j : i in [0..d] , j in [0..(Degree(fX, yX) - 1)] | i + j le d  ];
     divsY := [ xY^i*yY^j : i in [0..gY], j in [0..(Degree(fY, yY) - 1)] | i + j le gY ];
-    //divsY := [ xY^i : i in [0..gY] ] cat [ yY ];
+    divsY := [ xY^i : i in [0..gY] ] cat [ yY ];
     //Reverse(~divsX); Reverse(~divsY);
 end if;
 
@@ -534,7 +535,11 @@ intrinsic DivisorFromMatrixSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin :
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
+vprintf EndoCheck, 3 : "Tangent representation:\n";
+vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
+vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
+vprint EndoCheck, 3 : NormM;
 tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
@@ -623,7 +628,7 @@ vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 fs := CandidateDivisors(X, Y, d);
 fsNew := CandidateDivisorsNew(X, Y, d);
 n := #fs + Margin;
-n := 450;
+//n := 450;
 vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
 /* Take non-zero image branch */

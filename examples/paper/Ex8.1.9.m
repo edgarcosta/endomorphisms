@@ -1,5 +1,5 @@
 AttachSpec("../../spec");
-SetVerbose("EndoCheck", 0);
+SetVerbose("EndoCheck", 3);
 
 F := Rationals();
 R<x> := PolynomialRing(F);
@@ -13,9 +13,8 @@ Y := HyperellipticCurve(q);
 Q0 := Y ! [1, 0, 0];
 
 M := Matrix(F, [
-[ -1, -1 ]
+[ -1/2, -1/2 ]
 ]);
-M := M/2;
 
 print "Field:";
 print F;
@@ -25,7 +24,7 @@ print Y;
 print "Tangent representation:";
 print M;
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 1);
+time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 16);
 K<x,y> := Parent(fs[1]);
 print fs;
 
@@ -50,9 +49,6 @@ KX := FunctionField(AX); KY := FunctionField(AY);
 m := map<AX -> AY | fs >;
 print "Degree:", Degree(ProjectiveClosure(m));
 
-exit;
-
-
 F := Rationals();
 R<x> := PolynomialRing(F);
 
@@ -65,9 +61,8 @@ Y := HyperellipticCurve(q);
 Q0 := Y ! [1, 0, 0];
 
 M := Matrix(F, [
-[ 3, 1 ]
+[ 3/2, 1/2 ]
 ]);
-M := M/2;
 
 print "Field:";
 print F;
@@ -77,7 +72,7 @@ print Y;
 print "Tangent representation:";
 print M;
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 1);
+time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 16);
 K<x,y> := Parent(fs[1]);
 print fs;
 
