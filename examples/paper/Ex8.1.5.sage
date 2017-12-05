@@ -46,6 +46,8 @@ overK = Endo.over_field(K)
 endodict = overK.full()
 print endodict['representation'][1]['tangent']
 print endodict['representation'][1]['homology']
+print "Degree estimate:"
+print Endo.degree_estimate(endodict['representation'][1]['tangent'])
 
 print "Verifying endomorphisms:"
 test = Endo.verify()

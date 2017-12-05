@@ -46,3 +46,7 @@ print endodict['representation'][1]['homology']
 
 print "Test for saturation:"
 print Endo.verify_saturated()
+
+print "Verifying endomorphisms:"
+test = Endo.verify()
+print test

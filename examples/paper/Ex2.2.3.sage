@@ -56,3 +56,7 @@ print R
 #MCC = magma.ChangeRing(MCC, CC)
 #RCC = magma.ChangeRing(R, CC)
 #print magma.ChangeRing(MCC * P - P * RCC, CCSmall)
+
+print "Verifying endomorphisms:"
+test = Endo.verify()
+print test

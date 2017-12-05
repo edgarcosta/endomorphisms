@@ -437,11 +437,8 @@ eqs := [ Rprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
 
 if DivPP1 then
-    vprintf EndoCheck, 2 : "Calculating final element in Groebner basis... ";
     Rprod := Codomain(hX);
     GB := GroebnerBasis(ideal< Rprod | eqs >);
-    vprint EndoCheck, 3 : GB;
-    vprintf EndoCheck, 2 : "done.\n";
     Append(~eqs, GB[#GB]);
 end if;
 
@@ -515,7 +512,7 @@ vprint EndoCheck, 3 : NormM;
 
 d := LowerBound;
 while true do
-    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := false, have_to_check := true);
+    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := DivPP1, have_to_check := true);
     if found then
         return true, S;
     end if;
@@ -855,5 +852,26 @@ eqs2 := [ h2(eq4) : eq4 in DefiningEquations(I) ];
 S1 := Scheme(A2, eqs1);
 S2 := Scheme(A2, eqs2);
 return [ [ Dimension(S1), Dimension(S2) ], [ Degree(S1), Degree(S2) ] ];
+
+end intrinsic;
+
+
+intrinsic Bidegree(X::., Y::., I::.) -> .
+{Gives degree of both projections.}
+
+A4 := Ambient(I); R4 := CoordinateRing(A4);
+R2 := PolynomialRing(X`F, 2); A2 := AffineSpace(R2);
+seq1 := [ X`P0[1], X`P0[2], R2.1, R2.2 ];
+seq2 := [ R2.1, R2.2, X`P0[1], X`P0[2] ];
+varord := VariableOrder();
+seq1 := [ seq1[varord[i]] : i in [1..#varord] ];
+seq2 := [ seq2[varord[i]] : i in [1..#varord] ];
+h1 := hom< R4 -> R2 | seq1 >;
+h2 := hom< R4 -> R2 | seq2 >;
+eqs1 := [ h1(eq4) : eq4 in DefiningEquations(I) ];
+eqs2 := [ h2(eq4) : eq4 in DefiningEquations(I) ];
+S1 := Scheme(A2, eqs1);
+S2 := Scheme(A2, eqs2);
+return [ Degree(S1), Degree(S2) ];
 
 end intrinsic;

@@ -67,7 +67,11 @@ if Degree(f, x) lt Degree(f, y) then
 end if;
 
 if X`is_hyperelliptic or (g eq 1) then
-    nums := [ x^i : i in [0..(d div 2)] ] cat [ x^i*y : i in [0..((d - g - 1) div 2)] ];
+    if Degree(f) mod 2 eq 1 then
+        nums := [ x^i : i in [0..(d div 2)] ] cat [ x^i*y : i in [0..((d - 2*g - 1) div 2)] ];
+    else
+        nums := [ x^i : i in [0..(d div 2)] ] cat [ x^i*y : i in [0..((d - 2*g - 2) div 2)] ];
+    end if;
     dens := [ x^i : i in [0..(d div 2)] ];
 elif X`is_planar then
     nums := [ x^i*y^j : i in [0..d], j in [0..(Degree(f, y) - 1)] | i + j le d ];

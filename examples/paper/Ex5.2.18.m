@@ -24,11 +24,26 @@ print "Tangent representation:";
 print M;
 
 print "Calculating divisor:";
-time test, D := DivisorFromMatrix(X, P0, X, P0, M : LowerBound := 8);
+time test, D := DivisorFromMatrix(X, P0, X, P0, M : LowerBound := 8, DivPP1 := true);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print D;
+print "Bidegree:";
+print Bidegree(X, X, D);
+
+eqs := DefiningEquations(D);
+R<y2,y1,x2,x1> := Parent(eqs[1]);
+S<x2,x1> := PolynomialRing(F, 2);
+res := hom<R -> S | [0, 0, x2, x1]>;
+I := ideal<S | res(eqs[#eqs])>;
+G := GroebnerBasis(I);
+
+A := AffineSpace(S);
+D := Scheme(A, G);
+Is := IrreducibleComponents(D);
+print "Divisor on PP^1 x PP^1:";
+print Is;
 
 print "Calculating Cantor representation...";
 time test, fs := CantorFromMatrix(X, P0, X, P0, M : LowerBound := 24);

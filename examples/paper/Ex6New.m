@@ -5,9 +5,11 @@ R<t> := PolynomialRing(Rationals());
 F<r> := NumberField(t^2 - 2);
 R<x> := PolynomialRing(F);
 p := x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1;
-p *:= -2;
+p *:= -1;
+//p *:= -2;
 X := HyperellipticCurve(p);
-P0 := X ! [0, r];
+//P0 := X ! [0, r];
+P0 := X ! [0, 1];
 print "Check that base point is not Weierstrass:", not IsWeierstrassPlace(Place(P0));
 
 M := Matrix(F, [
@@ -28,6 +30,8 @@ eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print D;
+print "Bidegree:";
+print Bidegree(X, X, D);
 
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);

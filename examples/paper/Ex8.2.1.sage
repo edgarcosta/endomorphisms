@@ -54,3 +54,7 @@ print Dec.projections()
 print Dec.factors()
 print Dec.verify()
 print Dec.correspondences()
+
+print "Verifying endomorphisms:"
+test = Endo.verify()
+print test

@@ -34,10 +34,14 @@ f = x^4 + 8*x^3*z + 2*x^2*y*z + 25*x^2*z^2 - x*y^3 + 2*x*y^2*z + 8*x*y*z^2 \
 X = mPlaneCurve(f)
 
 print X
-Endo = EndomorphismData(X, prec = 300, have_oldenburg = True)
+Endo = EndomorphismData(X, prec = 100, have_oldenburg = True)
 
 print "Geometric representation:"
 overK = Endo.over_field("geometric")
 endodict = overK.full()
 rep = overK.representation()
 print rep
+
+#print "Verifying endomorphisms:"
+#test = Endo.verify()
+#print test
