@@ -1,4 +1,3 @@
-AttachSpec("../../spec");
 SetVerbose("EndoCheck", 3);
 
 /* Example whose degree is too high */

@@ -1,32 +1,24 @@
 """
- *  Some examples of endomorphism rings
- *
- *  Copyright (C) 2016-2017
- *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
- *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
- *
- *  See LICENSE.txt for license details.
+ *  Plane examples (need extra code to be run)
 """
 
-load("../Initialize.sage")
+from endomorphisms import EndomorphismData, mHyperellipticCurve, mPlaneCurve
 
 F = QQ
 R.<x> = PolynomialRing(F)
 f, h = [x^4 + x^2, x^3 + 1]
 X = mHyperellipticCurve(f, h)
 
-R.<x,y,z> = PolynomialRing(F)
-f = x^4 + 2*x^3*z - x^2*y^2 + 2*x^2*y*z - x^2*z^2 - x*y^3 - 2*x*y^2*z + x*y*z^2 - 2*x*z^3 + y^4 - y^3*z + 2*y^2*z^2 - y*z^3 + z^4
-
-f = x^3*z + x^2*y*z + x^2*z^2 - x*y^3 + x*y^2*z + x*z^3 - y^2*z^2 + y*z^3
+#R.<x,y,z> = PolynomialRing(F)
+#f = x^4 + 2*x^3*z - x^2*y^2 + 2*x^2*y*z - x^2*z^2 - x*y^3 - 2*x*y^2*z + x*y*z^2 - 2*x*z^3 + y^4 - y^3*z + 2*y^2*z^2 - y*z^3 + z^4
+#f = x^3*z + x^2*y*z + x^2*z^2 - x*y^3 + x*y^2*z + x*z^3 - y^2*z^2 + y*z^3
 #f = x^3*z + x^2*y^2 + x^2*y*z + x*y^3 + x*y^2*z + x*y*z^2 + x*z^3 + y^3*z + y^2*z^2
-X = mPlaneCurve(f)
+#X = mPlaneCurve(f)
 
 print ""
 print "Curve:"
 print X
-Endo = EndomorphismData(X, prec = 100, have_oldenburg = True)
+Endo = EndomorphismData(X, prec = 100, have_oldenburg = False)
 
 Dec = Endo.decomposition()
 facs = Dec.factors()

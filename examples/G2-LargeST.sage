@@ -1,15 +1,8 @@
 """
- *  The largest example
- *
- *  Copyright (C) 2016-2017
- *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
- *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
- *
- *  See LICENSE.txt for license details.
+ *  An example with the largest possible Sato-Tate group in genus 2
 """
 
-load("../Initialize.sage")
+from endomorphisms import EndomorphismData, mHyperellipticCurve
 
 F = QQ
 R.<x> = PolynomialRing(F)

@@ -1,4 +1,3 @@
-AttachSpec("../../spec");
 SetVerbose("EndoCheck", 3);
 
 /* Shows that developing global points to a precision that is too small does

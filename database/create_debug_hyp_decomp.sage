@@ -1,14 +1,3 @@
-"""
- *  Generates endomorphism data from a colon-separated list.
- *
- *  Copyright (C) 2016-2017
- *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
- *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
- *
- *  See LICENSE.txt for license details.
-"""
-
 # Adds endomorphism data to a file of colon-separated lines
 
 # Defining polynomials have to be provided in pairs, defined by strings in x or

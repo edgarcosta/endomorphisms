@@ -1,4 +1,3 @@
-AttachSpec("../../spec");
 SetVerbose("EndoCheck", 3);
 
 F := Rationals();
@@ -28,5 +27,9 @@ print BiDimDeg(X, X, D);
 for I in IrreducibleComponents(D) do
     print BiDimDeg(X, X, I);
 end for;
+
+print Type(BiDimDeg(X, X, D));
+print Type(X);
+print Type(D);
 
 exit;

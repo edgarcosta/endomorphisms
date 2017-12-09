@@ -1,4 +1,3 @@
-AttachSpec("../../spec");
 SetVerbose("EndoCheck", 0);
 
 F := Rationals();

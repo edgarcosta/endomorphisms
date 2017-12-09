@@ -1,4 +1,7 @@
-AttachSpec("../../spec");
+/***
+ *  An example from the paper
+ */
+
 SetVerbose("EndoCheck", 3);
 
 /*
