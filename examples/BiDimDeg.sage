@@ -15,16 +15,16 @@ F = QQ
 R.<x> = PolynomialRing(F)
 f = -x^5
 h = x^3 + x + 1
-f = x^4 + x^3 + 3*x^2 + x + 2
-h = x^3 + x^2 + x
-f = x^5 - x
-h = x^3 + x + 1
-f = x^3 + x^2 - 2*x
-h = x^3 + x + 1
-f = x^3 - x
-h = x^3 + x^2 + 1
-X = mHyperellipticCurve(f, h)
+#f = x^4 + x^3 + 3*x^2 + x + 2
+#h = x^3 + x^2 + x
+#f = x^5 - x
+#h = x^3 + x + 1
+#f = x^3 + x^2 - 2*x
+#h = x^3 + x + 1
+#f = x^3 - x
+#h = x^3 + x^2 + 1
 
+X = mHyperellipticCurve(f, h)
 print ""
 print "Curve:"
 print X
@@ -57,6 +57,7 @@ print test
 g = Endo.g
 X = Endo.X
 for dikt in Endo._geo_rep_dict_:
+    print dikt['tangent']
     R = dikt['homology']
     S = dikt['corresp']
     if not magma.IsScalar(R):

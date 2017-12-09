@@ -623,7 +623,7 @@ function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := fal
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 fs := CandidateDivisors(X, Y, d);
-fsNew := CandidateDivisorsNew(X, Y, d);
+//fsNew := CandidateDivisorsNew(X, Y, d);
 n := #fs + Margin;
 //n := 450;
 vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
@@ -690,9 +690,11 @@ function CandidateDivisorsNew(X, Y, d)
 
 gX := X`g; fX := X`DEs[1]; RX := X`R; KX := X`K; P := X`P0;
 gY := Y`g; fY := Y`DEs[1]; RY := Y`R; KY := Y`K; Q := Y`P0;
-V, phiV := RiemannRochSpace(d*Divisor(P));
+V, phiV := RiemannRochSpace((d + 2*gX)*Divisor(P));
+V, phiV := RiemannRochSpace((d + gX)*Divisor(P));
 divsX := [ KX ! phiV(v) : v in Basis(V) ];
 W, phiW := RiemannRochSpace(3*gY*Divisor(Q));
+W, phiW := RiemannRochSpace(2*gY*Divisor(Q));
 divsY := [ KY ! phiW(w) : w in Basis(W) ];
 divsX := [ divsX[#divsX] ] cat divsX[1..(#divsX - 1)];
 divsY := [ divsY[#divsY] ] cat divsY[1..(#divsY - 1)];
@@ -727,12 +729,14 @@ M := Matrix([ &cat[ [ Coefficient(ev, i/e) : i in [(e*min)..(e*max)] ] : ev in e
 B := Basis(Kernel(M));
 /* Coerce back to ground field (possible because of echelon form) */
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
+print "Dimension:";
+print #B;
+return 0;
 
 /* Corresponding equations */
 hX, hY := Explode(ExtractHomomorphismsRing(X, Y));
 Rprod := Codomain(hX);
 Aprod := AffineSpace(Rprod);
-//Sprod := Scheme(Aprod, [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ]);
 eqs := [ &+[ b[i] * fs[i] : i in [1..#fs] ] : b in B ];
 eqs := [ Rprod ! Numerator(&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 S := Scheme(Aprod, [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ] cat eqs);
@@ -752,40 +756,45 @@ repeat
 until I eq Iold;
 vprintf EndoCheck, 3 : "done.\n";
 S := Scheme(Aprod, I);
+S := ReducedSubscheme(S);
 vprint EndoCheck, 3 : "Dimension:";
 vprint EndoCheck, 3 : Dimension(S);
 vprint EndoCheck, 3 : "Degree and dimensions to factors:";
 vprint EndoCheck, 3 : BiDimDeg(X, X, S);
-
 /*
-if DivPP1 then
-    vprintf EndoCheck, 2 : "Calculating final element in Groebner basis... ";
-    Rprod := Codomain(hX);
-    GB := GroebnerBasis(ideal< Rprod | eqs >);
-    vprint EndoCheck, 3 : GB;
-    vprintf EndoCheck, 2 : "done.\n";
-    Append(~eqs, GB[#GB]);
-end if;
-*/
-
-/* Corresponding scheme */
-/*
-Kprod := FieldOfFractions(Rprod);
-for f in eqs do
-    //S := Scheme(Aprod, DefiningEquations(Sprod) cat [ Rprod ! Numerator(f) ]);
-    Scl := ProjectiveClosure(Sprod);
-    Ccl := FieldOfFractions(CoordinateRing(Scl));
-    h := hom< Kprod -> Ccl | [ Ccl.1, Ccl.2, Ccl.3, Ccl.4 ] >;
-    S := Divisor(Scl, h(Kprod ! f));
-    //S := Support(SignDecomposition(D));
-    vprint EndoCheck, 3 : "Dimension:";
-    vprint EndoCheck, 3 : Dimension(S);
-    vprint EndoCheck, 3 : BiDimDeg(X, X, S);
+for I in IrreducibleComponents(S) do
+    print BiDimDeg(X, X, I);
 end for;
 */
 
-//return [ S ];
+/*
+if DivPP1 then
+*/
+
+/* Corresponding scheme */
+eqs := [ &+[ b[i] * fs[i] : i in [1..#fs] ] : b in B ];
+Kprod := FieldOfFractions(Rprod);
+Sprod := Scheme(Aprod, [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ]);
+Ss := [ ];
+for f in eqs do
+    Scl := ProjectiveClosure(Sprod);
+    Rcl := CoordinateRing(Ambient(Scl));
+    Ccl := FieldOfFractions(Rcl);
+    h := hom< Kprod -> Ccl | [ Ccl.1, Ccl.2, Ccl.3, Ccl.4 ] >;
+    h := hom< Rprod -> Rcl | [ Rcl.1, Rcl.2, Rcl.3, Rcl.4 ] >;
+    S_num := Divisor(Scl, h(Numerator(f)));
+    S_den := Divisor(Scl, h(Denominator(f)));
+    S := S_num - S_den;
+    Append(~Ss, S);
+end for;
+S := GCD(Ss);
+vprint EndoCheck, 3 : Support(SignDecomposition(S));
+vprint EndoCheck, 3 : "Dimension:";
+vprint EndoCheck, 3 : Dimension(S);
+vprint EndoCheck, 3 : BiDimDeg(X, X, S);
+
 return 0;
+return [ S ];
 
 end function;
 
@@ -873,5 +882,10 @@ eqs2 := [ h2(eq4) : eq4 in DefiningEquations(I) ];
 S1 := Scheme(A2, eqs1);
 S2 := Scheme(A2, eqs2);
 return [ Degree(S1), Degree(S2) ];
+
+f1 := map< Curve(I) -> Curve(X`U) | [ R4.varord[1], R4.varord[2] ]>;
+f2 := map< Curve(I) -> Curve(X`U) | [ R4.varord[3], R4.varord[4] ]>;
+f1 := ProjectiveClosure(f1); f2 := ProjectiveClosure(f2);
+return [ Degree(f1), Degree(f2) ];
 
 end intrinsic;
