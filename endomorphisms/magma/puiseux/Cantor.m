@@ -10,6 +10,11 @@
  */
 
 
+import "Branches.m": PuiseuxRamificationIndex, InitializeImageBranch;
+import "Initialize.m": InitializeCurve, ChangeTangentAction;
+import "FractionalCRT.m": FractionalCRTQQ, RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
+
+
 forward CantorEquations;
 
 forward CandidateFunctions;
@@ -26,11 +31,6 @@ forward CantorFromMatrixByDegree;
 forward ChangeFunctions;
 forward AbsoluteToRelative;
 forward RelativeToAbsolute;
-
-
-import "Divisor.m": InitializeCurve, ChangeTangentAction;
-import "LocalInfo.m": PuiseuxRamificationIndex, InitializeImageBranch;
-import "FractionalCRT.m": FractionalCRTQQ, RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
 
 
 function CantorEquations(X);
@@ -58,7 +58,6 @@ end function;
 
 function CandidateFunctions(X, d)
 /* Candidate numerators and denominators for Cantor functions */
-// TODO: Use Riemann-Roch space instead
 
 g := X`g; f := X`DEs[1]; R := X`R;
 x := R.1; y := R.2;
@@ -78,6 +77,19 @@ elif X`is_planar then
     dens := nums;
 end if;
 return dens, nums;
+
+end function;
+
+
+function CandidateFunctionsNew(X, d)
+/* Candidate numerators and denominators for Cantor functions */
+
+RX := X`R; KX := X`K; DEs := X`DEs; D0 := Divisor(X`P0);
+V, phiV := RiemannRochSpace(d*D0);
+fs := [ KX ! phiV(v) : v in Basis(V) ];
+//Q := quo< RX | DEs >;
+//fs := [ (RX ! Q ! Numerator(f)) / (RX ! Q ! Denominator(f)) : f in fs ];
+return fs, fs;
 
 end function;
 
@@ -110,8 +122,10 @@ for f_approx in fs_approx do
     ev_dens := [ -f_approx * Evaluate(den, P) : den in dens ];
     ev_nums := [ Evaluate(num, P) : num in nums ];
     evs := ev_dens cat ev_nums;
-    prec := Floor(Minimum([ AbsolutePrecision(ev) : ev in evs ]));
-    M := Matrix([ [ X`F ! Coefficient(ev, i) : i in [0..(prec - 1)] ] : ev in evs ]);
+    e := Maximum([ Maximum([ Denominator(Valuation(c - Coefficient(c, 0))) : c in Q ]) : Q in Qs ]);
+    min := Minimum([ Valuation(ev) : ev in evs ]);
+    max := Minimum([ AbsolutePrecision(ev) : ev in evs ]);
+    M := Matrix([ [ X`F ! Coefficient(ev, i/e) : i in [(e*min)..(e*max - 1)] ] : ev in evs ]);
     Ker := Kernel(M);
 
     if Dimension(Ker) eq 0 then
@@ -122,13 +136,12 @@ for f_approx in fs_approx do
         for b in B do
             v := Eltseq(b);
             f := &+[ v[i + #dens]*nums[i] : i in [1..#nums] ] / &+[ v[i]*dens[i] : i in [1..#dens] ];
-            /* The next check should be superfluous if the precision is above a
-             * small bound */
-            //if (X`R ! Numerator(X`K ! f)) in I then
-            //    return false, [ ];
-            //end if;
-            Append(~fs, X`K ! f);
-            break;
+            if not (X`R ! Numerator(X`K ! f)) in I then
+                Append(~fs, X`K ! f);
+                break;
+            else
+                return false, [ ];
+            end if;
         end for;
     end if;
 end for;
@@ -302,7 +315,7 @@ function CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, have_to_check 
 /* Step mod p of the above */
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
-dens, nums := CandidateFunctions(X, d);
+dens, nums := CandidateFunctionsNew(X, d);
 n := #dens + #nums + Margin;
 e := PuiseuxRamificationIndex(NormM);
 vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;

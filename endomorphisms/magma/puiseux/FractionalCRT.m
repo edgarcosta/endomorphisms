@@ -37,7 +37,7 @@ function RandomSplitPrime(f, B)
  * In the relative case things are more complicated, in the sense that we may
  * not actually get a totally reduced prime and the reduction below may fail.
  * The algorithm only sees the relative polynomial after all, which may not
- * give an absolute generators. Yet we need the current form since alternative
+ * give an absolute generator. Yet we need the current form since alternative
  * approaches like using IsTotallySplit seem to use much more time.
  *
  * One option, arguably the easiest, is to change base to an absolute field

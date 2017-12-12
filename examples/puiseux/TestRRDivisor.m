@@ -18,18 +18,6 @@ print "Curve:";
 print X;
 print "Calculating divisor:";
 time test, D := DivisorFromMatrixSplit(X, P0, X, P0, T : LowerBound := 1);
-eqs := DefiningEquations(D);
-R<y2,y1,x2,x1> := Parent(eqs[1]);
-print "Divisor:";
 print D;
-
-print BiDimDeg(X, X, D);
-for I in IrreducibleComponents(D) do
-    print BiDimDeg(X, X, I);
-end for;
-
-print Type(BiDimDeg(X, X, D));
-print Type(X);
-print Type(D);
 
 exit;

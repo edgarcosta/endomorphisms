@@ -34,9 +34,11 @@
   }
   puiseux
   {
+    Bidegree.m
+    Branches.m
     Cantor.m
     Divisor.m
     FractionalCRT.m
-    LocalInfo.m
+    Initialize.m
   }
 }

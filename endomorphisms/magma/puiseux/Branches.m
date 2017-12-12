@@ -9,6 +9,10 @@
  *  See LICENSE.txt for license details.
  */
 
+/* Note that in all of this M is the matrix that represents the action on H^0
+ * (X, omega_X)^* by left multiplication.
+ */
+
 
 forward LiftPuiseuxSeries;
 
@@ -24,6 +28,10 @@ forward ApproximationsFromTangentAction;
 
 
 function LiftPuiseuxSeries(f, PR, e)
+/*
+ * Input:  A Puiseux series f, a Puiseux ring PR, and an exponent denominator e.
+ * Output: The coercion of f to PR, if all exponents of f have denominator e.
+ */
 
 L := [ Coefficient(f, i/e)*PR.1^(i/e) : i in [0..e*AbsolutePrecision(f) - 1] ];
 if #L eq 0 then
@@ -41,16 +49,15 @@ function PuiseuxRamificationIndex(M)
  * Output:  The ramification index of the corresponding Puiseux expansions.
  */
 
-g := #Rows(M);
-e := g;
+gY := #Rows(M);
+e := gY;
 while true do
-    n := g div e;
+    n := gY div e;
     test := &or[ M[e*i, i] ne 0 : i in [1..n] ];
     if test then
         return e;
     end if;
     e := e - 1;
-    /* Stopping criterion in case of ramification: */
     if e eq 0 then
         return 1;
     end if;
@@ -69,20 +76,20 @@ function InitializeImageBranch(M)
 
 /* Recovering old invariants: */
 F := Parent(M[1,1]);
-g := #Rows(M);
+gY := #Rows(M);
 e := PuiseuxRamificationIndex(M);
 
-if g eq 1 then
+if gY eq 1 then
     r := Eltseq(Rows(M)[1]);
     RF := PolynomialRing(F); xF := RF.1; PF := PowerSeriesRing(F, #r + 1); tF := PF.1;
     return [ &+[ (r[n] / n) * tF^n : n in [1..#r] ] + O(tF^(#r + 1)) ], xF - 1;
 end if;
 
 /* Normalized equations (depend only on the matrix): */
-A := AffineSpace(F, g); RA := CoordinateRing(A);
+A := AffineSpace(F, gY); RA := CoordinateRing(A);
 eqs := [ ];
-for n in [1..g] do
-    powersum := &+[ RA.i^n : i in [1..g] ];
+for n in [1..gY] do
+    powersum := &+[ RA.i^n : i in [1..gY] ];
     if n mod e eq 0 then
         Append(~eqs, powersum - e * M[n, n div e]);
     else
@@ -93,17 +100,11 @@ S := Scheme(A, eqs);
 
 /* The upcoming steps are taken to avoid the use of an algebraic closure */
 RF := PolynomialRing(F);
-hc := [ RF!0 : i in [1..g] ]; hc[#hc] := RF.1; h := hom<RA -> RF | hc>;
+hc := [ RF!0 : i in [1..gY] ]; hc[#hc] := RF.1; h := hom<RA -> RF | hc>;
 
 /* By symmetry, this extension always suffices */
 G := GroebnerBasis(ideal<RA | eqs>);
-if not IsFinite(F) then
-    //K := GaloisSplittingField(h(G[#G]));
-    K := SplittingField(h(G[#G]));
-else
-    K := SplittingField(h(G[#G]));
-end if;
-
+K := SplittingField(h(G[#G]));
 /* Extending and evaluating: */
 SK := BaseExtend(S, K);
 P := Eltseq(Points(SK)[1]);
@@ -115,7 +116,7 @@ else
     PK := PuiseuxSeriesRing(K, 2);
     wK := PK.1^(1/e);
 end if;
-return [ P[i] * wK + O(wK^2) : i in [1..g] ], h(G[#G]);
+return [ P[i] * wK + O(wK^2) : i in [1..gY] ], h(G[#G]);
 
 end function;
 
@@ -127,18 +128,22 @@ function DevelopPoint(X, P0, n)
  *          and the requested number of digits n.
  * Output:  A corresponding development of both components.
  *
- * The relation f has to be non-singular when developing in y,
- * and the x-coordinate can be specified as a Puiseux series. */
+ * The relation f has to be non-singular when developing in y.
+ * The x-coordinate x0 of P can be specified as a constant element or as a
+ * Puiseux series. In the latter case, the value for y is determined directly;
+ * in the former, we consider x0 + t and find the corresponding value of y.
+ */
 
-f := X`DEs[1];
 if Type(P0[1]) in [ RngSerPuisElt, RngSerPowElt ] then
     F := BaseRing(Parent(P0[1]));
 else
     F := Parent(P0[1]);
 end if;
-df := Derivative(f, 2);
+f := X`DEs[1]; df := Derivative(f, 2);
+/* Note that x0 and y0 can still be Puiseux series */
 x0 := P0[1]; y0 := P0[2];
 
+/* Take constant terms and return them if n = 0 */
 PR := PuiseuxSeriesRing(F, 1);
 x := PR ! Coefficient(PR ! x0, 0); y := PR ! Coefficient(PR ! y0, 0);
 if n eq 0 then
@@ -166,6 +171,11 @@ end function;
 
 
 function InitializeLift(X, Y, M)
+/*
+ * Input:   Curves X and Y and a normalized matrix M.
+ * Output:  The very first terms in the development of P and the corresponding
+ *          branches Q_j.
+ */
 
 P0 := X`P0; Q0 := Y`P0;
 e := PuiseuxRamificationIndex(M);
@@ -189,13 +199,21 @@ end function;
 
 
 function CreateLiftIterator(X, Y, M)
+/*
+ * Input:   Curves X and Y and a normalized matrix M.
+ * Output:  An iterator that refines the Puiseux expansion upon application.
+ */
 
 fX := X`DEs[1]; dfX := Derivative(fX, X`R.2); BX := X`NormB; gX := X`g;
 fY := Y`DEs[1]; dfY := Derivative(fY, Y`R.2); BY := Y`NormB; gY := Y`g;
-
 e := PuiseuxRamificationIndex(M);
 
     function Iterate(P, Qs, n);
+    /*
+     * Input:   Points P, branches Q, and a precision n.
+     * Output:  A refinement to twice the current precision or n, whichever is
+     *          smaller.
+     */
 
     /* Create ring of higher precision: */
     K := BaseRing(Parent(P[1]));
