@@ -3,6 +3,7 @@
  */
 
 
+AttachSpec("../../endomorphisms/magma/spec");
 import "../../endomorphisms/magma/puiseux/Initialize.m": InitializeCurve, ChangeTangentAction;
 import "../../endomorphisms/magma/puiseux/Branches.m": PuiseuxRamificationIndex, InitializeLift, CreateLiftIterator;
 SetVerbose("EndoCheck", 4);
@@ -36,10 +37,9 @@ e := PuiseuxRamificationIndex(M);
 P, Qs := InitializeLift(X, X, M);
 IterateLift := CreateLiftIterator(X, X, M);
 
-n := 16;
-for i:=1 to Ceiling(Log(2, n + e + 1)) do
-    print Qs[1][1];
-    print Qs[1][2];
+// TODO: Higher gives a denominator!
+n := 2400;
+for i:=1 to Ceiling(Log(2, n + e + 1)) - 1 do
     P_old := P; Qs_old := Qs;
     P, Qs := IterateLift(P_old, Qs_old, n + e + 1);
     print P[1] - P_old[1];
@@ -48,6 +48,8 @@ for i:=1 to Ceiling(Log(2, n + e + 1)) do
         print Qs[k][1] - Qs_old[k][1];
         print Qs[k][2] - Qs_old[k][2];
     end for;
+    print Qs[1][1];
+    print Qs[1][2];
 end for;
 
 exit;

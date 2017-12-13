@@ -4,6 +4,8 @@
   directory; this file shows how to access the heuristic part.
 */
 
+AttachSpec("../endomorphisms/magma/spec");
+
 F := QQ;
 R<x> := PolynomialRing(F);
 f := x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1; h := 0;

@@ -204,8 +204,8 @@ function CreateLiftIterator(X, Y, M)
  * Output:  An iterator that refines the Puiseux expansion upon application.
  */
 
-fX := X`DEs[1]; dfX := Derivative(fX, X`R.2); BX := X`NormB; gX := X`g;
-fY := Y`DEs[1]; dfY := Derivative(fY, Y`R.2); BY := Y`NormB; gY := Y`g;
+fX := X`DEs[1]; dfX := Derivative(fX, X`RA.2); BX := X`NormB; gX := X`g;
+fY := Y`DEs[1]; dfY := Derivative(fY, Y`RA.2); BY := Y`NormB; gY := Y`g;
 e := PuiseuxRamificationIndex(M);
 
     function Iterate(P, Qs, n);

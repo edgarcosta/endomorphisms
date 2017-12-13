@@ -2,6 +2,7 @@
  *  An example from the paper
  */
 
+AttachSpec("../../endomorphisms/magma/spec");
 SetVerbose("EndoCheck", 4);
 
 F := FiniteField(4001);

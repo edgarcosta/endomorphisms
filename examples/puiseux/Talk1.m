@@ -1,4 +1,5 @@
-SetVerbose("EndoCheck", 3);
+AttachSpec("../../endomorphisms/magma/spec");
+SetVerbose("EndoCheck", 4);
 
 F := Rationals();
 R<x> := PolynomialRing(F);
@@ -23,7 +24,7 @@ print D;
 
 SetVerbose("EndoCheck", 3);
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, X, P0, T : LowerBound := 16);
+time test, fs := CantorFromMatrixSplit(X, P0, X, P0, T : LowerBound := 11);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;

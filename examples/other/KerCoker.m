@@ -1,3 +1,5 @@
+AttachSpec("../../endomorphisms/magma/spec");
+
 R<x> := PolynomialRing(Rationals());
 CC := ComplexFieldExtra(100);
 

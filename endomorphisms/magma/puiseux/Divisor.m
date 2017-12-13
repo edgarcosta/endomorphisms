@@ -31,17 +31,17 @@ function CandidateDivisors(X, Y, d)
  * Output:  Equations for divisors of degree d coming from the ambient of X.
  */
 
-gX := X`g; fX := X`DEs[1]; RX := X`R;
-xX := RX.1; yX := RX.2;
+gX := X`g; fX := X`DEs[1];
+RAX := X`RA; xX := RAX.1; yX := RAX.2;
 /* Change in hyperelliptic case for greater effectiveness: */
-if Degree(fX, RX.1) eq 2 then
-    xX := RX.2; yX := RX.1;
+if Degree(fX, RAX.1) eq 2 then
+    xX := RAX.2; yX := RAX.1;
 end if;
-gY := Y`g; fY := Y`DEs[1]; RY := Y`R;
-xY := RY.1; yY := RY.2;
+gY := Y`g; fY := Y`DEs[1];
+RAY := Y`RA; xY := RAY.1; yY := RAY.2;
 /* Change in hyperelliptic case for greater effectiveness: */
-if Degree(fY, RY.1) eq 2 then
-    xY := RY.2; yY := RY.1;
+if Degree(fY, RAY.1) eq 2 then
+    xY := RAY.2; yY := RAY.1;
 end if;
 
 if X`is_hyperelliptic then
@@ -93,18 +93,18 @@ B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
 hX, hY := Explode(ExtractHomomorphismsRing(X, Y));
-Rprod := Codomain(hX);
-eqs := [ Rprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
+RAprod := Codomain(hX);
+eqs := [ RAprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
 
 if DivPP1 then
-    Rprod := Codomain(hX);
-    GB := GroebnerBasis(ideal< Rprod | eqs >);
+    RAprod := Codomain(hX);
+    GB := GroebnerBasis(ideal< RAprod | eqs >);
     Append(~eqs, GB[#GB]);
 end if;
 
 /* Corresponding scheme */
-A := AffineSpace(Rprod);
+A := AffineSpace(RAprod);
 S := Scheme(A, eqs);
 return [ S ];
 
@@ -137,12 +137,12 @@ function CheckIrreducibleComponent(X, Y, I)
  *          P0 and nowhere else.
  */
 
-A4 := Ambient(I); R4 := CoordinateRing(A4);
-R2 := PolynomialRing(X`F, 2); A2 := AffineSpace(R2);
-seq := [ X`P0[1], X`P0[2], R2.1, R2.2 ];
+A4 := Ambient(I); RA4 := CoordinateRing(A4);
+RA2 := PolynomialRing(X`F, 2); A2 := AffineSpace(RA2);
+seq := [ X`P0[1], X`P0[2], RA2.1, RA2.2 ];
 varord := VariableOrder();
 seq := [ seq[varord[i]] : i in [1..#varord] ];
-h := hom< R4 -> R2 | seq >;
+h := hom< RA4 -> RA2 | seq >;
 eqs2 := [ h(eq4) : eq4 in DefiningEquations(I) ];
 S := Scheme(A2, eqs2);
 
@@ -200,7 +200,7 @@ tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
 F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
-Rprod := PolynomialRing(X`F, 4, "lex");
+RAprod := PolynomialRing(X`F, 4, "lex");
 P, Qs := ApproximationsFromTangentAction(X, Y, NormM, X`g);
 
 ps_rts := [ ]; prs := [ ]; DEss_red := [* *];
@@ -243,15 +243,15 @@ while true do
     vprintf EndoCheck : "Fractional CRT... ";
     DEs := [ ];
     for i:=1 to #DEss_red[1] do
-        DE := Rprod ! 0;
+        DE := RAprod ! 0;
         for mon in Monomials(DEss_red[1][i]) do
             exp := Exponents(mon);
             rs := [* *];
             for j:=1 to #DEss_red do
-                Rprod_red := Parent(DEss_red[j][1]);
-                Append(~rs, MonomialCoefficient(DEss_red[j][i], Monomial(Rprod_red, exp)));
+                RAprod_red := Parent(DEss_red[j][1]);
+                Append(~rs, MonomialCoefficient(DEss_red[j][i], Monomial(RAprod_red, exp)));
             end for;
-            DE +:= FractionalCRTSplit(rs, prs, OF, I, BOF, BI, F) * Monomial(Rprod, exp);
+            DE +:= FractionalCRTSplit(rs, prs, OF, I, BOF, BI, F) * Monomial(RAprod, exp);
         end for;
         Append(~DEs, DE);
     end for;
@@ -265,7 +265,7 @@ while true do
 
     if test1 then
         vprintf EndoCheck : "Step 2... ";
-        S := Scheme(AffineSpace(Rprod), DEs);
+        S := Scheme(AffineSpace(RAprod), DEs);
         test2 := CheckIrreducibleComponent(X, Y, S);
         vprintf EndoCheck : "done.\n";
         if test2 then

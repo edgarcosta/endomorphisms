@@ -1,3 +1,5 @@
+AttachSpec("../../endomorphisms/magma/spec");
+
 print "Over QQ:";
 
 F := Rationals();

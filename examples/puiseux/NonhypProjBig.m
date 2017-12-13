@@ -1,3 +1,4 @@
+AttachSpec("../../endomorphisms/magma/spec");
 SetVerbose("EndoCheck", 3);
 
 /* An absolutely obscene example */

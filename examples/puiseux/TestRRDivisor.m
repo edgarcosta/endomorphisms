@@ -1,4 +1,5 @@
-SetVerbose("EndoCheck", 3);
+AttachSpec("../../endomorphisms/magma/spec");
+SetVerbose("EndoCheck", 4);
 
 F := Rationals();
 R<x> := PolynomialRing(F);

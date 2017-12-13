@@ -96,14 +96,12 @@ function FractionalCRTSplit(rs, prs, OK, I, BOK, BI, K)
  */
 
 if Type(OK) eq RngInt then
-    //print "QQ";
     return FractionalCRTQQ(rs, [ Norm(p) : p in prs ]);
 end if;
 n := CRT([ Integers() ! r : r in rs ], [ Norm(p) : p in prs ]);
 M := Matrix(Integers(), [ [ b[i] : b in BOK ] cat [ KroneckerDelta(1, i)*n ] cat [ b[i] : b in BI ] : i in [1..#BOK] ]);
 Lat := Lattice(Kernel(Transpose(M)));
 v := ShortestVectors(Lat)[1];
-// This should never happen
 if v[#BOK + 1] eq 0 then
     error "Division by zero";
 end if;
@@ -184,14 +182,17 @@ U := ReduceAffinePatchSplit(X`U, p, rt); U`U := U;
 U`is_hyperelliptic := X`is_hyperelliptic; U`is_planar := X`is_planar; U`is_smooth := X`is_smooth;
 U`g := X`g; U`is_plane_quartic := X`is_plane_quartic;
 U`P0 := U ! ReducePointSplit(X`P0, p, rt);
-U`A := Ambient(U`U); U`R := CoordinateRing(U`A);
-U`F := BaseRing(U`R); U`K := FieldOfFractions(U`R);
+U`A := Ambient(U`U); U`RA := CoordinateRing(U`A); U`KA := FieldOfFractions(U`RA);
+U`RU := CoordinateRing(U`U); U`KU := FieldOfFractions(U`RU); U`F := BaseRing(U`RU); 
 U`unif_index := X`unif_index;
 U`DEs := DefiningEquations(U`U);
 U`OurB := ReduceBasisOfDifferentialsSplit(X`OurB, p, rt);
 U`NormB := ReduceBasisOfDifferentialsSplit(X`NormB, p, rt);
 U`T := ReduceMatrixSplit(X`T, p, rt);
-U`cantor_equations := [* ReducePolynomialSplit(cantor_eq, p, rt) : cantor_eq in X`cantor_equations *];
+U`cantor_eqs := [* ReducePolynomialSplit(cantor_eq, p, rt) : cantor_eq in X`cantor_eqs *];
+nums := [ U`KU ! U`KA ! Numerator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
+dens := [ U`KU ! U`KA ! Denominator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
+U`RRgens := [ nums[i]/dens[i] : i in [1..#X`RRgens] ];
 U`initialized := true;
 return U;
 

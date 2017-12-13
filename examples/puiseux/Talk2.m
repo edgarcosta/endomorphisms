@@ -1,4 +1,5 @@
-SetVerbose("EndoCheck", 1);
+AttachSpec("../../endomorphisms/magma/spec");
+SetVerbose("EndoCheck", 4);
 
 R<t> := PolynomialRing(Rationals());
 F<r> := NumberField(t^2 - 2);

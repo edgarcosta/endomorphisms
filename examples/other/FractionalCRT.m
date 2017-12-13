@@ -1,3 +1,5 @@
+AttachSpec("../../endomorphisms/magma/spec");
+
 R<x> := PolynomialRing(Rationals());
 K<r> := NumberField(x^2 - 2);
 R<x> := PolynomialRing(K);
