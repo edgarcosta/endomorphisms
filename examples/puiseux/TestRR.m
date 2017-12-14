@@ -1,5 +1,6 @@
 AttachSpec("../../endomorphisms/magma/spec");
 import "../../endomorphisms/magma/puiseux/Branches.m": PuiseuxRamificationIndex, InitializeLift, CreateLiftIterator;
+import "../../endomorphisms/magma/puiseux/Divisor.m": GlobalGenerators, GlobalScheme;
 import "../../endomorphisms/magma/puiseux/FractionalCRT.m": ReduceRationalFunctionSplit;
 import "../../endomorphisms/magma/puiseux/Initialize.m": InitializeCurve, ChangeTangentAction;
 import "../../endomorphisms/magma/puiseux/RiemannRoch.m": RRGenerators, RRBasis, RREvaluate;
@@ -24,12 +25,10 @@ InitializeCurve(X, P0);
 p := NextPrime(10^100);
 FF := FiniteField(p);
 K<x,y> := RationalFunctionField(FF, 2);
-print "Riemann-Roch bases:";
-for d in [1..20] do
-    print d;
-    print RRBasis(X, d);
-    print [* ReduceRationalFunctionSplit(f, p, 1) : f in RRBasis(X, d) *];
-    //print [ K ! ReduceRationalFunctionSplit(f, p, 1) : f in RRBasis(X, d) ];
-end for;
+print "Riemann-Roch generators:";
+print [ X`KA ! f : f in RRGenerators(X) ];
+gens := GlobalGenerators(X, X);
+//print "Global generators:";
+//print gens;
 
 exit;

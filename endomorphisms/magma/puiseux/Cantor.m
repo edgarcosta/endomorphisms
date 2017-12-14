@@ -25,9 +25,9 @@ forward CheckApproximation;
 forward FunctionsFromVectors;
 forward CheckCantor;
 
+forward CantorFromMatrixByDegree;
 forward CantorFromMatrix;
 forward CantorFromMatrixSplit;
-forward CantorFromMatrixByDegree;
 
 forward ChangeFunctions;
 forward AbsoluteToRelative;
@@ -114,7 +114,7 @@ return true, vs;
 end function;
 
 
-function CheckApproximation(X, Y, P, Qs, vs, d)
+function CheckApproximation(X, Y, vs, d, P, Qs)
 /*
  * Verifies if the given vectors approximate well
  */
@@ -187,6 +187,55 @@ return true;
 end function;
 
 
+function CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4)
+/* Step mod p of the above */
+
+vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+// TODO: This number n can be tweaked
+n := 2*d + Margin;
+e := PuiseuxRamificationIndex(NormM);
+vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
+
+/* Take non-zero image branch */
+vprintf EndoCheck, 2 : "Expanding... ";
+P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n*e);
+vprintf EndoCheck, 4 : "Base point:\n";
+_<t> := Parent(P[1]);
+_<r> := BaseRing(Parent(P[1]));
+vprint EndoCheck, 4 : P;
+vprintf EndoCheck, 4 : "Resulting branches:\n";
+vprint EndoCheck, 4 : Qs;
+vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
+vprintf EndoCheck, 2 : "done.\n";
+
+/* Fit a Cantor morphism to it */
+vprintf EndoCheck, 2 : "Solving linear system... ";
+test, vs := VectorsFromApproximations(X, Y, P, Qs, d);
+vprintf EndoCheck, 2 : "done.\n";
+
+if test then
+    // TODO: In some circumstances this step is optional, we could skip it with
+    // a flag
+    vprintf EndoCheck, 2 : "Checking:\n";
+    vprintf EndoCheck, 2 : "Step 1... ";
+    test1 := CheckApproximation(X, Y, vs, d, P, Qs);
+    vprintf EndoCheck, 2 : "done.\n";
+    if test1 then
+        vprintf EndoCheck, 2 : "Step 2... ";
+        fs := FunctionsFromVectors(X, Y, vs, d);
+        test2 := CheckCantor(X, Y, fs);
+        vprintf EndoCheck, 2 : "done.\n";
+        if test2 then
+            vprintf EndoCheck, 2 : "Functions found!\n";
+            return true, fs, vs;
+        end if;
+    end if;
+end if;
+return false, [], [];
+
+end function;
+
+
 intrinsic CantorFromMatrix(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity()) -> Sch
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
@@ -196,7 +245,7 @@ NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
 while true do
-    found, fs, vs := CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, have_to_check := true);
+    found, fs, vs := CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4);
     if found then
         return true, ChangeFunctions(X, Y, fs);
     end if;
@@ -229,7 +278,6 @@ P, Qs := ApproximationsFromTangentAction(X, Y, NormM, gY + 2);
 
 ps_rts := [ ]; prs := [ ]; vss_red := [* *];
 I := ideal<X`OF | 1>;
-have_to_check := true;
 
 d := LowerBound;
 while true do
@@ -249,7 +297,7 @@ while true do
     BI := Basis(I);
 
     while true do
-        found, fs_red, vs_red := CantorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, have_to_check := have_to_check);
+        found, fs_red, vs_red := CantorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -261,7 +309,6 @@ while true do
             return false, [];
         end if;
     end while;
-    have_to_check := false;
     Append(~vss_red, vs_red);
 
     vprintf EndoCheck : "Fractional CRT... ";
@@ -275,7 +322,7 @@ while true do
 
     vprintf EndoCheck : "Checking:\n";
     vprintf EndoCheck : "Step 1... ";
-    test1 := CheckApproximation(X, Y, P, Qs, vs, d);
+    test1 := CheckApproximation(X, Y, vs, d, P, Qs);
     vprintf EndoCheck : "done.\n";
 
     if test1 then
@@ -291,54 +338,6 @@ while true do
 end while;
 
 end intrinsic;
-
-
-function CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, have_to_check := true)
-/* Step mod p of the above */
-
-vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
-// TODO: This number n can be tweaked
-n := 2*d + Margin;
-e := PuiseuxRamificationIndex(NormM);
-vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
-
-/* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n*e);
-vprintf EndoCheck, 4 : "Base point:\n";
-_<t> := Parent(P[1]);
-_<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
-vprintf EndoCheck, 2 : "done.\n";
-
-/* Fit a Cantor morphism to it */
-vprintf EndoCheck, 2 : "Solving linear system... ";
-test, vs := VectorsFromApproximations(X, Y, P, Qs, d);
-vprintf EndoCheck, 2 : "done.\n";
-
-if test then
-    // TODO: In some circumstances this step is optional
-    vprintf EndoCheck, 2 : "Checking:\n";
-    vprintf EndoCheck, 2 : "Step 1... ";
-    test1 := CheckApproximation(X, Y, P, Qs, vs, d);
-    vprintf EndoCheck, 2 : "done.\n";
-    if test1 then
-        vprintf EndoCheck, 2 : "Step 2... ";
-        fs := FunctionsFromVectors(X, Y, vs, d);
-        test2 := CheckCantor(X, Y, fs);
-        vprintf EndoCheck, 2 : "done.\n";
-        if test2 then
-            vprintf EndoCheck, 2 : "Functions found!\n";
-            return true, fs, vs;
-        end if;
-    end if;
-end if;
-return false, [], [];
-
-end function;
 
 
 function ChangeFunctions(X, Y, fs)
