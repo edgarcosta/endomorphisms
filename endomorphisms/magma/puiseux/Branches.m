@@ -10,8 +10,7 @@
  */
 
 /* Note that in all of this M is the matrix that represents the action on H^0
- * (X, omega_X)^* by left multiplication.
- */
+ * (X, omega_X)^* by left multiplication. */
 
 
 forward LiftPuiseuxSeries;

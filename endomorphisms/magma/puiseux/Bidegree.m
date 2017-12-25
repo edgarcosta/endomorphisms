@@ -10,8 +10,7 @@
  */
 
 
-AttachSpec("../../endomorphisms/magma/spec");
-import "Initialize.m": VariableOrder;
+import "Conventions.m": VariableOrder;
 
 
 intrinsic BiDimDeg(X::Crv, Y::Crv, D::Sch) -> SeqEnum
@@ -19,17 +18,12 @@ intrinsic BiDimDeg(X::Crv, Y::Crv, D::Sch) -> SeqEnum
 
 A4 := Ambient(D); RA4 := CoordinateRing(A4);
 RA2 := PolynomialRing(X`F, 2); A2 := AffineSpace(RA2);
-seq1 := [ X`P0[1], X`P0[2], RA2.1, RA2.2 ];
-seq2 := [ RA2.1, RA2.2, X`P0[1], X`P0[2] ];
+seq1 := [ X`P0[1], X`P0[2], RA2.1, RA2.2 ]; seq2 := [ RA2.1, RA2.2, X`P0[1], X`P0[2] ];
 varord := VariableOrder();
-seq1 := [ seq1[varord[i]] : i in [1..#varord] ];
-seq2 := [ seq2[varord[i]] : i in [1..#varord] ];
-h1 := hom< RA4 -> RA2 | seq1 >;
-h2 := hom< RA4 -> RA2 | seq2 >;
-eqs1 := [ h1(eq4) : eq4 in DefiningEquations(D) ];
-eqs2 := [ h2(eq4) : eq4 in DefiningEquations(D) ];
-S1 := Scheme(A2, eqs1);
-S2 := Scheme(A2, eqs2);
+seq1 := [ seq1[Index(varord, i)] : i in [1..#varord] ]; seq2 := [ seq2[Index(varord, i)] : i in [1..#varord] ];
+h1 := hom< RA4 -> RA2 | seq1 >; h2 := hom< RA4 -> RA2 | seq2 >;
+eqs1 := [ h1(eq4) : eq4 in DefiningEquations(D) ]; eqs2 := [ h2(eq4) : eq4 in DefiningEquations(D) ];
+S1 := Scheme(A2, eqs1); S2 := Scheme(A2, eqs2);
 return [ [ Dimension(S1), Dimension(S2) ], [ Degree(S1), Degree(S2) ] ];
 
 end intrinsic;
@@ -40,17 +34,12 @@ intrinsic Bidegree(X::Crv, Y::Crv, D::Sch) -> SeqEnum
 
 A4 := Ambient(D); RA4 := CoordinateRing(A4);
 RA2 := PolynomialRing(X`F, 2); A2 := AffineSpace(RA2);
-seq1 := [ X`P0[1], X`P0[2], RA2.1, RA2.2 ];
-seq2 := [ RA2.1, RA2.2, X`P0[1], X`P0[2] ];
+seq1 := [ X`P0[1], X`P0[2], RA2.1, RA2.2 ]; seq2 := [ RA2.1, RA2.2, X`P0[1], X`P0[2] ];
 varord := VariableOrder();
-seq1 := [ seq1[varord[i]] : i in [1..#varord] ];
-seq2 := [ seq2[varord[i]] : i in [1..#varord] ];
-h1 := hom< RA4 -> RA2 | seq1 >;
-h2 := hom< RA4 -> RA2 | seq2 >;
-eqs1 := [ h1(eq4) : eq4 in DefiningEquations(D) ];
-eqs2 := [ h2(eq4) : eq4 in DefiningEquations(D) ];
-S1 := Scheme(A2, eqs1);
-S2 := Scheme(A2, eqs2);
+seq1 := [ seq1[Index(varord, i)] : i in [1..#varord] ]; seq2 := [ seq2[Index(varord, i)] : i in [1..#varord] ];
+h1 := hom< RA4 -> RA2 | seq1 >; h2 := hom< RA4 -> RA2 | seq2 >;
+eqs1 := [ h1(eq4) : eq4 in DefiningEquations(D) ]; eqs2 := [ h2(eq4) : eq4 in DefiningEquations(D) ];
+S1 := Scheme(A2, eqs1); S2 := Scheme(A2, eqs2);
 return [ Degree(S1), Degree(S2) ];
 
 f1 := map< Curve(D) -> Curve(X`U) | [ RA4.varord[1], RA4.varord[2] ]>;

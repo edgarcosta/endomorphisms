@@ -39,6 +39,7 @@ IterateLift := CreateLiftIterator(X, X, M);
 
 // TODO: Higher gives a denominator!
 n := 2400;
+n := 100;
 for i:=1 to Ceiling(Log(2, n + e + 1)) - 1 do
     P_old := P; Qs_old := Qs;
     P, Qs := IterateLift(P_old, Qs_old, n + e + 1);

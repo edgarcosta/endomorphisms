@@ -10,9 +10,11 @@
  */
 
 
-import "Branches.m": InitializeImageBranch;
+import "Branches.m": InitializeImageBranch, DevelopPoint;
+import "Conventions.m": ExtractHomomorphismsRing, VariableOrder, ExtractPoints;
 import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
-import "Initialize.m": InitializeCurve, ChangeTangentAction, ExtractHomomorphismsRing, ExtractPoints, VariableOrder;
+import "Initialize.m": InitializeCurve, ChangeTangentAction;
+import "RiemannRoch.m": RRBasis, RREvaluations, ProductEvaluations, GlobalProductBasis, GlobalProductBasisAlt;
 
 
 forward CandidateDivisors;
@@ -56,7 +58,7 @@ elif X`is_planar then
     //Reverse(~divsX); Reverse(~divsY);
 end if;
 
-hs := ExtractHomomorphismsRing(X, Y);
+hX, hY := ExtractHomomorphismsRing(X, Y); hs := [ hX, hY ];
 CP := [ [* divX, divY *] : divX in divsX, divY in divsY ];
 divs := [ &*[ hs[i](tup[i]) : i in [1..2] ] : tup in CP ];
 //divs := Reverse(Sort(divs));
@@ -92,7 +94,7 @@ B := Basis(Kernel(Matrix(M)));
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
-hX, hY := Explode(ExtractHomomorphismsRing(X, Y));
+hX, hY := ExtractHomomorphismsRing(X, Y);
 Rprod := Codomain(hX);
 eqs := [ Rprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
@@ -149,7 +151,9 @@ S := Scheme(A2, eqs2);
 if Dimension(S) eq 0 then
     if Degree(ReducedSubscheme(S)) eq 1 then
         if Degree(S) eq Y`g then
-            return true;
+            //if Dimension(I) eq 1 then
+                return true;
+            //end if;
         end if;
     end if;
 end if;

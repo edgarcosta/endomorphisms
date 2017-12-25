@@ -27,22 +27,21 @@ forward ReduceCurveSplit;
 
 
 function RandomSplitPrime(f, B)
-/* Input:  A polynomial f over a general absolute field and a positive integer
+/*
+ * Input:  A polynomial f over a general absolute field and a positive integer
  *         B
  * Output: A totally split prime of the rationals of size roughly 2^B and a
  *         root of f modulo that prime
  */
 
-/*
- * In the relative case things are more complicated, in the sense that we may
+/* In the relative case things are more complicated, in the sense that we may
  * not actually get a totally reduced prime and the reduction below may fail.
  * The algorithm only sees the relative polynomial after all, which may not
  * give an absolute generator. Yet we need the current form since alternative
  * approaches like using IsTotallySplit seem to use much more time.
  *
  * One option, arguably the easiest, is to change base to an absolute field
- * before verifying. This is what we do for now.
- */
+ * before verifying. This is what we do for now. */
 
 F := BaseRing(Parent(f));
 while true do
@@ -90,7 +89,8 @@ end function;
 
 
 function FractionalCRTSplit(rs, prs, OK, I, BOK, BI, K)
-/* rs is a set of remainders at the set of split primes prs,
+/*
+ * rs is a set of remainders at the set of split primes prs,
  * I is an ideal in OK < K,
  * BOK and BI are eltseq of basis of OK and I
  */
@@ -183,7 +183,7 @@ U`is_hyperelliptic := X`is_hyperelliptic; U`is_planar := X`is_planar; U`is_smoot
 U`g := X`g; U`is_plane_quartic := X`is_plane_quartic;
 U`P0 := U ! ReducePointSplit(X`P0, p, rt);
 U`A := Ambient(U`U); U`RA := CoordinateRing(U`A); U`KA := FieldOfFractions(U`RA);
-U`RU := CoordinateRing(U`U); U`KU := FieldOfFractions(U`RU); U`F := BaseRing(U`RU); 
+U`RU := CoordinateRing(U`U); U`KU := FunctionField(U`U); U`F := BaseRing(U`RU);
 U`unif_index := X`unif_index;
 U`DEs := DefiningEquations(U`U);
 U`OurB := ReduceBasisOfDifferentialsSplit(X`OurB, p, rt);
@@ -193,6 +193,8 @@ U`cantor_eqs := [* ReducePolynomialSplit(cantor_eq, p, rt) : cantor_eq in X`cant
 nums := [ U`KU ! U`KA ! Numerator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
 dens := [ U`KU ! U`KA ! Denominator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
 U`RRgens := [ nums[i]/dens[i] : i in [1..#X`RRgens] ];
+U`globgens := [ U`RA ! ReducePolynomialSplit(gen, p, rt) : gen in X`globgens ];
+U`DEs_sub := [ U`RA ! ReducePolynomialSplit(f, p, rt) : f in X`DEs_sub ];
 U`initialized := true;
 return U;
 

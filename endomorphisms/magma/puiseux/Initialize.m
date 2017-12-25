@@ -11,103 +11,30 @@
 
 
 import "Branches.m": DevelopPoint;
-import "Cantor.m": CantorEquations;
-import "RiemannRoch.m": RRGenerators;
+import "RiemannRoch.m": RRGenerators, GlobalGenerators;
 
 
 declare attributes Crv : is_hyperelliptic, is_planar, is_smooth, is_plane_quartic;
-declare attributes Crv : g, U, P0, A, DEs;
+declare attributes Crv : g, U, P0, A, DEs, DEs_sub;
 declare attributes Crv : patch_index, unif_index;
 declare attributes Crv : RA, KA, RU, KU;
 declare attributes Crv : F, rF, OF, BOF;
 declare attributes Crv : OurB, NormB, T;
-declare attributes Crv : initialized;
 declare attributes Crv : cantor_eqs;
-declare attributes Crv : RRgens;
+declare attributes Crv : RRgens, globgens;
+declare attributes Crv : initialized;
 
 declare verbose EndoCheck, 4;
 
 
-forward InitializeCurve;
 forward OurAffinePatch;
 forward AlgebraicUniformizerIndex;
 forward OurBasisOfDifferentials;
 forward ChangeTangentAction;
 forward NormalizedBasisOfDifferentials;
+forward CantorEquations;
 
-forward VariableOrder;
-forward ExtractPoints;
-forward ExtractHomomorphismsRing;
-
-
-procedure InitializeCurve(X, P0)
-
-if not assigned X`initialized then
-    X`initialized := false;
-end if;
-if X`initialized then
-    return;
-end if;
-
-vprintf EndoCheck, 3 : "Curve:\n";
-vprint EndoCheck, 3 : X;
-X`is_hyperelliptic := IsHyperelliptic(X); X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
-X`g := Genus(X); X`is_plane_quartic := (X`is_planar) and (X`is_smooth) and (X`g eq 3);
-if not X`is_planar then
-    error "Please give your curve in planar form";
-end if;
-
-/* Find affine patch: */
-X`U, X`DEs, X`P0, X`patch_index := OurAffinePatch(X, P0);
-X`A := Ambient(X`U); X`RA := CoordinateRing(X`A); X`KA := FieldOfFractions(X`RA);
-X`RU := CoordinateRing(X`U); X`KU := FieldOfFractions(X`RU); X`F := BaseRing(X`RU);
-
-/* Put uniformizer first: */
-X`unif_index := AlgebraicUniformizerIndex(X);
-if X`unif_index eq 2 then
-    X`DEs := [ X`RA ! Evaluate(DE, [ (X`RA).2, (X`RA).1 ]) : DE in X`DEs ];
-    X`U := Scheme(X`A, X`DEs);
-    X`P0 := X`U ! [ X`P0[2], X`P0[1] ];
-end if;
-
-vprintf EndoCheck, 3 : "Index of affine patch: ";
-vprint EndoCheck, 3 : X`patch_index;
-vprintf EndoCheck, 3 : "Index of uniformizer: ";
-vprint EndoCheck, 3 : X`unif_index;
-vprintf EndoCheck, 3 : "Affine patch:\n";
-vprint EndoCheck, 3 : X`U;
-vprintf EndoCheck, 3 : "Point:\n";
-vprint EndoCheck, 3 : X`P0;
-
-/* Construct equation order */
-if Type(X`F) eq FldRat then
-    X`rF := 1;
-    X`OF := Integers();
-    X`BOF := Basis(X`OF);
-elif Type(X`F) eq FldNum then
-    X`rF := Denominator(X`F.1) * X`F.1;
-    X`OF := Order([ X`rF^i : i in [0..Degree(X`F) - 1] ]);
-    X`BOF := Basis(X`OF);
-end if;
-
-X`OurB := OurBasisOfDifferentials(X);
-X`NormB, X`T := NormalizedBasisOfDifferentials(X);
-_<u,v> := Parent(X`OurB[1]);
-vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
-vprint EndoCheck, 3 : X`OurB;
-vprintf EndoCheck, 3 : "Normalized basis of differentials:\n";
-vprint EndoCheck, 3 : X`NormB;
-
-X`cantor_eqs := CantorEquations(X);
-vprintf EndoCheck, 3 : "Cantor equations:\n";
-vprint EndoCheck, 3 : X`cantor_eqs;
-X`RRgens := RRGenerators(X);
-
-X`initialized := true;
-
-return;
-
-end procedure;
+forward InitializeCurve;
 
 
 function OurAffinePatch(X, P0);
@@ -313,41 +240,94 @@ return NormB, T;
 end function;
 
 
-function VariableOrder()
-/*
- * The order in which x(P), y(P), x(Q), y(Q) and hence x1, y1, x2, y2 are used
- * in the product space. Note that because of the lexicographical ordering
- * variables that occur later are eliminated for first.
- */
+function CantorEquations(X);
+/* Gives the equations in the description a (x) = 0, y = b (x)
+ * May not use usual parameter if uniformizer differs */
 
-/* x(P) to 4th comp, y(P) to 2nd comp, etc */
-// TODO: Test better ones
-//return [1, 2, 3, 4];
-return [4, 2, 3, 1];
+g := X`g; f := X`DEs[1]; F := X`F;
+S := PolynomialRing(F, 2*g); T<t> := PolynomialRing(S);
+/* Names:
+ * a1 is trace term before t^(g - 1), a_g is norm term before t^0,
+ * b1 is term before t^(g - 1), bg is term before t^0 */
+varnames := [ Sprintf("a%o", i) : i in [1..g] ] cat [ Sprintf("b%o", i) : i in [1..g] ];
+AssignNames(~S, varnames);
 
-end function;
-
-
-function ExtractPoints(X, Y, P, Q)
-/* Reflects order in VariableOrder */
-
-seq := [ P[1], P[2], Q[1], Q[2] ];
-varord := VariableOrder();
-return [ seq[varord[i]] : i in [1..#varord] ];
+/* Start with trace and end with norm */
+canpol := t^g + &+[ S.i * t^(g - i) : i in [1..g] ];
+substpol := &+[ S.(g + i) * t^(g - i) : i in [1..g] ];
+P := [t, substpol];
+eqpol := Evaluate(f, P) mod canpol;
+return Coefficients(eqpol);
 
 end function;
 
 
-function ExtractHomomorphismsRing(X, Y)
+procedure InitializeCurve(X, P0)
 
-RAX := X`RA; RAY := Y`RA;
-varord := VariableOrder();
-// TODO: Test other orderings
-RAprod := PolynomialRing(X`F, 4, "lex");
-seqX := [ RAprod.Index(varord, i) : i in [1..2] ];
-seqY := [ RAprod.Index(varord, i) : i in [3..4] ];
-hX := hom< RAX -> RAprod | seqX >;
-hY := hom< RAY -> RAprod | seqY >;
-return [ hX, hY ];
+if not assigned X`initialized then
+    X`initialized := false;
+end if;
+if X`initialized then
+    return;
+end if;
 
-end function;
+vprintf EndoCheck, 3 : "Curve:\n";
+vprint EndoCheck, 3 : X;
+X`is_hyperelliptic := IsHyperelliptic(X); X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
+X`g := Genus(X); X`is_plane_quartic := (X`is_planar) and (X`is_smooth) and (X`g eq 3);
+if not X`is_planar then
+    error "Please give your curve in planar form";
+end if;
+
+/* Find affine patch: */
+X`U, X`DEs, X`P0, X`patch_index := OurAffinePatch(X, P0);
+X`A := Ambient(X`U); RA<u,v> := CoordinateRing(X`A); X`RA := RA; X`KA := FieldOfFractions(RA);
+X`RU := CoordinateRing(X`U); X`KU := FunctionField(X`U); X`F := BaseRing(X`RU);
+
+/* Put uniformizer first: */
+X`unif_index := AlgebraicUniformizerIndex(X);
+if X`unif_index eq 2 then
+    X`DEs := [ X`RA ! Evaluate(DE, [ (X`RA).2, (X`RA).1 ]) : DE in X`DEs ];
+    X`U := Scheme(X`A, X`DEs);
+    X`P0 := X`U ! [ X`P0[2], X`P0[1] ];
+end if;
+
+vprintf EndoCheck, 3 : "Index of affine patch: ";
+vprint EndoCheck, 3 : X`patch_index;
+vprintf EndoCheck, 3 : "Index of uniformizer: ";
+vprint EndoCheck, 3 : X`unif_index;
+vprintf EndoCheck, 3 : "Affine patch:\n";
+vprint EndoCheck, 3 : X`U;
+vprintf EndoCheck, 3 : "Point:\n";
+vprint EndoCheck, 3 : X`P0;
+
+/* Construct equation order */
+if Type(X`F) eq FldRat then
+    X`rF := 1;
+    X`OF := Integers();
+    X`BOF := Basis(X`OF);
+elif Type(X`F) eq FldNum then
+    X`rF := Denominator(X`F.1) * X`F.1;
+    X`OF := Order([ X`rF^i : i in [0..Degree(X`F) - 1] ]);
+    X`BOF := Basis(X`OF);
+end if;
+
+X`OurB := OurBasisOfDifferentials(X);
+X`NormB, X`T := NormalizedBasisOfDifferentials(X);
+_<u,v> := Parent(X`OurB[1]);
+vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
+vprint EndoCheck, 3 : X`OurB;
+vprintf EndoCheck, 3 : "Normalized basis of differentials:\n";
+vprint EndoCheck, 3 : X`NormB;
+
+X`cantor_eqs := CantorEquations(X);
+vprintf EndoCheck, 3 : "Cantor equations:\n";
+vprint EndoCheck, 3 : X`cantor_eqs;
+X`RRgens := RRGenerators(X);
+X`globgens, X`DEs_sub := GlobalGenerators(X);
+
+X`initialized := true;
+
+return;
+
+end procedure;

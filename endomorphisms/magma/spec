@@ -36,9 +36,9 @@
   {
     Bidegree.m
     Branches.m
-    Cantor.m
-    DivisorOld.m
-    Divisor.m
+    CantorAmbient.m
+    Conventions.m
+    DivisorAmbient.m
     FractionalCRT.m
     Initialize.m
     RiemannRoch.m

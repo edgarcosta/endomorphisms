@@ -13,46 +13,46 @@
 import "Branches.m": PuiseuxRamificationIndex, InitializeImageBranch;
 import "Initialize.m": InitializeCurve, ChangeTangentAction;
 import "FractionalCRT.m": FractionalCRTQQ, RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
-import "RiemannRoch.m": RRBasis, RREvaluate;
 
 
-forward CantorEquations;
-
+forward CandidateFunctions;
 forward FunctionValuesFromApproximations;
-forward VectorsFromApproximations;
+forward FunctionsFromApproximations;
 
 forward CheckApproximation;
-forward FunctionsFromVectors;
 forward CheckCantor;
 
-forward CantorFromMatrixByDegree;
 forward CantorFromMatrix;
 forward CantorFromMatrixSplit;
+forward CantorFromMatrixByDegree;
 
 forward ChangeFunctions;
 forward AbsoluteToRelative;
 forward RelativeToAbsolute;
 
 
-function CantorEquations(X);
-/* Gives the equations in the description a (x) = 0, y = b (x) */
-/* May not use usual parameter if uniformizer differs */
+function CandidateFunctions(X, d)
+/* Candidate numerators and denominators for Cantor functions */
+// TODO: Use Riemann-Roch space instead
 
-g := X`g; f := X`DEs[1]; F := X`F;
-S := PolynomialRing(F, 2*g); T<t> := PolynomialRing(S);
-/* Names:
- * a1 is trace term before t^(g - 1), a_g is norm term before t^0,
- * b1 is term before t^(g - 1), bg is term before t^0
- */
-varnames := [ Sprintf("a%o", i) : i in [1..g] ] cat [ Sprintf("b%o", i) : i in [1..g] ];
-AssignNames(~S, varnames);
+g := X`g; f := X`DEs[1]; R := X`RA;
+x := R.1; y := R.2;
+if Degree(f, x) lt Degree(f, y) then
+    x := R.2; y := R.1;
+end if;
 
-/* Start with trace and end with norm */
-canpol := t^g + &+[ S.i * t^(g - i) : i in [1..g] ];
-substpol := &+[ S.(g + i) * t^(g - i) : i in [1..g] ];
-P := [t, substpol];
-eqpol := Evaluate(f, P) mod canpol;
-return Coefficients(eqpol);
+if X`is_hyperelliptic or (g eq 1) then
+    if Degree(f) mod 2 eq 1 then
+        nums := [ x^i : i in [0..(d div 2)] ] cat [ x^i*y : i in [0..((d - 2*g - 1) div 2)] ];
+    else
+        nums := [ x^i : i in [0..(d div 2)] ] cat [ x^i*y : i in [0..((d - 2*g - 2) div 2)] ];
+    end if;
+    dens := [ x^i : i in [0..(d div 2)] ];
+elif X`is_planar then
+    nums := [ x^i*y^j : i in [0..d], j in [0..(Degree(f, y) - 1)] | i + j le d ];
+    dens := nums;
+end if;
+return dens, nums;
 
 end function;
 
@@ -60,7 +60,7 @@ end function;
 function FunctionValuesFromApproximations(Y, Qs)
 /* Evaluates Cantor functions in the branches Qs */
 
-PR := Parent(Qs[1][1]); S<t> := PolynomialRing(PR);
+PR := Parent(Qs[1][1]); R<t> := PolynomialRing(PR);
 pol_approx := &*[ t - Q[1] : Q in Qs ];
 /* Start with trace and end with norm */
 as_approx := Reverse(Coefficients(pol_approx)[1..Y`g]);
@@ -73,100 +73,70 @@ return as_approx cat bs_approx;
 end function;
 
 
-function VectorsFromApproximations(X, Y, P, Qs, d)
+function FunctionsFromApproximations(X, Y, P, Qs, d)
 /* Finds candidate functions in degree d from a developed branch */
 
-I := ideal<X`RU | X`DEs[1]>;
+I := ideal<X`RA | X`DEs[1]>;
+dens, nums := CandidateFunctions(X, d);
 fs_approx := FunctionValuesFromApproximations(Y, Qs);
 
-vs := [ ];
+fs := [ ];
 for f_approx in fs_approx do
-    ev_nums := RREvaluate(X, P, d);
-    ev_dens := [ -f_approx * ev : ev in ev_nums ];
+    ev_dens := [ -f_approx * Evaluate(den, P) : den in dens ];
+    ev_nums := [ Evaluate(num, P) : num in nums ];
     evs := ev_dens cat ev_nums;
-    e := Maximum([ Maximum([ Denominator(Valuation(c - Coefficient(c, 0))) : c in Q ]) : Q in Qs ]);
-    min := Minimum([ Valuation(ev) : ev in evs ]);
-    max := Minimum([ AbsolutePrecision(ev) : ev in evs ]);
-    M := Matrix([ [ X`F ! Coefficient(ev, i/e) : i in [(e*min)..(e*max - 1)] ] : ev in evs ]);
+    prec := Floor(Minimum([ AbsolutePrecision(ev) : ev in evs ]));
+    M := Matrix([ [ X`F ! Coefficient(ev, i) : i in [0..(prec - 1)] ] : ev in evs ]);
     Ker := Kernel(M);
 
     if Dimension(Ker) eq 0 then
         return false, [ ];
 
     else
-        nums := RRBasis(X, d);
-        dens := nums;
         B := Basis(Ker);
         for b in B do
             v := Eltseq(b);
             f := &+[ v[i + #dens]*nums[i] : i in [1..#nums] ] / &+[ v[i]*dens[i] : i in [1..#dens] ];
-            if f ne 0 then
-                Append(~vs, v);
-                break;
-            else
-                return false, [ ];
-            end if;
+            /* The next check should be superfluous if the precision is above a
+             * small bound */
+            //if (X`RA ! Numerator(X`KA ! f)) in I then
+            //    return false, [ ];
+            //end if;
+            Append(~fs, X`KA ! f);
+            break;
         end for;
     end if;
 end for;
-return true, vs;
+return true, fs;
 
 end function;
 
 
-function CheckApproximation(X, Y, vs, d, P, Qs)
+function CheckApproximation(X, Y, P, Qs, fs)
 /*
- * Verifies if the given vectors approximate well
+ * Verifies if the given functions approximate well
  */
 
-g := Y`g; evs := RREvaluate(X, P, d);
-vsa := vs[1..g]; vsb := vs[(g + 1)..(2*g)];
+/* TODO: If this check fails, add some more precision in the global case */
+//dens := [ Denominator(f) : f in fs ];
+//for den in dens do
+//    print Evaluate(den, P);
+//    if IsWeaklyZero(Evaluate(den, P)) then
+//        return false;
+//    end if;
+//end for;
+
+g := Y`g;
+as := fs[1..g]; bs := fs[(g + 1)..(2*g)];
 for Q in Qs do
-    evsa := [ ];
-    for i in [1..#vsa] do
-        den := &+[ vsa[i][j]*evs[j] : j in [1..#evs] ];
-        num := &+[ vsa[i][#evs + j]*evs[j] : j in [1..#evs] ];
-        Append(~evsa, num/den);
-    end for;
-    if not IsWeaklyZero(Q[1]^g + &+[ evsa[i] * Q[1]^(g - i) : i in [1..g] ]) then
+    if not IsWeaklyZero(Q[1]^g + &+[ Evaluate(as[i], P) * Q[1]^(g - i) : i in [1..g] ]) then
         return false;
     end if;
-    evsb := [ ];
-    for i in [1..#vsb] do
-        den := &+[ vsb[i][j]*evs[j] : j in [1..#evs] ];
-        num := &+[ vsb[i][#evs + j]*evs[j] : j in [1..#evs] ];
-        Append(~evsb, num/den);
-    end for;
-    if not IsWeaklyZero(Q[2]   - &+[ evsb[i] * Q[1]^(g - i) : i in [1..g] ]) then
+    if not IsWeaklyZero(Q[2]   - &+[ Evaluate(bs[i], P) * Q[1]^(g - i) : i in [1..g] ]) then
         return false;
     end if;
 end for;
 return true;
-
-end function;
-
-
-function FunctionsFromVectors(X, Y, vs, d)
-/*
- * Creates the actual functions
- */
-
-g := Y`g; B := RRBasis(X, d);
-vsa := vs[1..g]; vsb := vs[(g + 1)..(2*g)];
-as := [ ]; bs := [ ];
-for i in [1..#vsa] do
-    den := &+[ vsa[i][j]*B[j] : j in [1..#B] ];
-    num := &+[ vsa[i][#B + j]*B[j] : j in [1..#B] ];
-    Append(~as, num/den);
-end for;
-for i in [1..#vsb] do
-    den := &+[ vsb[i][j]*B[j] : j in [1..#B] ];
-    num := &+[ vsb[i][#B + j]*B[j] : j in [1..#B] ];
-    Append(~bs, num/den);
-end for;
-vprint EndoCheck, 4 : "Function basis before simplification:";
-vprint EndoCheck, 4 : as cat bs;
-return as cat bs;
 
 end function;
 
@@ -177,61 +147,13 @@ function CheckCantor(X, Y, fs)
  * defines a morphism
  */
 
+I := ideal<X`RA | X`DEs[1]>;
 for cantor_eq in Y`cantor_eqs do
-    if not Evaluate(cantor_eq, fs) eq 0 then
+    if not (X`RA ! Numerator(X`KA ! Evaluate(cantor_eq, fs))) in I then
         return false;
     end if;
 end for;
 return true;
-
-end function;
-
-
-function CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4)
-/* Step mod p of the above */
-
-vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
-// TODO: This number n can be tweaked
-n := 2*d + Margin;
-e := PuiseuxRamificationIndex(NormM);
-vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
-
-/* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n*e);
-vprintf EndoCheck, 4 : "Base point:\n";
-_<t> := Parent(P[1]);
-_<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
-vprintf EndoCheck, 2 : "done.\n";
-
-/* Fit a Cantor morphism to it */
-vprintf EndoCheck, 2 : "Solving linear system... ";
-test, vs := VectorsFromApproximations(X, Y, P, Qs, d);
-vprintf EndoCheck, 2 : "done.\n";
-
-if test then
-    // TODO: In some circumstances this step is optional, we could skip it with
-    // a flag
-    vprintf EndoCheck, 2 : "Checking:\n";
-    vprintf EndoCheck, 2 : "Step 1... ";
-    test1 := CheckApproximation(X, Y, vs, d, P, Qs);
-    vprintf EndoCheck, 2 : "done.\n";
-    if test1 then
-        vprintf EndoCheck, 2 : "Step 2... ";
-        fs := FunctionsFromVectors(X, Y, vs, d);
-        test2 := CheckCantor(X, Y, fs);
-        vprintf EndoCheck, 2 : "done.\n";
-        if test2 then
-            vprintf EndoCheck, 2 : "Functions found!\n";
-            return true, fs, vs;
-        end if;
-    end if;
-end if;
-return false, [], [];
 
 end function;
 
@@ -245,7 +167,7 @@ NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
 while true do
-    found, fs, vs := CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4);
+    found, fs := CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, have_to_check := true);
     if found then
         return true, ChangeFunctions(X, Y, fs);
     end if;
@@ -272,12 +194,13 @@ NormM := Y`T * NormM * (X`T)^(-1);
 tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
-gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
+gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF; RX := X`RA; KX := X`KA;
 /* TODO: Add decent margin here, + 1 already goes wrong occasionally */
 P, Qs := ApproximationsFromTangentAction(X, Y, NormM, gY + 2);
 
-ps_rts := [ ]; prs := [ ]; vss_red := [* *];
+ps_rts := [ ]; prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
+have_to_check := true;
 
 d := LowerBound;
 while true do
@@ -297,7 +220,7 @@ while true do
     BI := Basis(I);
 
     while true do
-        found, fs_red, vs_red := CantorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin);
+        found, fs_red := CantorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, have_to_check := have_to_check);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -309,25 +232,35 @@ while true do
             return false, [];
         end if;
     end while;
-    Append(~vss_red, vs_red);
+    have_to_check := false;
+    Append(~fss_red, fs_red);
 
     vprintf EndoCheck : "Fractional CRT... ";
-    vs := [ ];
-    for i in [1..#vss_red[1]] do
-        v_reds := [* vs_red[i] : vs_red in vss_red *];
-        v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs, OF, I, BOF, BI, F) : j in [1..#v_reds[1]] ];
-        Append(~vs, v);
+    fs := [ ];
+    for i:=1 to #fss_red[1] do
+        num := RX ! 0;
+        for mon in Monomials(Numerator(fss_red[1][i])) do
+            exp := Exponents(mon);
+            rs := [* MonomialCoefficient(Numerator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
+            num +:= FractionalCRTSplit(rs, prs, OF, I, BOF, BI, F) * Monomial(RX, exp);
+        end for;
+        den := RX ! 0;
+        for mon in Monomials(Denominator(fss_red[1][i])) do
+            exp := Exponents(mon);
+            rs := [* MonomialCoefficient(Denominator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
+            den +:= FractionalCRTSplit(rs, prs, OF, I, BOF, BI, F) * Monomial(RX, exp);
+        end for;
+        Append(~fs, KX ! (num / den));
     end for;
     vprintf EndoCheck : "done.\n";
 
     vprintf EndoCheck : "Checking:\n";
     vprintf EndoCheck : "Step 1... ";
-    test1 := CheckApproximation(X, Y, vs, d, P, Qs);
+    test1 := CheckApproximation(X, Y, P, Qs, fs);
     vprintf EndoCheck : "done.\n";
 
     if test1 then
         vprintf EndoCheck : "Step 2... ";
-        fs := FunctionsFromVectors(X, Y, vs, d);
         test2 := CheckCantor(X, Y, fs);
         vprintf EndoCheck : "done.\n";
         if test2 then
@@ -340,6 +273,52 @@ end while;
 end intrinsic;
 
 
+function CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, have_to_check := true)
+/* Step mod p of the above */
+
+vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+dens, nums := CandidateFunctions(X, d);
+n := #dens + #nums + Margin;
+e := PuiseuxRamificationIndex(NormM);
+vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
+
+/* Take non-zero image branch */
+vprintf EndoCheck, 2 : "Expanding... ";
+P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n*e);
+vprintf EndoCheck, 4 : "Base point:\n";
+_<t> := Parent(P[1]);
+_<r> := BaseRing(Parent(P[1]));
+vprint EndoCheck, 4 : P;
+vprintf EndoCheck, 4 : "Resulting branches:\n";
+vprint EndoCheck, 4 : Qs;
+vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
+vprintf EndoCheck, 2 : "done.\n";
+
+/* Fit a Cantor morphism to it */
+vprintf EndoCheck, 2 : "Solving linear system... ";
+test, fs := FunctionsFromApproximations(X, Y, P, Qs, d);
+vprintf EndoCheck, 2 : "done.\n";
+
+if test then
+    vprintf EndoCheck, 2 : "Checking:\n";
+    vprintf EndoCheck, 2 : "Step 1... ";
+    test1 := CheckApproximation(X, Y, P, Qs, fs);
+    vprintf EndoCheck, 2 : "done.\n";
+    if test1 then
+        vprintf EndoCheck, 2 : "Step 2... ";
+        test2 := CheckCantor(X, Y, fs);
+        vprintf EndoCheck, 2 : "done.\n";
+        if test2 then
+            vprintf EndoCheck, 2 : "Functions found!\n";
+            return true, fs;
+        end if;
+    end if;
+end if;
+return false, [];
+
+end function;
+
+
 function ChangeFunctions(X, Y, fs)
 /*
  * Change the functions on patches to rational functions on the original curves.
@@ -347,28 +326,28 @@ function ChangeFunctions(X, Y, fs)
  */
 
 /* For now we only do this in genus 1: */
-g := X`g; RA := X`RA; KA := X`KA;
+g := X`g; R := X`RA; K := X`KA;
 if Y`g eq 1 then
-    subsX := [ KA ! X`RA.1, KA ! X`RA.2 ];
-    if X`is_hyperelliptic or (X`g eq 1) then
-        if X`patch_index eq 3 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
-            subsX := [ subsX[2] / subsX[1]^(g + 1), 1 / subsX[1] ];
-        end if;
-    elif X`is_planar then
-        if X`patch_index eq 2 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
-            subsX := [ subsX[1] / subsX[2], 1 / subsX[2] ];
-        elif X`patch_index eq 3 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
-            subsX := [ subsX[2] / subsX[1], 1 / subsX[1] ];
-        end if;
+subsX := [ K ! X`RA.1, K ! X`RA.2 ];
+if X`is_hyperelliptic or (X`g eq 1) then
+    if X`patch_index eq 3 then
+        vprint EndoCheck, 3 : "Modifying functions for patch index of X";
+        subsX := [ subsX[2] / subsX[1]^(g + 1), 1 / subsX[1] ];
     end if;
-    if X`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying functions for uniformizer index of X";
-        subsX := [ subsX[2], subsX[1] ];
+elif X`is_planar then
+    if X`patch_index eq 2 then
+        vprint EndoCheck, 3 : "Modifying functions for patch index of X";
+        subsX := [ subsX[1] / subsX[2], 1 / subsX[2] ];
+    elif X`patch_index eq 3 then
+        vprint EndoCheck, 3 : "Modifying functions for patch index of X";
+        subsX := [ subsX[2] / subsX[1], 1 / subsX[1] ];
     end if;
-    fs := [ Evaluate(X`KA ! f, subsX) : f in fs ];
+end if;
+if X`unif_index eq 2 then
+    vprint EndoCheck, 3 : "Modifying functions for uniformizer index of X";
+    subsX := [ subsX[2], subsX[1] ];
+end if;
+fs := [ X`KA ! Evaluate(f, subsX) : f in fs ];
 end if;
 
 // TODO: Transform to Y in general by thinking about how the Cantor equation
@@ -393,16 +372,16 @@ if X`is_hyperelliptic then
         A := AffinePatch(X, 1);
     end if;
     S := PolynomialRing(X`F); T := PolynomialRing(S);
-    DER := RA ! DefiningEquations(A)[1]; DET := AbsoluteToRelative(DER, RA, T);
-    _, h := HyperellipticPolynomials(X); h := T ! S ! h; h := RelativeToAbsolute(h, RA, T);
+    DER := R ! DefiningEquations(A)[1]; DET := AbsoluteToRelative(DER, R, T);
+    _, h := HyperellipticPolynomials(X); h := T ! S ! h; h := RelativeToAbsolute(h, R, T);
 
     fs_red := [ ];
     for f in fs do
-        num := RA ! Numerator(f); den := RA ! Denominator(f);
-        den_conj := Evaluate(den, [RA.1, -RA.2 - h ]);
+        num := R ! Numerator(f); den := R ! Denominator(f);
+        den_conj := Evaluate(den, [R.1, -R.2 - h ]);
         num *:= den_conj; den *:= den_conj;
-        num := AbsoluteToRelative(num, RA, T); den := AbsoluteToRelative(den, RA, T);
-        num := RelativeToAbsolute(num mod DET, RA, T); den := RelativeToAbsolute(den mod DET, RA, T);
+        num := AbsoluteToRelative(num, R, T); den := AbsoluteToRelative(den, R, T);
+        num := RelativeToAbsolute(num mod DET, R, T); den := RelativeToAbsolute(den mod DET, R, T);
         Append(~fs_red, num / den);
     end for;
     return fs_red;
