@@ -198,13 +198,13 @@ AM := Matrix(M, [ [ M ! c : c in Eltseq(row) ] : row in Rows(AL) ]);
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";
 elif Genus(Y) eq 1 then
-    test, fs := CantorFromMatrixSplit(XM, PM, YM, QM, AM : UpperBound := 50);
+    test, fs := CantorFromMatrixAmbientSplit(XM, PM, YM, QM, AM : UpperBound := 50);
     if test and (not CorrespondenceVerifyG1(XM, PM, YM, QM, AM, fs)) then
         error "Pullback incorrect";
     end if;
     return test, fs;
 else
-    return DivisorFromMatrixSplit(XM, PM, YM, QM, AM : UpperBound := 50);
+    return DivisorFromMatrixAmbientSplit(XM, PM, YM, QM, AM : UpperBound := 50);
 end if;
 
 end intrinsic;

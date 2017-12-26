@@ -190,11 +190,17 @@ U`OurB := ReduceBasisOfDifferentialsSplit(X`OurB, p, rt);
 U`NormB := ReduceBasisOfDifferentialsSplit(X`NormB, p, rt);
 U`T := ReduceMatrixSplit(X`T, p, rt);
 U`cantor_eqs := [* ReducePolynomialSplit(cantor_eq, p, rt) : cantor_eq in X`cantor_eqs *];
-nums := [ U`KU ! U`KA ! Numerator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
-dens := [ U`KU ! U`KA ! Denominator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
-U`RRgens := [ nums[i]/dens[i] : i in [1..#X`RRgens] ];
-U`globgens := [ U`RA ! ReducePolynomialSplit(gen, p, rt) : gen in X`globgens ];
-U`DEs_sub := [ U`RA ! ReducePolynomialSplit(f, p, rt) : f in X`DEs_sub ];
+if assigned X`RRgens then
+    nums := [ U`KU ! U`KA ! Numerator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
+    dens := [ U`KU ! U`KA ! Denominator(ReduceRationalFunctionSplit(X`KA ! gen, p, rt)) : gen in X`RRgens ];
+    U`RRgens := [ nums[i]/dens[i] : i in [1..#X`RRgens] ];
+end if;
+if assigned X`globgens then
+    U`globgens := [ U`RA ! ReducePolynomialSplit(gen, p, rt) : gen in X`globgens ];
+end if;
+if assigned X`DEs_sub then
+    U`DEs_sub := [ U`RA ! ReducePolynomialSplit(f, p, rt) : f in X`DEs_sub ];
+end if;
 U`initialized := true;
 return U;
 

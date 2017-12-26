@@ -25,7 +25,7 @@ print "Tangent representation:";
 print M;
 
 print "Calculating Cantor representation...";
-time test, D := DivisorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, M : LowerBound := 1);
 print D;
 
 exit;

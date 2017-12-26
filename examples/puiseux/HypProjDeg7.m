@@ -31,7 +31,7 @@ print "Tangent representation:";
 print M;
 
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 56);
+time test, fs := CantorFromMatrixAmbientSplit(X, P0, Y, Q0, M : LowerBound := 56);
 print fs;
 
 print "Verification:", CorrespondenceVerifyG1(X, P0, Y, Q0, M, fs);

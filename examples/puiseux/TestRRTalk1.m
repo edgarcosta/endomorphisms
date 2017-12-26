@@ -1,5 +1,5 @@
 AttachSpec("../../endomorphisms/magma/spec");
-SetVerbose("EndoCheck", 3);
+SetVerbose("EndoCheck", 4);
 
 F := Rationals();
 R<x> := PolynomialRing(F);
@@ -16,7 +16,7 @@ T := Matrix(F, [
 print "Curve:";
 print X;
 print "Calculating divisor:";
-time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 6);
+time test, D := DivisorFromMatrixRRSplit(X, P0, X, P0, T : LowerBound := 1);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
@@ -24,7 +24,7 @@ print D;
 
 SetVerbose("EndoCheck", 3);
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 16);
+time test, fs := CantorFromMatrixRRSplit(X, P0, X, P0, T : LowerBound := 1);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;

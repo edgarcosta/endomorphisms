@@ -48,13 +48,13 @@ MQP := Matrix(F, [
 */
 
 print "Calculating Cantor representation...";
-time test, D := DivisorFromMatrixSplit(X, P0, Y, Q0, MPQ : LowerBound := 30);
+time test, D := DivisorFromMatrixAmbientSplit(X, P0, Y, Q0, MPQ : LowerBound := 30);
 print D;
 
 exit;
 
 print "Calculating Cantor representation...";
-time test, D := DivisorFromMatrixSplit(Y, Q0, X, P0, MQP : LowerBound := 1);
+time test, D := DivisorFromMatrixAmbientSplit(Y, Q0, X, P0, MQP : LowerBound := 1);
 print D;
 
 exit;

@@ -1,15 +1,22 @@
 AttachSpec("../../endomorphisms/magma/spec");
 
+prec := 100;
 R<x> := PolynomialRing(Rationals());
-CC := ComplexFieldExtra(100);
+CC := ComplexFieldExtra(prec);
 
-g := x^8 + 2*x^6 - 3*x^4 + 7*x^2 - 1;
 f := x*(x^4 + 2*x^3 - 3*x^2 + 7*x - 1);
+g := x^8 + 2*x^6 - 3*x^4 + 7*x^2 - 1;
+X := HyperellipticCurve(f);
+Y := HyperellipticCurve(g);
 
-P := Transpose(PeriodMatrix(f : Prec := 100));
-Q := Transpose(PeriodMatrix(g : Prec := 100));
+eqsXCC := EmbedCurveEquations(X, prec);
+eqsXF := DefiningEquations(X);
+P := PeriodMatrix(eqsXCC, eqsXF);
+eqsYCC := EmbedCurveEquations(Y, prec);
+eqsYF := DefiningEquations(Y);
+Q := PeriodMatrix(eqsYCC, eqsYF);
+
 P := ChangeRing(P, CC); Q := ChangeRing(Q, CC);
-
 GeoEndoRep := GeometricIsogenyRepresentationPartial(P, Q);
 print "Number of elements in isogeny basis:", #GeoEndoRep;
 A, R := Explode(GeoEndoRep[1]);

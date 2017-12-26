@@ -52,20 +52,19 @@ elif X`is_hyperelliptic or (X`g eq 1) then
         DEs := [ RA ! (-RA.2^d * Evaluate(DE, [ 1/RA.2, RA.1/(RA.2^(d div 2)) ])) : DE in DEs ];
     end if;
     U := Curve(AffineSpace(RA), DEs);
-    return U, DEs, P0, patch_index;
+    return U, DEs, U ! Eltseq(P0), patch_index;
 
 elif X`is_planar then
     U, P0, patch_index := AffinePatch(X, P0);
     DEs := DefiningEquations(AffinePatch(X, 1));
     RA := Parent(DEs[1]);
-    d := Degree(DEs[1]);
     if patch_index eq 2 then
-        DEs := [ RA ! (RA.2^d * Evaluate(DE, [ RA.1/RA.2, 1/RA.2 ])) : DE in DEs ];
+        DEs := [ RA ! (RA.2^Degree(DE) * Evaluate(DE, [ RA.1/RA.2, 1/RA.2 ])) : DE in DEs ];
     elif patch_index eq 3 then
-        DEs := [ RA ! (RA.2^d * Evaluate(DE, [ 1/RA.2, RA.1/RA.2 ])) : DE in DEs ];
+        DEs := [ RA ! (RA.2^Degree(DE) * Evaluate(DE, [ 1/RA.2, RA.1/RA.2 ])) : DE in DEs ];
     end if;
     U := Curve(AffineSpace(RA), DEs);
-    return U, DEs, P0, patch_index;
+    return U, DEs, U ! Eltseq(P0), patch_index;
 end if;
 
 end function;
@@ -279,18 +278,17 @@ if not X`is_planar then
     error "Please give your curve in planar form";
 end if;
 
-/* Find affine patch: */
+/* Find affine patch, then put uniformizer first: */
 X`U, X`DEs, X`P0, X`patch_index := OurAffinePatch(X, P0);
 X`A := Ambient(X`U); RA<u,v> := CoordinateRing(X`A); X`RA := RA; X`KA := FieldOfFractions(RA);
-X`RU := CoordinateRing(X`U); X`KU := FunctionField(X`U); X`F := BaseRing(X`RU);
-
-/* Put uniformizer first: */
 X`unif_index := AlgebraicUniformizerIndex(X);
 if X`unif_index eq 2 then
     X`DEs := [ X`RA ! Evaluate(DE, [ (X`RA).2, (X`RA).1 ]) : DE in X`DEs ];
-    X`U := Scheme(X`A, X`DEs);
+    X`U := Curve(Scheme(X`A, X`DEs));
     X`P0 := X`U ! [ X`P0[2], X`P0[1] ];
 end if;
+X`A := Ambient(X`U); RA<u,v> := CoordinateRing(X`A); X`RA := RA; X`KA := FieldOfFractions(RA);
+X`RU := CoordinateRing(X`U); X`KU := FunctionField(X`U); X`F := BaseRing(X`RU);
 
 vprintf EndoCheck, 3 : "Index of affine patch: ";
 vprint EndoCheck, 3 : X`patch_index;
@@ -323,8 +321,6 @@ vprint EndoCheck, 3 : X`NormB;
 X`cantor_eqs := CantorEquations(X);
 vprintf EndoCheck, 3 : "Cantor equations:\n";
 vprint EndoCheck, 3 : X`cantor_eqs;
-X`RRgens := RRGenerators(X);
-X`globgens, X`DEs_sub := GlobalGenerators(X);
 
 X`initialized := true;
 

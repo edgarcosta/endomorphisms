@@ -29,9 +29,13 @@ function RRGenerators(X)
 // Gives all Riemann-Roch functions needed to determine the others as monomials
 // in them
 
+if assigned X`RRgens then
+    return X`RRgens;
+end if;
 g := X`g; KU := X`KU; P0 := X`P0;
 V, phiV := RiemannRochSpace((2*g + 1)*Divisor(P0));
-return [ KU ! phiV(V.i) : i in [1..(Dimension(V) - 1)] ];
+X`RRgens := [ KU ! phiV(V.i) : i in [1..(Dimension(V) - 1)] ];
+return X`RRgens;
 
 end function;
 
@@ -104,6 +108,10 @@ end function;
 function GlobalGenerators(X)
 // Find equations in affine space from vector with elements of fraction field
 
+if assigned X`globgens and assigned X`DEs_sub then
+    return X`globgens, X`DEs_sub;
+end if;
+
 // First factor of product
 if X`is_hyperelliptic then
     P := X`P0; g := X`g;
@@ -112,10 +120,8 @@ if X`is_hyperelliptic then
     x_sub := (1 / u) + P[1];   y_sub := v / u^(g + 1);
     DEs_sub := [ SA ! (u^(2*g + 2) * Evaluate(DE, [x_sub, y_sub])) : DE in X`DEs ];
     X_sub := Curve(AffineSpace(SA), DEs_sub);
-    RX_sub := CoordinateRing(X_sub);
-    KX_sub := FunctionField(X_sub);
-    RA_sub := CoordinateRing(Ambient(X_sub));
-    KA_sub := FieldOfFractions(RA_sub);
+    RX_sub := CoordinateRing(X_sub); KX_sub := FunctionField(X_sub);
+    RA_sub := CoordinateRing(Ambient(X_sub)); KA_sub := FieldOfFractions(RA_sub);
     gens_sub := [ KX_sub ! Evaluate(X`KA ! gen, [x_sub, y_sub]) : gen in X`RRgens ];
     /* NOTE: We really need a two-step coercion */
     gens_sub := [ RA_sub ! KA_sub ! gen : gen in gens_sub ];
@@ -134,7 +140,9 @@ else
     /* NOTE: We really need a two-step coercion */
     gens_sub := [ RA_sub ! KA_sub ! gen : gen in gens_sub ];
 end if;
-return gens_sub, DEs_sub;
+X`globgens := gens_sub;
+X`DEs_sub := DEs_sub;
+return X`globgens, X`DEs_sub;
 
 end function;
 

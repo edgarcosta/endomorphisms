@@ -49,7 +49,7 @@ for i in [1..N] do
     print M;
 
     print "Calculating Cantor representation...";
-    time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 1);
+    time test, fs := CantorFromMatrixAmbientSplit(X, P0, Y, Q0, M : LowerBound := 1);
     R<x,y> := Parent(fs[1]);
     print fs;
 

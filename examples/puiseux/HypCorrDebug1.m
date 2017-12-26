@@ -29,7 +29,7 @@ print P0;
 print "Check that base point is not Weierstrass:", not IsWeierstrassPlace(Place(P0));
 
 print "Calculating divisor:";
-time test, D := DivisorFromMatrixSplit(X, P0, X, P0, T : LowerBound := 50);
+time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 50);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";

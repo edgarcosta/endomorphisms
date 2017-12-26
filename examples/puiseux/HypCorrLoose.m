@@ -23,14 +23,14 @@ print "Tangent representation:";
 print M;
 
 print "Calculating divisor:";
-time test, D := DivisorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, M : LowerBound := 1);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print D;
 
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+time test, fs := CantorFromMatrixAmbientSplit(X, P0, X, P0, M : LowerBound := 1);
 R<x,y> := Parent(fs[1]);
 print fs;
 
@@ -55,14 +55,14 @@ print "Tangent representation:";
 print M;
 
 print "Calculating divisor:";
-time test, D := DivisorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, M : LowerBound := 1);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print D;
 
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, X, P0, M : LowerBound := 1);
+time test, fs := CantorFromMatrixAmbientSplit(X, P0, X, P0, M : LowerBound := 1);
 R<x,y> := Parent(fs[1]);
 print fs;
 

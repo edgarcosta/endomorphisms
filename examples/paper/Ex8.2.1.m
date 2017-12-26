@@ -28,7 +28,7 @@ print Y;
 print "Tangent representation:";
 print M;
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, Y, Q0, M : LowerBound := 16);
+time test, fs := CantorFromMatrixAmbientSplit(X, P0, Y, Q0, M : LowerBound := 16);
 K<x,y> := Parent(fs[1]);
 print fs;
 

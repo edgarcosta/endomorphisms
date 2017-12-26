@@ -14,7 +14,8 @@ import "Branches.m": InitializeImageBranch, DevelopPoint;
 import "Conventions.m": ExtractHomomorphismsRing, VariableOrder;
 import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
 import "Initialize.m": InitializeCurve, ChangeTangentAction;
-import "RiemannRoch.m": RRBasis, RREvaluations, ProductEvaluations, GlobalProductBasis, GlobalProductBasisAlt;
+import "RiemannRoch.m": RRBasis, RRGenerators, RREvaluations, GlobalGenerators;
+import "RiemannRoch.m": ProductEvaluations, GlobalProductBasis, GlobalProductBasisAlt;
 
 
 forward InfinitesimalEquationVectors;
@@ -27,8 +28,8 @@ forward GlobalScheme;
 forward CheckDimension;
 
 forward DivisorFromMatrixByDegree;
-forward DivisorFromMatrix;
-forward DivisorFromMatrixSplit;
+forward DivisorFromMatrixRRGlobal;
+forward DivisorFromMatrixRRSplit;
 
 
 function InfinitesimalEquationVectors(X, Y, P, Qs, d)
@@ -261,10 +262,13 @@ return false, [ ], [ ];
 end function;
 
 
-intrinsic DivisorFromMatrix(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
+intrinsic DivisorFromMatrixRRGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+X`RRgens := RRGenerators(X);
+X`globgens, X`DEs_sub := GlobalGenerators(X);
+
 NormM := ChangeTangentAction(X, Y, M);
 vprintf EndoCheck, 3 : "Tangent representation:\n";
 vprint EndoCheck, 3 : NormM;
@@ -288,11 +292,14 @@ end while;
 end intrinsic;
 
 
-intrinsic DivisorFromMatrixSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
+intrinsic DivisorFromMatrixRRSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+X`RRgens := RRGenerators(X);
+X`globgens, X`DEs_sub := GlobalGenerators(X);
+
 NormM := ChangeTangentAction(X, Y, M);
 vprintf EndoCheck, 3 : "Tangent representation:\n";
 vprint EndoCheck, 3 : NormM;

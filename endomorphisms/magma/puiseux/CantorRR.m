@@ -13,7 +13,7 @@
 import "Branches.m": PuiseuxRamificationIndex, InitializeImageBranch;
 import "Initialize.m": InitializeCurve, ChangeTangentAction;
 import "FractionalCRT.m": FractionalCRTQQ, RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
-import "RiemannRoch.m": RRBasis, RREvaluations;
+import "RiemannRoch.m": RRBasis, RRGenerators, RREvaluations, GlobalGenerators;
 
 
 forward FunctionValuesFromApproximations;
@@ -24,8 +24,8 @@ forward FunctionsFromVectors;
 forward CheckCantor;
 
 forward CantorFromMatrixByDegree;
-forward CantorFromMatrix;
-forward CantorFromMatrixSplit;
+forward CantorFromMatrixRRGlobal;
+forward CantorFromMatrixRRSplit;
 
 forward ChangeFunctions;
 forward AbsoluteToRelative;
@@ -211,12 +211,20 @@ return false, [], [];
 end function;
 
 
-intrinsic CantorFromMatrix(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity()) -> Sch
+intrinsic CantorFromMatrixRRGlobal(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity()) -> Sch
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+X`RRgens := RRGenerators(X);
+X`globgens, X`DEs_sub := GlobalGenerators(X);
+
+vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
+vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);
+vprintf EndoCheck, 3 : "Tangent matrix after change of basis: ";
+vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
+tjs0, f := InitializeImageBranch(NormM);
 
 d := LowerBound;
 while true do
@@ -234,10 +242,13 @@ end while;
 end intrinsic;
 
 
-intrinsic CantorFromMatrixSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), B := 300) -> Sch
+intrinsic CantorFromMatrixRRSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), B := 300) -> Sch
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+X`RRgens := RRGenerators(X);
+X`globgens, X`DEs_sub := GlobalGenerators(X);
+
 vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
 vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);

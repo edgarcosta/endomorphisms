@@ -14,7 +14,7 @@ T := Matrix(F, [
 ]);
 
 print "Calculating Cantor representation...";
-time test, fs := CantorFromMatrixSplit(X, P0, X, P0, T : LowerBound := 11);
+time test, fs := CantorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 11);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;
