@@ -304,8 +304,8 @@ while true do
         v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs, OF, I, BOF, BI, F) : j in [1..#v_reds[1]] ];
         Append(~vs, v);
     end for;
+    vprint EndoCheck, 3 : vs;
     vprintf EndoCheck : "done.\n";
-    print vs;
 
     vprintf EndoCheck : "Checking:\n";
     vprintf EndoCheck : "Step 1... ";

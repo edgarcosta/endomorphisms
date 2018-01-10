@@ -73,7 +73,7 @@ end function;
 function CheckMultiplicityAtPoint(X, Y, d, vs : Margin := 2^6)
 // Checks for multiplicity of vertical intersection
 
-vprint EndoCheck, 4 : "CheckMultiplicityAtPoint...";
+vprint EndoCheck, 3 : "CheckMultiplicityAtPoint...";
 // TODO: Keep refining precision
 precP := d + X`g + 1 + Margin; precQ := 2*Y`g + 1 + Margin;
 P := DevelopPoint(X, X`P0, precP); Q := DevelopPoint(Y, Y`P0, precQ);
@@ -93,8 +93,8 @@ for q in eqs do
     coeffs := Coefficients(q);
     n := d*(Y`g) + Margin;
     vals := [ Valuation(coeffs[i]) : i in [1..(Y`g + 1)] ];
-    vprint EndoCheck, 4 : "Valuations of coefficients:";
-    vprint EndoCheck, 4 : vals;
+    vprint EndoCheck, 3 : "Valuations of coefficients:";
+    vprint EndoCheck, 3 : vals;
     min, ind := Minimum(vals);
     if ind eq (Y`g + 1) then
         if &and[ Valuation(coeffs[i]) gt min : i in [1..Y`g] ] then
@@ -107,10 +107,47 @@ return false;
 end function;
 
 
+function MakeDenseAndMonic(p)
+
+R<t> := Parent(p); d := Degree(p);
+dp := R ! 0;
+for i in [0..d] do
+    c := Coefficient(p, i);
+    if not IsWeaklyZero(c) then
+        dp +:= c*t^i;
+    end if;
+end for;
+if Degree(dp) eq -1 then
+    return dp;
+end if;
+return dp / LeadingCoefficient(dp);
+
+end function;
+
+
+function GCDP(a, b)
+// Assume a and b monic
+
+if Degree(b) lt Degree(a) then
+    a, b := Explode([b, a]);
+end if;
+da := Degree(a); db := Degree(b);
+if da eq -1 then
+    return b;
+end if;
+R<t> := Parent(a);
+anew := a;
+// TODO: Improve this, predict valuation in t
+bnew := MakeDenseAndMonic(b - t^(db - da)*a);
+return GCDP(anew, bnew);
+
+end function;
+
+
 function CheckMultiplicityAwayFromPoint(X, Y, d, vs : Margin := 2^6)
 // Checks for multiplicity of vertical intersection
 
-vprint EndoCheck, 4 : "CheckMultiplicityAwayFromPoint...";
+vprint EndoCheck, 3 : "CheckMultiplicityAwayFromPoint...";
 // TODO: Keep refining precision; seem to need Degree (res) / e
 prec := d + X`g + Margin; P := DevelopPoint(X, X`P0, prec); K<pi> := Parent(P[1]);
 R<u,v> := PolynomialRing(K, 2); S<t> := PolynomialRing(K); h := hom< R -> S | [t, 1] >;
@@ -118,29 +155,31 @@ R<u,v> := PolynomialRing(K, 2); S<t> := PolynomialRing(K); h := hom< R -> S | [t
 xs := RREvaluations(X, d + X`g + 1, P); ys := [ Y`KA ! b : b in RRBasis(Y, 2*(Y`g) + 1) ];
 den := LCM([ Denominator(y) : y in ys ]); ys := [ R ! Y`RA ! (den * y) : y in ys ];
 evs := [ x*y : x in xs, y in ys ]; eqs := [ &+[ v[i]*evs[i] : i in [1..#evs] ] : v in vs ];
-eqs := [ q / LeadingCoefficient(q) : q in eqs ];
-g := R ! Y`DEs[1]; g /:= LeadingCoefficient(g);
+g := R ! Y`DEs[1];
 
-gcd := Resultant(g, eqs[1], v); gcd /:= LeadingCoefficient(gcd);
+gcd := MakeDenseAndMonic(h(Resultant(g, eqs[1], v)));
 i := 1;
 repeat
-    vprint EndoCheck, 4 : "Number of elements tried:";
-    vprint EndoCheck, 4 : i;
-    vprint EndoCheck, 4 : "GCD:";
-    vprint EndoCheck, 4 : gcd;
+    vprint EndoCheck, 3 : "Number of elements tried:";
+    vprint EndoCheck, 3 : i;
+    vprint EndoCheck, 3 : "GCD:";
+    vprint EndoCheck, 3 : gcd;
     coeffs := Coefficients(gcd); test := true;
-    for coeff in coeffs[2..#coeffs] do
+    for coeff in coeffs[1..(#coeffs - 1)] do
         if Valuation(coeff) le 0 then
             test := false;
         end if;
     end for;
     if test then
-        return true;
+        vprint EndoCheck, 3 : "Checking multiplicity at point...";
+        if &and([ IsWeaklyZero(c) : c in coeffs[1..(#coeffs - g)] ]) then
+            return true;
+        end if;
     end if;
     i +:= 1;
     if i le #eqs then
-        res := Resultant(g, eqs[i], v); res /:= LeadingCoefficient(res);
-        gcd := GCD(gcd, res); gcd /:= LeadingCoefficient(gcd);
+        res := MakeDenseAndMonic(h(Resultant(g, eqs[i], v)));
+        gcd := MakeDenseAndMonic(GCDP(gcd, res));
     end if;
 until i gt #eqs;
 return false;
@@ -151,6 +190,7 @@ end function;
 function CheckMultiplicity(X, Y, d, vs)
 // Checks for multiplicity of vertical intersection
 
+return CheckMultiplicityAwayFromPoint(X, Y, d, vs);
 if not CheckMultiplicityAtPoint(X, Y, d, vs) then
     return false;
 end if;
@@ -224,7 +264,7 @@ if #vs eq 0 then
 end if;
 
 vprintf EndoCheck, 2 : "Checking:\n";
-vprintf EndoCheck, 2 : "Multiplicity... ";
+vprintf EndoCheck, 2 : "Multiplicity...";
 test2 := CheckMultiplicity(X, Y, d, vs);
 vprintf EndoCheck, 2 : "done.\n";
 if test2 then
@@ -328,6 +368,7 @@ while true do
     vprintf EndoCheck : "Split prime over %o\n", p;
 
     /* Add corresponding data */
+    // TODO: This reduction step takes too long
     pr := ideal<X`OF | [ p, rF - rt ]>;
     Append(~prs, pr); I *:= pr;
     X_red := ReduceCurveSplit(X, p, rt); Y_red := ReduceCurveSplit(Y, p, rt);
@@ -356,8 +397,8 @@ while true do
         v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs, OF, I, BOF, BI, F) : j in [1..#v_reds[1]] ];
         Append(~vs, v);
     end for;
+    vprint EndoCheck, 3 : vs;
     vprintf EndoCheck : "done.\n";
-    print vs;
 
     vprintf EndoCheck : "Checking:\n";
     vprintf EndoCheck : "Vanishing... ";

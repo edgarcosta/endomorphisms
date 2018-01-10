@@ -9,7 +9,7 @@
  *  See LICENSE.txt for license details.
 """
 
-from sage.all import magma, PolynomialRing, QQ
+from sage.all import magma, gp, PolynomialRing, QQ
 
 def Relative_Splitting_Field_Extra(fs, bound = 0):
     bound_set = (bound != 0)

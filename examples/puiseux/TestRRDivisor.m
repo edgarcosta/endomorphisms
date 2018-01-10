@@ -18,11 +18,13 @@ T := Matrix(F, [
 print "Curve:";
 print X;
 print "Calculating divisor:";
-time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 3, UpperBound := 4);
+//time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 6);
+time test, D := DivisorFromMatrixRRSplit(X, P0, X, P0, T : LowerBound := 3);
+
 R<v2,v1,u2,u1> := Parent(DefiningEquations(D)[1]);
 print D;
 
-print "Irreducible components";
+print "Irreducible components:";
 print IrreducibleComponents(D);
 
 exit;

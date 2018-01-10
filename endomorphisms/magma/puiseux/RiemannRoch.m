@@ -138,6 +138,8 @@ else
     KA_sub := FieldOfFractions(RA_sub);
     gens_sub := [ KX_sub ! Evaluate(X`KA ! gen, [x_sub, y_sub]) : gen in X`RRgens ];
     /* NOTE: We really need a two-step coercion */
+    //print P;
+    //print [ KA_sub ! gen : gen in gens_sub ];
     gens_sub := [ RA_sub ! KA_sub ! gen : gen in gens_sub ];
 end if;
 X`globgens := gens_sub;

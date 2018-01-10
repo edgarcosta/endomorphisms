@@ -10,9 +10,21 @@ F := QQ;
 R<x> := PolynomialRing(F);
 f := x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1; h := 0;
 f := x^6 + x^2 + 1; h := 0;
-//f := 15*x^5 + 50*x^4 + 55*x^3 + 22*x^2 + 3*x; h := x;
+f := 15*x^5 + 50*x^4 + 55*x^3 + 22*x^2 + 3*x; h := x;
 X := HyperellipticCurve(f, h);
-prec := 100;
+
+R<x1,x2> := PolynomialRing(F, 2);
+x3 := 1;
+f := x1^4 - x1^3*x2 + 2*x1^3*x3 + 2*x1^2*x2*x3 + 2*x1^2*x3^2 - 2*x1*x2^2*x3 +
+4*x1*x2*x3^2 - x2^3*x3 + 3*x2^2*x3^2 + 2*x2*x3^3 + x3^4;
+//f := x1^3*x2 + x1^3*x3 + x1^2*x2^2 + 3*x1^2*x2*x3 + x1^2*x3^2 - 4*x1*x2^3 -
+//3*x1*x2^2*x3 - 3*x1*x2*x3^2 - 4*x1*x3^3 + 2*x2^4 + 3*x2^2*x3^2 + 2*x3^4;
+// TODO: This bugs
+//f := x1^4 - x1^3*x3 + 2*x1^3*x2 + 2*x1^2*x3*x2 + 2*x1^2*x2^2 - 2*x1*x3^2*x2 +
+//4*x1*x3*x2^2 - x3^3*x2 + 3*x3^2*x2^2 + 2*x3*x2^3 + x2^4;
+X := PlaneCurve(f);
+
+prec := 300;
 CCSmall := ComplexField(5);
 
 print "Curve:";
@@ -20,7 +32,7 @@ print X;
 
 eqsCC := EmbedCurveEquations(X, prec);
 eqsF := DefiningEquations(X);
-P := PeriodMatrix(eqsCC, eqsF : HaveOldenburg := false);
+P := PeriodMatrix(eqsCC, eqsF : HaveOldenburg := true);
 
 print "";
 print "Period matrix:";
@@ -73,5 +85,3 @@ print "Analytic projections:";
 print projs_an;
 print "Algebraic factors:";
 print facs_alg;
-
-exit;
