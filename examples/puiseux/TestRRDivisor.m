@@ -24,6 +24,8 @@ time test, D := DivisorFromMatrixRRSplit(X, P0, X, P0, T : LowerBound := 3);
 R<v2,v1,u2,u1> := Parent(DefiningEquations(D)[1]);
 print D;
 
+exit;
+
 print "Irreducible components:";
 print IrreducibleComponents(D);
 

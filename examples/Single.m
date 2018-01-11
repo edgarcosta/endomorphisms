@@ -17,11 +17,22 @@ R<x1,x2> := PolynomialRing(F, 2);
 x3 := 1;
 f := x1^4 - x1^3*x2 + 2*x1^3*x3 + 2*x1^2*x2*x3 + 2*x1^2*x3^2 - 2*x1*x2^2*x3 +
 4*x1*x2*x3^2 - x2^3*x3 + 3*x2^2*x3^2 + 2*x2*x3^3 + x3^4;
+f := 3278898472*x1^4 + 35774613556*x1^3*x2 - 172165788624*x1^3*x3 -
+42633841878*x1^2*x2^2 + 224611458828*x1^2*x2*x3 + 362086824567*x1^2*x3^2 +
+6739276447*x1*x2^3 + 195387780024*x1*x2^2*x3 + 1153791743988*x1*x2*x3^2 -
+3461357269578*x1*x3^3 - 18110161476*x2^4 - 549025255626*x2^3*x3 -
+482663555556*x2^2*x3^2 + 15534718882176*x2*x3^3 - 61875497274721*x3^4;
+
+// TODO: This takes very long
 //f := x1^3*x2 + x1^3*x3 + x1^2*x2^2 + 3*x1^2*x2*x3 + x1^2*x3^2 - 4*x1*x2^3 -
 //3*x1*x2^2*x3 - 3*x1*x2*x3^2 - 4*x1*x3^3 + 2*x2^4 + 3*x2^2*x3^2 + 2*x3^4;
-// TODO: This bugs
+// TODO: This gives an error
 //f := x1^4 - x1^3*x3 + 2*x1^3*x2 + 2*x1^2*x3*x2 + 2*x1^2*x2^2 - 2*x1*x3^2*x2 +
 //4*x1*x3*x2^2 - x3^3*x2 + 3*x3^2*x2^2 + 2*x3*x2^3 + x2^4;
+// TODO: This bugs when decomposing
+//f := x1^4 - x1^3*x3 + 2*x1^3*x2 + 2*x1^2*x3*x2 + 2*x1^2*x2^2 - 2*x1*x3^2*x2 +
+//4*x1*x3*x2^2 - x3^3*x2 + 3*x3^2*x2^2 + 2*x3*x2^3 + x2^4;
+
 X := PlaneCurve(f);
 
 prec := 300;
@@ -49,14 +60,52 @@ print GeoEndoRep;
 
 print "";
 print "More tests:";
-A := GeoEndoRep[2][1];
-print "Rosati involution:";
-print RosatiInvolution(GeoEndoRep, A);
-print "Degree estimate:";
-print DegreeEstimate(GeoEndoRep, A);
+for tup in GeoEndoRep do
+    A := tup[1];
+    print "Endomorphism:";
+    print A;
+    print "Rosati involution:";
+    print RosatiInvolution(GeoEndoRep, A);
+    print "Degree estimate:";
+    print DegreeEstimate(GeoEndoRep, A);
+    print "Minimal polynomial:";
+    print MinimalPolynomial(A);
+    print "Base ring:";
+    print BaseRing(A);
+end for;
+
+/*
+Endomorphism:
+[1/1639416*(-5601*K.1^5 + 7589*K.1^4 + 9618*K.1^3 - 1491087*K.1^2 - 7236999*K.1 +
+    8622692) 1/3278832*(5601*K.1^5 - 7589*K.1^4 - 9618*K.1^3 + 1491087*K.1^2 +
+    8876415*K.1 - 8622692) 0]
+[0 K.1 0]
+[0 0 1/819708*(-287*K.1^5 - 5892*K.1^4 + 20616*K.1^3 - 143433*K.1^2 - 1716338*K.1
+    - 3134772)]
+Rosati involution:
+[1/1639416*(4329*K.1^5 + 4379*K.1^4 + 7494*K.1^3 + 1198119*K.1^2 + 7501575*K.1 +
+    5997476) 1/3278832*(-6009*K.1^5 + 1117*K.1^4 - 46758*K.1^3 - 1677855*K.1^2 -
+    8791551*K.1 - 5474084) 0]
+[0 1/68309*(-70*K.1^5 + 229*K.1^4 - 1636*K.1^3 - 19989*K.1^2 - 53749*K.1 + 21808)
+    0]
+[0 0 1/819708*(1763*K.1^5 - 2840*K.1^4 - 9540*K.1^3 + 529785*K.1^2 + 1409330*K.1 -
+    3617300)]
+Degree estimate:
+168
+Minimal polynomial:
+$.1^3 + 1/1639416*(6175*K.1^5 + 4195*K.1^4 - 50850*K.1^3 + 1777953*K.1^2 +
+    9030259*K.1 - 2353148)*$.1^2 + 1/546472*(2585*K.1^5 + 6181*K.1^4 - 56686*K.1^3
+    + 528359*K.1^2 + 4995349*K.1 - 15599116)*$.1 + 1/409854*(6633*K.1^5 +
+    745*K.1^4 + 84762*K.1^3 + 1481319*K.1^2 + 11530737*K.1 + 9932500)
+Base ring:
+Number Field with defining polynomial x^6 - x^5 + 2*x^4 + 255*x^3 + 1291*x^2 -
+    784*x + 2192 over the Rational Field
+*/
+
+exit;
+
 print "Verifying saturatedness:";
 print VerifySaturated(GeoEndoRep, P);
-
 print "Endomorphisms over QQ:";
 struct := EndomorphismStructure(GeoEndoRep, K, F);
 print struct;
@@ -85,3 +134,5 @@ print "Analytic projections:";
 print projs_an;
 print "Algebraic factors:";
 print facs_alg;
+
+exit;
