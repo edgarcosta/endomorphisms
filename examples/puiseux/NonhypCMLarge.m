@@ -12,7 +12,8 @@ R<t> := PolynomialRing(QQ);
 f := t^2 - t + 5;
 h := hom< S -> R | [0, t, 1] >;
 g := h(fX);
-F<r> := SplittingField(f*g);
+F<r> := Compositum(NumberField(f), NumberField(g));
+
 //p := t;
 //F<r> := NumberField(p);
 rP := Roots(g, F)[1][1];
@@ -51,7 +52,6 @@ M := Matrix(F, [
 [0, r2, 0],
 [0, 0, 1 - r2]
 ]);
-print MinimalPolynomial(M);
 
 /*
 M := Matrix(F, [

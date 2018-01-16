@@ -79,7 +79,7 @@ end function;
 
 
 // TODO: Currently not used, check degree bound equivalents
-function CheckMultiplicityAtPoint(X, Y, d, vs : Margin := 2^6)
+function CheckMultiplicityAtPoint(X, Y, d, vs : Margin := 2^8)
 // Checks for multiplicity of vertical intersection
 
 vprint EndoCheck, 3 : "CheckMultiplicityAtPoint...";
@@ -164,7 +164,7 @@ return GCDP(anew, bnew);
 end function;
 
 
-function CheckMultiplicityAwayFromPoint(X, Y, d, vs : Margin := 2^6)
+function CheckMultiplicityAwayFromPoint(X, Y, d, vs : Margin := 2^8)
 // Checks for multiplicity of vertical intersection
 // TODO: Think more about precision
 
@@ -270,7 +270,7 @@ return false, [ ];
 end function;
 
 
-function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^6)
+function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^8)
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 /* Cardinality of basis of functions plus margin: */
@@ -316,7 +316,7 @@ return false, [ ], [ ];
 end function;
 
 
-intrinsic DivisorFromMatrixRRGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
+intrinsic DivisorFromMatrixRRGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^8, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
@@ -346,7 +346,7 @@ end while;
 end intrinsic;
 
 
-intrinsic DivisorFromMatrixRRSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
+intrinsic DivisorFromMatrixRRSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^8, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
