@@ -30,7 +30,10 @@ if #GeneratorsSequence(RCC) eq 1 then
         /* We divide by 2 because we integrate wrt x^i dx / 2y */
         return Transpose(ChangeRing(BigPeriodMatrix(JCC), CC)) / 2;
     end if;
-    return Transpose(ChangeRing(PeriodMatrix(gCC : Prec := Precision(CC)), CC)) / 2;
+    X := SE_Curve(gCC, 2 : Prec := Precision(CC));
+    return Transpose(ChangeRing(X`BigPeriodMatrix, CC)) / 2;
+    /* Alternative version: */
+    //return Transpose(ChangeRing(PeriodMatrix(gCC : Prec := Precision(CC)), CC)) / 2;
 elif #GeneratorsSequence(RCC) eq 3 then
     if not HaveOldenburg then
         error "No functionality for plane curves available";
