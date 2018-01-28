@@ -13,8 +13,9 @@ SetInfinitePlace(K, InfinitePlaces(K)[2]);
 K := NumberField(f);
 L := RelativeSplittingFieldExtra([f, g]);
 print L;
-//print L`iota;
-//print Roots(f, L);
+
+print MakeRelative(QQ, QQ);
+print FieldDescription(QQ, QQ);
 
 
 print "Over a number field:";

@@ -30,9 +30,7 @@ def Relative_Splitting_Field_Extra(fs, bound = 0):
                 else:
                     K = magma.ClearFieldDenominator(K)
                 if bound_set and magma.Degree(K) >= bound:
-                    K = magma.MakeExtension(K, F)
                     K = magma.DefineOrExtendInfinitePlaceFunction(K);
                     return K
-    K = magma.MakeExtension(K, F)
     K = magma.DefineOrExtendInfinitePlaceFunction(K);
     return K

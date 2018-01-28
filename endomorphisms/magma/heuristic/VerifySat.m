@@ -12,8 +12,8 @@
 // TODO: Generalize to isogenies
 
 intrinsic VerifySaturated(GeoEndoRep::SeqEnum, P::.) -> BoolElt, .
-{Verifies whether the endomorphism ring is saturated in the algebra found so far.}
-// TODO: Optional argument if lattice was calculated already?
+{Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
+is saturated in the corresponding algebra.}
 
 genHoms := [ gen[2] : gen in GeoEndoRep ];
 // Creation of relevant algebras
@@ -42,8 +42,11 @@ end intrinsic;
 
 
 intrinsic VerifySaturatedAtPrime(GeoEndoRep::SeqEnum, P::., p::RngIntElt) -> BoolElt, .
-{Verifies whether the endomorphism ring is saturated in the algebra found so far, looking only at the prime p.}
+{Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
+is saturated in the corresponding algebra at p.}
 
+/* Uses an extremely naive algorithm by excluding every intermediate element
+ * directly */
 genHoms := [ gen[2] : gen in GeoEndoRep ];
 CC := Parent(P[1,1]); RR := RealField(CC); JP := ComplexStructure(P);
 I := [0..(p - 1)]; d := #genHoms; CP := CartesianPower(I, d);

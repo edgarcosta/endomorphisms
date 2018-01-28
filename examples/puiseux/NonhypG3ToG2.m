@@ -19,8 +19,8 @@ Q0 := Y ! [0, 3/2, 1];
 
 /*
 CC := ComplexFieldExtra(100);
-P := PeriodMatrix([ ChangeRing(fX, CC) ], [ fX ] : HaveOldenburg := true);
-Q := PeriodMatrix([ ChangeRing(fY, CC) ], [ fY ] : HaveOldenburg := true);
+P := PeriodMatrix([ ChangeRing(fX, CC) ], [ fX ] : MolinNeurohr := true);
+Q := PeriodMatrix([ ChangeRing(fY, CC) ], [ fY ] : MolinNeurohr := true);
 print GeometricIsogenyRepresentationPartial(P, Q);
 print GeometricIsogenyRepresentationPartial(Q, P);
 */

@@ -104,7 +104,7 @@ def statement_endomorphisms_RR(desc, g, str_field = 'K'):
 
 def statement_factor_QQ(factor_QQ):
     _index_dict_ = index_dictionary()
-    # FIXME: Assumes g <= 3
+    # TODO: Assumes g <= 3
     dim_sqrt = factor_QQ[_index_dict_['dim_sqrt']]
     disc = factor_QQ[_index_dict_['disc']]
     albert_type = factor_QQ[_index_dict_['albert_type']]
@@ -144,7 +144,7 @@ def statement_factor_QQ(factor_QQ):
 
 def statement_factor_ZZ_maximal(factor_QQ, desc_ZZ, str_field = 'K'):
     _index_dict_ = index_dictionary()
-    # FIXME: Assumes g <= 3
+    # TODO: Assumes g <= 3
     albert_type = factor_QQ[_index_dict_['albert_type']]
     field_pretty = pretty_print_field(factor_QQ[_index_dict_['center']], [-1, 1])
     ring_pretty = pretty_print_ring(factor_QQ[_index_dict_['center']], 1)
@@ -162,7 +162,7 @@ def statement_factor_ZZ_maximal(factor_QQ, desc_ZZ, str_field = 'K'):
 
 def statement_factors_ZZ_index(factors_QQ, desc_ZZ, str_field = 'K'):
     _index_dict_ = index_dictionary()
-    # FIXME: Assumes g <= 3
+    # TODO: Assumes g <= 3
     index = desc_ZZ[_index_dict_['index']]
     if len(factors_QQ) == 1:
         factor_QQ = factors_QQ[0]

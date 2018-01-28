@@ -19,7 +19,7 @@ X = mHyperellipticCurve(f, h)
 print ""
 print "Curve:"
 print X
-Endo = EndomorphismData(X, prec = 100, have_oldenburg = True)
+Endo = EndomorphismData(X, prec = 300, molin_neurohr = True)
 
 Dec = Endo.decomposition()
 facs = Dec.factors()

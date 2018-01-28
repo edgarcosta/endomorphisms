@@ -11,8 +11,8 @@
 
 
 intrinsic SagifyDescription(obj::.) -> MonStgElt
-{Converts the description into a list that, when evaluated in Sage, corresponds
-with the old list.}
+{Returns a conversion of the list description obj into a list that, when
+evaluated in Sage, corresponds with the old list.}
 
 case Type(obj):
     when List: if obj eq [* *] then return "[ ]"; else return "[" cat &cat[ SagifyDescription(x) cat ",": x in obj ] cat "]"; end if;

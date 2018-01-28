@@ -10,7 +10,7 @@
 """
 
 def CurveRankBound ( C ) :
-    End = EndomorphismData(C, 100, have_oldenburg = False)
+    End = EndomorphismData(C, 100, molin_neurohr = False)
     genus = End.g
 
     if genus > 2 :

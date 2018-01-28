@@ -12,24 +12,27 @@
 
 /* We add parameters for comparison, LLL, and seeing whether a square matrix is
  * invertible. */
-declare attributes FldCom : epscomp, epsLLL, epsinv;
-declare attributes FldRe  : epscomp, epsLLL, epsinv;
+declare attributes FldCom : epscomp, epsLLL, epsinv, height_bound;
+declare attributes FldRe  : epscomp, epsLLL, epsinv, height_bound;
+
+declare verbose EndoFind, 1;
 
 
 intrinsic ComplexFieldExtra(prec::RngIntElt) -> FldCom
-{Creates a complex field with some extra needed parameters.}
+{Returns a complex field of the given precision with the extra attributes
+epscomp, epsLLL, epsinv and height_bound.}
 
 CC := ComplexField(prec);
 RR := RealField(CC);
-CC`epscomp := RR ! (10^(-prec + 30)); CC`epsLLL  := RR ! (5^(-prec + 2)); CC`epsinv  := RR ! (2^(-prec + 10));
-RR`epscomp := RR ! (10^(-prec + 30)); RR`epsLLL  := RR ! (5^(-prec + 2)); RR`epsinv  := RR ! (2^(-prec + 10));
+CC`epscomp := RR ! (10^(-prec + 30)); CC`epsLLL  := RR ! (5^(-prec)); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(prec div 2));
+RR`epscomp := CC`epscomp; RR`epsLLL := CC`epsLLL; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound;
 return CC;
 
 end intrinsic;
 
 
 intrinsic SetEpsComp(CC::FldCom, epscomp::.)
-{Modifies epscomp.}
+{Modifies the attributes epscomp of CC.}
 
 RR := RealField(CC);
 CC`epscomp := CC ! epscomp;
@@ -39,7 +42,7 @@ end intrinsic;
 
 
 intrinsic SetEpsLLL(CC::FldCom, epsLLL::.)
-{Modifies epsLLL.}
+{Modifies the attributes epsLLL of CC.}
 
 RR := RealField(CC);
 CC`epsLLL := CC ! epsLLL;
@@ -49,10 +52,20 @@ end intrinsic;
 
 
 intrinsic SetEpsInv(CC::FldCom, epsinv::.)
-{Modifies epsinv.}
+{Modifies the attributes epsinv of CC.}
 
 RR := RealField(CC);
 CC`epsinv := CC ! epsinv;
 RR`epsinv := RR ! epsinv;
+
+end intrinsic;
+
+
+intrinsic SetHeightBound(CC::FldCom, height_bound::.)
+{Modifies the attributes height_bound of CC.}
+
+RR := RealField(CC);
+CC`height_bound := CC ! height_bound;
+RR`height_bound := RR ! height_bound;
 
 end intrinsic;

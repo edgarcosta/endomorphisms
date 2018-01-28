@@ -10,15 +10,13 @@
  */
 
 
-/* We keep track of an infinite place, that can be modified if the need ever
- * arises. */
-
 declare attributes FldNum : iota;
 declare attributes FldRat : iota;
 
+/* TODO: Simplify as far as possible in the case of doubly layered fields */
 
 intrinsic IsQQ(F::Fld) -> BoolElt
-{Whether or not F is QQ.}
+{Returns whether or not the field F equals QQ.}
 
 return Type(F) eq FldRat;
 
@@ -26,7 +24,7 @@ end intrinsic;
 
 
 intrinsic HasBaseQQ(F::Fld) -> BoolElt
-{Whether or not F has QQ as a base ring.}
+{Returns whether or not the field F has QQ as a base ring.}
 
 return Type(BaseRing(F)) eq FldRat;
 
@@ -34,7 +32,8 @@ end intrinsic;
 
 
 intrinsic GiveName(~K::Fld, F::Fld, str::MonStgElt)
-{Give a name to a generator if such a generator is indeed present.}
+{Give the name str to a generator of K over F if such a generator is indeed
+present.}
 
 if IsRelativeExtension(K, F) then
     AssignNames(~K, [ str ]);
@@ -44,28 +43,21 @@ end intrinsic;
 
 
 intrinsic IsRelativeExtension(K::Fld, F::Fld) -> Fld
-{Checks if K is given as an extension of F.}
+{Returns whether K is an extension of F. Equalities are not considered as
+extensions.}
 
+/* Over QQ, the field QQ is not an extension */
 testrat := IsQQ(F) and IsQQ(K);
+/* Over general fields, F is not an extension, and neither is a field with a different base */
 testnonrat := (not IsQQ(F)) and (BaseRing(K) ne F);
+/* Everything else is */
 return not (testrat or testnonrat);
 
 end intrinsic;
 
 
-intrinsic MakeExtension(K::Fld, F::Fld) -> Fld
-{Our conventions on field extensions.}
-
-// TODO: Both versions should work in the end, but the first is far more
-// user-friendly
-return K;
-return MakeRelative(K, F);
-
-end intrinsic;
-
-
 intrinsic MakeRelative(K::Fld, F::Fld) -> Fld
-{Takes a linear extension if needed.}
+{Returns K as an extension of F, taking a linear extension if K equals F.}
 
 if not IsRelativeExtension(K, F) then
     R<x> := PolynomialRing(F);
@@ -77,9 +69,11 @@ end intrinsic;
 
 
 intrinsic FieldDescription(K::Fld, F::Fld) -> SeqEnum
-{Gives a list describing the field K as an extension of F.}
+{Returns a list describing the field K as an extension of F.}
 
+/* Make relative to deal with the case of a linear extension */
 K := MakeRelative(K, F);
+/* Use fewer brackets when the base field is QQ */
 if IsQQ(F) then
     K_seq := [ Integers() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
 else
@@ -91,9 +85,10 @@ end intrinsic;
 
 
 intrinsic ElementDescription(r::., F::Fld) -> .
-{Gives a list describing the field element r.}
+{Returns a list describing the field element r.}
 
 K := Parent(r);
+/* Use fewer brackets when possible in the next two cases */
 if IsQQ(K) then
     return r;
 elif (IsQQ(F) and (Degree(K) gt 1)) or (not IsRelativeExtension(K, F)) then
@@ -105,34 +100,33 @@ end if;
 end intrinsic;
 
 
-intrinsic SetInfinitePlace(K::FldNum, iota::.)
-{Creates a complex field with some extra needed parameters.}
+intrinsic SetInfinitePlace(K::Fld, iota::.)
+{Sets the infinite place of K to equal iota. This change is passed on
+compatibly to the tower of fields to which K belongs.}
 
 K`iota := iota;
-F := BaseRing(K);
-if not IsQQ(F) then
-    for iotaF in InfinitePlaces(F) do
-        if Extends(iota, iotaF) then
-            SetInfinitePlace(F, iotaF);
-        end if;
-    end for;
-else
-    SetInfinitePlace(F, InfinitePlaces(F)[1]);
+if Type(K) eq FldRat then
+    return;
 end if;
-
-end intrinsic;
-
-
-intrinsic SetInfinitePlace(K::FldRat, iota::.)
-{Creates a complex field with some extra needed parameters.}
-
-K`iota := iota;
+F := BaseRing(K);
+/* The next clause is clumsy, but needed because of problems when encountering
+ * the rational field when it is left out */
+if Type(F) eq FldRat then
+    F`iota := InfinitePlaces(F)[1];
+    return;
+end if;
+for iotaF in InfinitePlaces(F) do
+    if Extends(iota, iotaF) then
+        SetInfinitePlace(F, iotaF);
+    end if;
+end for;
 
 end intrinsic;
 
 
 intrinsic DefineOrExtendInfinitePlace(K::Fld)
-{Extends an infinite place over a relative field extension.}
+{Assigns an infinite place to K that is compatible with the infinite place of
+the base ring of K.}
 
 F := BaseRing(K);
 if not assigned F`iota or IsQQ(F) then
@@ -148,13 +142,25 @@ end if;
 end intrinsic;
 
 
+intrinsic DefineOrExtendInfinitePlaceFunction(K::Fld) -> Fld
+{Assigns an infinite place to K that is compatible with the infinite place of
+the base ring F of K, then returns K. Used when invoking Sage.}
+
+DefineOrExtendInfinitePlace(K);
+return K;
+
+end intrinsic;
+
+
 intrinsic RestrictInfinitePlace(L::Fld, K::Fld)
-{Restricts an infinite place over a relative field extension.}
+{Assigns an infinite place to K that is compatible with the infinite place of
+the extension L of K. Both L and K should have the same base ring.}
 
 if IsQQ(K) then
     SetInfinitePlace(K, InfinitePlaces(K)[1]); return;
 else
-    /* TODO: This invocation is ridiculous */
+    /* TODO: This invocation is a bit strange, see if it could give rise to
+     * bugs */
     IsSubfield(K, L);
     for iotaK in InfinitePlaces(K) do
         if Extends(L`iota, iotaK) then
@@ -166,9 +172,10 @@ end if;
 end intrinsic;
 
 
-intrinsic DefineOrExtendInfinitePlaceFunction(K::Fld) -> Fld
-{Extends an infinite place over a relative field extension.}
+intrinsic RationalsExtra() -> FldNum
+{Returns the number field defined by f along with an infinite place.}
 
+K := Rationals();
 DefineOrExtendInfinitePlace(K);
 return K;
 
@@ -176,7 +183,8 @@ end intrinsic;
 
 
 intrinsic NumberFieldExtra(f::RngUPolElt) -> FldNum
-{Creates a number field with an embedding.}
+{Returns the number field defined by f along with an infinite place that
+extends the place of the base field, if it has any.}
 
 K := NumberField(f);
 DefineOrExtendInfinitePlace(K);
@@ -186,7 +194,8 @@ end intrinsic;
 
 
 intrinsic EmbedAtInfinitePlace(f::RngUPolElt, RCC::RngUPol) -> RngUPolElt
-{Embeds the polynomial f in R into RCC via the infinite place iota.}
+{Returns the polynomial f considered as a complex polynomial to precision
+prec.}
 
 if IsZero(f) then
     return RCC ! 0;
@@ -201,7 +210,8 @@ end intrinsic;
 
 
 intrinsic EmbedAtInfinitePlace(f::RngMPolElt, RCC::RngMPol) -> RngMPolElt
-{Embeds the polynomial f in R into RCC via the infinite place iota.}
+{Returns the polynomial f considered as a complex polynomial to precision
+prec.}
 
 if IsZero(f) then
     return RCC ! 0;
@@ -216,10 +226,14 @@ end intrinsic;
 
 
 intrinsic EmbedAsComplexPolynomials(fs::SeqEnum, prec::RngIntElt) -> SeqEnum
-{Embeds a list of polynomials fs as complex polynomials to precision prec.}
+{Returns the list of polynomials fs considered as complex polynomials to
+precision prec.}
 
 R := Parent(fs[1]); d := #GeneratorsSequence(R);
 F := BaseRing(R);
+/* TODO: The field gets an infinite place if it did not have any, a slight
+ * containment breach where side effects are concerned. One can be picky about
+ * this in the future. */
 if not assigned F`iota then
     SetInfinitePlace(F, InfinitePlaces(F)[1]);
 end if;
@@ -237,14 +251,14 @@ end intrinsic;
 
 
 intrinsic ClearFieldDenominator(K::Fld) -> Fld
-{Simplifies the defining polynomial of a field to an integral version.}
+{Returns a field isomorphic to K over its base ring such that the defining
+polynomial of the new field is integral.}
 
 F := BaseRing(K); d := Degree(K);
 if d eq 1 then
-    return MakeExtension(K, F);
+    return K;
 end if;
-r := K.1;
-coeffs := Coefficients(MinimalPolynomial(r, Rationals()));
+r := K.1; coeffs := Coefficients(MinimalPolynomial(r));
 dens := Reverse([ Denominator(coeff) : coeff in coeffs ]); dens := dens[2..#dens];
 primes := &join[ Set([ tup[1] : tup in Factorization(den) ]) : den in dens | den ne 0 ];
 if #primes eq 0 then
@@ -256,33 +270,62 @@ end if;
 R := PolynomialRing(F);
 f := MinimalPolynomial(common_den*r, F);
 K := NumberField(R ! f);
-return MakeExtension(K, F);
+return K;
 
 end intrinsic;
 
 
-intrinsic ExtendRelativeSplittingField(K::Fld, F::Fld, f::RngUPolElt : Optimize := false) -> FldNum
-{Extension step for relative splitting fields.}
+intrinsic RelativeNumberField(K::Fld, F::Fld, f::RngUPolElt) -> Fld
+{Given an extension K of F and a polynomial f over K, returns an extension of F
+that contains both K and a root of f.}
 
-if Degree(F) eq 1 then
+if Degree(f) eq 1 then
+    return K;
+end if;
+
+if K eq F then
+    K := NumberField(f);
+else
+    /* This step can cost a lot of time */
+    vprintf EndoFind : "Extending %o by root of %o over %o...\n", K, f, F;
+    K := RelativeField(F, NumberField(f));
+    vprintf EndoFind : "done\n";
+end if;
+K := ClearFieldDenominator(K);
+return K;
+
+end intrinsic;
+
+
+intrinsic RelativeNumberFieldExtra(K::Fld, F::Fld, f::RngUPolElt) -> Fld
+{Given an extension K of F and a polynomial f over K, returns an extension of F
+that contains both K and a root of f.}
+
+K := RelativeNumberFieldExtra(K, F, f);
+DefineOrExtendInfinitePlace(K);
+return K;
+
+end intrinsic;
+
+
+intrinsic ExtendRelativeSplittingField(K::Fld, F::Fld, f::RngUPolElt) -> Fld
+{Given an extension K of F and a polynomial f over F, returns an extension of F
+that contains both K and the splitting field of f over F.}
+
+vprintf EndoFind : "Extending %o by splitting %o over %o\n...", K, f, F;
+if Type(F) eq FldRat then
     K := SplittingField(f);
-    if Optimize then
-        K := OptimizedRepresentation(K);
-    end if;
+    vprintf EndoFind : "done\n";
     return K;
 end if;
 
 while true do
     factors := [ tup[1] : tup in Factorization(f, K) | Degree(tup[1]) gt 1 ];
     if #factors eq 0 then
+        vprintf EndoFind : "done\n";
         return K;
     end if;
-    if K eq F then
-        K := NumberField(factors[1]);
-    else
-        // FIXME: This step can cost a lot of time
-        K := RelativeField(F, NumberField(factors[1]));
-    end if;
+    K := RelativeNumberField(K, F, factors[1]);
 end while;
 
 end intrinsic;
@@ -304,15 +347,16 @@ end function;
 
 
 intrinsic RelativeSplittingField(fs::SeqEnum) -> FldNum
-{Determines a relative splitting field of the polynomials in fs.}
+{Returns a splitting field of the polynomials in fs over their common base
+ring.}
 
-// FIXME: This code below is relatively bad; I would prefer to first define K
-// as a linear extension and then to update it. This removes certain
-// dichotomies. However, Magma then takes much more time for some reason.
 F := BaseRing(fs[1]); K := F;
 fs := Reverse(Sort(fs, CompareFields));
 for f in fs do
-    // Note that the K in the next condition is updated as we proceed
+    /* Note that the K in the next condition is updated as we proceed */
+    vprintf EndoFind : "Checking if %o has a root in %o\n", f, K;
+    test := HasRoot(f, K);
+    vprintf EndoFind : "done\n";
     if not HasRoot(f, K) then
         for tup in Factorization(f, K) do
             K := ExtendRelativeSplittingField(K, F, tup[1]);
@@ -320,13 +364,13 @@ for f in fs do
         end for;
     end if;
 end for;
-return MakeExtension(K, F);
+return K;
 
 end intrinsic;
 
 
 intrinsic RelativeSplittingField(f::RngUPolElt) -> FldNum
-{Determines a relative splitting field of the polynomials f.}
+{Returns a splitting field of the polynomials f over its base ring.}
 
 return RelativeSplittingField([ f ]);
 
@@ -334,7 +378,8 @@ end intrinsic;
 
 
 intrinsic RelativeSplittingFieldExtra(fs::SeqEnum) -> FldNum
-{Creates a relative splitting field field with an embedding.}
+{Returns a splitting field of the polynomials fs over their common base ring
+together with an infinite place.}
 
 K := RelativeSplittingField(fs);
 DefineOrExtendInfinitePlace(K);
@@ -344,7 +389,8 @@ end intrinsic;
 
 
 intrinsic RelativeSplittingFieldExtra(f::RngUPolElt) -> FldNum
-{Creates a relative splitting field field with an embedding.}
+{Returns a splitting field of the polynomial f over its base ring together
+with an infinite place.}
 
 return RelativeSplittingFieldExtra([ f ]);
 
@@ -352,7 +398,8 @@ end intrinsic;
 
 
 intrinsic RelativeCompositum(K::Fld, L::Fld) -> Fld
-{Relative compositum.}
+{Returns the compositum of the fields K and L over their common base ring, by
+taking the splitting field of the polynomial defining L to extend K.}
 
 if IsQQ(K) and IsQQ(L) then
     M := K;
@@ -382,7 +429,8 @@ end intrinsic;
 
 
 intrinsic RelativeCompositum(Ks::List) -> Fld, List
-{Relative compositum.}
+{Returns the compositum of the fields in Ks over their common base ring,
+recursively adjoining the splitting field of the last factor.}
 
 if #Ks eq 1 then
     return Ks[1], hom< Ks[1] -> Ks[1] | Ks[1].1 >;
@@ -398,25 +446,32 @@ end intrinsic;
 
 
 intrinsic RelativeFixedField(L::Fld, gens::SeqEnum) -> Fld
-{Fixed subfield of L determined by the automorphisms in gens.}
+{Returns the fixed subfield of L under the automorphisms in gens, considered as
+a field over the base ring of L.}
 
+/* TODO: FixedField itself seems to work */
 dL := Degree(L); F := BaseRing(L);
 Ms := [ Matrix([ Eltseq(gen(L.1^i) - L.1^i) : i in [0..(dL - 1)] ]) : gen in gens ];
 Ker := &meet[ Kernel(M) : M in Ms ];
+/* Get F-basis of fixed field over F */
 B := [ &+[ b[i + 1]*L.1^i : i in [0..(dL - 1)] ] : b in Basis(Ker) ];
+/* Subfield automatically creates K as extension of F */
 K := sub< L | B >;
-return MakeExtension(K, F);
+return K;
 
 end intrinsic;
 
 
 intrinsic GeneralFixedField(L::Fld, gens::SeqEnum) -> Fld
-{Fixed subfield of L determined by the automorphisms in gens.}
+{Returns the fixed subfield of L under the automorphisms in gens, considered as
+a field over the base ring of L.}
 
+/* TODO: This seems to have been fixed (pun not intended, darn) */
+return FixedField(L, gens);
 if HasBaseQQ(L) then
-    return MakeExtension(FixedField(L, gens), Rationals());
+    return FixedField(L, gens), Rationals();
 else
-    return MakeExtension(RelativeFixedField(L, gens), BaseRing(L));
+    return RelativeFixedField(L, gens), BaseRing(L);
 end if;
 
 end intrinsic;

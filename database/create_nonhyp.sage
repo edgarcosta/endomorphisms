@@ -35,7 +35,7 @@ def step(line):
         pol_list = eval(linesplit[f_index].replace('^', '**'))
         f = R(pol_list[0])
         X = mPlaneCurve(f)
-        Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
+        Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
         Lat_str = Endo.lattice()._desc_
         return repr(Lat_str).replace('\n', '').replace(' ', '')
     except:

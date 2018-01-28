@@ -47,7 +47,7 @@ For faster calculations of period matrices, you can install the new package
 ```
 https://github.com/pascalmolin/hcperiods
 ```
-In the examples you can then set the flag `have_oldenburg` to `True`. This will make the code run considerably faster, as well as making it more stable.
+In the examples you can then set the flag `molin_neurohr` to `True`. This will make the code run considerably faster, as well as making it more stable.
 
 More information
 ----------------

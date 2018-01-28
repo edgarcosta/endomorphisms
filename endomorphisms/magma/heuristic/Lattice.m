@@ -25,7 +25,7 @@ end if;
 end function;
 
 
-intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum, F::Fld : VarName := "s") -> List
+intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum, F::Fld) -> List
 {Returns the lattice of endomorphisms by (conjugacy class of) subfield.}
 
 F_seq := FieldDescription(F, BaseRing(F));
@@ -33,7 +33,7 @@ base := [* F_seq, F *];
 
 L := BaseRing(GeoEndoRep[1][1][1]);
 if (not IsRelativeExtension(L, F)) then
-    entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F : VarName := VarName);
+    entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
     entries := [ entry ];
     return [* base, entries *];
 end if;
@@ -42,11 +42,11 @@ Gp, Gf, Gphi := AutomorphismGroup(L);
 Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
 Sort(~Hs, CompareGroups);
 
-entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F : VarName := VarName);
+entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
 entries := [ entry ];
 for H in Hs[2..#Hs] do
     gensH := Generators(H); GalK := [* gensH, Gphi *];
-    entry := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand, F : VarName := VarName);
+    entry := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand, F);
     Append(~entries, entry);
 end for;
 return [* base, entries *];
@@ -54,8 +54,8 @@ return [* base, entries *];
 end intrinsic;
 
 
-intrinsic EndomorphismLatticeGeometricStep(GeoEndoRep::SeqEnum, F::Fld : VarName := "s") -> List
-{Part of the above.}
+intrinsic EndomorphismLatticeGeometricStep(GeoEndoRep::SeqEnum, F::Fld) -> List
+{Returns the geometric entry of the endomorphism lattice.}
 
 entry := [* *];
 
@@ -76,7 +76,7 @@ return entry, Shorthand;
 end intrinsic;
 
 
-intrinsic EndomorphismLatticeGeneralStep(GeoEndoRep::SeqEnum, GalK::List, Shorthand::MonStgElt, F::Fld : VarName := "s") -> List
+intrinsic EndomorphismLatticeGeneralStep(GeoEndoRep::SeqEnum, GalK::List, Shorthand::MonStgElt, F::Fld) -> List
 {Part of the above.}
 
 entry := [* *];

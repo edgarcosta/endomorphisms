@@ -29,7 +29,7 @@ with open(inputfile) as inputstream:
                 pol_list = eval(linesplit[fh_index].replace('^', '**'))
                 f = R(pol_list[0])
                 X = mPlaneCurve(f)
-                Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
+                Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
                 test = Endo.verify()
                 if not test:
                     print 'False'

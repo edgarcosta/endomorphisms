@@ -30,7 +30,7 @@ with open(inputfile) as inputstream:
                 f = R(pol_list[0])
                 h = R(pol_list[1])
                 X = HyperellipticCurve(f, h)
-                Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
+                Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
                 Dec = Endo.decomposition()
                 facs = Dec.factors()
                 idems = Dec.idempotents()

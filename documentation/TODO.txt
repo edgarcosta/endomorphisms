@@ -19,3 +19,7 @@ Divisor.m: get rid of Weierstrass condition (possible on one factor, on both if 
 Divisor.m: get rid of Weierstrass echelonization since it should not be needed
 
 Divisor.m: automatically scale equations to ge a rational non-Weierstrass point
+
+Debugging: Sato-Tate bug in CR's examples, understand rank 3 phenomenon in DS's example
+
+Add: symplectic homomorphism and general idempotents for splitting, degrees of morphisms to elliptic curves via polarizations

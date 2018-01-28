@@ -11,8 +11,11 @@
 
 
 intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, GalK::List, F::Fld) -> List
-{Gives the endomorphism structure over the subfield corresponding to GalK, starting from a list of representations.}
+{Given a representation of the geometric endomorphism ring, a Galois group
+GalK, and a base field F, returns the endomorphism structure over the subfield
+corresponding to GalK.}
 
+/* Called Base because it is the version without Sato-Tate */
 EndoRep := EndomorphismRepresentation(GeoEndoRep, GalK, F);
 EndoAlg, EndoDesc := EndomorphismAlgebraAndDescriptionBase(EndoRep);
 EndoStructBase := [* EndoRep, EndoAlg, EndoDesc *];
@@ -22,8 +25,10 @@ end intrinsic;
 
 
 intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, K::Fld, F::Fld) -> List
-{Gives the endomorphism structure over the subfield K, starting from a list of representations.}
+{Given a representation of the geometric endomorphism ring, a field K, and a
+base field F, returns the endomorphism structure over K.}
 
+/* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
 GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
 return EndomorphismStructureBase(GeoEndoRep, GalK, F);
@@ -32,8 +37,12 @@ end intrinsic;
 
 
 intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> List
-{Gives the endomorphism structure over the subfield corresponding to GalK, starting from a list of representations.}
+{Given a representation of the geometric endomorphism ring, a Galois group
+GalK, and a base field F, returns the endomorphism structure over the subfield
+corresponding to GalK. Also calculates Sato-Tate group from Shorthand
+representing the geometric endomorphism ring tensored with RR.}
 
+/* Adds Sato-Tate */
 EndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalK, F);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoStructBase);
 SatoTate := SatoTateGroup(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
@@ -45,27 +54,32 @@ end intrinsic;
 
 
 intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, K::Fld, F::Fld : Shorthand := "") -> List
-{Gives the endomorphism structure over the subfield K, starting from a list of representations.}
+{Given a representation of the geometric endomorphism ring, a field K, and a
+base field F, returns the endomorphism structure over K. Also calculates
+Sato-Tate group from Shorthand representing the geometric endomorphism
+ring tensored with RR.}
 
+/* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
 GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
-return EndomorphismStructure(GeoEndoRep, GalK, F);
+return EndomorphismStructure(GeoEndoRep, GalK, F : Shorthand := Shorthand);
 
 end intrinsic;
 
 
 intrinsic EndomorphismAlgebraAndDescriptionBase(EndoRep::SeqEnum) -> List
-{Gives the endomorphism structure, starting from a list of representations.}
+{Given a representation EndoRep of an endomorphism ring, returns a description
+of the corresponding algebra, ring, and algebra tensored with RR.}
 
 gensHom := [ gen[2] : gen in EndoRep ];
-// Creation of relevant algebras
+/* Creation of relevant algebras */
 g := #Rows(gensHom[1]) div 2;
-// Ambient matrix algebra, plus generators of the endomorphism ring
+/* Ambient matrix algebra, plus generators of the endomorphism ring */
 A := Algebra(MatrixRing(Rationals(), 2*g));
 GensA := [ A ! Eltseq(genHom) : genHom in gensHom ];
-// As a subalgebra
+/* As a subalgebra */
 B := sub<A | GensA>; GensB := [ B ! gen : gen in GensA ];
-// As an associative algebra
+/* As an associative algebra */
 C := AssociativeAlgebra(B); GensC := [ C ! gen : gen in GensB ];
 
 EndoAlg := [* *]; EndoDesc := [* *];
@@ -81,10 +95,11 @@ end intrinsic;
 
 
 intrinsic EndomorphismAlgebraQQBase(C::AlgAss : Optimize := true) -> .
-{Decribes the factors of endomorphism algebra.}
-// NOTE: Set Optimize to false if this ever becomes a problem (very unlikely)
+{Given an associative algebra C, returns a description of it. If Optimize is
+set to true, as it is by default, then the base ring of this algebra is
+simplified.}
 
-// Central decomposition
+/* Central decomposition */
 Ds := DirectSumDecomposition(C);
 EndoDescQQ := [* *];
 for D in Ds do
@@ -102,12 +117,12 @@ for D in Ds do
 
     test, d := IsSquare(Dimension(E2));
     if IsTotallyReal(F) then
-        /* FIXME: This may not be the most logical case distinction */
+        /* TODO: This may not be the most logical case distinction */
         if d eq 1 then
             DescFactorQQ := [* "I", FDesc, d, 1 *];
 
         elif d eq 2 then
-            /* FIXME: Depends on genus <= 3 */
+            /* TODO: Depends on genus <= 3 */
             test, Q := IsQuaternionAlgebra(E2);
             DQFin := Discriminant(Q); NDQ := Integers() ! Norm(DQFin);
             if NDQ eq 1 then
@@ -119,11 +134,11 @@ for D in Ds do
             end if;
 
         elif d eq 3 then
-            /* FIXME: Depends on genus <= 3 */
+            /* TODO: Depends on genus <= 3 */
             DescFactorQQ := [* "I", FDesc, d, 1 *];
 
         else
-            /* FIXME: We do not know what happens otherwise, even when using the
+            /* TODO: We do not know what happens otherwise, even when using the
              * extended Albert classification that I have applied. Testing for
              * a matrix ring can be done with
              *     Norm(Discriminant(MaximalOrder(E2)));
@@ -142,7 +157,7 @@ for D in Ds do
             DQFin := Discriminant(Q); NDQ := Norm(DQFin);
             DescFactorQQ := [* "IV", FDesc, d, NDQ *];
         elif d eq 3 then
-            /* FIXME: Depends on genus <= 3 */
+            /* TODO: Depends on genus <= 3 */
             DescFactorQQ := [* "IV", FDesc, d, 1 *];
         else
             DescFactorQQ := [* "IV", FDesc, d, -1 *];
@@ -158,7 +173,8 @@ end intrinsic;
 
 
 intrinsic EndomorphismAlgebraRRBase(C::AlgAss, EndoDescQQ::List) -> .
-{Decribes the factors of endomorphism algebra tensored with RR.}
+{Given an associative algebra C and its description over QQ, returns a
+description of the algebra tensored with RR.}
 
 EndoDescRR := [ ];
 for DescFactorQQ in EndoDescQQ do
@@ -194,14 +210,15 @@ end intrinsic;
 
 
 intrinsic EndomorphismAlgebraZZBase(C::AlgAss, GensC::SeqEnum : Optimize := true) -> .
-{Describes of the endomorphism ring.}
+{Given an associative algebra C and generators GensC of an order in it, returns
+a description of said order.}
 
-// Calculating index
+/* Calculating index */
 OC := Order(Integers(), GensC);
 DOC := Discriminant(OC); DOM := Discriminant(MaximalOrder(C));
 test, ind := IsSquare(DOC / DOM);
 
-// Test whether Eichler in a quaternion algebra
+/* Test whether the order is Eichler in a quaternion algebra */
 Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
@@ -234,8 +251,11 @@ return GensC, [ Integers() ! ind, -1 ];
 end intrinsic;
 
 
+/* The following two functions are not essential */
+
 intrinsic HasGenerator(EndoStruct::List : B := 1) -> BoolElt, .
-{Determines whether a single generator for the endomorphism ring exists, and returns it if it does.}
+{Determines whether a single generator for the endomorphism ring exists, and
+returns it if it does.}
 
 g := #Rows(EndoStruct[1][1][1]);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
@@ -265,7 +285,8 @@ end intrinsic;
 
 
 intrinsic FewGenerators(EndoStruct::List) -> SeqEnum
-{Determines a small generating set.}
+{Returns a small generating set of the endomorphism ring corresponding to
+EndoStruct.}
 
 g := #Rows(EndoStruct[1][1][1]);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);

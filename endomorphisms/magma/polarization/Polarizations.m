@@ -90,19 +90,19 @@ end intrinsic;
 intrinsic FindPolarizationBasis(P::.) -> .
 {Determines a basis of the alternating forms giving rise to a polarization on the period matrix P.}
 
-JP :=ComplexStructure(P); RR := BaseRing(JP);
+JP := ComplexStructure(P); RR := BaseRing(JP);
 gP := #Rows(JP) div 2; n := 4 * gP^2;
 
 /* Building a formal matrix corresponding to all possible polarisations */
 R := PolynomialRing(RR, n); vars := GeneratorsSequence(R);
-M := Matrix(R, 2 * gP, 2 *gP, vars);
+M := Matrix(R, 2 * gP, 2 * gP, vars);
 JP_R := ChangeRing(JP, R);
 
 /* Conditions that ensure that E(ix,iy) = E(x,y) and that E is antisymmetric */
 Comm := Eltseq(JP_R * M * Transpose(JP_R) - M) cat Eltseq(M + Transpose(M));
 
 /* Splitting previous linear equations by formal variable */
-M :=  Matrix(RR, [ [MonomialCoefficient(c, var) : c in Comm] :var in vars ]);
+M :=  Matrix(RR, [ [ MonomialCoefficient(c, var) : c in Comm ] : var in vars ]);
 Ker := IntegralLeftKernel(M);
 
 /* Culling the correct polarizations using the conditions on E */
@@ -110,9 +110,9 @@ RR:=BaseRing(JP); Pols := [];
 for r in Rows(Ker) do
     alpha := Matrix(Rationals(), 2*gP, 2*gP, Eltseq(r));
     /* Culling the correct polarizations using the conditions on E */
-    Comm := JP*alpha*Transpose(JP) - alpha;
-    Comm2 := alpha + Transpose(alpha);
-    if &and([Abs(c) lt RR`epscomp : c in Eltseq(Comm)]) then
+    Comm1 := JP * alpha * Transpose(JP) - alpha;
+    if &and([Abs(c) lt RR`epscomp : c in Eltseq(Comm1)]) then
+        Comm2 := alpha + Transpose(alpha);
         if &and([Abs(c) lt RR`epscomp : c in Eltseq(Comm2)]) then
             Append(~Pols, alpha);
         end if;
