@@ -155,7 +155,7 @@ gensPol, test := RelativeMinimalPolynomials(gensPart, F : UpperBound := UpperBou
 if not test then
     error "No suitable minimal polynomial found";
 end if;
-L := RelativeSplittingField(gensPol);
+L := RelativeSplittingFieldExtra(gensPol);
 gens := [ ];
 for gen in gensPart do
     genApp, genHom := Explode(gen);

@@ -199,13 +199,13 @@ AM := Matrix(M, [ [ M ! c : c in Eltseq(row) ] : row in Rows(AL) ]);
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";
 elif Genus(Y) eq 1 then
-    test, fs := CantorFromMatrixAmbientSplit(XM, PM, YM, QM, AM : UpperBound := 50);
+    test, fs := CantorFromMatrixAmbientSplit(XM, PM, YM, QM, AM);
     if test and (not CorrespondenceVerifyG1(XM, PM, YM, QM, AM, fs)) then
         error "Pullback incorrect";
     end if;
     return test, fs;
 else
-    return DivisorFromMatrixAmbientSplit(XM, PM, YM, QM, AM : UpperBound := 50);
+    return DivisorFromMatrixAmbientSplit(XM, PM, YM, QM, AM);
 end if;
 
 end intrinsic;
@@ -225,7 +225,7 @@ if not R ! Numerator(K ! Evaluate(R ! fY, fs)) in IX then
     return false;
 end if;
 
-/* Only use if the degree is small
+/* Only use if the degree is small, if at all
 AX := AffinePatch(X, 1); AY := AffinePatch(Y, 1);
 KX := FunctionField(AX); KY := FunctionField(AY);
 m := map<AX -> AY | fs >;

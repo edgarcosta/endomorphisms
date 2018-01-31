@@ -14,32 +14,13 @@ intrinsic TestEllipticFactor(X::Crv, E::Crv) -> BoolElt
 {Given a curve X and an elliptic curve E, determines whether E is a factor of
 the Jacobian of X. Returns a map from X to E if this is the case.}
 
-if Type(X) eq CrvHyp then
-    return TestEllipticFactorHyperelliptic(X, E);
-elif Type(X) eq CrvPln then
-    return TestEllipticFactorPlane(X, E);
-else
-    error "Not implemented for general curves yet";
-end if;
-
-/* Do this well; there should be no need to force a rational base point, which
- * is only good for endomorphisms at any rate. So perhaps we do not need a
- * distinction. It also helps for debugging purposes. Of course the elliptic
- * factor will have a base point. */
-/* The sole remaining complication is the field of definition of the map on
- * differentials itself. The flow should be to determine a field for E, take a
- * compositum (one of the fields being normal) and extending the infinite
- * place, then have the algorithms roll and extend by themselves. This too will
- * be good to write down the API. */
-/* Consider triple extension issue at same time */
+return 0;
 
 end intrinsic;
 
 
-intrinsic TestEllipticCMFactor(X::Crv, D::RngIntElt : prec := 1000) -> BoolElt
-{Given a curve X and a discriminant D, determines whether the CM isogeny class
-of discriminant D is a factor of the Jacobian of X. Returns a map from X to a
-corresponding elliptic curve if this is the case.}
+intrinsic EllipticCMCurve(D::RngIntElt : prec := 1000) -> BoolElt
+{Determines principal curve with CM by D.}
 
 CC := ComplexFieldExtra(prec); RR := RealField(CC);
 CCLarge := ComplexFieldExtra(prec + 100);
@@ -48,16 +29,62 @@ if D mod 4 ne 0 then
 else
     tau := Sqrt(CCLarge ! D)/2;
 end if;
-Q := [ CC ! 1, CC ! tau ];
-
-/* TODO: Use this with Shimura or Weber */
-g4CC := Eisenstein(4, Q);
-g6CC := Eisenstein(6, Q);
+jCC := CC ! jInvariant(tau);
 
 QQ := RationalsExtra();
-print RelativeMinimalPolynomial(g4CC, QQ);
-print RelativeMinimalPolynomial(g6CC, QQ);
+p := RelativeMinimalPolynomial(jCC, QQ);
+R<t> := PolynomialRing(QQ);
+if Degree(p) eq 1 then
+    K := RationalsExtra();
+    j := Roots(p, K)[1][1];
+else
+    K<r> := NumberFieldExtra(p);
+    j := K.1;
+end if;
 
-return 0;
+E := EllipticCurveFromjInvariant(j); E := WeierstrassModel(E);
+cs := Coefficients(E); a := cs[4]; b := cs[5];
+da := Denominator(a); db := Denominator(b);
+Fa := Factorization(da); Fb := Factorization(db);
+psa := [ tup[1] : tup in Fa ]; psb := [ tup[1] : tup in Fb ];
+ps := Set(psa cat psb);
+lambda := &*[ p^(Maximum(Ceiling(Valuation(da, p)/2), Ceiling(Valuation(da, p)/3))) : p in ps ];
+a *:= lambda^2; b *:= lambda^3;
+R<x> := PolynomialRing(K);
+f := x^3 + a*x + b;
+E := HyperellipticCurve(f);
+return E;
+
+end intrinsic;
+
+
+intrinsic MorphismOfSmallDegree(P::., Q::., F::. : Bound := 10) -> .
+{Wat it sez on the tin}
+
+g := #Rows(P);
+HomRep := GeometricHomomorphismRepresentation(P, Q, F);
+Rs := [ rep[2] : rep in HomRep ];
+
+D := [-Bound..Bound];
+M1 := ChangeRing(StandardSymplecticMatrix(1), Rationals());
+Mg := ChangeRing(StandardSymplecticMatrix(g), Rationals());
+CP := CartesianPower(D, #Rs);
+d0 := Infinity();
+for tup in CP do
+    R := &+[ tup[i] * Rs[i] : i in [1..#Rs] ];
+    C := R*Mg*Transpose(R)*M1^(-1);
+    test := IsScalar(C);
+    d := Abs(C[1,1]);
+    if (not IsZero(R)) and d lt d0 then
+        d0 := d;
+        tup0 := tup;
+    end if;
+end for;
+
+A0 := &+[ tup0[i]*HomRep[i][1] : i in [1..#HomRep] ];
+R0 := &+[ tup0[i]*HomRep[i][2] : i in [1..#HomRep] ];
+ACC0 := &+[ tup0[i]*HomRep[i][3] : i in [1..#HomRep] ];
+gen0 := [* A0, R0, ACC0 *];
+return gen0, d0;
 
 end intrinsic;
