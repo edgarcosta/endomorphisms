@@ -88,3 +88,34 @@ gen0 := [* A0, R0, ACC0 *];
 return gen0, d0;
 
 end intrinsic;
+
+
+intrinsic MorphismOfSmallDegreePartial(P::., Q::. : Bound := 10) -> .
+{Wat it sez on the tin}
+
+g := #Rows(P);
+HomRep := GeometricHomomorphismRepresentationPartial(P, Q);
+Rs := [ rep[2] : rep in HomRep ];
+
+D := [-Bound..Bound];
+M1 := ChangeRing(StandardSymplecticMatrix(1), Rationals());
+Mg := ChangeRing(StandardSymplecticMatrix(g), Rationals());
+CP := CartesianPower(D, #Rs);
+d0 := Infinity();
+for tup in CP do
+    R := &+[ tup[i] * Rs[i] : i in [1..#Rs] ];
+    C := R*Mg*Transpose(R)*M1^(-1);
+    test := IsScalar(C);
+    d := Abs(C[1,1]);
+    if (not IsZero(R)) and d lt d0 then
+        d0 := d;
+        tup0 := tup;
+    end if;
+end for;
+
+ACC0 := &+[ tup0[i]*HomRep[i][1] : i in [1..#HomRep] ];
+R0 := &+[ tup0[i]*HomRep[i][2] : i in [1..#HomRep] ];
+gen0 := [* ACC0, R0 *];
+return gen0, d0;
+
+end intrinsic;
