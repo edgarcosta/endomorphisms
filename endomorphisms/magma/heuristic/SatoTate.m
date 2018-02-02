@@ -17,8 +17,7 @@ Shorthand, a description of the geometric endomorphism algebra tensored with RR
 can be passed.}
 
 g := #Rows(EndoStructBase[1][1][1]);
-F := Parent(EndoStructBase[1][1][1][1,1]);
-if g eq 2 and HasBaseQQ(F) then
+if g eq 2 then
     return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
 else
     // TODO: Add other cases when they appear.
