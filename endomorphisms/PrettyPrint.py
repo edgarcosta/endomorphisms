@@ -9,7 +9,7 @@
  *  See LICENSE.txt for license details.
 """
 
-from sage.all import magma, QQ, PolynomialRing, NumberField
+from sage.all import magma, QQ, PolynomialRing, NumberField, squarefree_part
 from Dictionaries import index_dictionary
 
 def pretty_print_over_field_description(struct, g):
@@ -66,7 +66,7 @@ def pretty_print_field(field, base, str_field = 'F'):
         if len(field) == 3:
             c, b, a = field
             D = b**2 - 4*a*c
-            return '%s (sqrt(%s))' % (str_field, D.squarefree_part())
+            return '%s (sqrt(%s))' % (str_field, squarefree_part(D))
     if len(field) == 2:
         return '%s' % str_field
     return '%s [x] / (%s)' % (str_field, pretty_print_polynomial_list(field, base))

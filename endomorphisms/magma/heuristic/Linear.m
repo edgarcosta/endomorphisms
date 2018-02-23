@@ -122,7 +122,20 @@ RR := BaseRing(M);
 MI := IdentityMatrix(RR, #Rows(M));
 MJ := HorizontalJoin(MI, (1 / RR`epsLLL) * M);
 L, K := LLL(MJ);
-return K;
+rowsK := Rows(K); rowsK0 := [ ];
+for row in rowsK do
+    prod := Matrix(RR, [ Eltseq(row) ])*M;
+    test := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
+    test := true;
+    if test then
+        Append(~rowsK0, row);
+    end if;
+end for;
+if #rowsK0 eq 0 then
+    return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+else
+    return Matrix(rowsK0), true;
+end if;
 
 end intrinsic;
 
@@ -130,7 +143,8 @@ end intrinsic;
 intrinsic IntegralRightKernel(M::.) -> .
 {Returns simultaneous integral cancellations of all the columns of M.}
 
-return Transpose(IntegralLeftKernel(Transpose(M)));
+K, test := IntegralLeftKernel(Transpose(M));
+return Transpose(K), test;
 
 end intrinsic;
 

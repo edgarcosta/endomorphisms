@@ -31,7 +31,7 @@ if #GeneratorsSequence(RCC) eq 1 then
         // avoid an undefined reference 'SE_Curve'
         // eventhough, we would never call it
         SE_Curve := function(x, y : z := 0)
-          return true;
+            return true;
         end function;
         //end of hack
         JCC := AnalyticJacobian(gCC);
@@ -49,7 +49,8 @@ elif #GeneratorsSequence(RCC) eq 3 then
     end if;
     test, fCC, e := IsSuperelliptic(eqsCC);
     if test then
-        P := ChangeRing(PeriodMatrix(fCC, e : Prec := Precision(CC)), CC);
+        X := SE_Curve(fCC, 3 : Prec := Precision(CC));
+        P := X`BigPeriodMatrix;
         return SuperellipticCompatibility(P, e);
     else
         F := Explode(eqsK);

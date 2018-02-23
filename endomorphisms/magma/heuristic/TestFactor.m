@@ -90,29 +90,34 @@ return gen0, d0;
 end intrinsic;
 
 
-intrinsic MorphismOfSmallDegreePartial(P::., Q::. : Bound := 10) -> .
+intrinsic MorphismOfSmallDegreePartial(P1::., P2::. : Bound := 10) -> .
 {Wat it sez on the tin}
 
-g := #Rows(P);
-HomRep := GeometricHomomorphismRepresentationPartial(P, Q);
+g1 := #Rows(P1); g2 := #Rows(P2);
+HomRep := GeometricHomomorphismRepresentationPartial(P1, P2);
 Rs := [ rep[2] : rep in HomRep ];
 
 D := [-Bound..Bound];
-M1 := ChangeRing(StandardSymplecticMatrix(1), Rationals());
-Mg := ChangeRing(StandardSymplecticMatrix(g), Rationals());
+M1 := ChangeRing(StandardSymplecticMatrix(g1), Rationals());
+M2 := ChangeRing(StandardSymplecticMatrix(g2), Rationals());
 CP := CartesianPower(D, #Rs);
 d0 := Infinity();
 for tup in CP do
     R := &+[ tup[i] * Rs[i] : i in [1..#Rs] ];
-    C := R*Mg*Transpose(R)*M1^(-1);
+    C := R*M1*Transpose(R)*M2^(-1);
     test := IsScalar(C);
-    d := Abs(C[1,1]);
-    if (not IsZero(R)) and d lt d0 then
-        d0 := d;
-        tup0 := tup;
+    if test then
+        d := Abs(C[1,1]);
+        if (not IsZero(R)) and d lt d0 then
+            d0 := d;
+            tup0 := tup;
+        end if;
     end if;
 end for;
 
+if d0 eq Infinity() then
+    return 0, d0;
+end if;
 ACC0 := &+[ tup0[i]*HomRep[i][1] : i in [1..#HomRep] ];
 R0 := &+[ tup0[i]*HomRep[i][2] : i in [1..#HomRep] ];
 gen0 := [* ACC0, R0 *];

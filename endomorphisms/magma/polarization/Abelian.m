@@ -11,7 +11,7 @@
 intrinsic KerModKer0(h::., P::., Q::.) -> .
 {Returns the group of connected components of the kernel of the morphism h = (A, R) from P to Q.}
     A := h[1]; R := h[2];
-    L := Lattice(Transpose(R));
+    L := Lattice(R);
     return quo< PureLattice(L) | L >;
 end intrinsic;
 
@@ -29,7 +29,7 @@ intrinsic Ker0(h::., P::., Q::.) -> .
     K := Matrix(rowsK); K, s := SubmatrixOfRank(K, #B div 2 : ColumnsOrRows := "Columns");
     ihom := Matrix(Integers(), [ [ c : c in Eltseq(row) ] : row in B ]);
     /* TODO: See if there is a better way to do this */
-    itan := TangentRepresentationIsogeny(ihom, K, P);
+    itan := TangentRepresentation(ihom, K, P);
     return K, [* itan, ihom *];
 end intrinsic;
 
@@ -52,7 +52,7 @@ intrinsic Coker(h::., P::., Q::.) -> .
     phom := VerticalJoin(ZeroMatrix(Integers(), #B, #BC), IdentityMatrix(Integers(), #BC));
     phom := M^(-1)*phom;
     /* TODO: See if there is a better way to do this */
-    ptan := TangentRepresentationIsogeny(phom, Q, C);
+    ptan := TangentRepresentation(phom, Q, C);
     return C, [* ptan, phom *];
 end intrinsic;
 
@@ -62,8 +62,8 @@ intrinsic Img(h::., P::., Q::.) -> .
 
 C, proj := Coker(h, P, Q);
 if C eq 0 then
-    A := IdentityMatrix(BaseRing(Q), #Rows(Transpose(Q)));
-    R := IdentityMatrix(Integers(), #Rows(Q));
+    A := IdentityMatrix(BaseRing(Q), #Rows(Q));
+    R := IdentityMatrix(Integers(), #Rows(Transpose(Q)));
     return Q, [* A, R *];
 end if;
 return Ker0(proj, Q, C);

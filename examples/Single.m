@@ -5,7 +5,7 @@
 */
 
 AttachSpec("../endomorphisms/magma/spec");
-//SetVerbose("EndoFind", 1);
+SetVerbose("EndoFind", 1);
 
 F := QQ;
 R<x> := PolynomialRing(F);

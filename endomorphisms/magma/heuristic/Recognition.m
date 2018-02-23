@@ -19,6 +19,8 @@ fCC := EmbedAtInfinitePlace(f, RCC);
 tups := Roots(fCC);
 for tup in tups do
     rt := tup[1];
+    vprint EndoFind : "Absolute value:", RealField(5) ! Abs(a - rt);
+    vprint EndoFind : "Evaluation:", ComplexField(5) ! Evaluate(fCC, rt);
     if Abs(a - rt) le CC`epscomp then
         return true;
     end if;
@@ -56,27 +58,30 @@ while degf lt UpperBound do
 
     /* Split and take an IntegralLeftKernel */
     MSplit := HorizontalSplitMatrix(M);
-    Ker := IntegralLeftKernel(MSplit);
+    Ker, test_ker := IntegralLeftKernel(MSplit);
     /* NOTE: We only consider the first element for now */
-    for row in [ Rows(Ker) [1] ] do
-        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-        if test_height then
-            f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
-            if not Factor then
-                if TestCloseToRoot(f, a) then
-                    return f, true;
-                end if;
-            else
-                Fac := Factorization(f);
-                for tup in Fac do
-                    g := tup[1];
-                    if TestCloseToRoot(g, a) then
-                        return g, true;
+    if test_ker then
+        for row in [ Rows(Ker)[1] ] do
+            vprint EndoFind : "Row:", row;
+            test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+            if true then
+                f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
+                if not Factor then
+                    if TestCloseToRoot(f, a) then
+                        return f, true;
                     end if;
-                end for;
+                else
+                    Fac := Factorization(f);
+                    for tup in Fac do
+                        g := tup[1];
+                        if TestCloseToRoot(g, a) then
+                            return g, true;
+                        end if;
+                    end for;
+                end if;
             end if;
-        end if;
-    end for;
+        end for;
+    end if;
 end while;
 return 0, false;
 
@@ -108,11 +113,15 @@ intrinsic FractionalApproximation(a::FldComElt) -> FldRatElt
 
 CC := Parent(a); RR := RealField(CC);
 M := Matrix(RR, [ [ 1 ], [ -Real(a) ] ]);
-Ker := IntegralLeftKernel(M); q := Ker[1,1] / Ker[1,2];
+Ker, test_ker := IntegralLeftKernel(M);
+if not test_ker then
+    return Rationals() ! 0, false;
+end if;
+q := Ker[1,1] / Ker[1,2];
 if (RR ! Abs(q - a)) lt RR`epscomp then
     return q, true;
 else
-    return 0, false;
+    return Rationals() ! 0, false;
 end if;
 
 end intrinsic;
@@ -123,11 +132,15 @@ intrinsic FractionalApproximation(a::FldReElt) -> FldRatElt
 
 RR := Parent(a);
 M := Matrix(RR, [ [ 1 ], [ -a ] ]);
-K := IntegralLeftKernel(M); q := K[1,1] / K[1,2];
+K, test_ker := IntegralLeftKernel(M);
+if not test_ker then
+    return Rationals() ! 0, false;
+end if;
+q := K[1,1] / K[1,2];
 if (RR ! Abs(q - a)) lt RR`epscomp then
     return q, true;
 else
-    return 0, false;
+    return Rationals() ! 0, false;
 end if;
 
 end intrinsic;
@@ -171,23 +184,25 @@ M := Transpose(Matrix(CC, [ MLine ]));
 
 /* Split and take an IntegralLeftKernel */
 MSplit := HorizontalSplitMatrix(M);
-Ker := IntegralLeftKernel(MSplit);
+Ker, test_ker := IntegralLeftKernel(MSplit);
 /* NOTE: We only consider the first element for now */
-for row in [ Rows(Ker)[1] ] do
-    test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-    /* Do not use height test for now */
-    if true then
-        den := row[#Eltseq(row)];
-        if den ne 0 then
-            sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
-            /* ASD */
-            if (RR ! Abs(sCC - a)) lt RR`epscomp then
-                s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
-                return s, true;
+if test_ker then
+    for row in [ Rows(Ker)[1] ] do
+        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+        /* Do not use height test for now */
+        if true then
+            den := row[#Eltseq(row)];
+            if den ne 0 then
+                sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
+                /* ASD */
+                if (RR ! Abs(sCC - a)) lt RR`epscomp then
+                    s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
+                    return s, true;
+                end if;
             end if;
         end if;
-    end if;
-end for;
+    end for;
+end if;
 return 0, false;
 
 end intrinsic;

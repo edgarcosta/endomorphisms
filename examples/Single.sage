@@ -7,7 +7,7 @@ from endomorphisms import EndomorphismData, mHyperellipticCurve, mPlaneCurve
 F = QQ
 R.<x> = PolynomialRing(F)
 f, h = [x^4 + x^2, x^3 + 1]
-#f, h = [15*x^5 + 50*x^4 + 55*x^3 + 22*x^2 + 3*x, x]
+#f, h = [x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1, 0]
 X = mHyperellipticCurve(f, h)
 
 #R.<x,y,z> = PolynomialRing(F)

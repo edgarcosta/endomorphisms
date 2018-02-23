@@ -3,7 +3,7 @@ AttachSpec("../endomorphisms/magma/spec");
 //load "SquareCRDataInput.m";
 ListG2 := [ <-8,[50000,3750,-125]> ];
 
-prec := 500;
+prec := 200;
 CC := ComplexFieldExtra(prec);
 CCSmall := ComplexFieldExtra(5);
 F := RationalsExtra();

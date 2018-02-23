@@ -112,7 +112,10 @@ JP := ComplexStructure(P); JQ := ComplexStructure(Q);
 
 /* Determination of approximate endomorphisms by LLL */
 M := RationalHomomorphismEquations(JP, JQ);
-Ker := IntegralLeftKernel(M);
+Ker, test := IntegralLeftKernel(M);
+if not test then
+    return [ ];
+end if;
 
 /* Deciding which rows to keep */
 CC := BaseRing(P); RR := BaseRing(JP); gens := [ ];
