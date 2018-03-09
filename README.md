@@ -18,7 +18,7 @@ After that, a new package called `endomorphisms` will be available for import in
 
 The subdirectory `magma/` includes code that can be run purely within Magma. To include it in your run of Magma, go to this directory and type
 ```
-AttachSpec('spec');
+AttachSpec("spec");
 ```
 
 Usage
