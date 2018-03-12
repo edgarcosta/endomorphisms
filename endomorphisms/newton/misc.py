@@ -49,7 +49,7 @@ def convert_magma_matrix_to_sage(m, K):
     text = sub('\[\s+', '[', text)
     text = sub('\s+', ' ', text)
     text = '['+text.replace(' ',', ').replace('\n',', ')+']'
-    return Matrix(K, sage_eval(text, locals={'r': K.gen()}))
+    return Matrix(K, sage_eval(text, locals={'r': K.gens()}))
 
 def NF_series_embedding(series, numberfield_series, ithcomplex_embedding = 0, known_bits=None ):
     nf = numberfield_series.base_ring()

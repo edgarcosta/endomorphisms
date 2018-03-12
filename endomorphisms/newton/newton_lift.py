@@ -30,7 +30,7 @@ def trace_and_norm_ladic(L, M, P0, P1, P2, f, alpha, degree_bound, primes = 120,
     hard_bound = 2*degree_bound + 1
     soft_bound = hard_bound + 10;
     if verbose:
-        print "soft_bound = %d" % soft_bound
+        print "hard_bound = %d\nsoft_bound = %d" % (hard_bound,soft_bound)
         print "Generating split primes..."
         c, w = cputime(), walltime()
         ps_roots = random_split_primes(field = L, bits = bits, primes = primes, relative_ext = M.relative_polynomial());
