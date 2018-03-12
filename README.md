@@ -16,10 +16,15 @@ sage -pip install .
 ```
 After that, a new package called `endomorphisms` will be available for import in SageMath.
 
-The subdirectory `magma/` includes code that can be run purely within Magma. To include it in your run of Magma, go to this directory and type
-```
-AttachSpec("spec");
-```
+Magma standalone package
+----------------------
+
+The subdirectory `endomorphisms/magma/` includes code that can be run purely within Magma.
+You can load all the Magma specific files by attaching the ``endomorphisms/magma/spec`` file with ``AttachSpec``.
+For example, if you start your session of Magma inside the git directory, you can do this by typing
+ ```
+ AttachSpec("endomorphisms/magma/spec");
+ ```
 
 Usage
 -----
