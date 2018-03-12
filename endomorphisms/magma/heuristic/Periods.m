@@ -26,12 +26,21 @@ if #GeneratorsSequence(RCC) eq 1 then
         gCC := Explode(eqsCC);
     end if;
     if not MolinNeurohr then
+        // FIXME: there must be a better way to do this
+        // a very hacky way to fool the preparser and 
+        // avoid an undefined reference 'SE_Curve'
+        // eventhough, we would never call it
+        SE_Curve := function(x, y : z := 0)
+          return true;
+        end function;
+        //end of hack
         JCC := AnalyticJacobian(gCC);
         /* We divide by 2 because we integrate wrt x^i dx / 2y */
         return ChangeRing(BigPeriodMatrix(JCC), CC) / 2;
+    else
+        X := SE_Curve(gCC, 2 : Prec := Precision(CC));
+        return ChangeRing(X`BigPeriodMatrix, CC) / 2;
     end if;
-    X := SE_Curve(gCC, 2 : Prec := Precision(CC));
-    return ChangeRing(X`BigPeriodMatrix, CC) / 2;
     /* Alternative version: */
     //return ChangeRing(PeriodMatrix(gCC : Prec := Precision(CC)), CC) / 2;
 elif #GeneratorsSequence(RCC) eq 3 then
