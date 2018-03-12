@@ -12,7 +12,7 @@ h = 0
 X = mHyperellipticCurve(f, h)
 
 print X
-Endo = EndomorphismData(X, prec = 300, have_oldenburg = False)
+Endo = EndomorphismData(X, prec = 300, molin_neurohr = False)
 
 print "Field of definition:"
 print Endo.endomorphism_field()

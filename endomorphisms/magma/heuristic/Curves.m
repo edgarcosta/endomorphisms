@@ -10,48 +10,55 @@
  */
 
 
-intrinsic PlaneCurve(f::RngMPolElt) -> Crv
-{Returns the plane curve defined by f.}
+intrinsic PlaneCurve(F::RngMPolElt) -> Crv
+{Returns the plane curve defined by F.}
 
-R := Parent(f); gens := GeneratorsSequence(R);
+R := Parent(F); gens := GeneratorsSequence(R);
 if #gens eq 3 then
-    return Curve(Scheme(ProjectiveSpace(R), f));
+    return Curve(Scheme(ProjectiveSpace(R), F));
 end if;
-F := BaseRing(R); S := PolynomialRing(F, 3); x := S.1; y := S.2; z := S.3;
-fhom := S ! (z^(Degree(f)) * Evaluate(f, [ x/z, y/z ]));
-return Curve(Scheme(ProjectiveSpace(S), fhom));
+S := PolynomialRing(BaseRing(R), 3);
+x := S.1; y := S.2; z := S.3;
+Fhom := S ! (z^(Degree(F)) * Evaluate(F, [ x/z, y/z ]));
+return Curve(Scheme(ProjectiveSpace(S), Fhom));
 
 end intrinsic;
 
 
 intrinsic CurveType(X::Crv) -> MonStgElt
-{String that gives type.}
+{Returns a string that describes the type of curve that X belongs to, which is
+one of "hyperelliptic", "plane" and "general".}
 
 if Type(X) eq CrvHyp then
     return "hyperelliptic";
 elif Type(X) eq CrvPln then
     return "plane";
+else
+    return "general";
 end if;
 
 end intrinsic;
 
 
 intrinsic EmbedCurveEquations(X::Crv, prec::RngIntElt) -> MonStgElt
-{Gives equations of a curve as elements of CC.}
+{Returns the defining equations of X base changed to CC to precision prec,
+using the infinite place of the base ring of X.}
 
-if CurveType(X) eq "hyperelliptic" then
+if Type(X) eq CrvHyp then
     f, h := HyperellipticPolynomials(X);
     return EmbedAsComplexPolynomials([ f, h ], prec);
-elif CurveType(X) eq "plane" then
+elif Type(X) eq CrvPln then
     F := DefiningPolynomial(X);
     return EmbedAsComplexPolynomials([ F ], prec);
 end if;
+error "Function not available for general curves";
 
 end intrinsic;
 
 
 intrinsic ChangeRingCurve(X::Crv, phi::.) -> Crv
-{Changes base by a specific homomorphism.}
+{Returns X base changed by a morphism phi whose domain is the base ring of X.}
+/* ChangeRing needs automatic coercion... */
 
 if Type(X) eq CrvHyp then
     fK, hK := HyperellipticPolynomials(X);
@@ -74,5 +81,6 @@ elif Type(X) eq CrvPln then
     FL := &+[ phi(MonomialCoefficient(FK, mon))*Monomial(S, Exponents(mon)) : mon in Monomials(FK) ];
     return PlaneCurve(FL);
 end if;
+error "Function not available for general curves";
 
 end intrinsic;

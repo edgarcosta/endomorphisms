@@ -19,13 +19,13 @@ from Representations import *
 from sage.all import magma
 
 class EndomorphismData:
-    def __init__(self, X, prec, bound = 0, have_oldenburg = False, periods = ""):
+    def __init__(self, X, prec, bound = 0, molin_neurohr = False, periods = ""):
         self.X = X
         self.g = magma.Genus(self.X)
         self.F = magma.BaseRing(self.X)
         self.prec = magma(prec)
         self.bound = magma(bound)
-        self.have_oldenburg = magma(have_oldenburg)
+        self.molin_neurohr = magma(molin_neurohr)
         self._eqsCC_ = magma.EmbedCurveEquations(self.X, self.prec)
         self._eqsF_ = magma.DefiningEquations(self.X)
         if periods:
@@ -38,12 +38,12 @@ class EndomorphismData:
         return repr_endomorphism_data(self)
 
     def period_matrix(self):
-        self._P_ = magma.PeriodMatrix(self._eqsCC_, self._eqsF_, HaveOldenburg = self.have_oldenburg)
+        self._P_ = magma.PeriodMatrix(self._eqsCC_, self._eqsF_, MolinNeurohr = self.molin_neurohr)
         return self._P_
 
     def _calculate_geometric_representation_(self):
         _geo_rep_partial_ = magma.GeometricEndomorphismRepresentationPartial(self._P_)
-        _geo_rep_pol_ = magma.RelativeMinimalPolynomialsPartial(_geo_rep_partial_, self.F)
+        _geo_rep_pol_ = magma.RelativeMinimalPolynomials(_geo_rep_partial_, self.F)
         self._endo_fod_ = Relative_Splitting_Field_Extra(_geo_rep_pol_, bound = self.bound)
         self._geo_rep_list_ = magma.GeometricEndomorphismRepresentationRecognition(_geo_rep_partial_, self._endo_fod_)
         self._geo_rep_dict_ = dict_rep(self._geo_rep_list_)
@@ -295,10 +295,12 @@ class Decomposition:
         idems, self.field = magma.IdempotentsFromLattice(Endo._lat_._list_, nvals = 2)
         self._facs_ = [ ]
         for idem in idems:
+            # TODO: Transfer to a better field here if possible, using Optimize
+            # and polredabs
             fac = dict()
             fac['field'] = self.field
             fac['idem'] = dict_gen(idem)
-            lat, proj = magma.ProjectionFromIdempotentNew(self._P_, idem, nvals = 2)
+            lat, proj = magma.ProjectionFromIdempotent(self._P_, idem, nvals = 2)
             fac['proj'] = dict_gen(proj);
             fac['factor'] = { 'analytic': lat }
             self._facs_.append(fac)

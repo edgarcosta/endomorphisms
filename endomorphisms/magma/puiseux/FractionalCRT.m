@@ -148,10 +148,11 @@ end function;
 
 function ReduceRationalFunctionSplit(q, p, rt);
 
-FF := FiniteField(p); R_red := PolynomialRing(FF, Rank(Parent(q)));
+FF := FiniteField(p);
+R_red := PolynomialRing(FF, Rank(Parent(q))); K_red := FieldOfFractions(R_red);
 num_red := R_red ! ReducePolynomialSplit(Numerator(q), p, rt);
 den_red := R_red ! ReducePolynomialSplit(Denominator(q), p, rt);
-return num_red / den_red;
+return K_red ! (num_red / den_red);
 
 end function;
 

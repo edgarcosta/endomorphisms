@@ -11,7 +11,8 @@
 
 
 intrinsic NonWeierstrassBasePointHyperelliptic(X::Crv, K::Fld : Bound := 2^10) -> SeqEnum
-{Returns a non-Weierstrass point over a small extension of K.}
+{Given a curve X and a field K that is an extension of the base ring of X,
+returns a non-Weierstrass point on X over a small extension of K.}
 
 f, h := HyperellipticPolynomials(X);
 
@@ -167,15 +168,15 @@ if Type(X) eq CrvHyp then
     return NonWeierstrassBasePointHyperelliptic(X, K : Bound := Bound);
 elif Type(X) eq CrvPln then
     return NonWeierstrassBasePointPlane(X, K : Bound := Bound);
-else
-    error "Not implemented for general curves yet";
 end if;
+error "Not implemented for general curves yet";
 
 end intrinsic;
 
 
 intrinsic Correspondence(X::Crv, P::SeqEnum, Y::Crv, Q::SeqEnum, A::.) -> .
-{Gives certificate.}
+{Given curves X and Y with non-Weierstrass points P and Q respectively, finds a
+correspondence with tangent representation A if it exists.}
 
 /* Change everything to common extension: */
 KY := BaseRing(Y); KP := Parent(P[1]); KQ := Parent(Q[1]); KA := Parent(A[1,1]);
@@ -198,20 +199,21 @@ AM := Matrix(M, [ [ M ! c : c in Eltseq(row) ] : row in Rows(AL) ]);
 if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
     return true, "Scalar: OK";
 elif Genus(Y) eq 1 then
-    test, fs := CantorFromMatrixAmbientSplit(XM, PM, YM, QM, AM : UpperBound := 50);
+    test, fs := CantorFromMatrixAmbientSplit(XM, PM, YM, QM, AM);
     if test and (not CorrespondenceVerifyG1(XM, PM, YM, QM, AM, fs)) then
         error "Pullback incorrect";
     end if;
     return test, fs;
 else
-    return DivisorFromMatrixAmbientSplit(XM, PM, YM, QM, AM : UpperBound := 50);
+    return DivisorFromMatrixAmbientSplit(XM, PM, YM, QM, AM);
 end if;
 
 end intrinsic;
 
 
 intrinsic CorrespondenceVerifyG1(X::Crv, P::Pt, Y::Crv, Q::Pt, A::., fs::SeqEnum) -> .
-{Checks alleged properties of fs.}
+{Returns whether the morphism defined by fs indeed corresponds to the tangent
+representation A.}
 
 F := BaseRing(Parent(fs[1]));
 /* Check that the answer is a projection: */
@@ -223,7 +225,7 @@ if not R ! Numerator(K ! Evaluate(R ! fY, fs)) in IX then
     return false;
 end if;
 
-/*
+/* Only use if the degree is small, if at all
 AX := AffinePatch(X, 1); AY := AffinePatch(Y, 1);
 KX := FunctionField(AX); KY := FunctionField(AY);
 m := map<AX -> AY | fs >;

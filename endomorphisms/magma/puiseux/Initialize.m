@@ -11,7 +11,6 @@
 
 
 import "Branches.m": DevelopPoint;
-import "RiemannRoch.m": RRGenerators, GlobalGenerators;
 
 
 declare attributes Crv : is_hyperelliptic, is_planar, is_smooth, is_plane_quartic;
@@ -80,7 +79,7 @@ if X`g eq 1 then
     fX := X`DEs[1]; RA := X`RA; P0 := X`P0;
     // Prefer coordinate on PP^1:
     /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
-     * since evaluating x at (0, 0) can be 0 */
+     * since evaluating x at (0, 0) can be unequal to 0 */
     if Degree(fX, RA.2) eq 2 then
         if Evaluate(Derivative(fX, RA.2), Eltseq(P0)) ne 0 then
             return 1;
@@ -108,7 +107,7 @@ else
     // Here we do the usual test, without the preference of the elliptic case.
     fX := X`DEs[1]; RA := X`RA; P0 := X`P0;
     /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
-     * since evaluating x at (0, 0) can be 0 */
+     * since evaluating x at (0, 0) can be unequal to 0 */
     if Evaluate(Derivative(fX, RA.2), Eltseq(P0)) ne 0 then
         return 1;
     else

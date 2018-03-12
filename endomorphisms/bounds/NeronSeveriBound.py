@@ -41,7 +41,7 @@ def rank_from_endo(string_list):
     """
     string_list given by the following process:
     X = mHyperellipticCurve(f,g)
-    Endo = EndomorphismData(X, prec = 300, have_oldenburg = False)
+    Endo = EndomorphismData(X, prec = 300, molin_neurohr = False)
     overK = Endo.geometric()
     print overK._desc_[2]
     """

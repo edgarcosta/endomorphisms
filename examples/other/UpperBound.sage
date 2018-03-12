@@ -58,7 +58,7 @@ Curves.append(C)
 
 
 for c in Curves :
-	End = EndomorphismData(c,100,have_oldenburg=true)
+	End = EndomorphismData(c,100,molin_neurohr=true)
 	print c;
 	print "Numerically computed algebra:", End.geometric().algebra()
 	print "Upper bound on the Z-rank of End(Jac(C)) over QQbar:", CurveRankBound(c), "\n\n"

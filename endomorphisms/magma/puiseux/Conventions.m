@@ -35,7 +35,8 @@ function ExtractHomomorphismsRing(X, Y)
 RAX := X`RA; RAY := Y`RA;
 varord := VariableOrder();
 // TODO: Test other orderings
-RAXY := PolynomialRing(X`F, 4, "grevlex");
+//RAXY := PolynomialRing(X`F, 4, "lex");
+RAXY := PolynomialRing(X`F, 4);
 seqX := [ RAXY.varord[i] : i in [1..2] ];
 seqY := [ RAXY.varord[i] : i in [3..4] ];
 hX := hom< RAX -> RAXY | seqX >;
@@ -50,7 +51,8 @@ function ExtractHomomorphismsField(X, Y)
 KAX := X`KA; KAY := Y`KA;
 varord := VariableOrder();
 // TODO: Test other orderings
-RAXY := PolynomialRing(X`F, 4, "grevlex");
+//RAXY := PolynomialRing(X`F, 4, "lex");
+RAXY := PolynomialRing(X`F, 4);
 KAXY := FieldOfFractions(RAXY);
 seqX := [ KAXY.varord[i] : i in [1..2] ];
 seqY := [ KAXY.varord[i] : i in [3..4] ];

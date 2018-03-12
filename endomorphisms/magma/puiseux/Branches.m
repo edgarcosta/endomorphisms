@@ -269,8 +269,9 @@ e := PuiseuxRamificationIndex(M);
 P, Qs := InitializeLift(X, Y, M);
 IterateLift := CreateLiftIterator(X, Y, M);
 /* TODO: Determine exact bound needed here */
-for i:=1 to Ceiling(Log(2, n + e + 1)) do
+for i:=1 to Ceiling(Log(2, n + e + 1)) + 1 do
     P, Qs := IterateLift(P, Qs, n + e + 1);
+    //print Qs[1][1];
 end for;
 return P, Qs;
 

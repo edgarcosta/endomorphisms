@@ -10,11 +10,14 @@
  */
 
 intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
-{Determines Sato-Tate group by subgroup of Galois group.}
+{Given a description EndoStructBase of an endomorphism algebra, a
+representation GeoEndoRep of a geometric endomorphism algebra, a Galois group
+GalK, and a base field F, determines the corresponding Sato-Tate group. Via
+Shorthand, a description of the geometric endomorphism algebra tensored with RR
+can be passed.}
 
 g := #Rows(EndoStructBase[1][1][1]);
-F := Parent(EndoStructBase[1][1][1][1,1]);
-if g eq 2 and HasBaseQQ(F) then
+if g eq 2 then
     return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
 else
     // TODO: Add other cases when they appear.
@@ -25,8 +28,13 @@ end intrinsic;
 
 
 intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld, F::Fld : Shorthand := "") -> MonStgElt
-{Determines Sato-Tate group over K.}
+{Given a description EndoStructBase of an endomorphism algebra, a
+representation GeoEndoRep of a geometric endomorphism algebra, a field K, and a
+base field F, determines the corresponding Sato-Tate group. Via Shorthand, a
+description of the geometric endomorphism algebra tensored with RR can be
+passed.}
 
+/* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(EndoStructBase[1][1][1]);
 GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
 return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
@@ -35,7 +43,11 @@ end intrinsic;
 
 
 intrinsic SatoTateGroupG2QQ(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
-{Determines the Sato-Tate group in genus 2.}
+{Given a description EndoStructBase of an endomorphism algebra, a
+representation GeoEndoRep of a geometric endomorphism algebra, a Galois group
+GalK, and a base field F, determines the corresponding Sato-Tate group. Via
+Shorthand, a description of the geometric endomorphism algebra tensored with RR
+can be passed. Assumes that the genus equals 2.}
 
 GensH, Gphi := Explode(GalK);
 if #GensH eq 0 then
@@ -58,9 +70,9 @@ H := sub< Domain(Gphi) | GensH >;
 L := BaseRing(GeoEndoRep[1][1]);
 GalL := [* sub< Domain(Gphi) |  [ ] >, Gphi *];
 
-// First case: we are already over the geometric field.
-// It suffices to calculate the shorthand and we do not have to manipulate the
-// geometric representation.
+/* First case: we are already over the geometric field. It then suffices to
+ * calculate the shorthand and we do not have to manipulate the geometric
+ * representation. */
 if #H eq 1 then
     Shorthand := SatoTateShorthandG2(EndoStructBase);
     if Shorthand eq "A" then
@@ -78,7 +90,7 @@ if #H eq 1 then
     end if;
 end if;
 
-// Determine the Shorthand if needed:
+/* Determine the Shorthand if it was not passed */
 if Shorthand eq "" then
     GeoEndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalL, F);
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
@@ -86,8 +98,8 @@ end if;
 descRR := EndoStructBase[3][3];
 K := GeneralFixedField(L, [ Gphi(gen) : gen in GensH ]);
 
-// Usually the shorthand and endomorphism structure of the base field determine
-// everything; in the rare cases where they do not we recalculate a bit.
+/* Usually the shorthand and endomorphism structure of the base field determine
+ * everything; in the rare cases where they do not we recalculate a bit. */
 if Shorthand eq "A" then
     return "USp(4)";
 
@@ -122,7 +134,7 @@ elif Shorthand eq "D" then
 
 elif Shorthand eq "E" then
     if descRR eq ["RR"] then
-        // Magma being silly with DihedralGroup(2)...
+        /* Magma being silly with DihedralGroup(2)... */
         if IsIsomorphic(H, DirectProduct(CyclicGroup(2), CyclicGroup(2))) then
             return "J(E_2)";
         elif IsIsomorphic(H, DihedralGroup(3)) then
@@ -154,7 +166,7 @@ elif Shorthand eq "F" then
             return "D_{4,1}";
 
         elif IsIsomorphic(H, DihedralGroup(6)) then
-            // See Fité--Kedlaya--Rotger--Sutherland (4.3) for the next step
+            /* See Fité--Kedlaya--Rotger--Sutherland (4.3) for the next step */
             H_prime := Center(H);
             GensH_prime := Generators(H_prime);
             GalK_prime := [* GensH_prime, Gphi *];
@@ -196,7 +208,7 @@ elif Shorthand eq "F" then
             return "C_{4,1}";
 
         elif IsIsomorphic(H, CyclicGroup(6)) then
-            // Here we take the unique subgroup of order 2:
+            /* Here we take the unique subgroup of order 2 */
             H_prime := Subgroups(H : OrderEqual := 2)[1]`subgroup;
             GensH_prime := Generators(H_prime);
             GalK_prime := [* GensH_prime, Gphi *];
@@ -209,9 +221,9 @@ elif Shorthand eq "F" then
             end if;
 
         elif IsIsomorphic(H, DirectProduct(CyclicGroup(2), CyclicGroup(2))) then
-            // In this case it suffices to check whether the polynomial that
-            // defines the center of the geometric endomorphism ring in fact
-            // has a root in the ground field:
+            /* In this case it suffices to check whether the polynomial that
+             * defines the center of the geometric endomorphism ring in fact has
+             * a root in the ground field */
             f := DefiningPolynomial(L);
             if HasRoot(f, K) then
                 return "D_2";
@@ -254,13 +266,14 @@ elif Shorthand eq "F" then
         return "C_1";
     end if;
 end if;
-error Error("All cases in SatoTateGroupG2QQ fell through");
+error "All cases in SatoTateGroupG2QQ fell through";
 
 end intrinsic;
 
 
 intrinsic SatoTateShorthand(GeoEndoStructBase::List) -> MonStgElt
-{Finds the letter describing the neutral connected component of the Sato-Tate group.}
+{Returns the letter describing the neutral connected component of the Sato-Tate
+group corresponding to GeoEndoStructBase.}
 
 g := #Rows(GeoEndoStructBase[1][1][1]);
 if g eq 2 then
@@ -274,7 +287,8 @@ end intrinsic;
 
 
 intrinsic SatoTateShorthandG2(GeoEndoStructBase::List) -> MonStgElt
-{Finds the letter describing the neutral connected component of the Sato-Tate group.}
+{Returns the letter describing the neutral connected component of the Sato-Tate
+group corresponding to GeoEndoStructBase. Assumes that the genus equals 2.}
 
 descRR := GeoEndoStructBase[3][3];
 case descRR:
@@ -285,7 +299,7 @@ case descRR:
     when ["CC", "CC"]: return "D";
     when ["M_2 (RR)"]: return "E";
     when ["M_2 (CC)"]: return "F";
-    else: error Error("Shorthand algorithm obtains contradiction with classification");
+    else: error "Shorthand algorithm obtains contradiction with classification";
 end case;
 
 end intrinsic;

@@ -7,6 +7,7 @@ from endomorphisms import EndomorphismData, mHyperellipticCurve, mPlaneCurve
 F = QQ
 R.<x> = PolynomialRing(F)
 f, h = [x^4 + x^2, x^3 + 1]
+#f, h = [15*x^5 + 50*x^4 + 55*x^3 + 22*x^2 + 3*x, x]
 X = mHyperellipticCurve(f, h)
 
 #R.<x,y,z> = PolynomialRing(F)
@@ -18,7 +19,7 @@ X = mHyperellipticCurve(f, h)
 print ""
 print "Curve:"
 print X
-Endo = EndomorphismData(X, prec = 100, have_oldenburg = False)
+Endo = EndomorphismData(X, prec = 300, molin_neurohr = True)
 
 Dec = Endo.decomposition()
 facs = Dec.factors()

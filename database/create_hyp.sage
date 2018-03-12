@@ -37,7 +37,7 @@ def step(line):
         h = R(pol_list[1])
         X = HyperellipticCurve(f, h)
         # Regular version:
-        Endo = EndomorphismData(X, prec = prec, have_oldenburg = True)
+        Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
         Lat_str = Endo.lattice()._desc_
         return repr(Lat_str).replace('\n', '').replace(' ', '')
     except:

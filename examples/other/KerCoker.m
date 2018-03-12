@@ -17,18 +17,19 @@ eqsYF := DefiningEquations(Y);
 Q := PeriodMatrix(eqsYCC, eqsYF);
 
 P := ChangeRing(P, CC); Q := ChangeRing(Q, CC);
-GeoEndoRep := GeometricIsogenyRepresentationPartial(P, Q);
-print "Number of elements in isogeny basis:", #GeoEndoRep;
-A, R := Explode(GeoEndoRep[1]);
-A := Transpose(A); R := Transpose(R);
+GeoHomoRep := GeometricHomomorphismRepresentationPartial(P, Q);
+print "Number of elements in isogeny basis:", #GeoHomoRep;
+A, R := Explode(GeoHomoRep[1]);
 RCC := ChangeRing(R, CC);
-comm := P*A - RCC*Q;
+comm := A*P - Q*RCC;
 
 print "Test almost 0:";
 print Maximum([ Abs(c) : c in Eltseq(comm) ]);
 
 print "Rank of R:";
 print Rank(R);
+
+/* TODO: Change these algorithms (for Jeroen) */
 
 h := [* A, R *];
 print "Connected component group of kernel:";

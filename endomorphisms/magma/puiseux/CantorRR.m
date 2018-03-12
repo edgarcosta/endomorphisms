@@ -305,7 +305,6 @@ while true do
         Append(~vs, v);
     end for;
     vprintf EndoCheck : "done.\n";
-    print vs;
 
     vprintf EndoCheck : "Checking:\n";
     vprintf EndoCheck : "Step 1... ";

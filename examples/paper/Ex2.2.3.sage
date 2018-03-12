@@ -15,7 +15,7 @@ h = R(0)
 X = mHyperellipticCurve(f, h)
 
 print X
-Endo = EndomorphismData(X, prec = 100, have_oldenburg = False)
+Endo = EndomorphismData(X, prec = 100, molin_neurohr = False)
 
 print "Period matrix:"
 P = magma.Transpose(Endo._P_)

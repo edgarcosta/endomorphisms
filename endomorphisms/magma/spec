@@ -8,8 +8,11 @@
     Precision.m
     Relative.m
     Recognition.m
+    Optimize.m
+
     Curves.m
     Periods.m
+
     Linear.m
     Analytic.m
 
@@ -17,13 +20,13 @@
     Structure.m
     SatoTate.m
     Lattice.m
-    Optimize.m
-
     Sagify.m
+
     VerifySat.m
     VerifyCorr.m
     DecProjs.m
     DecFactors.m
+    TestFactor.m
   }
   polarization
   {
@@ -34,15 +37,15 @@
   }
   puiseux
   {
-    Bidegree.m
-    Branches.m
-    CantorAmbient.m
-    CantorRR.m
     Conventions.m
-    DivisorAmbient.m
-    DivisorRR.m
-    FractionalCRT.m
     Initialize.m
     RiemannRoch.m
+    FractionalCRT.m
+    Branches.m
+    CantorAmbient.m
+    DivisorAmbient.m
+    CantorRR.m
+    DivisorRR.m
+    Bidegree.m
   }
 }

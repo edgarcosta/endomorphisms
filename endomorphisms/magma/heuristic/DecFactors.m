@@ -11,9 +11,11 @@
 
 
 intrinsic FactorReconstruct(P::., Q::., A::., R::., K::Fld) -> Crv
-{Recovers algebraic expressions for the factors.}
+{Given period matrices P and Q, an analytic and homological representation A
+and R of a map between the corresponding Jacobians, and a field K, returns an
+algebraic expression for the factor corresponding to Q.}
 
-g := #Rows(Transpose(Q));
+g := #Rows(Q);
 if g eq 1 then
     return FactorReconstructG1(P, Q, A, R, K);
 elif g eq 2 then
@@ -26,7 +28,10 @@ end intrinsic;
 
 
 intrinsic FactorReconstructG1(P::., Q::., A::., R::., K::Fld) -> .
-{Reconstructs elliptic curve factor from a period lattice.}
+{Given period matrices P and Q, an analytic and homological representation A
+and R of a map between the corresponding Jacobians, and a field K, returns an
+algebraic expression for the factor corresponding to Q. Assumes that the genus
+of the curve corresponding to Q equals 1.}
 
 Q := Eltseq(Q); CC := Parent(Q[1]); RR := RealField(CC);
 if Im(Q[2]/Q[1]) lt 0 then
@@ -43,8 +48,12 @@ end intrinsic;
 
 
 intrinsic FactorReconstructG2(P::., Q::., A::., R::., K::Fld) -> .
-{Reconstructs genus 2 factor.}
+{Given period matrices P and Q, an analytic and homological representation A
+and R of a map between the corresponding Jacobians, and a field K, returns an
+algebraic expression for the factor corresponding to Q. Assumes that the genus
+of the curve corresponding to Q equals 2.}
 
+/* TODO: A lot of improvement needed! */
 return 0;
 CC := BaseRing(P); RCC<xCC> := PolynomialRing(CC);
 gY := #Rows(Transpose(Q));
@@ -75,14 +84,15 @@ end intrinsic;
 
 
 intrinsic TwistDifferentialBasis(X::., P::.) -> .
-{Twists the curve and differential basis as needed.}
+{Given a period matrix P and a curve X that represents P over CC, twists X so
+that it also represents P over the base field.}
 
 F := BaseRing(X);
 CC := BaseRing(P); RCC := PolynomialRing(CC);
 f, h := HyperellipticPolynomials(X);
 fCC := EmbedAtInfinitePlace(f, RCC); hCC := EmbedAtInfinitePlace(h, RCC);
-Q := PeriodMatrix([fCC, hCC] : HaveOldenburg:= true);
-GeoIsogRep := GeometricIsogenyRepresentationPartial(P, Q);
+Q := PeriodMatrix([fCC, hCC] : MolinNeurohr:= true);
+GeoIsogRep := GeometricHomomorphismRepresentationPartial(P, Q);
 A := GeoIsogRep[1][1];
 
 pols := [ RelativeMinimalPolynomial(c, F) : c in Eltseq(A) ];
@@ -101,8 +111,8 @@ g := 4*f + h^2; R<x> := Parent(g);
 num := WA[2,2]*x + WA[1,2]; den := WA[2,1]*x + WA[1,1];
 g := R ! (den^6 * Evaluate(g, num/den));
 gCC := EmbedAtInfinitePlace(g, RCC);
-Q := PeriodMatrix([ gCC, 0 ] : HaveOldenburg := true);
-GeoIsogRep := GeometricIsogenyRepresentationPartial(P, Q);
+Q := PeriodMatrix([ gCC, 0 ] : MolinNeurohr := true);
+GeoIsogRep := GeometricHomomorphismRepresentationPartial(P, Q);
 A := GeoIsogRep[1][1];
 
 d := AlgebraizeElementInRelativeField(A[1,1]^2, F);
@@ -112,7 +122,7 @@ end intrinsic;
 
 
 intrinsic FactorDescription(X::Crv, F::Fld) -> List
-{Describes factor by recursive list of strings and integers.}
+{Returns a string description of the curve X over the field F.}
 
 if Type(X) eq CrvHyp then
     return FactorDescriptionHyperelliptic(X, F);
@@ -126,7 +136,7 @@ end intrinsic;
 
 
 intrinsic FactorDescriptionHyperelliptic(X::CrvHyp, F::Fld) -> List
-{Describes factor by recursive list of strings and integers.}
+{Returns a string description of the curve X over the field F.}
 
 if Genus(X) eq 1 then
     desc := "ell";
@@ -153,7 +163,7 @@ end intrinsic;
 
 
 intrinsic FactorDescriptionPlane(X::CrvPln, F::Fld) -> List
-{Describes factor by recursive list of strings and integers.}
+{Returns a string description of the curve X over the field F.}
 
 desc := "pln";
 

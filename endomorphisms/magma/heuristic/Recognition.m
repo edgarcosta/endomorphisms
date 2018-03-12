@@ -10,106 +10,154 @@
  */
 
 
-intrinsic RelativeMinimalPolynomial(a::FldComElt, F::Fld) -> RngUPolElt
-{Determines a relative minimal polynomial of the element a with respect to the stored infinite place of F.}
+function TestCloseToRoot(f, a)
+/* Tests whether a is close to a root of f */
 
-// NOTE: This algorithm will always terminate, but the result may be nonsense
-// if the element is rather transcendent. There should be a better way to
-// terminate but for now I do not see how.
+CC := Parent(a);
+RCC := PolynomialRing(CC);
+fCC := EmbedAtInfinitePlace(f, RCC);
+tups := Roots(fCC);
+for tup in tups do
+    rt := tup[1];
+    if Abs(a - rt) le CC`epscomp then
+        return true;
+    end if;
+end for;
+return false;
+
+end function;
+
+
+intrinsic RelativeMinimalPolynomial(a::FldComElt, F::Fld : Factor := false, UpperBound := Infinity()) -> RngUPolElt
+{Returns a relative minimal polynomial of the complex number a with respect to
+the stored infinite place of F. If Factor is set to true (it is false by
+default), then factorizations are taken in some intermediate steps.}
 
 degF := Degree(F); R<x> := PolynomialRing(F);
 CC := Parent(a); RR := RealField(CC); prec := Precision(CC);
-RCC := PolynomialRing(CC);
 
-// NOTE: Here the height is a parameter to play with.
-height0 := 10;
-degf := 0; height := 1;
+/* The next line is slightly inefficient, but it is not a bottleneck. It takes
+ * the images in CC of a power basis of F over QQ. */
 powersgen := [ CC ! Evaluate(F.1^i, F`iota : Precision := prec) : i in [0..(degF - 1)] ];
 
-// Create first entry corresponding to constant term
-powera := CC ! 1;
+/* Create first entry corresponding to constant term */
 MLine := [ ];
+degf := 0;
+powera := CC ! 1;
 MLine cat:= [ powergen * powera : powergen in powersgen ];
 
-// Successively adding other entries to find relations
-while true do
-    // Increase height and number of possible relations
+/* Successively adding other entries to find relations */
+while degf lt UpperBound do
     degf +:= 1;
-    //height := height0*degf^3;
-    height *:= height0;
+    vprint EndoFind : "Trying degree", degf;
     powera *:= a;
     MLine cat:= [ powergen * powera : powergen in powersgen ];
     M := Transpose(Matrix(CC, [ MLine ]));
 
-    // Now split and take an IntegralLeftKernel
-    MSplit := SplitMatrix(M);
+    /* Split and take an IntegralLeftKernel */
+    MSplit := HorizontalSplitMatrix(M);
     Ker := IntegralLeftKernel(MSplit);
-    for row in Rows(Ker) do
-        // Height condition
-        if &and[ Abs(c) le height : c in Eltseq(row) ] then
+    /* NOTE: We only consider the first element for now */
+    for row in [ Rows(Ker) [1] ] do
+        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+        if test_height then
             f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
-            // Factor (to eliminate redundancy) and check
-            Fac := Factorization(f);
-            for tup in Fac do
-                g := tup[1];
-                gCC := EmbedAtInfinitePlace(g, RCC);
-                if RR ! Abs(Evaluate(gCC, a)) lt RR`epscomp then
-                    return g;
+            if not Factor then
+                if TestCloseToRoot(f, a) then
+                    return f, true;
                 end if;
-            end for;
+            else
+                Fac := Factorization(f);
+                for tup in Fac do
+                    g := tup[1];
+                    if TestCloseToRoot(g, a) then
+                        return g, true;
+                    end if;
+                end for;
+            end if;
         end if;
     end for;
 end while;
+return 0, false;
 
 end intrinsic;
 
 
-intrinsic RelativeMinimalPolynomialsPartial(gens::SeqEnum, F::Fld) -> SeqEnum
-{Polynomializes matrices.}
+intrinsic RelativeMinimalPolynomials(gens::SeqEnum, F::Fld : UpperBound := Infinity()) -> SeqEnum
+{Returns a relative minimal polynomials of the entries of the matrices gens
+with respect to the stored infinite place of F.}
 
+test := true;
 pols := [ ];
 for gen in gens do
-    pols_new := [ RelativeMinimalPolynomial(c, F) : c in Eltseq(gen[1]) ];
+    pols_new := [ ];
+    for c in Eltseq(gen[1]) do
+        pol_new, test_pol_new := RelativeMinimalPolynomial(c, F : UpperBound := UpperBound);
+        test and:= test_pol_new;
+        Append(~pols_new, pol_new);
+    end for;
     pols cat:= pols_new;
 end for;
-return pols;
+return pols, test;
 
 end intrinsic;
 
 
 intrinsic FractionalApproximation(a::FldComElt) -> FldRatElt
-{Fractional approximation of a complex number a.}
+{Returns a fractional approximation of the complex number a.}
 
 CC := Parent(a); RR := RealField(CC);
 M := Matrix(RR, [ [ 1 ], [ -Real(a) ] ]);
 Ker := IntegralLeftKernel(M); q := Ker[1,1] / Ker[1,2];
 if (RR ! Abs(q - a)) lt RR`epscomp then
-    return q;
+    return q, true;
 else
-    error Error("LLL not does return a sufficiently good fraction");
+    return 0, false;
 end if;
 
 end intrinsic;
 
 
 intrinsic FractionalApproximation(a::FldReElt) -> FldRatElt
-{Fractional approximation of a real number a.}
+{Returns a fractional approximation of the real number a.}
 
 RR := Parent(a);
 M := Matrix(RR, [ [ 1 ], [ -a ] ]);
 K := IntegralLeftKernel(M); q := K[1,1] / K[1,2];
 if (RR ! Abs(q - a)) lt RR`epscomp then
-    return q;
+    return q, true;
 else
-    error Error("LLL not does return a sufficiently good fraction");
+    return 0, false;
 end if;
 
 end intrinsic;
 
 
+intrinsic FractionalApproximationMatrix(A::.) -> .
+{Returns a fractional approximation of the matrix A.}
+
+test := true;
+rows_alg := [ ];
+for row in Rows(A) do
+    row_alg := [ ];
+    for c in Eltseq(row) do
+        q, test_q := FractionalApproximation(c);
+        test and:= test_q;
+        Append(~row_alg, q);
+    end for;
+    Append(~rows_alg, row_alg);
+end for;
+return Matrix(rows_alg), test;
+
+end intrinsic;
+
+
 intrinsic AlgebraizeElementInRelativeField(a::FldComElt, K::Fld) -> .
-{Finds an algebraic approximation of a as an element of K.}
-// TODO: This assumes that the extension is at most double.
+{Returns an approximation of the complex number a as an element of K. This
+assumes that K is at most a double extension of QQ.}
+
+/* An alternative, more stable way would be to find the corresponding roots in
+ * K and check which one does the trick. This would be much slower, however. */
 
 degK := Degree(K); R<x> := PolynomialRing(K);
 F := BaseField(K); degF := Degree(F);
@@ -121,29 +169,45 @@ powersgenF := [ CC ! Evaluate(F.1^i, F`iota : Precision := prec) : i in [0..(deg
 MLine := &cat[ [ powergenF * powergenK : powergenF in powersgenF ] : powergenK in powersgenK ] cat [-a];
 M := Transpose(Matrix(CC, [ MLine ]));
 
-/* TODO: Add height condition? */
-// Now split and take an IntegralLeftKernel
-MSplit := SplitMatrix(M);
+/* Split and take an IntegralLeftKernel */
+MSplit := HorizontalSplitMatrix(M);
 Ker := IntegralLeftKernel(MSplit);
-for row in Rows(Ker) do
-    den := row[#Eltseq(row)];
-    if den ne 0 then
-        sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
-        // Check correct to given precision
-        if (RR ! Abs(sCC - a)) lt RR`epscomp then
-            s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
-            return s;
+/* NOTE: We only consider the first element for now */
+for row in [ Rows(Ker)[1] ] do
+    test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+    /* Do not use height test for now */
+    if true then
+        den := row[#Eltseq(row)];
+        if den ne 0 then
+            sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
+            /* ASD */
+            if (RR ! Abs(sCC - a)) lt RR`epscomp then
+                s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
+                return s, true;
+            end if;
         end if;
     end if;
 end for;
-error Error("LLL fails to algebraize element in ambient");
+return 0, false;
 
 end intrinsic;
 
 
 intrinsic AlgebraizeMatrixInRelativeField(A::., K::Fld) -> AlgMatElt
-{Algebraizes a matrix.}
+{Returns approximations of the entries of A as elements of K. This assumes that
+K is at most a double extension of QQ.}
 
-return Matrix([ [ AlgebraizeElementInRelativeField(c, K) : c in Eltseq(row) ] : row in Rows(A) ]);
+test := true;
+rows_alg := [ ];
+for row in Rows(A) do
+    row_alg := [ ];
+    for c in Eltseq(row) do
+        alpha, test_alpha := AlgebraizeElementInRelativeField(c, K);
+        test and:= test_alpha;
+        Append(~row_alg, alpha);
+    end for;
+    Append(~rows_alg, row_alg);
+end for;
+return Matrix(rows_alg), test;
 
 end intrinsic;

@@ -14,8 +14,10 @@ import "Branches.m": InitializeImageBranch, DevelopPoint;
 import "Conventions.m": ExtractHomomorphismsRing, VariableOrder;
 import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
 import "Initialize.m": InitializeCurve, ChangeTangentAction;
-import "RiemannRoch.m": RRBasis, RRGenerators, RREvaluations, GlobalGenerators;
-import "RiemannRoch.m": ProductEvaluations, GlobalProductBasis, GlobalProductBasisAlt;
+import "RiemannRoch.m": DegreeBound;
+import "RiemannRoch.m": RRBasis, RRGenerators, RREvaluations;
+import "RiemannRoch.m": ProductBasis, ProductEvaluations;
+import "RiemannRoch.m": GlobalGenerators, GlobalBasis, GlobalProductBasis;
 
 
 forward InfinitesimalEquationVectors;
@@ -32,11 +34,10 @@ forward DivisorFromMatrixRRGlobal;
 forward DivisorFromMatrixRRSplit;
 
 
-function InfinitesimalEquationVectors(X, Y, P, Qs, d)
+function InfinitesimalEquationVectors(X, Y, d, P, Qs)
 /*
  * Input:   Two curves X and Y,
- *          a basis of divisor equations fs,
- *          the precision n used when determining these,
+ *          a degree d,
  *          and branch expansions P and Qs.
  * Output:  The irreducible components that fit the given data.
  */
@@ -45,9 +46,17 @@ e := Maximum([ Maximum([ Denominator(Valuation(c - Coefficient(c, 0))) : c in Q 
 evss := ProductEvaluations(X, Y, d, P, Qs);
 min := Minimum([ Valuation(ev) : ev in &cat(evss) ]);
 max := Minimum([ AbsolutePrecision(ev) : ev in &cat(evss) ]);
-// TODO: Remove this safety margin, and the branch overcalculation
-//max := max - 1;
+// TODO: Remove this safety margin, and any branch overcalculation
+max -:= 10;
 M := Matrix([ &cat[ [ X`F ! Coefficient(evs[i], j/e) : j in [(e*min)..(e*max - 1)] ] : evs in evss ] : i in [1..#evss[1]] ]);
+
+print "Denominator:", e;
+print "Min:", min;
+print "Max:", max;
+print "Number of rows:", #Rows(M);
+print "Number of columns:", #Rows(Transpose(M));
+print "Dim Ker:", Dimension(Kernel(M));
+
 return [ Eltseq(b) : b in Basis(Kernel(M)) ];
 
 end function;
@@ -55,7 +64,6 @@ end function;
 
 function CheckVanishing(X, Y, d, vs, P, Qs)
 // Check if points lie on scheme
-// TODO: Remove this check where it is superfluous
 
 evss := ProductEvaluations(X, Y, d, P, Qs);
 for evs in evss do
@@ -70,17 +78,17 @@ return true;
 end function;
 
 
-function CheckMultiplicityAtPoint(X, Y, d, vs : Margin := 2^6)
+// TODO: Currently not used, check degree bound equivalents
+function CheckMultiplicityAtPoint(X, Y, d, vs : Margin := 2^8)
 // Checks for multiplicity of vertical intersection
 
-vprint EndoCheck, 4 : "CheckMultiplicityAtPoint...";
-// TODO: Keep refining precision
-precP := d + X`g + 1 + Margin; precQ := 2*Y`g + 1 + Margin;
+vprint EndoCheck, 3 : "CheckMultiplicityAtPoint...";
+precP := DegreeBound(X, d) + Margin; precQ := DegreeBound(Y, Y`g) + Margin;
 P := DevelopPoint(X, X`P0, precP); Q := DevelopPoint(Y, Y`P0, precQ);
 K<piP> := Parent(P[1]); L<piQ> := Parent(Q[1]);
 /* We make a relative extension and coerce to it */
 S<t> := PuiseuxSeriesRing(K);
-xs := RREvaluations(X, d + X`g + 1, P); ys := RREvaluations(Y, 2*Y`g + 1, Q);
+xs := RREvaluations(X, DegreeBound(X, d), P); ys := RREvaluations(Y, DegreeBound(Y, Y`g), Q);
 ys_hom := [ ];
 for y in ys do
     coeffs, offset := Coefficients(y);
@@ -93,8 +101,8 @@ for q in eqs do
     coeffs := Coefficients(q);
     n := d*(Y`g) + Margin;
     vals := [ Valuation(coeffs[i]) : i in [1..(Y`g + 1)] ];
-    vprint EndoCheck, 4 : "Valuations of coefficients:";
-    vprint EndoCheck, 4 : vals;
+    vprint EndoCheck, 3 : "Valuations of coefficients:";
+    vprint EndoCheck, 3 : vals;
     min, ind := Minimum(vals);
     if ind eq (Y`g + 1) then
         if &and[ Valuation(coeffs[i]) gt min : i in [1..Y`g] ] then
@@ -107,40 +115,102 @@ return false;
 end function;
 
 
-function CheckMultiplicityAwayFromPoint(X, Y, d, vs : Margin := 2^6)
-// Checks for multiplicity of vertical intersection
+function MakeDenseAndMonic(p)
+// Removes leading non-zero coefficients in polynomials over Puiseux series
+// rings and makes these monic
 
-vprint EndoCheck, 4 : "CheckMultiplicityAwayFromPoint...";
-// TODO: Keep refining precision; seem to need Degree (res) / e
-prec := d + X`g + Margin; P := DevelopPoint(X, X`P0, prec); K<pi> := Parent(P[1]);
+R := Parent(p); d := Degree(p);
+dmp := R ! 0;
+for i in [0..d] do
+    c := Coefficient(p, i);
+    if not IsWeaklyZero(c) then
+        dmp +:= c*R.1^i;
+    end if;
+end for;
+if Valuation(dmp) eq Infinity() then
+    return dmp;
+end if;
+return dmp / LeadingCoefficient(dmp);
+
+end function;
+
+
+function GCDP(a, b)
+// GCD of polynomials over Puiseux series rings
+
+a := MakeDenseAndMonic(a); b := MakeDenseAndMonic(b);
+va := Valuation(a); vb := Valuation(b);
+if va eq Infinity() then
+    return b;
+end if;
+if vb eq Infinity() then
+    return a;
+end if;
+da := Degree(a); db := Degree(b);
+if da le db then
+    anew := a; bnew := b;
+    danew := da; dbnew := db;
+else
+    anew := b; bnew := a;
+    danew := db; dbnew := da;
+end if;
+R := Parent(anew);
+while dbnew ge danew do
+    bnew -:= Coefficient(bnew, dbnew)*R.1^(dbnew - danew)*anew;
+    dbnew -:= 1;
+end while;
+return GCDP(anew, bnew);
+
+end function;
+
+
+function CheckMultiplicityAwayFromPoint(X, Y, d, vs : Margin := 2^8)
+// Checks for multiplicity of vertical intersection
+// TODO: Think more about precision
+
+vprint EndoCheck, 3 : "Checking multiplicity away from point...";
+prec := DegreeBound(X, d) + Margin; P := DevelopPoint(X, X`P0, prec); K<pi> := Parent(P[1]);
 R<u,v> := PolynomialRing(K, 2); S<t> := PolynomialRing(K); h := hom< R -> S | [t, 1] >;
 
-xs := RREvaluations(X, d + X`g + 1, P); ys := [ Y`KA ! b : b in RRBasis(Y, 2*(Y`g) + 1) ];
+/* The next line must use the same bounds as elsewhere */
+xs := RREvaluations(X, DegreeBound(X, d), P); ys := [ Y`KA ! b : b in RRBasis(Y, DegreeBound(Y, Y`g)) ];
 den := LCM([ Denominator(y) : y in ys ]); ys := [ R ! Y`RA ! (den * y) : y in ys ];
 evs := [ x*y : x in xs, y in ys ]; eqs := [ &+[ v[i]*evs[i] : i in [1..#evs] ] : v in vs ];
-eqs := [ q / LeadingCoefficient(q) : q in eqs ];
-g := R ! Y`DEs[1]; g /:= LeadingCoefficient(g);
+fY := R ! Y`DEs[1];
 
-gcd := Resultant(g, eqs[1], v); gcd /:= LeadingCoefficient(gcd);
+gcd := MakeDenseAndMonic(h(Resultant(fY, eqs[1], v)));
 i := 1;
 repeat
-    vprint EndoCheck, 4 : "Number of elements tried:";
-    vprint EndoCheck, 4 : i;
-    vprint EndoCheck, 4 : "GCD:";
-    vprint EndoCheck, 4 : gcd;
-    coeffs := Coefficients(gcd); test := true;
-    for coeff in coeffs[2..#coeffs] do
-        if Valuation(coeff) le 0 then
-            test := false;
+    vprint EndoCheck, 3 : "Number of elements tried:";
+    vprint EndoCheck, 3 : i;
+    vprint EndoCheck, 3 : "GCD:";
+    vprint EndoCheck, 3 : gcd;
+    d := Degree(gcd);
+    test_away := true;
+    /* Check g highest coefficients apart from the leading one */
+    for n in [(d - Y`g)..(d - 1)] do
+        if Valuation(Coefficient(gcd, n)) le 0 then
+            test_away := false;
+            break;
         end if;
     end for;
-    if test then
-        return true;
+    if test_away then
+        vprint EndoCheck, 3 : "Checking multiplicity at point...";
+        test_at := true;
+        for n in [0..(d - Y`g - 1)] do
+            if not IsWeaklyZero(Coefficient(gcd, n)) then
+                test_at := false;
+                break;
+            end if;
+        end for;
+        if test_at then
+            return true;
+        end if;
     end if;
     i +:= 1;
     if i le #eqs then
-        res := Resultant(g, eqs[i], v); res /:= LeadingCoefficient(res);
-        gcd := GCD(gcd, res); gcd /:= LeadingCoefficient(gcd);
+        res := MakeDenseAndMonic(h(Resultant(fY, eqs[i], v)));
+        gcd := MakeDenseAndMonic(GCDP(gcd, res));
     end if;
 until i gt #eqs;
 return false;
@@ -151,10 +221,11 @@ end function;
 function CheckMultiplicity(X, Y, d, vs)
 // Checks for multiplicity of vertical intersection
 
-if not CheckMultiplicityAtPoint(X, Y, d, vs) then
-    return false;
-end if;
 return CheckMultiplicityAwayFromPoint(X, Y, d, vs);
+//if not CheckMultiplicityAtPoint(X, Y, d, vs) then
+//    return false;
+//end if;
+//return CheckMultiplicityAwayFromPoint(X, Y, d, vs);
 
 end function;
 
@@ -162,13 +233,7 @@ end function;
 function GlobalScheme(X, Y, d, vs)
 // Find equations in affine space from vector with elements of fraction field
 
-hX, hY := ExtractHomomorphismsRing(X, Y); RAXY := Codomain(hX);
-B := [ RAXY ! b : b in GlobalProductBasis(X, Y, d) ];
-eqs := [ &+[ v[i]*B[i] : i in [1..#B] ] : v in vs ];
-fs := [ hX(X`DEs_sub[1]), hY(Y`DEs_sub[1]) ];
-return Scheme(AffineSpace(RAXY), eqs cat fs);
-
-/*
+/* This version will have a lot of parasitic fibral components */
 B := ProductBasis(X, Y, d);
 den := LCM([ Denominator(b) : b in B ]);
 RAXY := Integers(Parent(B[1]));
@@ -177,7 +242,12 @@ eqs := [ &+[ v[i]*B[i] : i in [1..#B] ] : v in vs ];
 hX, hY := ExtractHomomorphismsRing(X, Y);
 fs := [ RAXY ! hX(X`DEs[1]), RAXY ! hY(Y`DEs[1]) ];
 return Scheme(AffineSpace(RAXY), eqs cat fs);
-*/
+
+hX, hY := ExtractHomomorphismsRing(X, Y); RAXY := Codomain(hX);
+B := [ RAXY ! b : b in GlobalProductBasis(X, Y, d) ];
+eqs := [ &+[ v[i]*B[i] : i in [1..#B] ] : v in vs ];
+fs := [ hX(X`DEs_sub[1]), hY(Y`DEs_sub[1]) ];
+return Scheme(AffineSpace(RAXY), eqs cat fs);
 
 end function;
 
@@ -186,21 +256,25 @@ function CheckDimension(X, Y, d, vs);
 // Check if dimension equals 1
 
 D := GlobalScheme(X, Y, d, vs);
+// TODO: We ignore this for now because this check appears to be difficult,
+// which is partly due to deficiencies in Magma.
+return true, D;
 RAXY := Parent(DefiningEquations(D)[1]);
 varord := VariableOrder(); var := RAXY.varord[1];
 // TODO: This step could be costly; can it be sped up via a trick?
 if EliminationIdeal(DefiningIdeal(D), { var }) eq ideal< RAXY | 0 > then
-    return true, D, vs;
+    return true, D;
 end if;
-return false, [ ], [ ];
+return false, [ ];
 
 end function;
 
 
-function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^6)
+function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^8)
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
-n := d*(Y`g) + Margin;
+/* Cardinality of basis of functions plus margin: */
+n := (DegreeBound(X, d) + 1 - X`g)*(DegreeBound(Y, Y`g) + 1 - Y`g) + Margin;
 vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
 /* Take non-zero image branch */
@@ -217,42 +291,22 @@ vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */
 vprintf EndoCheck, 2 : "Solving linear system... ";
-vs := InfinitesimalEquationVectors(X, Y, P, Qs, d);
+vs := InfinitesimalEquationVectors(X, Y, d, P, Qs);
 vprintf EndoCheck, 2 : "done.\n";
 if #vs eq 0 then
     return false, [ ], [ ];
 end if;
 
 vprintf EndoCheck, 2 : "Checking:\n";
-vprintf EndoCheck, 2 : "Multiplicity... ";
-test2 := CheckMultiplicity(X, Y, d, vs);
+vprintf EndoCheck, 2 : "Multiplicity...";
+test_mult := CheckMultiplicity(X, Y, d, vs);
 vprintf EndoCheck, 2 : "done.\n";
-if test2 then
+if test_mult then
     vprintf EndoCheck, 2 : "Dimension... ";
-    test3, D := CheckDimension(X, Y, d, vs);
-
-    /*
-    print "D:";
-    eqs := DefiningEquations(D);
-    for q in eqs do
-        for Q in Qs do
-            print Valuation(Evaluate(q, [ Q[2]/Q[1]^3, P[2]/P[1]^3, 1/Q[1], 1/P[1] ]));
-        end for;
-    end for;
-    print "Irreducible components:";
-    for C in IrreducibleComponents(D) do
-        print "Trying one...";
-        eqs := DefiningEquations(C);
-        for q in eqs do
-            for Q in Qs do
-                print Valuation(Evaluate(q, [ Q[2]/Q[1]^3, P[2]/P[1]^3, 1/Q[1], 1/P[1] ]));
-            end for;
-        end for;
-    end for;
-    */
+    test_dim, D := CheckDimension(X, Y, d, vs);
 
     vprintf EndoCheck, 2 : "done.\n";
-    if test3 then
+    if test_dim then
         vprintf EndoCheck, 2 : "Divisor found!\n";
         return true, D, vs;
     end if;
@@ -262,12 +316,12 @@ return false, [ ], [ ];
 end function;
 
 
-intrinsic DivisorFromMatrixRRGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
+intrinsic DivisorFromMatrixRRGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^8, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 X`RRgens := RRGenerators(X);
-X`globgens, X`DEs_sub := GlobalGenerators(X);
+//X`globgens, X`DEs_sub := GlobalGenerators(X);
 
 NormM := ChangeTangentAction(X, Y, M);
 vprintf EndoCheck, 3 : "Tangent representation:\n";
@@ -292,13 +346,13 @@ end while;
 end intrinsic;
 
 
-intrinsic DivisorFromMatrixRRSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^6, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
+intrinsic DivisorFromMatrixRRSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^8, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 X`RRgens := RRGenerators(X);
-X`globgens, X`DEs_sub := GlobalGenerators(X);
+//X`globgens, X`DEs_sub := GlobalGenerators(X);
 
 NormM := ChangeTangentAction(X, Y, M);
 vprintf EndoCheck, 3 : "Tangent representation:\n";
@@ -310,8 +364,9 @@ tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
 F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
-RAprod := PolynomialRing(X`F, 4, "lex");
-// TODO: We cannot usually take X`g. Find out what this should be.
+//RAprod := PolynomialRing(X`F, 4, "lex");
+RAprod := PolynomialRing(X`F, 4);
+// TODO: We cannot usually take X`g. Find out what this should be instead.
 P, Qs := ApproximationsFromTangentAction(X, Y, NormM, X`g + 2);
 
 ps_rts := [ ]; prs := [ ]; vss_red := [* *];
@@ -328,6 +383,7 @@ while true do
     vprintf EndoCheck : "Split prime over %o\n", p;
 
     /* Add corresponding data */
+    // TODO: This reduction step takes too long
     pr := ideal<X`OF | [ p, rF - rt ]>;
     Append(~prs, pr); I *:= pr;
     X_red := ReduceCurveSplit(X, p, rt); Y_red := ReduceCurveSplit(Y, p, rt);
@@ -357,23 +413,22 @@ while true do
         Append(~vs, v);
     end for;
     vprintf EndoCheck : "done.\n";
-    print vs;
 
     vprintf EndoCheck : "Checking:\n";
     vprintf EndoCheck : "Vanishing... ";
     /* Note that P and Qs are calculated at the beginning of this function */
-    test1 := CheckVanishing(X, Y, d, vs, P, Qs);
+    test_van := CheckVanishing(X, Y, d, vs, P, Qs);
     vprintf EndoCheck : "done.\n";
 
-    if test1 then
+    if test_van then
         vprintf EndoCheck : "Multiplicity... ";
-        test2 := CheckMultiplicity(X, Y, d, vs);
+        test_mult := CheckMultiplicity(X, Y, d, vs);
         vprintf EndoCheck : "done.\n";
-        if test2 then
+        if test_mult then
             vprintf EndoCheck, 2 : "Dimension... ";
-            test3, D := CheckDimension(X, Y, d, vs);
+            test_dim, D := CheckDimension(X, Y, d, vs);
             vprintf EndoCheck, 2 : "done.\n";
-            if test3 then
+            if test_dim then
                 vprintf EndoCheck, 2 : "Divisor found!\n";
                 return true, D, vs;
             end if;
