@@ -3,7 +3,7 @@
 #  See LICENSE file for license details.
 
 
-from sage.all import GCD, GF, HyperellipticCurve, NumberField, PolynomialRing, QQ
+from sage.all import GCD, GF, HyperellipticCurve, NumberField, QQ, Set
 from sage.all import next_prime, pari
 
 # Counting roots of polynomials
@@ -32,20 +32,28 @@ def polredabs(f):
 
 def field_intersection(L, K, Lsubfields = None):
     if L.is_isomorphic(K):
-        return L
-    Ksubfields = K.subfields();
+        return L.absolute_polynomial();
+    Ksubfields = K.subfields()[1:];
     if Lsubfields is None:
         Lsubfields = L.subfields()
 
+    Lsubfields = Lsubfields[1:];
+    Kupper = len(Ksubfields);
     # discarding QQ form the list
-    for sL, _, _ in reversed(Lsubfields[1:]):
-        for sK, _, _ in reversed(Ksubfields[1:]):
-            if sL.is_isomorphic(sK):
-                # sL and sK is the largest common subfield
-                return NumberField(polredabs(sL.polynomial()),'a')
+    for sL, _, _ in reversed(Lsubfields):
+        for j in reversed(range(Kupper)):
+            sK = Ksubfields[j][0];
+            if sK.absolute_degree() == sL.absolute_degree():
+                if sL.is_isomorphic(sK):
+                    # sL and sK is the largest common subfield
+                    return polredabs(sL.absolute_polynomial())
+            elif sK.absolute_degree() <  sL.absolute_degree():
+                break;
+            else:
+                Kupper -= 1;
     else:
         # The intersection is QQ
-        return NumberField(PolynomialRing(QQ,'x').gen(),'a')
+        return sL.absolute_polynomial().parent().gen()
 
     return L
 
@@ -55,18 +63,96 @@ def field_intersection_list(defining_polynomials):
     for f in defining_polynomials[:1000]:
         D = GCD(D, f.discriminant())
         if D == 1:
-            return NumberField(PolynomialRing(QQ,'x').gen(),'a')
+            return f.parent().gen()
 
     L = NumberField(defining_polynomials[0], 'a');
     for f in defining_polynomials:
         K = NumberField(f, 'b');
         # the 1st argument should be the 'smaller' field
-        L = field_intersection(L, K)
+        L = NumberField(field_intersection(L, K), 'a');
 
         if L.degree() == 1:
-            return NumberField(PolynomialRing(QQ,'x').gen(),'a');
+            return f.parent().gen();
     else:
-        return NumberField(polredabs(L.absolute_polynomial()),'a')
+        return polredabs(L.absolute_polynomial())
+
+def field_intersection_matrix(matrix_defining_polynomials):
+    r"""
+    INPUT:
+
+        - a matrix of polynomials defining numberfields (f_ij)
+
+    OUTPUT:
+
+        - returns a pair per column entry (Ak, Bk)
+            after picking a row with a small intersection, WLOG i = 0
+            Let S_ij denote all the polynomials defining subfields of QQ[x]/fij
+
+            Then Bk = S_0k \cap_{i > 0) \cup_j S_ij
+            If the list Bk can be obtained as list of subfields of one subfield
+            then such subfield, otherwise Ak is None
+
+
+    """
+    if len(matrix_defining_polynomials[0]) == 1:
+        f = field_intersection_list( [ elt[0] for elt in matrix_defining_polynomials ] );
+        return [[f, subfields_polynomials(f)]]
+
+
+    # we would like to pick the row which has the smallest intersection
+    # an easy to get something close to that,is by picking the one with 
+    # lowest GCD of the discriminants
+    Di = None;
+    Dmin = None;
+    for i, row in enumerate(matrix_defining_polynomials):
+        D = GCD([elt.discriminant() for elt in row])
+        if Dmin is None or D < Dmin:
+            Dmin = D;
+            Di = i;
+        if Dmin == 1:
+            break;
+
+    working_row = matrix_defining_polynomials[Di];
+
+    subfields_matrix = [None] * len(matrix_defining_polynomials)
+    output = [None] * len(working_row);
+    for k, f in enumerate(working_row):
+        Lsubfields = Set(subfields_polynomials(f));
+        for i, row in enumerate(matrix_defining_polynomials):
+            if i != Di:
+                if subfields_matrix[i] is None:
+                    U = Set([]);
+                    for g in row:
+                        Sg = Set(subfields_polynomials(g));
+                        U = U.union(Sg);
+                    subfields_matrix[i] = U;
+                # try to discard some subfields
+                Lsubfields = Lsubfields.intersection(subfields_matrix[i]);
+                if Lsubfields.cardinality() == 1:
+                    # QQ is the only possible subfield
+                    break;
+
+        Lsubfields = list(Lsubfields);
+        Lsubfields.sort();
+        output[k] = [None, Lsubfields];
+        # try to produce a single polynomial, if Lsubfields are all the subfields of a common subfield
+        if len(Lsubfields) == 1:
+            output[k][0] = f.parent().gen();
+        else:
+            if Lsubfields[-1].degree() != Lsubfields[-2].degree():
+                # there is one field of maximal degree, that might contain all the others
+                K = NumberField(Lsubfields[-1],'a');
+                maxsubfields = [polredabs(sK.absolute_polynomial()) for sK, _, _ in K.subfields()];
+                if maxsubfields == Lsubfields:
+                    output[k][0] = Lsubfields[-1]
+
+    return output;
+
+
+def subfields_polynomials(f):
+    return [polredabs(sL.absolute_polynomial()) for sL, _, _ in NumberField(f,'a').subfields()]
+
+
 
 
 # figuring out RR representation of the endomorphism algebra

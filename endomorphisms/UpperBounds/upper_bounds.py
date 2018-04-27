@@ -4,8 +4,8 @@
 # exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 
 from endomorphisms.OverFiniteField import endomorphism_frob
-from utils import field_intersection_list, RR_representation, polredabs
-from sage.all import Set
+from utils import field_intersection_matrix, RR_representation, polredabs
+from sage.all import Set, NumberField
 
 
 def endomorphisms_upper_bound(frob_list, eta_char0 = None):
@@ -63,41 +63,45 @@ def endomorphisms_upper_bound(frob_list, eta_char0 = None):
         assert t == tp
         assert eta == etap
         # endo[j] = mpj, mpj*deg(hpj), hpj
-        multiset = [(x, y//2) for x, y, _ in endo]
+        # the multiset_char0 in the paper has y divided by 2
+        multiset = sorted([(x, y) for x, y, _ in endo])
         if multiset_char0 is None:
             multiset_char0 = multiset
+            frob_factors = {}
+            for pair in Set(multiset):
+                frob_factors[pair] = [ []  for _ in eta_lower ];
         if multiset_char0 != multiset:
             # we only managed to bound eta
             message = "We only managed to find an upper bound for eta.";
             message += " If the upper bound for eta indeed is eta, then the number of factors is a strict upper bound";
             return False, message, eta_char0, t, None, None
-        for j in range(t):
+        for x, y, hpj in endo:
             # endo[j] = mpj, mpj*deg(hpj), hpj
-            frob_factors[j][i] = endo[j][2];
+            frob_factors[(x,y)][i].append( polredabs(hpj) );
 
 
     # it looks like we have a consistent upper bound for eta and t
     message = "We have putatively computed eta and t.";
-
-    if len(multiset_char0) != len(Set(multiset_char0)):
-        message += " However, we can't figure out the corresponding Frobenius polynomial for each factor"
-        return False, message,  eta_char0, t, multiset_char0, None
-
-
-
     message += " Under this assumption, we bounded the corresponding centers."
 
     #We can try to bound the center of each factor
-    output = [None] * t;
+    output = [];
     total_dim = 0;
-    for j in range(t):
-        Lj = field_intersection_list([ polredabs(elt) for elt in frob_factors[j] ]);
-        ejnj, njdimAj = multiset_char0[j]
-        RRj = RR_representation(njdimAj, Lj, ejnj)
-        output[j] = (ejnj, njdimAj, Lj, RRj)
-        total_dim += ejnj**2 * Lj.degree()
+    for pair, frob_matrix in frob_factors.iteritems():
+        L = field_intersection_matrix( frob_matrix );
+        ejnj, njdimAj = pair
+        njdimAj = njdimAj//2;
+        for Lj in L:
+            # the only real functionality of the NumberField that we use is
+            # Ljmax.is_CM()
+            # so it doesn't matter which field of maximal degree we take
+            Ljmax = NumberField(Lj[-1][-1], 'a');
+            RRj = RR_representation(njdimAj, Ljmax, ejnj)
+            output.append( (ejnj, njdimAj, Lj, RRj) )
+            total_dim += ejnj**2 * Ljmax.degree()
 
     return True, message,  eta_char0, t, output, total_dim
+
 
 
 
@@ -110,7 +114,6 @@ def RR_upper_bound(frob_list):
     else:
         # endo_upper_bound[4][j] = (ejnj, njdimAj, Lj, RRj)
         return [ elt[3] for elt in endo_upper_bound[4] ]
-
 
 
 
