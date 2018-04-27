@@ -3,7 +3,7 @@
 
 import os.path
 from sage.all import PolynomialRing, ZZ, QQ
-from utils import flatten_list, get_frob_list_HyperellipticCurve
+from endomorphisms.UpperBounds.utils import flatten_list, get_frob_list_HyperellipticCurve
 from endomorphisms import endomorphisms_upper_bound
 
 
