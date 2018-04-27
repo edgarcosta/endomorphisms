@@ -3,6 +3,7 @@
 
 from sage.all import FiniteField, Infinity, Matrix, NumberField, PolynomialRing, QQ, cyclotomic_polynomial, sage_eval, sqrt
 from sage.all import HyperellipticCurve, ZZ, GF, next_prime
+from endomorphisms.newton import lmfdb
 
 def is_ordinary(a):
     assert len(a) == 5
@@ -57,7 +58,7 @@ def rank_from_endo(string_list):
     return rank
 
 def P2_4factor(a):
-    # ref: Edgar's thesis section 2.3
+    # ref: equation 7.1.5
     assert len(a) == 5
     q = sqrt(a[-1])
     b = [0]*5;
