@@ -88,7 +88,7 @@ def field_intersection_matrix(matrix_defining_polynomials):
             after picking a row with a small intersection, WLOG i = 0
             Let S_ij denote all the polynomials defining subfields of QQ[x]/fij
 
-            Then Bk = S_0k \cap_{i > 0) \cup_j S_ij
+            Then Bk = S_0k \cap (\cap_{i > 0) \cup_j S_ij)
             If the list Bk can be obtained as list of subfields of one subfield
             then such subfield, otherwise Ak is None
 
