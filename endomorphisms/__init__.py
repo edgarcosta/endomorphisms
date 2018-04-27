@@ -15,7 +15,12 @@ import os
 import inspect
 filename = inspect.getframeinfo(inspect.currentframe())[0];
 __magmapath__ = os.path.dirname(filename) + "/magma/"
-magma.AttachSpec(__magmapath__ + 'spec')
+try:
+    magma.AttachSpec(__magmapath__ + 'spec')
+except RuntimeError as err:
+    print(err)
+    print("Some functionality of the endomorphisms package might be limited")
+
 
 from Curves import mHyperellipticCurve, mPlaneCurve
 from Wrapper import EndomorphismData, OverField, Lattice, Decomposition
