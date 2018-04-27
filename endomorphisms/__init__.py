@@ -18,8 +18,7 @@ __magmapath__ = os.path.dirname(filename) + "/magma/"
 try:
     magma.AttachSpec(__magmapath__ + 'spec')
 except RuntimeError as err:
-    print(err)
-    print("Some functionality of the endomorphisms package might be limited")
+    print("RuntimeError exception caught: %s We weren't able to load the magma package and some functionality of the endomorphisms package will be limited." % err)
 
 
 from Curves import mHyperellipticCurve, mPlaneCurve
