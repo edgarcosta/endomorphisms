@@ -15,7 +15,7 @@ def RankBoundProductEC(LPolys):
     g = 2                           # only for surfaces
     NotSquareCM = IsGeometricallyNotSquareOfCM(LPolys)
     if NotSquareCM == False :
-    return 8;
+        return 8;
 
     IsSquare = True
 
