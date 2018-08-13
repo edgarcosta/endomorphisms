@@ -46,10 +46,10 @@ using the infinite place of the base ring of X.}
 
 if Type(X) eq CrvHyp then
     f, h := HyperellipticPolynomials(X);
-    return EmbedAsComplexPolynomials([ f, h ], prec);
+    return EmbedAsComplexPolynomials([ f, h ], prec + 10);
 elif Type(X) eq CrvPln then
     F := DefiningPolynomial(X);
-    return EmbedAsComplexPolynomials([ F ], prec);
+    return EmbedAsComplexPolynomials([ F ], prec + 10);
 end if;
 error "Function not available for general curves";
 

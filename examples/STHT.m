@@ -5,7 +5,7 @@
 */
 
 AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 1);
+SetVerbose("EndoFind", 0);
 
 F := QQ;
 R<x> := PolynomialRing(F);
@@ -29,7 +29,7 @@ f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2;
 f := x^4 + x^2; h := x^3 + 1;
 f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10; h := 0;
 f := 11*x^6 + 11*x^3 - 4; h := 0;
-f := x^5 + x; h := 0;
+f := x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1; h := 0;
 
 /*
 R<t> := PolynomialRing(Rationals());
@@ -65,12 +65,12 @@ f := x1^3*x2 + x1^3*x3 + x1^2*x2^2 + 3*x1^2*x2*x3 + x1^2*x3^2 - 4*x1*x2^3 -
 // TODO: This gives an error (problem for MN)
 f := x1^4 - x1^3*x3 + 2*x1^3*x2 + 2*x1^2*x3*x2 + 2*x1^2*x2^2 - 2*x1*x3^2*x2 +
 4*x1*x3*x2^2 - x3^3*x2 + 3*x3^2*x2^2 + 2*x3*x2^3 + x2^4;
-f := x1^2*x2^2 + x1*x2^3 + x1^3*x3 + x1^2*x2*x3 + x1*x2^2*x3 + x2^3*x3 + x1*x2*x3^2 + x2^2*x3^2 + x1*x3^3;
-//f := -x1^3*x2 + x1^2*x2^2 + 4*x1*x2^3 + 2*x2^4 + 5*x1^2*x2*x3 + 5*x1*x2^2*x3 - x1^2*x3^2 + x1*x2*x3^2 + x2^2*x3^2 + 4*x1*x3^3 + 3*x3^4;
+f := -x1^3*x2 + x1^2*x2^2 + 5*x1^2*x2*x3 - x1^2*x3^2 + 4*x1*x2^3 + 5*x1*x2^2*x3
++ x1*x2*x3^2 + 4*x1*x3^3 + 2*x2^4 + x2^2*x3^2 + 3*x3^4;
 
 X := PlaneCurve(f);
 
-prec := 300;
+prec := 310;
 CCSmall := ComplexField(5);
 
 print "Curve:";
@@ -84,24 +84,21 @@ print "";
 print "Period matrix:";
 print ChangeRing(P, CCSmall);
 
-GeoEndoRepPartial := GeometricEndomorphismRepresentationPartial(P);
-fs := RelativeMinimalPolynomials(GeoEndoRepPartial, F);
+rep_part := GeometricEndomorphismRepresentationPartial(P);
+fs := RelativeMinimalPolynomials(rep_part, F);
 K := RelativeSplittingFieldExtra(fs);
 print "Endomorphism field:";
 print K;
-GeoEndoRep := GeometricEndomorphismRepresentationRecognition(GeoEndoRepPartial, K);
 
-print "";
-print "Endomorphism representations:";
-print GeoEndoRep;
+rep := GeometricEndomorphismRepresentationRecognition(rep_part, K);
+galrep := GaloisRepresentationOfConjugacyClasses(rep);
+G, trs := TracesOfConjugacyClasses(rep);
+print G, trs;
 
-struct := EndomorphismStructure(GeoEndoRep, K, F);
-print "";
-print "Endomorphism structure:";
-print struct;
+hash1 := CanonizeTraces(G, trs);
+print hash1;
 
-lat := EndomorphismLattice(GeoEndoRep, F);
-print "";
-print "Endomorphism lattice:";
-print lat;
+hash2 := CanonizeRepresentation(rep);
+print hash2;
+
 

@@ -119,23 +119,23 @@ for D in Ds do
     if IsTotallyReal(F) then
         /* TODO: This may not be the most logical case distinction */
         if d eq 1 then
-            DescFactorQQ := [* "I", FDesc, d, 1 *];
+            DescFactorQQ := [* "I", FDesc, 1, 1, 1 *];
 
         elif d eq 2 then
             /* TODO: Depends on genus <= 3 */
             test, Q := IsQuaternionAlgebra(E2);
             DQFin := Discriminant(Q); NDQ := Integers() ! Norm(DQFin);
             if NDQ eq 1 then
-                DescFactorQQ := [* "I", FDesc, d, NDQ *];
+                DescFactorQQ := [* "I", FDesc, 1, 1, 2 *];
             elif not IsDefinite(Q) then
-                DescFactorQQ := [* "II", FDesc, d, NDQ *];
+                DescFactorQQ := [* "II", FDesc, 2, NDQ, 1 *];
             else
-                DescFactorQQ := [* "III", FDesc, d, NDQ *];
+                DescFactorQQ := [* "III", FDesc, 2, NDQ, 1 *];
             end if;
 
         elif d eq 3 then
             /* TODO: Depends on genus <= 3 */
-            DescFactorQQ := [* "I", FDesc, d, 1 *];
+            DescFactorQQ := [* "I", FDesc, 1, 1, d *];
 
         else
             /* TODO: We do not know what happens otherwise, even when using the
@@ -146,21 +146,15 @@ for D in Ds do
              * ramification at infinity only, in which case this does not tell
              * enough. For now we get by; this should be addressed with more
              * general functionality for algebras, not by our package. */
-            DescFactorQQ := [* "I, II or III", FDesc, d, -1 *];
+            DescFactorQQ := [* "I, II or III", FDesc, -1, -1, -1 *];
         end if;
 
     else
-        if d eq 1 then
-            DescFactorQQ := [* "IV", FDesc, d, 1 *];
-        elif d eq 2 then
-            test, Q := IsQuaternionAlgebra(E2);
-            DQFin := Discriminant(Q); NDQ := Norm(DQFin);
-            DescFactorQQ := [* "IV", FDesc, d, NDQ *];
-        elif d eq 3 then
-            /* TODO: Depends on genus <= 3 */
-            DescFactorQQ := [* "IV", FDesc, d, 1 *];
+        /* TODO: Depends on genus <= 3 */
+        if d le 3 then
+            DescFactorQQ := [* "IV", FDesc, 1, 1, d *];
         else
-            DescFactorQQ := [* "IV", FDesc, d, -1 *];
+            DescFactorQQ := [* "IV", FDesc, -1, -1, -1 *];
         end if;
     end if;
 
@@ -175,18 +169,20 @@ end intrinsic;
 intrinsic EndomorphismAlgebraRRBase(C::AlgAss, EndoDescQQ::List) -> .
 {Given an associative algebra C and its description over QQ, returns a
 description of the algebra tensored with RR.}
+/* TODO: Depends on genus <= 3 */
 
 EndoDescRR := [ ];
 for DescFactorQQ in EndoDescQQ do
     AlbertType := DescFactorQQ[1];
     e := #DescFactorQQ[2] - 1;
     d := DescFactorQQ[3];
+    m := DescFactorQQ[5];
 
     if AlbertType eq "I" then
-        if d eq 1 then
+        if m eq 1 then
             str := "RR";
         else
-            str := Sprintf("M_%o (RR)", d);
+            str := Sprintf("M_%o (RR)", m);
         end if;
         EndoDescRR cat:= [ str : i in [1..e] ];
     elif AlbertType eq "II" then
@@ -196,10 +192,10 @@ for DescFactorQQ in EndoDescQQ do
     elif AlbertType eq "I, II or III" then
         EndoDescRR cat:= [ "RR, M_2 (RR) or HH" : i in [1..e] ];
     elif AlbertType eq "IV" then
-        if d eq 1 then
+        if m eq 1 then
             str := "CC";
         else
-            str := Sprintf("M_%o (CC)", d);
+            str := Sprintf("M_%o (CC)", m);
         end if;
         EndoDescRR cat:= [ str : i in [1..(e div 2)] ];
     end if;

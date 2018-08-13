@@ -19,6 +19,7 @@
     OverField.m
     Structure.m
     SatoTate.m
+    SatoTateHash.m
     Lattice.m
     Sagify.m
 

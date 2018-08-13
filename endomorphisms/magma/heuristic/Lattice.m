@@ -35,7 +35,8 @@ L := BaseRing(GeoEndoRep[1][1][1]);
 if (not IsRelativeExtension(L, F)) then
     entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
     entries := [ entry ];
-    return [* base, entries *];
+    hash := SatoTateHash(GeoEndoRep);
+    return [* base, entries, hash *];
 end if;
 
 Gp, Gf, Gphi := AutomorphismGroup(L);
@@ -49,7 +50,9 @@ for H in Hs[2..#Hs] do
     entry := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand, F);
     Append(~entries, entry);
 end for;
-return [* base, entries *];
+
+hash := SatoTateHash(GeoEndoRep);
+return [* base, entries, hash *];
 
 end intrinsic;
 

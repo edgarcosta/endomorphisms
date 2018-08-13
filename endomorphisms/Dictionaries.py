@@ -17,6 +17,7 @@ def index_dictionary():
     # Magma indices for lattice
     dikt['base'] = 1
     dikt['entries'] = 2
+    dikt['hash'] = 3
 
     # Magma indices for lattice entries
     dikt['field'] = 1
@@ -53,8 +54,9 @@ def index_dictionary():
     # Sage indices for a factor_QQ
     dikt['albert_type'] = 0
     dikt['center'] = 1
-    dikt['dim_sqrt'] = 2
+    dikt['d'] = 2
     dikt['disc'] = 3
+    dikt['m'] = 4
 
     # Sage indices for desc_ZZ key
     dikt['index'] = 0
@@ -87,6 +89,7 @@ def desc_lattice(lattice):
     desc = [ ]
     desc.append(desc_base(lattice[_index_dict_['base']]))
     desc.append(desc_entries(lattice[_index_dict_['entries']]))
+    desc.append(desc_hash(lattice[_index_dict_['hash']]))
     return desc
 
 def dict_entries(entries):
@@ -98,6 +101,9 @@ def dict_entries(entries):
         dikt['structure'] = dict_structure(tup[_index_dict_['structure']])
         dicts.append(dikt)
     return dicts
+
+def desc_hash(sthash):
+    return sagify_description(sthash)
 
 def desc_entries(entries):
     _index_dict_ = index_dictionary()
@@ -179,8 +185,9 @@ def dict_factor_QQ(factor_QQ):
     dikt = dict()
     dikt['albert_type'] = factor_QQ[_index_dict_['albert_type']]
     dikt['center'] = factor_QQ[_index_dict_['center']]
-    dikt['dim_sqrt'] = factor_QQ[_index_dict_['dim_sqrt']]
+    dikt['d'] = factor_QQ[_index_dict_['d']]
     dikt['disc'] = factor_QQ[_index_dict_['disc']]
+    dikt['m'] = factor_QQ[_index_dict_['m']]
     return dikt
 
 def dict_desc_ZZ(desc_ZZ):

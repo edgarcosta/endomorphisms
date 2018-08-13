@@ -104,41 +104,44 @@ def statement_endomorphisms_RR(desc, g, str_field = 'K'):
 
 def statement_factor_QQ(factor_QQ):
     _index_dict_ = index_dictionary()
-    # TODO: Assumes g <= 3
-    dim_sqrt = factor_QQ[_index_dict_['dim_sqrt']]
-    disc = factor_QQ[_index_dict_['disc']]
+    # TODO: Assumes g <= 3, in general we need powers
     albert_type = factor_QQ[_index_dict_['albert_type']]
+    d = factor_QQ[_index_dict_['d']]
+    disc = factor_QQ[_index_dict_['disc']]
+    m = factor_QQ[_index_dict_['m']]
+
     str_center = pretty_print_field(factor_QQ[_index_dict_['center']], [-1, 1])
-    str_dim_sqrt = str(dim_sqrt)
+    str_d = str(d)
     str_disc = str(disc)
+    str_m = str(m)
 
     if albert_type == 'I':
-        if dim_sqrt == 1:
+        if m == 1:
             statement = str_center
         else:
-            statement = "M_%s (%s)" % (str_dim_sqrt, str_center)
+            statement = "M_%s (%s)" % (str_m, str_center)
 
     elif albert_type == 'II':
-        if dim_sqrt == 2:
+        if d == 2:
             statement = "IndefQuat (%s, %s)"  % (str_center, str_disc)
         else:
-            statement = "IndefAlg_%s (%s, %s)"  % (str_dim_sqrt, str_center, str_disc)
+            statement = "IndefAlg_%s (%s, %s)"  % (str_d, str_center, str_disc)
 
     elif albert_type == 'III':
-        if dim_sqrt == 2:
+        if d == 2:
             statement = "DefQuat (%s, %s)"  % (str_center, str_disc)
         else:
-            statement = "DefAlg_%s (%s, %s)"  % (str_dim_sqrt, str_center, str_disc)
+            statement = "DefAlg_%s (%s, %s)"  % (str_d, str_center, str_disc)
 
     elif albert_type == 'IV':
-        if dim_sqrt == 1:
+        if m == 1:
             statement = str_center
-        elif disc == 1:
-            statement = "M_%s (%s)" % (str_dim_sqrt, str_center)
-        elif dim_sqrt == 2:
+        elif d == 1 and m == 2:
+            statement = "M_%s (%s)" % (str_d, str_center)
+        elif m == 1 and d == 2:
             statement = "Quat (%s, %s)"  % (str_center, str_disc)
         else:
-            statement = "Alg_%s (%s, %s)"  % (str_dim_sqrt, str_center, str_disc)
+            statement = "Alg_%s (%s, %s)"  % (str_d, str_center, str_disc)
 
     return statement
 
@@ -149,15 +152,15 @@ def statement_factor_ZZ_maximal(factor_QQ, desc_ZZ, str_field = 'K'):
     field_pretty = pretty_print_field(factor_QQ[_index_dict_['center']], [-1, 1])
     ring_pretty = pretty_print_ring(factor_QQ[_index_dict_['center']], 1)
     disc = factor_QQ[_index_dict_['disc']]
-    dim_sqrt = factor_QQ[_index_dict_['dim_sqrt']]
+    m = factor_QQ[_index_dict_['m']]
     if albert_type == 'I' or albert_type == 'IV':
-        if dim_sqrt == 1:
+        if m == 1:
             return ring_pretty
         # TODO: Next line can be done in greater generality over PIDs, but to
         # found out whether we are in such a situation costs time, so omitted
         # for now.
         elif (disc == 1) and field_pretty == 'QQ':
-            return 'M_%s (%s)' % (dim_sqrt, ring_pretty)
+            return 'M_%s (%s)' % (m, ring_pretty)
     return 'Max (%s)' % statement_factor_QQ(factor_QQ)
 
 def statement_factors_ZZ_index(factors_QQ, desc_ZZ, str_field = 'K'):
@@ -167,8 +170,8 @@ def statement_factors_ZZ_index(factors_QQ, desc_ZZ, str_field = 'K'):
     if len(factors_QQ) == 1:
         factor_QQ = factors_QQ[0]
         albert_type = factor_QQ[_index_dict_['albert_type']]
-        dim_sqrt = factor_QQ[_index_dict_['dim_sqrt']]
-        if albert_type == 'I' and dim_sqrt == 1:
+        m = factor_QQ[_index_dict_['m']]
+        if albert_type == 'I' and m == 1:
             desc_field = factor_QQ[_index_dict_['center']]
             return pretty_print_ring(desc_field, index)
     return "Sub (End (J_%s) ox QQ, %s)" % (str_field, index)
@@ -187,9 +190,9 @@ def statement_cm(desc, g, str_field = 'K'):
     for factor_QQ in factors_QQ:
         albert_type = factor_QQ[_index_dict_['albert_type']]
         dim_base = len(factor_QQ[_index_dict_['center']]) - 1
-        dim_sqrt = factor_QQ[_index_dict_['dim_sqrt']]
+        m = factor_QQ[_index_dict_['m']]
         if albert_type == 'IV':
-            dimsum +=  dim_base * dim_sqrt
+            dimsum +=  dim_base * m
     if (dimsum // 2) == g:
         return "(CM)"
     return ""
@@ -214,7 +217,7 @@ def statement_gl2(desc, g, str_field = 'K'):
     dimsum = 0
     for factor_QQ in factors_QQ:
         dim_base = len(factor_QQ[_index_dict_['center']]) - 1
-        dim_sqrt = factor_QQ[_index_dict_['dim_sqrt']]
+        dim_sqrt = factor_QQ[_index_dict_['d']] * factor_QQ[_index_dict_['m']]
         dimsum += dim_base * dim_sqrt
     if dimsum == g:
         return "of GL_2-type"
@@ -225,7 +228,7 @@ def statement_simple(desc, g, str_field = 'K'):
     factors_QQ = desc[_index_dict_['factors_QQ']]
     if len(factors_QQ) == 1:
         factor_QQ = factors_QQ[0]
-        dim_sqrt = factor_QQ[_index_dict_['dim_sqrt']]
+        m = factor_QQ[_index_dict_['m']]
         disc = factor_QQ[_index_dict_['disc']]
         if dim_sqrt == 1 or disc != 1:
             return "simple"

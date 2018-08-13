@@ -26,14 +26,6 @@ if #GeneratorsSequence(RCC) eq 1 then
         gCC := Explode(eqsCC);
     end if;
     if not MolinNeurohr then
-        // FIXME: there must be a better way to do this
-        // a very hacky way to fool the preparser and 
-        // avoid an undefined reference 'SE_Curve'
-        // eventhough, we would never call it
-        SE_Curve := function(x, y : z := 0)
-            return true;
-        end function;
-        //end of hack
         JCC := AnalyticJacobian(gCC);
         /* We divide by 2 because we integrate wrt x^i dx / 2y */
         return ChangeRing(BigPeriodMatrix(JCC), CC) / 2;
@@ -48,14 +40,19 @@ elif #GeneratorsSequence(RCC) eq 3 then
         error "No functionality for plane curves available";
     end if;
     test, fCC, e := IsSuperelliptic(eqsCC);
-    if test then
+    if false then
         X := SE_Curve(fCC, 3 : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
         return SuperellipticCompatibility(P, e);
     else
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
-        return ChangeRing(PeriodMatrix(f : Prec := Precision(CC)), CC);
+        try 
+            //return ChangeRing(PeriodMatrix(f : Prec := Precision(CC)), CC);
+            return RS_BigPeriodMatrix(f : Prec := Precision(CC));
+        catch err
+            error "No functionality for plane curves available";
+        end try;
     end if;
 else
     error "No functionality for general curves available";
