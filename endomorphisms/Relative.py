@@ -25,7 +25,7 @@ def Relative_Splitting_Field_Extra(fs, bound = 0):
                 K = magma.ExtendRelativeSplittingField(K, F, tup[1])
                 if overQQ:
                     g = magma.DefiningPolynomial(K)
-                    g = R(str(gp.polredabs(R(magma.Eltseq(g)))))
+                    g = R(str(gp.polredabs(R((magma.Eltseq(g)).sage()))))
                     K = magma.NumberField(g)
                 else:
                     K = magma.ClearFieldDenominator(K)
