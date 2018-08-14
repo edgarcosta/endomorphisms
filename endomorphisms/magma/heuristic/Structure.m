@@ -94,10 +94,8 @@ return EndoAlg, EndoDesc;
 end intrinsic;
 
 
-intrinsic EndomorphismAlgebraQQBase(C::AlgAss : Optimize := true) -> .
-{Given an associative algebra C, returns a description of it. If Optimize is
-set to true, as it is by default, then the base ring of this algebra is
-simplified.}
+intrinsic EndomorphismAlgebraQQBase(C::AlgAss) -> .
+{Given an associative algebra C, returns a description of it.}
 
 /* Central decomposition */
 Ds := DirectSumDecomposition(C);
@@ -108,9 +106,8 @@ for D in Ds do
     F := BaseRing(E1);
     E2 := ChangeRing(E1, F);
     F := ClearFieldDenominator(F);
-    if (not IsQQ(F)) and Optimize then
-        F := OptimizedRepresentation(F);
-        F := ClearFieldDenominator(F);
+    if (not IsQQ(F)) then
+        F := Polredbestabs(F);
     end if;
     FDesc := Eltseq(MinimalPolynomial(F.1));
     FDesc := [ Integers() ! c : c in FDesc ];
@@ -205,7 +202,7 @@ return EndoDescRR, EndoDescRR;
 end intrinsic;
 
 
-intrinsic EndomorphismAlgebraZZBase(C::AlgAss, GensC::SeqEnum : Optimize := true) -> .
+intrinsic EndomorphismAlgebraZZBase(C::AlgAss, GensC::SeqEnum) -> .
 {Given an associative algebra C and generators GensC of an order in it, returns
 a description of said order.}
 
@@ -219,10 +216,7 @@ Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
     //F := ClearFieldDenominator(BaseRing(E1));
-    //if (not IsQQ(F)) and Optimize then
-    //    F := OptimizedRepresentation(F);
-    //    F := ClearFieldDenominator(F);
-    //end if;
+    //F := Polredbestabs(F);
     //E2, f2 := ChangeRing(E1, F);
     F := BaseRing(E1);
     E2 := E1;

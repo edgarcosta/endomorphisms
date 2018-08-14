@@ -14,12 +14,16 @@ R.<x,y,z> = PolynomialRing(F)
 f = x^4 + 2*x^3*z - x^2*y^2 + 2*x^2*y*z - x^2*z^2 - x*y^3 - 2*x*y^2*z + x*y*z^2 - 2*x*z^3 + y^4 - y^3*z + 2*y^2*z^2 - y*z^3 + z^4
 f = x^3*z + x^2*y*z + x^2*z^2 - x*y^3 + x*y^2*z + x*z^3 - y^2*z^2 + y*z^3
 f = x^3*z + x^2*y^2 + x^2*y*z + x*y^3 + x*y^2*z + x*y*z^2 + x*z^3 + y^3*z + y^2*z^2
+f = x^3*z + x^2*y^2 + 5*x^2*y*z + x^2*z^2 + 5*x*y^3 + x*y^2*z + 5*x*y*z^2 - y^4 - 2*y^2*z^2 + y*z^3
+f = x^3*y + x^3*z + 3*x^2*y*z + 4*x^2*z^2 + 2*x*y^3 + 3*x*y^2*z - 3*x*y*z^2 + x*z^3 + 5*y^4 - 2*y^3*z - y*z^3
+f = x^3*z + x^2*y^2 + x^2*y*z - 2*x^2*z^2 - x*y^2*z - x*y*z^2 + y^4 + 2*y^3*z - y*z^3 + z^4
+f = x^3*y + x^3*z + x^2*y^2 - 2*x^2*z^2 - x*y^3 - x*y^2*z - 2*x*y*z^2 - y^3*z - y^2*z^2 - y*z^3 + z^4
 X = mPlaneCurve(f)
 
 print ""
 print "Curve:"
 print X
-Endo = EndomorphismData(X, prec = 300, molin_neurohr = True)
+Endo = EndomorphismData(X, prec = 230, molin_neurohr = True)
 
 print ""
 print "Endomorphisms:"

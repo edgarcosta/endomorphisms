@@ -12,7 +12,7 @@ line_length = 2
 f_index = 1
 st_index = -1
 # Precision:
-prec = 300
+prec = 230
 
 import os, shutil
 
@@ -25,6 +25,7 @@ outputfile = base_string + '_endos.txt'
 R.<x,y,z> = PolynomialRing(QQ, 3)
 
 done = False
+counter = 0
 while not done:
     done = True
     with open(inputfile) as inputstream:
@@ -48,6 +49,9 @@ while not done:
                         outputstream.write(line)
                 else:
                     outputstream.write(line)
+    if counter >= 10:
+        done = True
+    counter += 1
     if not done:
         shutil.move(outputfile, inputfile)
         prec += 10

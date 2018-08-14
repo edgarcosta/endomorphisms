@@ -101,8 +101,8 @@ to be passed as g. We assume the genus to be at most 3.}
 E1, f1 := AlgebraOverCenter(D);
 //F := ClearFieldDenominator(BaseRing(E1));
 //if Type(F) eq FldNum then
-//    F := OptimizedRepresentation(F);
 //    F := ClearFieldDenominator(F);
+//    F := Polredbestabs(F);
 //end if;
 //E2, f2 := ChangeRing(E1, F);
 E2 := E1;

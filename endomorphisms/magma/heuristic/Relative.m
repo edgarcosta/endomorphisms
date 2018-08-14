@@ -292,6 +292,9 @@ else
     vprintf EndoFind : "done\n";
 end if;
 K := ClearFieldDenominator(K);
+if IsQQ(F) and not IsQQ(K) then
+    return Polredbestabs(K);
+end if;
 return K;
 
 end intrinsic;
@@ -301,7 +304,7 @@ intrinsic RelativeNumberFieldExtra(K::Fld, F::Fld, f::RngUPolElt) -> Fld
 {Given an extension K of F and a polynomial f over K, returns an extension of F
 that contains both K and a root of f.}
 
-K := RelativeNumberFieldExtra(K, F, f);
+K := RelativeNumberField(K, F, f);
 DefineOrExtendInfinitePlace(K);
 return K;
 
@@ -361,6 +364,9 @@ for f in fs do
         for tup in Factorization(f, K) do
             K := ExtendRelativeSplittingField(K, F, tup[1]);
             K := ClearFieldDenominator(K);
+            if IsQQ(F) and not IsQQ(K) then
+                K := Polredbestabs(K);
+            end if;
         end for;
     end if;
 end for;
@@ -421,6 +427,9 @@ else
     tup := Factorization(g, K)[1];
     M := ExtendRelativeSplittingField(K, F, tup[1]);
     M := ClearFieldDenominator(M);
+    if IsQQ(BaseRing(M)) then
+        M := Polredbestabs(M);
+    end if;
     testK, phiK := IsSubfield(K, M); testL, phiL := IsSubfield(L, M);
 end if;
 return M, [* phiK, phiL *];
@@ -467,7 +476,12 @@ intrinsic GeneralFixedField(L::Fld, gens::SeqEnum) -> Fld
 a field over the base ring of L.}
 
 /* TODO: This seems to have been fixed (pun not intended, darn) */
-return FixedField(L, gens);
+K := FixedField(L, gens);
+/* Cannot change this because we need it as a subfield */
+return K;
+if HasBaseQQ(K) and not IsQQ(K) then
+    return Polredbestabs(K);
+end if;
 if HasBaseQQ(L) then
     return FixedField(L, gens), Rationals();
 else

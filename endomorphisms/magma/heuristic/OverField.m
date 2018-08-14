@@ -64,6 +64,15 @@ for b in B do
     genApp := &+[ b[i] * gensApp[i] : i in [1..n] ];
     Append(~gens, [* genTan, genHom, genApp *]);
 end for;
+if HasBaseQQ(K) and not IsQQ(K) then
+    /* TODO: infinite place? then throw away genApp? */
+    K0 := Polredbestabs(K);
+    _, iso := IsIsomorphic(K, K0);
+    gens0 := [ ];
+    for gen in gens do
+        Append(~gens0, [* ConjugateMatrix(iso, gen[1]), gen[2], gen[3] *]);
+    end for;
+end if;
 return gens;
 
 end intrinsic;

@@ -87,7 +87,9 @@ entry := [* *];
 L := BaseRing(GeoEndoRep[1][1][1]);
 gensH, Gphi := Explode(GalK);
 K := GeneralFixedField(L, [ Gphi(genH) : genH in gensH ]);
-K := ClearFieldDenominator(K);
+if HasBaseQQ(K) and not IsQQ(K) then
+    K := Polredbestabs(K);
+end if;
 K_seq := FieldDescription(K, F);
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
