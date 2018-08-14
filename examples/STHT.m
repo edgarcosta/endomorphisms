@@ -67,10 +67,12 @@ f := x1^4 - x1^3*x3 + 2*x1^3*x2 + 2*x1^2*x3*x2 + 2*x1^2*x2^2 - 2*x1*x3^2*x2 +
 4*x1*x3*x2^2 - x3^3*x2 + 3*x3^2*x2^2 + 2*x3*x2^3 + x2^4;
 f := -x1^3*x2 + x1^2*x2^2 + 5*x1^2*x2*x3 - x1^2*x3^2 + 4*x1*x2^3 + 5*x1*x2^2*x3
 + x1*x2*x3^2 + 4*x1*x3^3 + 2*x2^4 + x2^2*x3^2 + 3*x3^4;
+f := x1^3*x3 - x1*x3^3 + x2^4;
+f := x1^3*x3 + x1*x3^3 + x2^4;
 
 X := PlaneCurve(f);
 
-prec := 310;
+prec := 300;
 CCSmall := ComplexField(5);
 
 print "Curve:";
@@ -100,5 +102,3 @@ print hash1;
 
 hash2 := CanonizeRepresentation(rep);
 print hash2;
-
-
