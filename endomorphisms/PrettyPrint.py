@@ -230,6 +230,6 @@ def statement_simple(desc, g, str_field = 'K'):
         factor_QQ = factors_QQ[0]
         m = factor_QQ[_index_dict_['m']]
         disc = factor_QQ[_index_dict_['disc']]
-        if dim_sqrt == 1 or disc != 1:
+        if m == 1 or disc != 1:
             return "simple"
     return "not simple"

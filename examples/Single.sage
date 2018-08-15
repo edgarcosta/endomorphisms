@@ -7,7 +7,7 @@ from endomorphisms import EndomorphismData, mHyperellipticCurve, mPlaneCurve
 F = QQ
 R.<x> = PolynomialRing(F)
 f, h = [x^4 + x^2, x^3 + 1]
-#f, h = [x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1, 0]
+f, h = [x^5 - x^4 + 4*x^3 - 8*x^2 + 5*x - 1, 0]
 X = mHyperellipticCurve(f, h)
 
 R.<x,y,z> = PolynomialRing(F)
@@ -21,11 +21,24 @@ f = x^3*y + x^3*z + x^2*y^2 - 2*x^2*z^2 - x*y^3 - x*y^2*z - 2*x*y*z^2 - y^3*z - 
 f = x^3*y + x^3*z + x^2*y^2 + 3*x^2*y*z + x^2*z^2 - 4*x*y^3 - 3*x*y^2*z - 3*x*y*z^2 - 4*x*z^3 + 2*y^4 + 3*y^2*z^2 + 2*z^4
 X = mPlaneCurve(f)
 
-print ""
-print "Curve:"
-print X
-Endo = EndomorphismData(X, prec = 230, molin_neurohr = True)
 
-print ""
-print "Endomorphisms:"
-print Endo.lattice().pretty_print()
+# Hyperelliptic tests over extension
+R.<t> = PolynomialRing(QQ)
+
+F.<r> = NumberField(t^2 + 2)
+R.<x> = PolynomialRing(F)
+f = x^5 + 9*x
+h = R(0)
+X1 = mHyperellipticCurve(f, h)
+
+F = QQ
+R.<x> = PolynomialRing(F)
+f = x^5 - x
+h = R(0)
+X2 = mHyperellipticCurve(f, h)
+
+Endo1 = EndomorphismData(X1, prec = 230, molin_neurohr = True)
+Endo2 = EndomorphismData(X2, prec = 230, molin_neurohr = True)
+
+stdesc1 = Endo1.lattice()._stdesc_
+stdesc2 = Endo2.lattice()._stdesc_
