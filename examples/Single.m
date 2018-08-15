@@ -5,7 +5,7 @@
 */
 
 AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 1);
+SetVerbose("EndoFind", 0);
 
 F := QQ;
 R<x> := PolynomialRing(F);
@@ -30,6 +30,9 @@ f := x^4 + x^2; h := x^3 + 1;
 f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10; h := 0;
 f := 11*x^6 + 11*x^3 - 4; h := 0;
 f := x^5 + x; h := 0;
+f := x^6 + 10*x^3 - 2; h := 0;
+f := x^6 + 10*x^3 - 2; h := 0;
+f := x^6 + 6*x^5 - 30*x^4 - 40*x^3 + 60*x^2 + 24*x - 8; h := 0;
 
 /*
 R<t> := PolynomialRing(Rationals());
@@ -46,6 +49,7 @@ f := x^5 + r*x^3 + x; h := R ! 0;
 
 X := HyperellipticCurve(f, h);
 
+/*
 R<x1,x2> := PolynomialRing(F, 2);
 x3 := 1;
 f := x1^4 - x1^3*x2 + 2*x1^3*x3 + 2*x1^2*x2*x3 + 2*x1^2*x3^2 - 2*x1*x2^2*x3 +
@@ -69,6 +73,7 @@ f := x1^2*x2^2 + x1*x2^3 + x1^3*x3 + x1^2*x2*x3 + x1*x2^2*x3 + x2^3*x3 + x1*x2*x
 //f := -x1^3*x2 + x1^2*x2^2 + 4*x1*x2^3 + 2*x2^4 + 5*x1^2*x2*x3 + 5*x1*x2^2*x3 - x1^2*x3^2 + x1*x2*x3^2 + x2^2*x3^2 + 4*x1*x3^3 + 3*x3^4;
 
 X := PlaneCurve(f);
+*/
 
 prec := 300;
 CCSmall := ComplexField(5);
@@ -95,13 +100,12 @@ print "";
 print "Endomorphism representations:";
 print GeoEndoRep;
 
-struct := EndomorphismStructure(GeoEndoRep, K, F);
-print "";
-print "Endomorphism structure:";
-print struct;
-
-lat := EndomorphismLattice(GeoEndoRep, F);
+lat, sthash := EndomorphismLattice(GeoEndoRep, F);
 print "";
 print "Endomorphism lattice:";
 print lat;
 
+print "";
+print "Sato-Tate hash:";
+print sthash;
+print CanonizeSatoTateHashes(sthash);

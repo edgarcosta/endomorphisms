@@ -33,26 +33,24 @@ base := [* F_seq, F *];
 
 L := BaseRing(GeoEndoRep[1][1][1]);
 if (not IsRelativeExtension(L, F)) then
-    entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
-    entries := [ entry ];
-    hash := SatoTateHash(GeoEndoRep);
-    return [* base, entries, hash *];
+    entry, Shorthand, sthash := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
+    entries := [ entry ]; sthashes := [ sthash ]; realstrs := [ Sort(entry[2][2][3]) ];
+    Gp := Sym(1); Hs := [ Gp ];
+    return [* base, entries *], [* Gp, Hs, sthashes, realstrs *];
 end if;
 
 Gp, Gf, Gphi := AutomorphismGroup(L);
 Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
 Sort(~Hs, CompareGroups);
 
-entry, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
-entries := [ entry ];
+entry, Shorthand, sthash := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
+entries := [ entry ]; sthashes := [ sthash ]; realstrs := [ entry[2][2][3] ];
 for H in Hs[2..#Hs] do
     gensH := Generators(H); GalK := [* gensH, Gphi *];
-    entry := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand, F);
-    Append(~entries, entry);
+    entry, sthash := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand, F);
+    Append(~entries, entry); Append(~sthashes, sthash); Append(~realstrs, entry[2][2][3]);
 end for;
-
-hash := SatoTateHash(GeoEndoRep);
-return [* base, entries, hash *];
+return [* base, entries *], [* Gp, Hs, sthashes, realstrs *];
 
 end intrinsic;
 
@@ -74,7 +72,8 @@ Append(~entry, EndoStruct);
 //Append(~entry, ClassNumber(AbsoluteField(K)));
 
 Shorthand := SatoTateShorthand(EndoStruct);
-return entry, Shorthand;
+sthash := SatoTateHash(GeoEndoRep, GalL);
+return entry, Shorthand, sthash;
 
 end intrinsic;
 
@@ -99,6 +98,8 @@ Append(~entry, EndoStruct);
 
 //Append(~entry, ClassNumber(AbsoluteField(K)));
 
-return entry;
+sthash := SatoTateHash(GeoEndoRep, GalK);
+
+return entry, sthash;
 
 end intrinsic;

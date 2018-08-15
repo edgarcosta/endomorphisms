@@ -230,8 +230,10 @@ class Lattice:
         self.g = Endo.g
         self.F = Endo.F
         self._geo_rep_list_ = Endo._geo_rep_list_
-        self._list_ = magma.EndomorphismLattice(self._geo_rep_list_, self.F)
+        self._list_, self._sthashes_ = magma.EndomorphismLattice(self._geo_rep_list_, self.F, nvals = 2)
+        self._sthashes_ = magma.CanonizeSatoTateHashes(self._sthashes_)
         self._desc_ = desc_lattice(self._list_)
+        self._stdesc_ = desc_sthashes(self._sthashes_)
 
     def __repr__(self):
         return repr_lattice(self)

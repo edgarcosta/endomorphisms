@@ -17,7 +17,6 @@ def index_dictionary():
     # Magma indices for lattice
     dikt['base'] = 1
     dikt['entries'] = 2
-    dikt['hash'] = 3
 
     # Magma indices for lattice entries
     dikt['field'] = 1
@@ -89,7 +88,6 @@ def desc_lattice(lattice):
     desc = [ ]
     desc.append(desc_base(lattice[_index_dict_['base']]))
     desc.append(desc_entries(lattice[_index_dict_['entries']]))
-    desc.append(desc_hash(lattice[_index_dict_['hash']]))
     return desc
 
 def dict_entries(entries):
@@ -102,8 +100,8 @@ def dict_entries(entries):
         dicts.append(dikt)
     return dicts
 
-def desc_hash(sthash):
-    return sagify_description(sthash)
+def desc_sthashes(sthashes):
+    return sagify_description(sthashes)
 
 def desc_entries(entries):
     _index_dict_ = index_dictionary()

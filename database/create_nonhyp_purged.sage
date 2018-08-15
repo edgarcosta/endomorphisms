@@ -17,7 +17,7 @@ prec = 230
 import os, shutil
 
 # Specify input and output:
-base_string = 'gce_genus3_nonhyperelliptic_RxR'
+base_string = 'gce_genus3_nonhyperelliptic_special'
 inputfile = base_string + '_inter.txt'
 outputfile = base_string + '_purged.txt'
 

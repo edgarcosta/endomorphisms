@@ -17,7 +17,7 @@ prec = 230
 import os, shutil
 
 # Specify input and output:
-base_string = 'gce_genus3_nonhyperelliptic'
+base_string = 'gce_genus3_nonhyperelliptic_special'
 inputfile = base_string + '_inter.txt'
 outputfile = base_string + '_endos.txt'
 
@@ -40,9 +40,11 @@ while not done:
                         f = R(pol_list[0])
                         X = mPlaneCurve(f)
                         Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
-                        Lat_str = Endo.lattice()._desc_
-                        line_new = repr(Lat_str).replace('\n', '').replace(' ', '')
-                        outputstream.write(linestrip + ':' + line_new + '\n')
+                        lat_str = Endo.lattice()._desc_
+                        sth_str = Endo.lattice()._stdesc_
+                        line_new1 = repr(lat_str).replace('\n', '').replace(' ', '')
+                        line_new2 = repr(sth_str).replace('\n', '').replace(' ', '')
+                        outputstream.write(linestrip + ':' + line_new1 + ':' + line_new2 + '\n')
                     except:
                         print "Error"
                         done = False

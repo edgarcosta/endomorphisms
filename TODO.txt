@@ -1,0 +1,5 @@
+Transport infinite place
+Use previous to return only tangent and homology, not embedded matrices since these can then be found to arbitrary precision
+LLL optimization
+Optimization of fields (make small function that covers all cases)
+Use polredabs for uniqueness
