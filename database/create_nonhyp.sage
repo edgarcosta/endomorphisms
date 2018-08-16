@@ -12,14 +12,16 @@ line_length = 2
 f_index = 1
 st_index = -1
 # Precision:
-prec = 230
+prec = 200
 
 import os, shutil
 
 # Specify input and output:
-base_string = 'gce_genus3_hyperelliptic_RxR'
-inputfile = base_string + '_inter.txt'
+base_string = 'gce_genus3_nonhyperelliptic_possibly_special'
+inputfile = base_string + '.txt'
+interfile = base_string + '_inter.txt'
 outputfile = base_string + '_endos.txt'
+shutil.copy(inputfile, interfile)
 
 # Ambient ring:
 R.<x,y,z> = PolynomialRing(QQ, 3)
@@ -28,7 +30,7 @@ done = False
 counter = 0
 while not done:
     done = True
-    with open(inputfile) as inputstream:
+    with open(interfile) as inputstream:
         with open(outputfile, 'w') as outputstream:
             for line in inputstream:
                 linestrip = line.rstrip()
@@ -36,14 +38,15 @@ while not done:
                 linesplit = linestrip.split(':')
                 if len(linesplit) == line_length:
                     try:
-                        pol_list = eval(linesplit[fh_index].replace('^', '**'))
+                        pol_list = eval(linesplit[f_index].replace('^', '**'))
                         f = R(pol_list[0])
-                        h = R(pol_list[1])
-                        X = HyperellipticCurve(f, h)
+                        X = mPlaneCurve(f)
                         Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
-                        Lat_str = Endo.lattice()._desc_
-                        line_new = repr(Lat_str).replace('\n', '').replace(' ', '')
-                        outputstream.write(linestrip + ':' + line_new + '\n')
+                        lat_str = Endo.lattice()._desc_
+                        sth_str = Endo.lattice()._stdesc_
+                        line_new1 = repr(lat_str).replace('\n', '').replace(' ', '')
+                        line_new2 = repr(sth_str).replace('\n', '').replace(' ', '')
+                        outputstream.write(linestrip + ':' + line_new1 + ':' + line_new2 + '\n')
                     except:
                         print "Error"
                         done = False
@@ -53,6 +56,9 @@ while not done:
     if counter >= 10:
         done = True
     counter += 1
-    shutil.move(outputfile, inputfile)
-    prec += 10
+    if not done:
+        shutil.move(outputfile, interfile)
+        prec += 10
+    else:
+        os.remove(interfile)
 

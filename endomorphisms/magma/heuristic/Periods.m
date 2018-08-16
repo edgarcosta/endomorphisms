@@ -45,11 +45,12 @@ elif #GeneratorsSequence(RCC) eq 3 then
         P := X`BigPeriodMatrix;
         return SuperellipticCompatibility(P, e);
     else
+        // TODO: Only polynomials over QQ for now
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
         try 
-            //return ChangeRing(PeriodMatrix(f : Prec := Precision(CC)), CC);
-            return RS_BigPeriodMatrix(f : Prec := Precision(CC));
+            return 0;
+            //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
         catch err
             error "No functionality for plane curves available";
         end try;

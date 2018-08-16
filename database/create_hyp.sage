@@ -6,29 +6,31 @@ from endomorphisms import *
 # if provided) need to be at a consistent index in the provided lines.
 
 # Length of the lines in the input file:
-line_length = 2
+line_length = 3
 # Specify indices of defining polynomials and Sato-Tate group here;
 # making the latter negative ignores the corresponding check.
-f_index = 1
+fh_index = 2
 st_index = -1
 # Precision:
-prec = 230
+prec = 200
 
 import os, shutil
 
 # Specify input and output:
-base_string = 'gce_genus3_nonhyperelliptic_special'
-inputfile = base_string + '_inter.txt'
+base_string = 'gce_genus3_hyperelliptic_possibly_special'
+inputfile = base_string + '.txt'
+interfile = base_string + '_inter.txt'
 outputfile = base_string + '_endos.txt'
+shutil.copy(inputfile, interfile)
 
 # Ambient ring:
-R.<x,y,z> = PolynomialRing(QQ, 3)
+R.<x> = PolynomialRing(QQ)
 
 done = False
 counter = 0
 while not done:
     done = True
-    with open(inputfile) as inputstream:
+    with open(interfile) as inputstream:
         with open(outputfile, 'w') as outputstream:
             for line in inputstream:
                 linestrip = line.rstrip()
@@ -36,9 +38,10 @@ while not done:
                 linesplit = linestrip.split(':')
                 if len(linesplit) == line_length:
                     try:
-                        pol_list = eval(linesplit[f_index].replace('^', '**'))
+                        pol_list = eval(linesplit[fh_index].replace('^', '**'))
                         f = R(pol_list[0])
-                        X = mPlaneCurve(f)
+                        h = R(pol_list[1])
+                        X = HyperellipticCurve(f, h)
                         Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
                         lat_str = Endo.lattice()._desc_
                         sth_str = Endo.lattice()._stdesc_
@@ -55,6 +58,8 @@ while not done:
         done = True
     counter += 1
     if not done:
-        shutil.move(outputfile, inputfile)
+        shutil.move(outputfile, interfile)
         prec += 10
+    else:
+        os.remove(interfile)
 

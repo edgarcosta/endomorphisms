@@ -17,8 +17,8 @@ prec = 300
 import os, shutil
 
 # Specify input and output:
-base_string = 'gce_genus3_nonhyperelliptic_special'
-inputfile = base_string + '_endos.txt'
+base_string = 'gce_genus3_nonhyperelliptic_RxR'
+inputfile = base_string + '_inter.txt'
 
 # Ambient ring:
 R.<x,y,z> = PolynomialRing(QQ, 3)
