@@ -49,8 +49,8 @@ elif #GeneratorsSequence(RCC) eq 3 then
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
         try 
-            return 0;
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
+            return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
         catch err
             error "No functionality for plane curves available";
         end try;
