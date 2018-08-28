@@ -18,6 +18,7 @@ import os, shutil
 
 # Specify input and output:
 base_string = 'gce_genus3_nonhyperelliptic_possibly_special'
+base_string = 'picard_new'
 inputfile = base_string + '.txt'
 interfile = base_string + '_inter.txt'
 outputfile = base_string + '_endos.txt'

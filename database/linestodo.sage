@@ -17,7 +17,7 @@ prec = 300
 import os, shutil
 
 # Specify input and output:
-base_string = 'gce_genus3_nonhyperelliptic_possibly_special_endos'
+base_string = 'gce_genus3_nonhyperelliptic_possibly_special_1_endos'
 inputfile = base_string + '.txt'
 
 # Ambient ring:
@@ -31,4 +31,4 @@ while not done:
             linestrip = line.rstrip()
             linesplit = linestrip.split(':')
             if len(linesplit) == line_length:
-                print linestrip
+                print linesplit[1].replace('[','').replace(']','')

@@ -137,7 +137,7 @@ def statement_factor_QQ(factor_QQ):
         if m == 1:
             statement = str_center
         elif d == 1 and m == 2:
-            statement = "M_%s (%s)" % (str_d, str_center)
+            statement = "M_%s (%s)" % (str_m, str_center)
         elif m == 1 and d == 2:
             statement = "Quat (%s, %s)"  % (str_center, str_disc)
         else:

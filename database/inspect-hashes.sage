@@ -1,7 +1,7 @@
 # Inspects endomorphism representations in a list by pretty-printing a dummy
 import os, shutil
 
-inputfile = 'gce_genus3_nonhyperelliptic_special_endos.txt'
+inputfile = 'gce_genus3_nonhyperelliptic_possibly_special_endos.txt'
 
 index = 2
 sthashes = [ ]
