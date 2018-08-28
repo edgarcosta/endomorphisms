@@ -102,7 +102,7 @@ E1, f1 := AlgebraOverCenter(D);
 //F := ClearFieldDenominator(BaseRing(E1));
 //if Type(F) eq FldNum then
 //    F := ClearFieldDenominator(F);
-//    F := Polredbestabs(F);
+//    F := Polredabs(F);
 //end if;
 //E2, f2 := ChangeRing(E1, F);
 E2 := E1;

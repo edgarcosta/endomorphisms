@@ -21,7 +21,7 @@ if Type(Domain(h)) eq FldRat then
 end if;
 for iotaL in InfinitePlaces(L) do
     if Abs(Evaluate(h(K.1), iotaL : Precision := prec) - Evaluate(K.1, iotaK : Precision := prec)) lt 10^(-prec + 10) then
-        return iota;
+        return iotaL;
     end if;
 end for;
 

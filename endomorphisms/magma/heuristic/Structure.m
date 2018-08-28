@@ -107,7 +107,7 @@ for D in Ds do
     E2 := ChangeRing(E1, F);
     F := ClearFieldDenominator(F);
     if (not IsQQ(F)) then
-        F := Polredbestabs(F);
+        F := Polredabs(F);
     end if;
     FDesc := Eltseq(MinimalPolynomial(F.1));
     FDesc := [ Integers() ! c : c in FDesc ];
@@ -216,7 +216,7 @@ Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
     //F := ClearFieldDenominator(BaseRing(E1));
-    //F := Polredbestabs(F);
+    //F := Polredabs(F);
     //E2, f2 := ChangeRing(E1, F);
     F := BaseRing(E1);
     E2 := E1;

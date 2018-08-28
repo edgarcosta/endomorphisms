@@ -66,7 +66,7 @@ for b in B do
 end for;
 if HasBaseQQ(K) and not IsQQ(K) then
     /* TODO: infinite place? then throw away genApp? */
-    K0 := Polredbestabs(K);
+    K0 := Polredabs(K);
     _, iso := IsIsomorphic(K, K0);
     gens0 := [ ];
     for gen in gens do

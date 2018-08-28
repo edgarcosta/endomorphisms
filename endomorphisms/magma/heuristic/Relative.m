@@ -293,7 +293,7 @@ else
 end if;
 K := ClearFieldDenominator(K);
 if IsQQ(F) and not IsQQ(K) then
-    return Polredbestabs(K);
+    return Polredabs(K);
 end if;
 return K;
 
@@ -365,7 +365,7 @@ for f in fs do
             K := ExtendRelativeSplittingField(K, F, tup[1]);
             K := ClearFieldDenominator(K);
             if IsQQ(F) and not IsQQ(K) then
-                K := Polredbestabs(K);
+                K := Polredabs(K);
             end if;
         end for;
     end if;
@@ -428,7 +428,7 @@ else
     M := ExtendRelativeSplittingField(K, F, tup[1]);
     M := ClearFieldDenominator(M);
     if IsQQ(BaseRing(M)) then
-        M := Polredbestabs(M);
+        M := Polredabs(M);
     end if;
     testK, phiK := IsSubfield(K, M); testL, phiL := IsSubfield(L, M);
 end if;
@@ -480,7 +480,7 @@ K := FixedField(L, gens);
 /* Cannot change this because we need it as a subfield */
 return K;
 if HasBaseQQ(K) and not IsQQ(K) then
-    return Polredbestabs(K);
+    return Polredabs(K);
 end if;
 if HasBaseQQ(L) then
     return FixedField(L, gens), Rationals();
