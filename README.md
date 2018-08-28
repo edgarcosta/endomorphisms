@@ -9,7 +9,7 @@ An installation of both Pari, Magma and SageMath, so that all of these are avail
 ```
 https://github.com/pascalmolin/hcperiods
 ```
-Not only does this enormously speed up the calculation of period matrices and make everything far more stable and reliable, but moreover the package will not run without it.
+and include the path to its spec file in your `.magmarc` file. Not only does this enormously speed up the calculation of period matrices and make everything far more stable and reliable, but moreover the package will not run without it.
 
 Additional prerequisite for older Magma versions
 --
@@ -22,6 +22,14 @@ This should be replaced by
 cpol := MinimalPolynomial(theta);  
 assert Degree(cpol) eq 2;  
 c := [Coefficient(cpol,1), Coefficient(cpol, 0)];
+```
+
+Magma installation 
+--
+
+The subdirectory `endomorphisms/magma/` includes code that can be run purely within Magma. You can load all the Magma specific files by attaching the ``endomorphisms/magma/spec`` file with ``AttachSpec``. For example, if you start your session of Magma inside the git directory, you can do this by typing
+```
+AttachSpec("endomorphisms/magma/spec");
 ```
 
 SageMath installation
@@ -37,13 +45,11 @@ sage -pip install --user --upgrade .
 ```
 After that, a new package called `endomorphisms` will be available for import in SageMath. Once the package is updated on GitHub, pulling the new changes and running the same command will update your installation.
 
-Magma installation 
---
-
-The subdirectory `endomorphisms/magma/` includes code that can be run purely within Magma. You can load all the Magma specific files by attaching the ``endomorphisms/magma/spec`` file with ``AttachSpec``. For example, if you start your session of Magma inside the git directory, you can do this by typing
- ```
- AttachSpec("endomorphisms/magma/spec");
- ```
+You need to include a line in your `~/.sage/init.sage` file like
+```
+magma.attach_spec('[path-to-spec]/spec')
+```
+similar to the one alluded to in the Magma installation above; if not, the copy of Magma run by SageMath will not see the names in the package by Molin--Neurohr.
 
 Usage
 --
