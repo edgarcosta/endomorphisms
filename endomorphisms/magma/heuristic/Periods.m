@@ -13,7 +13,7 @@
 /* Enable MolinNeurohr to use the new code Pascal Molin and Christian Neurohr,
  * which is highly recommended */
 
-intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum : MolinNeurohr := true) -> AlgMatElt
+intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum : MolinNeurohr := true) -> ModMatFldElt
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
@@ -62,6 +62,17 @@ elif #GeneratorsSequence(RCC) eq 3 then
 else
     error "No functionality for general curves available";
 end if;
+end intrinsic;
+
+
+intrinsic PeriodMatrix(X::Crv : prec := 300, MolinNeurohr := true) -> ModMatFldElt
+{Returns the period matrix of the curve defined by the complex polynomials
+eqsCC.}
+
+eqsCC := EmbedCurveEquations(X, prec);
+eqsF := DefiningEquations(X);
+return PeriodMatrix(eqsCC, eqsF : MolinNeurohr := true);
+
 end intrinsic;
 
 

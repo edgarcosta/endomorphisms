@@ -35,9 +35,7 @@ CCSmall := ComplexField(5);
 print "Curve:";
 print X;
 
-eqsCC := EmbedCurveEquations(X, prec);
-eqsF := DefiningEquations(X);
-P := PeriodMatrix(eqsCC, eqsF : MolinNeurohr := true);
+P := PeriodMatrix(X : prec := prec);
 
 print "";
 print "Period matrix:";

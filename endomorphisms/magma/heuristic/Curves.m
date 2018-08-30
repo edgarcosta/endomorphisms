@@ -45,7 +45,7 @@ intrinsic EmbedCurveEquations(X::Crv, prec::RngIntElt) -> MonStgElt
 {Returns the defining equations of X base changed to CC to precision prec,
 using the infinite place of the base ring of X.}
 
-if Type(X) eq CrvHyp then
+if Type(X) eq CrvHyp or Type(X) eq CrvEll then
     f, h := HyperellipticPolynomials(X);
     return EmbedAtInfinitePlace([ f, h ], prec + 10);
 elif Type(X) eq CrvPln then

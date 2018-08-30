@@ -11,7 +11,7 @@
 
 // TODO: Generalize to isogenies
 
-intrinsic VerifySaturated(GeoEndoRep::SeqEnum, P::.) -> BoolElt, .
+intrinsic VerifySaturated(GeoEndoRep::SeqEnum, P::ModMatFldElt) -> BoolElt, AlgMatElt
 {Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
 is saturated in the corresponding algebra.}
 
@@ -41,7 +41,7 @@ return true, "";
 end intrinsic;
 
 
-intrinsic VerifySaturatedAtPrime(GeoEndoRep::SeqEnum, P::., p::RngIntElt) -> BoolElt, .
+intrinsic VerifySaturatedAtPrime(GeoEndoRep::SeqEnum, P::ModMatFldElt, p::RngIntElt) -> BoolElt, AlgMatElt
 {Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
 is saturated in the corresponding algebra at p.}
 

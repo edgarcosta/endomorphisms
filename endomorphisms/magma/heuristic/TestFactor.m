@@ -10,11 +10,15 @@
  */
 
 
-intrinsic TestEllipticFactor(X::Crv, E::Crv) -> BoolElt
+intrinsic TestEllipticFactor(X::Crv, E::Crv, F::Fld : prec := 300) -> BoolElt
 {Given a curve X and an elliptic curve E, determines whether E is a factor of
 the Jacobian of X. Returns a map from X to E if this is the case.}
 
-return 0;
+P := PeriodMatrix(X : prec := prec);
+Q := PeriodMatrix(E : prec := prec);
+GeoHomoRep := GeometricHomomorphismRepresentation(P, Q, F);
+/* TODO: Add map */
+return #GeoHomoRep ne 0;
 
 end intrinsic;
 
@@ -58,8 +62,9 @@ return E;
 end intrinsic;
 
 
-intrinsic MorphismOfSmallDegree(P::., Q::., F::. : Bound := 10) -> .
-{Wat it sez on the tin}
+intrinsic MorphismOfSmallDegree(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : Bound := 10) -> List, RngIntElt
+{Gives a morphism of small degree from the Jacobian corresponding to P to that
+corresponding to Q. The third argument F is the base field used.}
 
 g := #Rows(P);
 HomRep := GeometricHomomorphismRepresentation(P, Q, F);
@@ -83,44 +88,7 @@ end for;
 
 A0 := &+[ tup0[i]*HomRep[i][1] : i in [1..#HomRep] ];
 R0 := &+[ tup0[i]*HomRep[i][2] : i in [1..#HomRep] ];
-ACC0 := &+[ tup0[i]*HomRep[i][3] : i in [1..#HomRep] ];
-gen0 := [* A0, R0, ACC0 *];
-return gen0, d0;
-
-end intrinsic;
-
-
-intrinsic MorphismOfSmallDegreePartial(P1::., P2::. : Bound := 10) -> .
-{Wat it sez on the tin}
-
-g1 := #Rows(P1); g2 := #Rows(P2);
-HomRep := GeometricHomomorphismRepresentationCC(P1, P2);
-Rs := [ rep[2] : rep in HomRep ];
-
-D := [-Bound..Bound];
-M1 := ChangeRing(StandardSymplecticMatrix(g1), Rationals());
-M2 := ChangeRing(StandardSymplecticMatrix(g2), Rationals());
-CP := CartesianPower(D, #Rs);
-d0 := Infinity();
-for tup in CP do
-    R := &+[ tup[i] * Rs[i] : i in [1..#Rs] ];
-    C := R*M1*Transpose(R)*M2^(-1);
-    test := IsScalar(C);
-    if test then
-        d := Abs(C[1,1]);
-        if (not IsZero(R)) and d lt d0 then
-            d0 := d;
-            tup0 := tup;
-        end if;
-    end if;
-end for;
-
-if d0 eq Infinity() then
-    return 0, d0;
-end if;
-ACC0 := &+[ tup0[i]*HomRep[i][1] : i in [1..#HomRep] ];
-R0 := &+[ tup0[i]*HomRep[i][2] : i in [1..#HomRep] ];
-gen0 := [* ACC0, R0 *];
+gen0 := [* A0, R0 *];
 return gen0, d0;
 
 end intrinsic;

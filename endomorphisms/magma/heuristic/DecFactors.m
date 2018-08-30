@@ -10,7 +10,7 @@
  */
 
 
-intrinsic FactorReconstruct(P::., Q::., A::., R::., K::Fld) -> Crv
+intrinsic FactorReconstruct(P::ModMatFldElt, Q::ModMatFldElt, A::., R::., K::Fld) -> Crv
 {Given period matrices P and Q, an analytic and homological representation A
 and R of a map between the corresponding Jacobians, and a field K, returns an
 algebraic expression for the factor corresponding to Q.}
@@ -27,7 +27,7 @@ end if;
 end intrinsic;
 
 
-intrinsic FactorReconstructG1(P::., Q::., A::., R::., K::Fld) -> .
+intrinsic FactorReconstructG1(P::ModMatFldElt, Q::ModMatFldElt, A::., R::., K::Fld) -> .
 {Given period matrices P and Q, an analytic and homological representation A
 and R of a map between the corresponding Jacobians, and a field K, returns an
 algebraic expression for the factor corresponding to Q. Assumes that the genus
@@ -47,7 +47,7 @@ return HyperellipticCurve(f, h);
 end intrinsic;
 
 
-intrinsic FactorReconstructG2(P::., Q::., A::., R::., K::Fld) -> .
+intrinsic FactorReconstructG2(P::ModMatFldElt, Q::ModMatFldElt, A::., R::., K::Fld) -> .
 {Given period matrices P and Q, an analytic and homological representation A
 and R of a map between the corresponding Jacobians, and a field K, returns an
 algebraic expression for the factor corresponding to Q. Assumes that the genus
@@ -86,6 +86,7 @@ end intrinsic;
 intrinsic TwistDifferentialBasis(X::., P::.) -> .
 {Given a period matrix P and a curve X that represents P over CC, twists X so
 that it also represents P over the base field.}
+/* TODO: not for now, and only applies on generic stratum */
 
 F := BaseRing(X);
 CC := BaseRing(P); RCC := PolynomialRing(CC);

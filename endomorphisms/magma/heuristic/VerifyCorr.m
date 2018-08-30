@@ -62,11 +62,12 @@ if IsEven(d) then
     h0 := Coefficient(h, e);
     R<t> := PolynomialRing(K);
     L := RelativeSplittingField(t^2 - g0);
-    L := ClearDenominator(L);
+    L := ImproveField(L);
     Q := [ 1, Roots(t^2 - g0, L)[1][1], 0 ];
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
     return P;
 end if;
+print "a";
 
 /* Non-Weierstrass point in finite patch: */
 if IsOdd(d) then
@@ -80,13 +81,12 @@ if IsOdd(d) then
     end while;
     R<t> := PolynomialRing(K);
     L := RelativeSplittingField(t^2 - g0);
-    L := ClearDenominator(L);
+    L := ImproveField(L);
     Q := [ L ! n0, Roots(t^2 - g0, L)[1][1], 1 ];
     h0 := Evaluate(h, Q[1]);
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
     return P;
 end if;
-
 error "All cases in NonWeierstrassBasePointHyperelliptic fell through";
 
 end intrinsic;
@@ -124,7 +124,7 @@ if #Ps ne 0 then
         for tup in Fac do
             fac := tup[1];
             L := NumberField(fac);
-            L := ClearDenominator(L);
+            L := ImproveField(L);
             rt := Roots(fac, L)[1][1];
             if z0 ne 0 then
                 P := [ n0*rt + x0, rt + y0, z0 ];
@@ -147,7 +147,7 @@ while true do
     Fac := Factorization(h(f));
     for tup in Fac do
         L := NumberField(tup[1]);
-        L := ClearDenominator(L);
+        L := ImproveField(L);
         rt := Roots(h(f), L)[1][1];
         P := [ n0, rt, 1 ];
         XL := ChangeRing(X, L);
@@ -211,7 +211,7 @@ end if;
 end intrinsic;
 
 
-intrinsic CorrespondenceVerifyG1(X::Crv, P::Pt, Y::Crv, Q::Pt, A::., fs::SeqEnum) -> .
+intrinsic CorrespondenceVerifyG1(X::Crv, P::Pt, Y::Crv, Q::Pt, A::., fs::SeqEnum) -> BoolElt
 {Returns whether the morphism defined by fs indeed corresponds to the tangent
 representation A.}
 
