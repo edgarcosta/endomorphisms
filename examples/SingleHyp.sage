@@ -15,5 +15,5 @@ lat = Endo.lattice()
 stdesc = lat._stdesc_
 print lat.pretty_print()
 
-Dec = Endo.decomposition()
-print Dec.factors()
+#Dec = Endo.decomposition()
+#print Dec.factors()

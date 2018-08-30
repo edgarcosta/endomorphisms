@@ -43,9 +43,7 @@ print "";
 print "Endomorphism representations:";
 print GeoEndoRep;
 
-exit;
-
-lat, sthash := EndomorphismLattice(GeoEndoRep, F);
+lat, sthash := EndomorphismLattice(GeoEndoRep);
 print "";
 print "Endomorphism lattice:";
 print lat;
@@ -53,4 +51,3 @@ print lat;
 print "";
 print "Sato-Tate hash:";
 print sthash;
-print CanonizeSatoTateHashes(sthash);

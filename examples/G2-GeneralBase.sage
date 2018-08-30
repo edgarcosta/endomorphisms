@@ -22,16 +22,21 @@ h = R(0)
 Xs.append(mHyperellipticCurve(f, h))
 
 for X in Xs:
+    print ""
+    print "Curve:"
     print X
-    Endo = EndomorphismData(X, prec = 300, molin_neurohr = False)
+    Endo = EndomorphismData(X, prec = 300)
 
+    print ""
     print "Field of definition:"
     print Endo.endomorphism_field()
 
+    print ""
     print "Geometric representation:"
     Geo = Endo.geometric()
     print Geo.representation()
     print Geo.pretty_print()
 
+    print ""
     print "Lattice:"
     print Endo.lattice().pretty_print()
