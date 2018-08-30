@@ -94,7 +94,7 @@ intrinsic MorphismOfSmallDegreePartial(P1::., P2::. : Bound := 10) -> .
 {Wat it sez on the tin}
 
 g1 := #Rows(P1); g2 := #Rows(P2);
-HomRep := GeometricHomomorphismRepresentationPartial(P1, P2);
+HomRep := GeometricHomomorphismRepresentationCC(P1, P2);
 Rs := [ rep[2] : rep in HomRep ];
 
 D := [-Bound..Bound];

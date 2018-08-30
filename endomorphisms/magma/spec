@@ -9,7 +9,6 @@
     Precision.m
     Relative.m
     Recognition.m
-    Optimize.m
 
     Curves.m
     Periods.m

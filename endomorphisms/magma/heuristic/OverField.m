@@ -10,20 +10,19 @@
  */
 
 
-intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, GalK::List, F::Fld) -> SeqEnum
-{Given a geometric representation GeoEndoRep, a list of automorphisms GalK of
-their field of definition, and a field F, returns a basis of the endomorphisms
-defined over the subfield determined by GalK.}
+intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, GalK::List) -> SeqEnum
+{Given a geometric representation GeoEndoRep and a list of automorphisms GalK of
+their field of definition, returns a basis of the endomorphisms defined over
+the subfield determined by GalK.}
 
-gensTan := [ gen[1] : gen in GeoEndoRep ];
-gensHom := [ gen[2] : gen in GeoEndoRep ];
-gensApp := [ gen[3] : gen in GeoEndoRep ];
+As := [ gen[1] : gen in GeoEndoRep ];
+Rs := [ gen[2] : gen in GeoEndoRep ];
 
 /* Boundary cases */
-L := BaseRing(gensTan[1]);
+L := BaseRing(As[1]); F := BaseRing(L);
 gensH, Gphi := Explode(GalK);
 /* Case where no extension is needed to find the geometric endomorphism ring */
-if not IsRelativeExtension(L, F) then
+if Degree(L) eq 1 then
     return GeoEndoRep;
 /* Case where we ask for the geometric endomorphism ring */
 elif #gensH eq 0 then
@@ -37,13 +36,13 @@ else
 end if;
 
 /* The vector space representing the full endomorphism algebra */
-n := #gensTan;
+n := #As;
 Ker := VectorSpace(Rationals(), n);
 /* Successively filter by writing down the conditions for a matrix to be fixed
  * under a given generator */
 for genH in gensH do
     sigma := Gphi(genH);
-    Msigma := Matrix([ MatrixInBasis(ConjugateMatrix(sigma, genTan), gensTan) : genTan in gensTan ]);
+    Msigma := Matrix([ MatrixInBasis(ConjugateMatrix(sigma, A), As) : A in As ]);
     Msigma -:= IdentityMatrix(Rationals(), n);
     Ker meet:= Kernel(Msigma);
 end for;
@@ -55,38 +54,31 @@ B := Basis(Lat);
 
 /* Constructing said basis */
 gens := [ ];
-K := GeneralFixedField(L, [ Gphi(genH) : genH in gensH ]);
+K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
+K0 := ImproveField(K);
+test, h := IsIsomorphicExtra(K, K0);
 for b in B do
-    genTan := &+[ b[i] * gensTan[i] : i in [1..n] ];
+    A := &+[ b[i] * As[i] : i in [1..n] ];
+    R := &+[ b[i] * Rs[i] : i in [1..n] ];
     /* Coercion to subfield */
-    genTan := Matrix(K, genTan);
-    genHom := &+[ b[i] * gensHom[i] : i in [1..n] ];
-    genApp := &+[ b[i] * gensApp[i] : i in [1..n] ];
-    Append(~gens, [* genTan, genHom, genApp *]);
+    A := Matrix(K, A);
+    A := Matrix([ [ h(c) : c in Eltseq(row) ] : row in Rows(A) ]);
+    Append(~gens, [* A, R *]);
 end for;
-if HasBaseQQ(K) and not IsQQ(K) then
-    /* TODO: infinite place? then throw away genApp? */
-    K0 := Polredabs(K);
-    _, iso := IsIsomorphic(K, K0);
-    gens0 := [ ];
-    for gen in gens do
-        Append(~gens0, [* ConjugateMatrix(iso, gen[1]), gen[2], gen[3] *]);
-    end for;
-end if;
 return gens;
 
 end intrinsic;
 
 
-intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, K::Fld, F::Fld) -> SeqEnum
-{Given a geometric representation GeoEndoRep, a subfield K of their field of
-definition, and a field F, returns a basis of the endomorphisms defined over
-the subfield determined by GalK.}
+intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, K::Fld) -> SeqEnum
+{Given a geometric representation GeoEndoRep and a subfield K of their field of
+definition, returns a basis of the endomorphisms defined over the subfield
+determined by GalK.}
 
 /* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
-return EndomorphismRepresentation(GeoEndoRep, GalK, F);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K);
+return EndomorphismRepresentation(GeoEndoRep, GalK);
 
 end intrinsic;
 
@@ -121,10 +113,9 @@ end if;
 end function;
 
 
-intrinsic SubgroupGeneratorsUpToConjugacy(L::Fld, K::Fld, F::Fld) -> List
+intrinsic SubgroupGeneratorsUpToConjugacy(L::Fld, K::Fld) -> List
 {Finds the subgroup generators up to conjugacy that correspond to the
-intersection of the extensions L and K of F. It is assumed that L is Galois
-and, for now, that F is the field of rationals.}
+intersection of the extensions L and K of their common base field.}
 
 /* Case where L and K coincide */
 if L eq K then

@@ -13,14 +13,12 @@
 function TestCloseToRoot(f, a)
 /* Tests whether a is close to a root of f */
 
-CC := Parent(a);
-RCC := PolynomialRing(CC);
-fCC := EmbedAtInfinitePlace(f, RCC);
-tups := Roots(fCC);
+CC := Parent(a); RCC := PolynomialRing(CC);
+fCC := EmbedAtInfinitePlace(f, RCC); tups := Roots(fCC);
 for tup in tups do
     rt := tup[1];
-    vprint EndoFind : "Absolute value:", RealField(5) ! Abs(a - rt);
-    vprint EndoFind : "Evaluation:", ComplexField(5) ! Evaluate(fCC, rt);
+    //vprint EndoFind : "Absolute value:", RealField(5) ! Abs(a - rt);
+    //vprint EndoFind : "Evaluation:", ComplexField(5) ! Evaluate(fCC, rt);
     if Abs(a - rt) le CC`epscomp then
         return true;
     end if;
@@ -64,7 +62,9 @@ while degf lt UpperBound do
         for row in [ Rows(Ker)[1] ] do
             vprint EndoFind : "Row:", row;
             test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-            if true then
+            /* TODO: Uncomment if desired */
+            //if true then
+            if test_height then
                 f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
                 if not Factor then
                     if TestCloseToRoot(f, a) then
@@ -88,7 +88,7 @@ return 0, false;
 end intrinsic;
 
 
-intrinsic RelativeMinimalPolynomials(gens::SeqEnum, F::Fld : UpperBound := Infinity()) -> SeqEnum
+intrinsic RelativeMinimalPolynomialsMatrices(gens::SeqEnum, F::Fld : UpperBound := Infinity()) -> SeqEnum
 {Returns a relative minimal polynomials of the entries of the matrices gens
 with respect to the stored infinite place of F.}
 
@@ -129,6 +129,7 @@ end intrinsic;
 
 intrinsic FractionalApproximation(a::FldReElt) -> FldRatElt
 {Returns a fractional approximation of the real number a.}
+/* TODO: Copies previous function, which is stupid */
 
 RR := Parent(a);
 M := Matrix(RR, [ [ 1 ], [ -a ] ]);
@@ -194,7 +195,6 @@ if test_ker then
             den := row[#Eltseq(row)];
             if den ne 0 then
                 sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
-                /* ASD */
                 if (RR ! Abs(sCC - a)) lt RR`epscomp then
                     s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
                     return s, true;

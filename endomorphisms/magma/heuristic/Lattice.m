@@ -25,81 +25,73 @@ end if;
 end function;
 
 
-intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum, F::Fld) -> List
+intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum) -> List
 {Returns the lattice of endomorphisms by (conjugacy class of) subfield.}
 
-F_seq := FieldDescription(F, BaseRing(F));
+L := BaseRing(GeoEndoRep[1][1]);
+F := BaseRing(L); F_seq := FieldDescription(F);
 base := [* F_seq, F *];
 
-L := BaseRing(GeoEndoRep[1][1][1]);
-if (not IsRelativeExtension(L, F)) then
-    entry, Shorthand, sthash := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
-    entries := [ entry ]; sthashes := [ sthash ]; realstrs := [ Sort(entry[2][2][3]) ];
+if Degree(L) eq 1 then
+    entry, stpart, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep);
+    entries := [ entry ]; stparts := [ stpart ]; realstrs := [ entry[2][2][3] ];
     Gp := Sym(1); Hs := [ Gp ];
-    return [* base, entries *], [* Gp, Hs, sthashes, realstrs *];
+    return [* base, entries *], [* Gp, Hs, stparts, realstrs *];
 end if;
 
 Gp, Gf, Gphi := AutomorphismGroup(L);
 Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
 Sort(~Hs, CompareGroups);
 
-entry, Shorthand, sthash := EndomorphismLatticeGeometricStep(GeoEndoRep, F);
-entries := [ entry ]; sthashes := [ sthash ]; realstrs := [ entry[2][2][3] ];
+entry, stpart, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep);
+entries := [ entry ]; stparts := [ stpart ]; realstrs := [ entry[2][2][3] ];
 for H in Hs[2..#Hs] do
     gensH := Generators(H); GalK := [* gensH, Gphi *];
-    entry, sthash := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand, F);
-    Append(~entries, entry); Append(~sthashes, sthash); Append(~realstrs, entry[2][2][3]);
+    entry, stpart := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand);
+    Append(~entries, entry); Append(~stparts, stpart); Append(~realstrs, entry[2][2][3]);
 end for;
-return [* base, entries *], [* Gp, Hs, sthashes, realstrs *];
+return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]);
 
 end intrinsic;
 
 
-intrinsic EndomorphismLatticeGeometricStep(GeoEndoRep::SeqEnum, F::Fld) -> List
+intrinsic EndomorphismLatticeGeometricStep(GeoEndoRep::SeqEnum) -> List
 {Returns the geometric entry of the endomorphism lattice.}
 
 entry := [* *];
 
 L := BaseRing(GeoEndoRep[1][1][1]);
-L_seq := FieldDescription(L, F);
-L_desc := [* L_seq, L *];
+L_seq := FieldDescription(L); L_desc := [* L_seq, L *];
 Append(~entry, L_desc);
 
 GalL := [* [ ], [ ] *];
-EndoStruct := EndomorphismStructure(GeoEndoRep, GalL, F);
+EndoStruct := EndomorphismStructure(GeoEndoRep, GalL);
 Append(~entry, EndoStruct);
 
-//Append(~entry, ClassNumber(AbsoluteField(K)));
-
 Shorthand := SatoTateShorthand(EndoStruct);
-sthash := SatoTateHash(GeoEndoRep, GalL);
-return entry, Shorthand, sthash;
+stpart := SatoTateHashPart(GeoEndoRep, GalL);
+return entry, stpart, Shorthand;
 
 end intrinsic;
 
 
-intrinsic EndomorphismLatticeGeneralStep(GeoEndoRep::SeqEnum, GalK::List, Shorthand::MonStgElt, F::Fld) -> List
+intrinsic EndomorphismLatticeGeneralStep(GeoEndoRep::SeqEnum, GalK::List, Shorthand::MonStgElt) -> List
 {Part of the above.}
 
 entry := [* *];
 
-L := BaseRing(GeoEndoRep[1][1][1]);
+L := BaseRing(GeoEndoRep[1][1]);
 gensH, Gphi := Explode(GalK);
-K := GeneralFixedField(L, [ Gphi(genH) : genH in gensH ]);
-if HasBaseQQ(K) and not IsQQ(K) then
-    K := Polredabs(K);
-end if;
-K_seq := FieldDescription(K, F);
+K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
+K := ImproveField(K); K_seq := FieldDescription(K);
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
 
-EndoStruct := EndomorphismStructure(GeoEndoRep, GalK, F : Shorthand := Shorthand);
+EndoStruct := EndomorphismStructure(GeoEndoRep, GalK : Shorthand := Shorthand);
 Append(~entry, EndoStruct);
 
-//Append(~entry, ClassNumber(AbsoluteField(K)));
+stpart := SatoTateHashPart(GeoEndoRep, GalK);
 
-sthash := SatoTateHash(GeoEndoRep, GalK);
-
-return entry, sthash;
+return entry, stpart;
 
 end intrinsic;

@@ -22,7 +22,7 @@ num_idemsgeo := NumberOfIdempotentsFromStructure(GeoEndoStruct);
 if num_idemsgeo eq 1 then
     /* Stop if there are no geometric idempotents and give some dummy output */
     K := entries[1][1][2];
-    RestrictInfinitePlace(L, K);
+    SetInfinitePlaceDownwards(L, K);
     return [ ], K;
 end if;
 
@@ -35,7 +35,7 @@ while i le n do
         /* Get elements, their base field, and inherit embedding */
         idems := IdempotentsFromStructure(EndoStruct);
         K := BaseRing(idems[1][1]);
-        RestrictInfinitePlace(L, K);
+        SetInfinitePlaceDownwards(L, K);
         return idems, K;
     end if;
     i +:= 1;
@@ -99,10 +99,10 @@ endomorphism algebra C. The genus of the curve involved in the background needs
 to be passed as g. We assume the genus to be at most 3.}
 
 E1, f1 := AlgebraOverCenter(D);
-//F := ClearFieldDenominator(BaseRing(E1));
+//F := ClearDenominator(BaseRing(E1));
 //if Type(F) eq FldNum then
-//    F := ClearFieldDenominator(F);
-//    F := Polredabs(F);
+//    F := ClearDenominator(F);
+//    F := ImproveField(F);
 //end if;
 //E2, f2 := ChangeRing(E1, F);
 E2 := E1;
@@ -187,7 +187,7 @@ BCC := Matrix([ [ c : c in Eltseq(rowsACC[i]) ] : i in indices ]);
 QLargeSplit := VerticalSplitMatrix(QLarge);
 QSubSplit, indices := SubmatrixOfRank(QLargeSplit, 2*g : ColumnsOrRows := "Columns");
 QSplit, T, U := SaturateLattice(QSubSplit, QLargeSplit : ColumnsOrRows := "Columns");
-Q := CombineMatrix(QSplit, CC);
+Q := CombineVerticallySplitMatrix(QSplit, CC);
 /* We now have QLarge = Q U, so B P = Q U R. We return B and U R. */
 
 S := U * R;

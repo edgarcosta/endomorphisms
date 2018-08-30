@@ -10,32 +10,39 @@
  */
 
 
-intrinsic RosatiInvolution(GeoEndoRep::SeqEnum, A::.) -> .
-{Returns the Rosati involution of A.}
+intrinsic RosatiInvolution(GeoEndoRep::SeqEnum, AorR::AlgMatElt) -> AlgMatElt
+{Returns the Rosati involution of a tangent or homology representation.}
 
-gensTan := [ gen[1] : gen in GeoEndoRep ];
-gensHom := [ gen[2] : gen in GeoEndoRep ];
-gensApp := [ gen[3] : gen in GeoEndoRep ];
-Rs := gensHom;
-if IsExact(Parent(A)) then
-    B := gensTan;
-    s := Eltseq(MatrixInBasis(A, B));
-else
-    B := gensApp;
-    s := Eltseq(MatrixInBasis(A, B));
-    s := [ Round(c) : c in s ];
+As := [ gen[1] : gen in GeoEndoRep ]; Rs := [ gen[2] : gen in GeoEndoRep ];
+g := #Rows(As[1]); isR := #Rows(AorR) eq 2*g;
+
+if IsR then
+    R := AorR;
+else;
+    A := AorR;
+    if not IsExact(Parent(A)) then
+        Error("Exact input needed"); return 0;
+        //s := Eltseq(MatrixInBasis(AorR, gensApp));
+        //s := [ Round(c) : c in s ];
+    end if;
+    s := Eltseq(MatrixInBasis(A, As));
+    R := &+[ s[i] * Rs[i] : i in [1..#Rs] ];
 end if;
-R := &+[ s[i] * Rs[i] : i in [1..#Rs] ];
-J := StandardSymplecticMatrix(#Rows(A));
+
+J := StandardSymplecticMatrix(g);
 Rdagger := -J * Transpose(R) * J;
-sdagger := Eltseq(MatrixInBasis(Rdagger, Rs));
-Adagger := &+[ sdagger[i] * B[i] : i in [1..#Rs] ];
-return Adagger;
+if IsR then
+    return Rdagger;
+else
+    sdagger := Eltseq(MatrixInBasis(Rdagger, Rs));
+    Adagger := &+[ sdagger[i] * B[i] : i in [1..#Rs] ];
+    return Adagger;
+end if;
 
 end intrinsic;
 
 
-intrinsic DegreeEstimate(GeoEndoRep::SeqEnum, A::.) -> .
+intrinsic DegreeEstimate(GeoEndoRep::SeqEnum, A::AlgMatElt) -> RngIntElt
 {Estimates degree of corresponding endomorphism.}
 
 Adagger := RosatiInvolution(GeoEndoRep, A);
@@ -43,20 +50,20 @@ tr := Trace(A * Adagger) * Factorial(#Rows(A) - 1);
 if IsExact(Parent(A)) then
     return (Integers() ! tr);
 else
-    return Round(tr);
+    Error("Exact input needed"); return 0;
+    //return Round(tr);
 end if;
 
 end intrinsic;
 
 
-intrinsic RosatiFixedModule(GeoEndoRep::SeqEnum) -> .
-{Gives the ZZ-module of homological representations that are fixed under Rosati.}
+intrinsic RosatiFixedModule(GeoEndoRep::SeqEnum) -> SeqEnum
+{Gives a basis of the ZZ-module of homological representations that are fixed
+under Rosati.}
 
-gensTan := [ gen[1] : gen in GeoEndoRep ];
-gensHom := [ gen[2] : gen in GeoEndoRep ]; Rs := gensHom;
-gensApp := [ gen[3] : gen in GeoEndoRep ];
+Rs := [ gen[2] : gen in GeoEndoRep ];
 J := StandardSymplecticMatrix(#Rows(Rs[1]) div 2);
-Rdiffs := [ (-J * Transpose(rep[2]) * J) - rep[2] : rep in GeoEndoRep ];
+Rdiffs := [ (-J * Transpose(R) * J) - R : R in Rs ];
 M := Matrix([ Eltseq(MatrixInBasis(Rdiff, Rs)) : Rdiff in Rdiffs ]);
 B := Basis(Kernel(M));
 Rsfixed := [ &+[ b[i]*Rs[i] : i in [1..#Rs] ] : b in B ];

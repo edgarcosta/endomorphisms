@@ -10,10 +10,10 @@
  */
 
 
-/* Enable MolinNeurohr if you have access to the relevant code by Pascal Molin and
- * Christian Neurohr */
+/* Enable MolinNeurohr to use the new code Pascal Molin and Christian Neurohr,
+ * which is highly recommended */
 
-intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum : MolinNeurohr := false) -> AlgMatElt
+intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum : MolinNeurohr := true) -> AlgMatElt
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
@@ -27,28 +27,30 @@ if #GeneratorsSequence(RCC) eq 1 then
     end if;
     if not MolinNeurohr then
         JCC := AnalyticJacobian(gCC);
-        /* We divide by 2 because we integrate wrt x^i dx / 2y */
+        /* We divide by 2 because we integrate with respect to the canonical
+         * differential x^i dx / 2y
+         * (MN use x^i dx) */
         return ChangeRing(BigPeriodMatrix(JCC), CC) / 2;
     else
         X := SE_Curve(gCC, 2 : Prec := Precision(CC));
         return ChangeRing(X`BigPeriodMatrix, CC) / 2;
     end if;
-    /* Alternative version: */
-    //return ChangeRing(PeriodMatrix(gCC : Prec := Precision(CC)), CC) / 2;
+
 elif #GeneratorsSequence(RCC) eq 3 then
     if not MolinNeurohr then
         error "No functionality for plane curves available";
     end if;
-    test, fCC, e := IsSuperelliptic(eqsCC);
+    test, fCC, e := IsSuperellipticEquation(eqsCC);
     if false then
         X := SE_Curve(fCC, 3 : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
         return SuperellipticCompatibility(P, e);
     else
-        // TODO: Only polynomials over QQ for now
+        /* Note: only polynomials over QQ for now */
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
         try 
+            /* TODO: Add this when it comes */
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
             //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
             return 1/(1 - 1);
@@ -56,17 +58,16 @@ elif #GeneratorsSequence(RCC) eq 3 then
             error "No functionality for plane curves available";
         end try;
     end if;
+
 else
     error "No functionality for general curves available";
 end if;
 end intrinsic;
 
 
-intrinsic IsSuperelliptic(eqs::SeqEnum) -> BoolElt, ., .
+intrinsic IsSuperellipticEquation(eqs::SeqEnum) -> BoolElt, ., .
 {Returns whether the plane curve defined by eqs is of the form y^e z^* = f (x,
 z). If so, return the inhomogenous form of f along with e.}
-// TODO: Deal with this beyond genus 3 by making superelliptic curves a class
-// of their own.
 
 R<x,y,z> := Parent(eqs[1]);
 if #GeneratorsSequence(R) eq 1 then
@@ -81,9 +82,10 @@ if #monsy ne 1 then
     return false, 0, 1;
 end if;
 
-e := Exponents(monsy[1])[2]; C := MonomialCoefficient(F, monsy[1]);
+e := Exponents(monsy[1])[2];
 S<t> := PolynomialRing(BaseRing(R));
 f := &+[ MonomialCoefficient(F, mon) * t^(Exponents(mon)[1]) : mon in monsxz ];
+C := MonomialCoefficient(F, monsy[1]);
 f := -f/C;
 return true, f, e;
 

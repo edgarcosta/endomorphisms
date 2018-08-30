@@ -13,7 +13,7 @@
 intrinsic NumericalLeftSolve(A::., B::.) -> .
 {Returns the solution X to the equation X * A = B.}
 
-// TODO: NumericalKernel should be used.
+// TODO: NumericalKernel should be used, but that sucks.
 return B * A^(-1);
 
 end intrinsic;
@@ -22,7 +22,7 @@ end intrinsic;
 intrinsic NumericalRightSolve(A::., B::.) -> .
 {Returns the solution X to the equation A * X = B.}
 
-// TODO: NumericalKernel should be used.
+// TODO: NumericalKernel should be used, but that sucks.
 return Transpose(NumericalLeftSolve(Transpose(A), Transpose(B)));
 
 end intrinsic;
@@ -41,9 +41,8 @@ if ColumnsOrRows eq "Columns" then
 end if;
 
 /* Elementary invariants */
-CC := BaseRing(M);
-r := #Rows(M); c := #Rows(Transpose(M));
-RM := Rows(M);
+CC := BaseRing(M); RM := Rows(M);
+r := #RM; c := #Rows(Transpose(M));
 
 /* Prefer obvious choice if possible */
 s0 := [ 1..rk ];
@@ -65,8 +64,9 @@ end intrinsic;
 
 
 intrinsic InvertibleSubmatrix(M::. : IsPeriodMatrix := false) -> .
-{Returns an invertible submatrix of M. We assume for now that M is a period
-matrix with respect to a symplectic basis, which speeds up the calculation.}
+{Returns an invertible submatrix of M. We can indicate that M is a period
+matrix with respect to a symplectic basis, which trivially speeds up the
+calculation by extracting the first m columns.}
 
 r := #Rows(M); c := #Rows(Transpose(M)); m := Min(r, c);
 /* Speedup for period matrices with respect to a symplectic basis */
@@ -83,7 +83,7 @@ end intrinsic;
 
 
 intrinsic HorizontalSplitMatrix(M::.) -> .
-{Returns the horizontal join of the real and imaginary part of M.}
+{Returns the horizontal join of the real and imaginary part of M, so (Re | Im).}
 
 CC := BaseRing(M); RR := RealField(CC);
 MSplitRe := Matrix(RR, [ [ Real(c) : c in Eltseq(r)] : r in Rows(M) ]);
@@ -94,7 +94,7 @@ end intrinsic;
 
 
 intrinsic VerticalSplitMatrix(M::.) -> .
-{Returns the vertical join of the real and imaginary part of M.}
+{Returns the vertical join of the real and imaginary part of M, so Re over Im.}
 
 CC := BaseRing(M); RR := RealField(CC);
 MSplitRe := Matrix(RR, [ [ Real(c) : c in Eltseq(r)] : r in Rows(M) ]);
@@ -104,8 +104,9 @@ return VerticalJoin([ MSplitRe, MSplitIm ]);
 end intrinsic;
 
 
-intrinsic CombineMatrix(MSplit::., CC::FldCom) -> .
-{Returns the combination of MSplit back into a full period matrix over CC.}
+intrinsic CombineVerticallySplitMatrix(MSplit::., CC::FldCom) -> .
+{Returns the combination of the vertically split matrix MSplit back into a full
+period matrix over CC. So Re over Im becomes Re + i*Im.}
 
 r := #Rows(MSplit); c := #Rows(Transpose(MSplit));
 MRe := Matrix(CC, Submatrix(MSplit, [1..(r div 2)],   [1..c]));
@@ -126,7 +127,8 @@ rowsK := Rows(K); rowsK0 := [ ];
 for row in rowsK do
     prod := Matrix(RR, [ Eltseq(row) ])*M;
     test := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
-    test := true;
+    /* TODO: Uncomment next line if desired */
+    //test := true;
     if test then
         Append(~rowsK0, row);
     end if;
@@ -191,7 +193,8 @@ S, test := FractionalApproximationMatrix(S);
 if not test then
     error "No suitable fractional approximation found";
 end if;
-/* At this point we have S L = M, where S has rational entries */
+/* At this point we have S L = M, where S has rational entries and an integral
+* inverse */
 
 /* Now we write S = R S0, where R is integral and where S0 has an integral
  * inverse */

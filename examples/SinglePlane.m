@@ -18,6 +18,7 @@ f := x^4 + 3*x^3*y + 6*x^3*z + 2*x^2*y^2 + x^2*y*z + 4*x^2*z^2 - 6*x*y^3 + 6*x*y
 f := x^4 + 3*x^2*y^2 + 3*x^2*y*z + 3*x^2*z^2 + y^4 + 2*y^3*z + 4*y^2*z^2 + 3*y*z^3 + 2*z^4;
 f := x^3*y + x^3*z + x^2*y^2 + 3*x^2*y*z + x^2*z^2 - 4*x*y^3 - 3*x*y^2*z - 3*x*y*z^2 - 4*x*z^3 + 2*y^4 + 3*y^2*z^2 + 2*z^4;
 f := -147*x^4 + 33600*x^3*y - 47754*x^2*y^2 - 19762*x^2*z^2 + 302400*x*y^3 + 26500*x*y*z^2 - 11907*y^4 - 21617*y^2*z^2 + 112*z^4;
+f := x^3*z + x^2*y^2 + x*y^3 - 2*x*y^2*z + x*z^3 - y^3*z + y^2*z^2;
 
 X := PlaneCurve(f);
 
@@ -35,16 +36,14 @@ print "";
 print "Period matrix:";
 print ChangeRing(P, CCSmall);
 
-GeoEndoRepPartial := GeometricEndomorphismRepresentationPartial(P);
-fs := RelativeMinimalPolynomials(GeoEndoRepPartial, F);
-K := RelativeSplittingFieldExtra(fs);
-print "Endomorphism field:";
-print K;
-GeoEndoRep := GeometricEndomorphismRepresentationRecognition(GeoEndoRepPartial, K);
+GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
+L<s> := BaseRing(GeoEndoRep[1][1]);
 
 print "";
 print "Endomorphism representations:";
 print GeoEndoRep;
+
+exit;
 
 lat, sthash := EndomorphismLattice(GeoEndoRep, F);
 print "";

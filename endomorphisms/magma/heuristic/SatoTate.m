@@ -9,16 +9,16 @@
  *  See LICENSE.txt for license details.
  */
 
-intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
 {Given a description EndoStructBase of an endomorphism algebra, a
-representation GeoEndoRep of a geometric endomorphism algebra, a Galois group
-GalK, and a base field F, determines the corresponding Sato-Tate group. Via
-Shorthand, a description of the geometric endomorphism algebra tensored with RR
-can be passed.}
+representation GeoEndoRep of a geometric endomorphism algebra, and a Galois
+group GalK, determines the corresponding Sato-Tate group. Via Shorthand, a
+description of the geometric endomorphism algebra tensored with RR can be
+passed.}
 
 g := #Rows(EndoStructBase[1][1][1]);
 if g eq 2 then
-    return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
+    return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
 else
     // TODO: Add other cases when they appear.
     return "undef";
@@ -27,27 +27,26 @@ end if;
 end intrinsic;
 
 
-intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld, F::Fld : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld : Shorthand := "") -> MonStgElt
 {Given a description EndoStructBase of an endomorphism algebra, a
-representation GeoEndoRep of a geometric endomorphism algebra, a field K, and a
-base field F, determines the corresponding Sato-Tate group. Via Shorthand, a
-description of the geometric endomorphism algebra tensored with RR can be
-passed.}
+representation GeoEndoRep of a geometric endomorphism algebra, and a field K,
+determines the corresponding Sato-Tate group. Via Shorthand, a description of
+the geometric endomorphism algebra tensored with RR can be passed.}
 
 /* Apply previous function after finding a corresponding subgroup */
-L := BaseRing(EndoStructBase[1][1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
-return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
+L := BaseRing(EndoStructBase[1][1]);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K);
+return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
 
 end intrinsic;
 
 
-intrinsic SatoTateGroupG2QQ(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroupG2QQ(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
 {Given a description EndoStructBase of an endomorphism algebra, a
-representation GeoEndoRep of a geometric endomorphism algebra, a Galois group
-GalK, and a base field F, determines the corresponding Sato-Tate group. Via
-Shorthand, a description of the geometric endomorphism algebra tensored with RR
-can be passed. Assumes that the genus equals 2.}
+representation GeoEndoRep of a geometric endomorphism algebra, and a Galois
+group GalK, determines the corresponding Sato-Tate group. Via Shorthand, a
+description of the geometric endomorphism algebra tensored with RR can be
+passed. Assumes that the genus equals 2.}
 
 GensH, Gphi := Explode(GalK);
 if #GensH eq 0 then
@@ -92,11 +91,11 @@ end if;
 
 /* Determine the Shorthand if it was not passed */
 if Shorthand eq "" then
-    GeoEndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalL, F);
+    GeoEndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalL);
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
 end if;
 descRR := EndoStructBase[3][3];
-K := GeneralFixedField(L, [ Gphi(gen) : gen in GensH ]);
+K := FixedFieldExtra(L, [ Gphi(gen) : gen in GensH ]);
 
 /* Usually the shorthand and endomorphism structure of the base field determine
  * everything; in the rare cases where they do not we recalculate a bit. */
@@ -170,7 +169,7 @@ elif Shorthand eq "F" then
             H_prime := Center(H);
             GensH_prime := Generators(H_prime);
             GalK_prime := [* GensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime, F);
+            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "D_{6,1}";
@@ -212,7 +211,7 @@ elif Shorthand eq "F" then
             H_prime := Subgroups(H : OrderEqual := 2)[1]`subgroup;
             GensH_prime := Generators(H_prime);
             GalK_prime := [* GensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime, F);
+            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "C_{6,1}";
@@ -224,7 +223,7 @@ elif Shorthand eq "F" then
             /* In this case it suffices to check whether the polynomial that
              * defines the center of the geometric endomorphism ring in fact has
              * a root in the ground field */
-            struct := EndomorphismStructure(GeoEndoRep, L, F);
+            struct := EndomorphismStructure(GeoEndoRep, L);
             A := struct[2][1];
             A := AlgebraOverCenter(A);
             M := BaseRing(A);
