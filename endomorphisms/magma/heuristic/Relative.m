@@ -104,13 +104,13 @@ intrinsic SetInfinitePlaceDownwardsRecursively(K::Fld, iota::.)
 compatibly to the tower of fields to which K belongs.}
 
 K`iota := iota;
-if Type(K) eq FldRat then
+if IsQQ(K) then
     return;
 end if;
 F := BaseRing(K);
 /* The next clause is clumsy, but needed because of problems when encountering
  * the rational field when it is left out */
-if Type(F) eq FldRat then
+if IsQQ(F) then
     F`iota := InfinitePlaces(F)[1];
     return;
 end if;
@@ -348,8 +348,12 @@ that contains both K and the splitting field of f.}
 
 K := BaseRing(f); F := BaseRing(K);
 vprintf EndoFind : "Extending %o by splitting %o over %o\n...", K, f, F;
-if Type(K) eq FldRat then
-    K := ImproveField(SplittingField(Polredabs(f*LCM([ Integers() ! c : c in Coefficients(f) ]))));
+if IsQQ(F) then
+    if IsQQ(K) then
+        K := ImproveField(SplittingField(Polredabs(f*LCM([ Integers() ! c : c in Coefficients(f) ]))));
+    else
+        K := ImproveField(SplittingField(f));
+    end if;
     vprintf EndoFind : "done\n";
     return K;
 end if;
@@ -524,11 +528,14 @@ intrinsic TransferInfinitePlace(h::Map, iotaK::.) -> .
 /* TODO: This precision should not be global */
 prec := 100;
 K := Domain(h); L := Codomain(h);
-if Type(Domain(h)) eq FldRat then
+if IsQQ(Domain(h)) then
     return InfinitePlaces(L)[1];
 end if;
 for iotaL in InfinitePlaces(L) do
-    if Abs(Evaluate(h(K.1), iotaL : Precision := prec) - Evaluate(K.1, iotaK : Precision := prec)) lt 10^(-prec + 10) then
+    evL1 := Evaluate(h(K.1), iotaL : Precision := prec);
+    evL2 := ComplexConjugate(evL1);
+    evK := Evaluate(K.1, iotaK : Precision := prec);
+    if Abs(evL1 - evK) lt 10^(-prec + 10) or Abs(evL2 - evK) lt 10^(-prec + 10) then
         return iotaL;
     end if;
 end for;
@@ -539,6 +546,12 @@ end intrinsic;
 intrinsic IsIsomorphicExtra(K::Fld, L::Fld) -> BoolElt, Map
 {Returns the usual isomorphism and transfer the infinite place from K to L.}
 
+if (IsQQ(K) and not IsQQ(L)) or (IsQQ(L) and not IsQQ(K)) then
+    return false;
+end if;
+if IsQQ(K) and IsQQ(L) then
+    return true, hom< Rationals() -> Rationals() | >;
+end if;
 test, h := IsIsomorphic(K, L);
 if test then
     L`iota := TransferInfinitePlace(h, K`iota);

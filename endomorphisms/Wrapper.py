@@ -11,15 +11,13 @@
 
 from Curves import *
 from Dictionaries import *
-from Optimize import *
 from PrettyPrint import *
-from Relative import *
 from Representations import *
 
 from sage.all import magma
 
 class EndomorphismData:
-    def __init__(self, X, prec, bound = 0, molin_neurohr = False, periods = ""):
+    def __init__(self, X, prec, bound = 0, molin_neurohr = True, periods = ""):
         self.X = X
         self.g = magma.Genus(self.X)
         self.F = magma.BaseRing(self.X)
@@ -42,10 +40,7 @@ class EndomorphismData:
         return self._P_
 
     def _calculate_geometric_representation_(self):
-        _geo_rep_partial_ = magma.GeometricEndomorphismRepresentationPartial(self._P_)
-        _geo_rep_pol_ = magma.RelativeMinimalPolynomials(_geo_rep_partial_, self.F)
-        self._endo_fod_ = Relative_Splitting_Field_Extra(_geo_rep_pol_, bound = self.bound)
-        self._geo_rep_list_ = magma.GeometricEndomorphismRepresentationRecognition(_geo_rep_partial_, self._endo_fod_)
+        self._geo_rep_list_ = magma.GeometricEndomorphismRepresentation(self._P_, self.F)
         self._geo_rep_dict_ = dict_rep(self._geo_rep_list_)
 
     def endomorphism_field(self):
@@ -124,7 +119,7 @@ class OverField:
             self.field = self.F
         else:
             self.field = magma(K)
-        self._list_ = magma.EndomorphismStructure(self._geo_rep_list_, self.field, self.F)
+        self._list_ = magma.EndomorphismStructure(self._geo_rep_list_)
         self._desc_ = desc_structure(self._list_)
         self._index_dict_ = index_dictionary()
 
@@ -145,11 +140,6 @@ class OverField:
     def representation(self):
         self._calculate_dictionary_()
         return magma([ gen['tangent'] for gen in self._dict_['representation'] ])
-
-    def optimize_representation(self):
-        optrep = Optimize_Representation(self.representation())
-        for i in range(len(optrep)):
-            self._dict_['representation'][i]['tangent'] = optrep[i + 1]
 
     def algebra(self):
         self._calculate_dictionary_()
@@ -230,10 +220,9 @@ class Lattice:
         self.g = Endo.g
         self.F = Endo.F
         self._geo_rep_list_ = Endo._geo_rep_list_
-        self._list_, self._sthashes_ = magma.EndomorphismLattice(self._geo_rep_list_, self.F, nvals = 2)
-        self._sthashes_ = magma.CanonizeSatoTateHashes(self._sthashes_)
+        self._list_, self._sthash_struct_ = magma.EndomorphismLattice(self._geo_rep_list_, nvals = 2)
         self._desc_ = desc_lattice(self._list_)
-        self._stdesc_ = desc_sthashes(self._sthashes_)
+        self._sthash_desc_ = desc_sthashes(self._sthash_struct_)
 
     def __repr__(self):
         return repr_lattice(self)
@@ -245,15 +234,6 @@ class Lattice:
     def full(self):
         self._calculate_dictionary_()
         return self._dict_
-
-    def optimize_representations(self):
-        self._calculate_dictionary_()
-        for dict_pair in self._dict_['entries']:
-            structure = dict_pair['structure']
-            rep = magma([ gen['tangent'] for gen in structure['representation'] ])
-            optrep = Optimize_Representation(rep)
-            for i in range(len(optrep)):
-                structure['representation'][i]['tangent'] = optrep[i + 1]
 
     def representations(self):
         self._calculate_dictionary_()
@@ -297,8 +277,6 @@ class Decomposition:
         idems, self.field = magma.IdempotentsFromLattice(Endo._lat_._list_, nvals = 2)
         self._facs_ = [ ]
         for idem in idems:
-            # TODO: Transfer to a better field here if possible, using Optimize
-            # and polredabs
             fac = dict()
             fac['field'] = self.field
             fac['idem'] = dict_gen(idem)

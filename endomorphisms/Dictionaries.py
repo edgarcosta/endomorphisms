@@ -25,8 +25,6 @@ def index_dictionary():
     # Magma indices for base and field key
     dikt['seq'] = 1
     dikt['magma'] = 2
-    # Class number not used because of performance:
-    #dikt['h'] = 3
 
     # Magma indices for OverField
     dikt['representation'] = 1
@@ -36,7 +34,6 @@ def index_dictionary():
     # Magma indices for representation key
     dikt['tangent'] = 1
     dikt['homology'] = 2
-    dikt['approx'] = 3
 
     # Magma indices for algebra key
     dikt['alg_QQ'] = 1
@@ -157,7 +154,6 @@ def dict_gen(gen):
     dikt = dict()
     dikt['tangent'] = gen[_index_dict_['tangent']]
     dikt['homology'] = gen[_index_dict_['homology']]
-    dikt['approx'] = gen[_index_dict_['approx']]
     return dikt
 
 def dict_alg(rep):

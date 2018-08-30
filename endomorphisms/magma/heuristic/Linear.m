@@ -13,8 +13,8 @@
 intrinsic NumericalLeftSolve(A::., B::.) -> .
 {Returns the solution X to the equation X * A = B.}
 
-// TODO: NumericalKernel should be used, but that sucks.
-return B * A^(-1);
+R := BaseRing(A);
+return NumericalSolution(A, B : Epsilon := R`epscomp);
 
 end intrinsic;
 
@@ -22,7 +22,6 @@ end intrinsic;
 intrinsic NumericalRightSolve(A::., B::.) -> .
 {Returns the solution X to the equation A * X = B.}
 
-// TODO: NumericalKernel should be used, but that sucks.
 return Transpose(NumericalLeftSolve(Transpose(A), Transpose(B)));
 
 end intrinsic;

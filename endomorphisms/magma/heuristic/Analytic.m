@@ -22,7 +22,7 @@ return NumericalRightSolve(PSplit, iPSplit);
 end intrinsic;
 
 
-intrinsic RationalHomomorphismEquations(JP::AlgMatElt, JQ::AlgMatElt) -> .
+intrinsic RationalHomomorphismEquations(JP::., JQ::.) -> .
 {Given two complex structures JP and JQ, returns the equations on homology
 satisfied by a homomorphism between the two corresponding abelian varieties.}
 
