@@ -5,11 +5,17 @@ This repository contains a mix of Magma, Pari and SageMath code for calculating 
 
 Prerequisites
 --
-An installation of both Pari, Magma and SageMath, so that all of these are available on the command line, is required to run all of the code. Please install
+An installation of both Pari, Magma and SageMath, so that all of these are available on the command line, is required to run all of the code. For optimal results, set your Pari stack size to a decent size by for example adding
+```
+parisize = "4096M"
+```
+to your `~/.gprc` file. This is an optional improvement.
+
+You should also install
 ```
 https://github.com/pascalmolin/hcperiods
 ```
-and include the path to its spec file in your `.magmarc` file. Not only does this enormously speed up the calculation of period matrices and make everything far more stable and reliable, but moreover the package will not run without it.
+and include the path to its spec file in your `.magmarc` file. This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes everything far more stable and reliable, so you will want to install it.
 
 Additional prerequisite for older Magma versions
 --

@@ -30,43 +30,6 @@ return Type(BaseRing(F)) eq FldRat;
 end intrinsic;
 
 
-//intrinsic GiveName(~K::Fld, F::Fld, str::MonStgElt)
-//{Give the name str to a generator of K over F if such a generator is indeed
-//present.}
-//
-//if IsRelativeExtension(K, F) then
-//    AssignNames(~K, [ str ]);
-//end if;
-//
-//end intrinsic;
-
-
-//intrinsic IsRelativeExtension(K::Fld, F::Fld) -> Fld
-//{Returns whether K is an extension of F. Equalities are not considered as
-//extensions.}
-//
-///* Over QQ, the field QQ is not an extension */
-//testrat := IsQQ(F) and IsQQ(K);
-///* Over general fields, F is not an extension, and neither is a field with a different base */
-//testnonrat := (not IsQQ(F)) and (BaseRing(K) ne F);
-///* Everything else is */
-//return not (testrat or testnonrat);
-//
-//end intrinsic;
-
-
-//intrinsic MakeRelative(K::Fld, F::Fld) -> Fld
-//{Returns K as a relative field over F, taking a linear extension if K equals F.}
-//
-//if not IsRelativeExtension(K, F) then
-//    R<x> := PolynomialRing(F);
-//    K := NumberField(x - 1: DoLinearExtension := true);
-//end if;
-//return K;
-//
-//end intrinsic;
-
-
 intrinsic FieldDescription(K::Fld) -> SeqEnum
 {Returns a list describing the field K.}
 
@@ -262,8 +225,7 @@ end intrinsic;
 
 intrinsic ClearDenominator(K::Fld) -> Fld
 {Returns a field isomorphic to K over its base ring such that the defining
-polynomial of the new field is integral. (Works over a larger class of base
-fields than Polredabs.)}
+polynomial of the new field is integral.}
 
 F := BaseRing(K); d := Degree(K);
 if d eq 1 then
@@ -286,27 +248,57 @@ return K;
 end intrinsic;
 
 
-intrinsic ImproveField(K::Fld) -> Fld
+intrinsic ImproveField(K::Fld) -> Fld, map
 {Tries to realize to field K in as simple a way as possible.}
 
-/*
-K := ClearDenominator(K);
-if HasBaseQQ(K) and not IsQQ(K) then
-    return Polredabs(K);
-end if;
-*/
-
 if IsQQ(K) then
-    return K;
+    return K, hom< Rationals() -> Rationals() | >;
 end if;
 
 K := ClearDenominator(K);
 if HasBaseQQ(K) then
-    return Polredabs(K);
+    K0, h, test := Polredbestabs(K);
+    return K0, hom< Rationals() -> Rationals() | >;
 end if;
-L := AbsoluteField(K); L := Polredabs(L);
-test, h := IsSubfield(BaseRing(K), L);
-return RelativeField(BaseRing(K), L);
+
+F := BaseRing(K); L := AbsoluteField(K); L0, h, test := Polredbestabs(L);
+if test then
+    F0 := sub< L0 | h(L ! F.1) >; hF := hom< F -> F0 | h(L ! F.1) >;
+    TransferInfinitePlace(hF);
+    return RelativeField(F0, L0), hF;
+else
+    return L, hom< F -> F | F.1 >;
+end if;
+
+end intrinsic;
+
+
+intrinsic ImproveFieldBase(K::Fld, F::Fld) -> Fld, map
+{Tries to realize to field K over the base F in as simple a way as possible.}
+
+if IsQQ(K) then
+    return K, hom< Rationals() -> Rationals() | >;
+end if;
+
+K := ClearDenominator(K);
+if HasBaseQQ(K) then
+    K0, h, test := Polredbestabs(K);
+    return K0, hom< Rationals() -> Rationals() | >;
+end if;
+
+L := AbsoluteField(K); L0, h, test := Polredbestabs(L);
+if test then
+    F0 := sub< L0 | h(L ! F.1) >;
+    if IsQQ(F) then
+        hF := hom< F -> F0 | >;
+    else
+        hF := hom< F -> F0 | h(L ! F.1) >;
+    end if;
+    TransferInfinitePlace(hF);
+    return RelativeField(F0, L0), hF;
+else
+    return L, hom< F -> F | F.1 >;
+end if;
 
 end intrinsic;
 
@@ -316,55 +308,53 @@ intrinsic ExtendRelativeNumberField(f::RngUPolElt) -> Fld
 
 K := BaseRing(f); F := BaseRing(K);
 if Degree(f) eq 1 then
-    return K;
+    return K, hom< F -> F | F.1 >;
 end if;
 
 vprintf EndoFind : "Extending %o by root of %o over %o...\n", K, f, F;
-K := NumberField(f);
-test, h := IsSubfield(F, K);
-K := RelativeField(F, K);
-/* TODO: The improvement costs time in general */
-K := ImproveField(K);
+K := NumberField(f); K0, h := ImproveFieldBase(K, F);
 vprintf EndoFind : "done\n";
-return K;
+return K0, h;
 
 end intrinsic;
 
 
-intrinsic ExtendRelativeNumberFieldExtra(f::RngUPolElt) -> Fld
-{Given a polynomial f over a relative field K | F, returns an extension of F
-that contains both K and a root of f.}
+//intrinsic ExtendRelativeNumberFieldExtra(f::RngUPolElt) -> Fld
+//{Given a polynomial f over a relative field K | F, returns an extension of F
+//that contains both K and a root of f.}
+//
+//K := ExtendRelativeNumberField(f);
+//SetInfinitePlaceUpwards(K);
+//return K;
+//
+//end intrinsic;
 
-K := ExtendRelativeNumberField(f);
-SetInfinitePlaceUpwards(K);
-return K;
+
+intrinsic ConjugatePolynomial(h::Map, f::RngUPolElt) -> RngUPolElt
+{Returns the transformation of the matrix M by the map h.}
+
+K := Domain(h); L := Codomain(h); S := PolynomialRing(L);
+return &+[ h(Coefficient(f, i))*S.1^i : i in [0..Degree(f)] ];
 
 end intrinsic;
 
 
-intrinsic ExtendRelativeSplittingField(f::RngUPolElt) -> Fld
-{Given a polynomial f over a relative field K | F, returns an extension of F
-that contains both K and the splitting field of f.}
+intrinsic ExtendRelativeSplittingField(K::Fld, f::RngUPolElt) -> Fld
+{Given a splitting field K | F and a polynomial f over F, returns an extension of F that contains both K and a splitting field of f.}
 
-K := BaseRing(f); F := BaseRing(K);
-vprintf EndoFind : "Extending %o by splitting %o over %o\n...", K, f, F;
-if IsQQ(F) then
-    if IsQQ(K) then
-        K := ImproveField(SplittingField(Polredabs(f*LCM([ Integers() ! c : c in Coefficients(f) ]))));
-    else
-        K := ImproveField(SplittingField(f));
-    end if;
-    vprintf EndoFind : "done\n";
-    return K;
+L := K; F := BaseRing(K);
+if HasRoot(f, K) then
+    return K, hom< F -> F | F.1 >;
 end if;
-
+htot := hom< F -> F | F.1 >;
 while true do
-    factors := [ tup[1] : tup in Factorization(f, K) | Degree(tup[1]) gt 1 ];
-    if #factors eq 0 then
-        vprintf EndoFind : "done\n";
-        return K;
+    gs := [ tup[1] : tup in Factorization(f, K) | Degree(tup[1]) ne 1 ];
+    if #gs eq 0 then
+        return K, htot;
     end if;
-    K := ExtendRelativeNumberField(factors[1]);
+    K, h := ExtendRelativeNumberField(gs[1]);
+    f := ConjugatePolynomial(h, f);
+    htot := htot * h;
 end while;
 
 end intrinsic;
@@ -389,31 +379,76 @@ intrinsic RelativeSplittingField(fs::SeqEnum : AssumeIrr := false) -> FldNum
 {Returns a splitting field of the polynomials in fs over their common base
 ring.}
 
-F := BaseRing(fs[1]); R<x> := PolynomialRing(F);
-K := NumberField(x - 1: DoLinearExtension := true);
-//F := BaseRing(fs[1]); K := F;
+F := BaseRing(fs[1]);
+if IsQQ(F) then
+    return RelativeSplittingFieldQQ(fs);
+end if;
 fs := Reverse(Sort(fs, ComparePolynomials));
-if not AssumeIrr then
-    for f in fs do
-        Fac := [ tup : tup in Factorization(f, K) | Degree(tup[1]) gt 1 ];
-        for tup in Fac do
-            K := ExtendRelativeSplittingField(tup[1]);
-        end for;
+
+if AssumeIrr then
+    if &and[ Degree(f) eq 1 : f in fs ] then
+        R<x> := PolynomialRing(F);
+        return NumberField(x - 1 : DoLinearExtension := true);
+    end if;
+
+    /* First step, to get the first proper normal extension, by hand */
+    f := fs[1];
+    K := NumberField(f);
+    htot := hom< F -> F | F.1 >;
+    while true do
+        gs := [ tup[1] : tup in Factorization(f, K) | Degree(tup[1]) ne 1 ];
+        if #gs eq 0 then
+            break;
+        end if;
+        K, h := ExtendRelativeNumberField(gs[1]);
+        f := ConjugatePolynomial(h, f);
+        htot := htot * h;
+    end while;
+    fs := [ ConjugatePolynomial(htot, f) : f in fs ];
+
+    /* Rest via extending splitting field */
+    for f in fs[2..#fs] do
+        K, h := ExtendRelativeSplittingField(K, f);
+        fs := [ ConjugatePolynomial(h, f) : f in fs ];
     end for;
-else
+    return K;
+end if;
+
+/* Otherwise factor and do the same */
+gs := &cat[ [ tup[1] : tup in Factorization(f, F) ] : f in fs ];
+return RelativeSplittingField(gs : AssumeIrr := true);
+
+end intrinsic;
+
+
+intrinsic RelativeSplittingFieldQQ(fs::SeqEnum : AssumeIrr := false) -> FldNum
+{Returns a splitting field of the polynomials in fs over their common base
+ring QQ.}
+
+F := BaseRing(fs[1]); K := F;
+fs := Reverse(Sort(fs, ComparePolynomials));
+
+if AssumeIrr then
+    if &and[ Degree(f) eq 1 : f in fs ] then
+        R<x> := PolynomialRing(F);
+        return NumberField(x - 1 : DoLinearExtension := true);
+    end if;
     for f in fs do
         vprintf EndoFind : "Checking if %o has a root in %o\n", f, K;
         test := HasRoot(f, K);
         vprintf EndoFind : "done\n";
         if not test then
-            Fac := [ tup : tup in Factorization(f, K) | Degree(tup[1]) gt 1 ];
-            for tup in Fac do
-                K := ExtendRelativeSplittingField(tup[1]);
-            end for;
+            g := f*LCM([ Denominator(c) : c in Coefficients(f) ]);
+            L := ImproveField(SplittingField(Polredbestabs(g)));
+            K := ImproveField(Compositum(K, L));
         end if;
     end for;
+    return K;
 end if;
-return K;
+
+/* Otherwise factor and do the same */
+gs := &cat[ [ tup[1] : tup in Factorization(f) ] : f in fs ];
+return RelativeSplittingFieldQQ(gs : AssumeIrr := true);
 
 end intrinsic;
 
@@ -450,48 +485,45 @@ intrinsic RelativeCompositum(K::Fld, L::Fld) -> Fld
 {Returns the compositum of the fields K and L over their common base ring, by
 taking the splitting field of the polynomial defining L to extend K.}
 
-if IsQQ(K) and IsQQ(L) then
-    M := K;
-    phiK := hom<K -> M | >;
-    phiL := hom<L -> M | >;
-elif IsQQ(K) then
-    M := L;
-    phiK := hom<K -> M | >;
-    phiL := hom<L -> M | L.1>;
-elif IsQQ(L) then
-    M := K;
-    phiK := hom<K -> M | K.1>;
-    phiL := hom<L -> M | >;
-else
-
-    F := BaseRing(K); M := K;
-    R<x> := PolynomialRing(F);
-    g := MinimalPolynomial(L.1, F);
-    tup := Factorization(g, K)[1];
-    M := ExtendRelativeSplittingField(tup[1]);
-    M := ImproveField(M);
-    testK, phiK := IsSubfield(K, M); testL, phiL := IsSubfield(L, M);
+if HasBaseQQ(K) then
+    F := Rationals();
+    M := ImproveField(Compositum(K, L));
+    test, phiK := IsSubfield(K, M);
+    test, phiL := IsSubfield(L, M);
+    return M, [* phiK, phiL *];
 end if;
+
+F := BaseRing(K); M := K;
+R<x> := PolynomialRing(F);
+g := MinimalPolynomial(L.1, F);
+tup := Factorization(g, K)[1];
+M := ExtendRelativeSplittingField(K, tup[1]);
+/* TODO: Dubious since this ignores changes in F */
+testK, phiK := IsSubfield(K, M); testL, phiL := IsSubfield(L, M);
 return M, [* phiK, phiL *];
 
 end intrinsic;
 
 
-intrinsic RelativeCompositum(Ks::List) -> Fld, List
-{Returns the compositum of the fields in Ks over their common base ring,
-recursively adjoining the splitting field of the last factor.}
-
-if #Ks eq 1 then
-    return Ks[1], hom< Ks[1] -> Ks[1] | Ks[1].1 >;
-elif #Ks eq 2 then
-    L, psis := RelativeCompositum(Ks[1], Ks[2]);
-    return L, psis;
-end if;
-L, psis := RelativeCompositum(Ks[1..(#Ks - 1)]);
-M, phis := RelativeCompositum(L, Ks[#Ks]);
-return M, [* psi * phis[1] : psi in psis *] cat [* phis[2] *];
-
-end intrinsic;
+/* TODO: This is difficult because of the change of base field when optimizing.
+ * We leave this alone for now since it is only used in the verification
+ * algorithm, in which case QQ is already troublesome enough, and in which case
+ * we can (and want to) get by with something weaker than a compositum */
+//intrinsic RelativeCompositum(Ks::List) -> Fld, List
+//{Returns the compositum of the fields in Ks over their common base ring,
+//recursively adjoining the splitting field of the last factor.}
+//
+//if #Ks eq 1 then
+//    return Ks[1], hom< Ks[1] -> Ks[1] | Ks[1].1 >;
+//elif #Ks eq 2 then
+//    L, psis := RelativeCompositum(Ks[1], Ks[2]);
+//    return L, psis;
+//end if;
+//L, psis := RelativeCompositum(Ks[1..(#Ks - 1)]);
+//M, phis := RelativeCompositum(L, Ks[#Ks]);
+//return M, [* psi * phis[1] : psi in psis *] cat [* phis[2] *];
+//
+//end intrinsic;
 
 
 //intrinsic RelativeFixedField(L::Fld, gens::SeqEnum) -> Fld
@@ -522,21 +554,24 @@ return K;
 end intrinsic;
 
 
-intrinsic TransferInfinitePlace(h::Map, iotaK::.) -> .
+intrinsic TransferInfinitePlace(h::Map)
 {Return the image of the infinite place iotaK under the isomorphism h.}
 
 /* TODO: This precision should not be global */
 prec := 100;
 K := Domain(h); L := Codomain(h);
+if not assigned K`iota then
+    return;
+end if;
 if IsQQ(Domain(h)) then
-    return InfinitePlaces(L)[1];
+    L`iota := InfinitePlaces(L)[1]; return;
 end if;
 for iotaL in InfinitePlaces(L) do
     evL1 := Evaluate(h(K.1), iotaL : Precision := prec);
     evL2 := ComplexConjugate(evL1);
-    evK := Evaluate(K.1, iotaK : Precision := prec);
+    evK := Evaluate(K.1, K`iota : Precision := prec);
     if Abs(evL1 - evK) lt 10^(-prec + 10) or Abs(evL2 - evK) lt 10^(-prec + 10) then
-        return iotaL;
+        L`iota := iotaL; return;
     end if;
 end for;
 
@@ -553,9 +588,7 @@ if IsQQ(K) and IsQQ(L) then
     return true, hom< Rationals() -> Rationals() | >;
 end if;
 test, h := IsIsomorphic(K, L);
-if test then
-    L`iota := TransferInfinitePlace(h, K`iota);
-end if;
+TransferInfinitePlace(h);
 return test, h;
 
 end intrinsic;

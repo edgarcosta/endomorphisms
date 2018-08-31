@@ -71,7 +71,7 @@ eqsCC.}
 
 eqsCC := EmbedCurveEquations(X, prec);
 eqsF := DefiningEquations(X);
-return PeriodMatrix(eqsCC, eqsF : MolinNeurohr := true);
+return PeriodMatrix(eqsCC, eqsF : MolinNeurohr := MolinNeurohr);
 
 end intrinsic;
 

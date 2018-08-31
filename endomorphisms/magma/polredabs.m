@@ -24,14 +24,14 @@ intrinsic Polredabs(f::RngUPolElt : Best := false) -> RngUPolElt, SeqEnum, BoolE
     assert #ssroot le Degree(f);
     ssroot := ssroot cat [0 : i in [1..Degree(f)-#ssroot]];
   catch e
-    printf "WARNING: need gp at command-line for polredabs!";
+    vprintf EndoFind : "WARNING: need gp at command-line for polredabs!\n";
     return f, [0,1] cat [0: i in [1..Degree(f)-2]], false;
   end try; 
   return Parent(f) ! sspol, ssroot, true;
 end intrinsic;
 
 intrinsic Polredbestabs(f::RngUPolElt) -> RngUPolElt, SeqEnum, BoolElt
-  { A smallest generating polynomial of the number field, using pari.  First polredbest, then polredabs.}
+  {A smallest generating polynomial of the number field, using pari.  First polredbest, then polredabs.}
 
   fbest, fbest_root := Polredabs(f : Best := true);
   fredabs, fredabs_root, bl := Polredabs(fbest);
@@ -53,6 +53,9 @@ intrinsic Polredabs(K::FldNum : Best := false) -> FldNum, Map, BoolElt
     return K;
   else
     fredabs, fredabs_root, bl := Polredabs(DefiningPolynomial(K));
+    if IsZero(fredabs) then
+        return K, hom<K -> K | K.1>, false;
+    end if;
     Kredabs := NumberField(fredabs);
     iotaredabs := hom<K -> Kredabs | fredabs_root>;
     return Kredabs, iotaredabs, bl;
@@ -60,7 +63,7 @@ intrinsic Polredabs(K::FldNum : Best := false) -> FldNum, Map, BoolElt
 end intrinsic;
 
 intrinsic Polredbestabs(K::FldNum) -> RngUPolElt, Map, BoolElt
-  { A smallest generating polynomial of the number field, using pari.  First polredbest, then polredabs.}
+  {A smallest generating polynomial of the number field, using pari.  First polredbest, then polredabs.}
 
   if Degree(K) le 1 then
     assert K eq RationalsAsNumberField();
@@ -68,7 +71,13 @@ intrinsic Polredbestabs(K::FldNum) -> RngUPolElt, Map, BoolElt
   else
     f := DefiningPolynomial(K);
     fbest, fbest_root, bl0 := Polredabs(f : Best := true);
+    if IsZero(fbest) then
+        return K, hom<K -> K | K.1>, false;
+    end if;
     fredabs, fredabs_root, bl1 := Polredabs(fbest);
+    if IsZero(fredabs) then
+        return K, hom<K -> K | K.1>, false;
+    end if;
     assert bl0 eq bl1;
     
     Kbest := NumberField(fbest);
