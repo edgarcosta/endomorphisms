@@ -13,6 +13,7 @@
 intrinsic NumericalLeftSolve(A::., B::.) -> .
 {Returns the solution X to the equation X * A = B.}
 
+//return B * A^(-1);
 R := BaseRing(A);
 return NumericalSolution(A, B : Epsilon := R`epscomp);
 
@@ -124,6 +125,7 @@ MJ := HorizontalJoin(MI, (1 / RR`epsLLL) * M);
 L, K := LLL(MJ);
 rowsK := Rows(K); rowsK0 := [ ];
 for row in rowsK do
+    vprint EndoFind, 2 : row;
     prod := Matrix(RR, [ Eltseq(row) ])*M;
     test := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
     /* TODO: Uncomment next line if desired */

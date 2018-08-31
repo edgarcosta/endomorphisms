@@ -255,7 +255,7 @@ if IsQQ(K) then
     return K, hom< Rationals() -> Rationals() | >;
 end if;
 
-K := ClearDenominator(K);
+//K := ClearDenominator(K);
 if HasBaseQQ(K) then
     K0, h, test := Polredbestabs(K);
     return K0, hom< Rationals() -> Rationals() | >;
@@ -280,7 +280,7 @@ if IsQQ(K) then
     return K, hom< Rationals() -> Rationals() | >;
 end if;
 
-K := ClearDenominator(K);
+//K := ClearDenominator(K);
 if HasBaseQQ(K) then
     K0, h, test := Polredbestabs(K);
     return K0, hom< Rationals() -> Rationals() | >;
@@ -375,13 +375,13 @@ end if;
 end function;
 
 
-intrinsic RelativeSplittingField(fs::SeqEnum : AssumeIrr := false) -> FldNum
+intrinsic RelativeSplittingField(fs::SeqEnum : AssumeIrr := false, Bound := Infinity()) -> FldNum
 {Returns a splitting field of the polynomials in fs over their common base
 ring.}
 
 F := BaseRing(fs[1]);
 if IsQQ(F) then
-    return RelativeSplittingFieldQQ(fs);
+    return RelativeSplittingFieldQQ(fs : Bound := Bound);
 end if;
 fs := Reverse(Sort(fs, ComparePolynomials));
 
@@ -405,23 +405,29 @@ if AssumeIrr then
         htot := htot * h;
     end while;
     fs := [ ConjugatePolynomial(htot, f) : f in fs ];
+    if Degree(K) eq Bound then
+        return K;
+    end if;
 
     /* Rest via extending splitting field */
     for f in fs[2..#fs] do
         K, h := ExtendRelativeSplittingField(K, f);
         fs := [ ConjugatePolynomial(h, f) : f in fs ];
+        if Degree(K) eq Bound then
+            return K;
+        end if;
     end for;
     return K;
 end if;
 
 /* Otherwise factor and do the same */
 gs := &cat[ [ tup[1] : tup in Factorization(f, F) ] : f in fs ];
-return RelativeSplittingField(gs : AssumeIrr := true);
+return RelativeSplittingField(gs : AssumeIrr := true, Bound := Bound);
 
 end intrinsic;
 
 
-intrinsic RelativeSplittingFieldQQ(fs::SeqEnum : AssumeIrr := false) -> FldNum
+intrinsic RelativeSplittingFieldQQ(fs::SeqEnum : AssumeIrr := false, Bound := Infinity()) -> FldNum
 {Returns a splitting field of the polynomials in fs over their common base
 ring QQ.}
 
@@ -441,6 +447,9 @@ if AssumeIrr then
             g := f*LCM([ Denominator(c) : c in Coefficients(f) ]);
             L := ImproveField(SplittingField(Polredbestabs(g)));
             K := ImproveField(Compositum(K, L));
+            if Degree(K) eq Bound then
+                return K;
+            end if;
         end if;
     end for;
     return K;
@@ -448,35 +457,35 @@ end if;
 
 /* Otherwise factor and do the same */
 gs := &cat[ [ tup[1] : tup in Factorization(f) ] : f in fs ];
-return RelativeSplittingFieldQQ(gs : AssumeIrr := true);
+return RelativeSplittingFieldQQ(gs : AssumeIrr := true, Bound := Bound);
 
 end intrinsic;
 
 
-intrinsic RelativeSplittingField(f::RngUPolElt) -> FldNum
+intrinsic RelativeSplittingField(f::RngUPolElt : Bound := Infinity()) -> FldNum
 {Returns a splitting field of the polynomials f over its base ring.}
 
-return RelativeSplittingField([ f ]);
+return RelativeSplittingField([ f ] : Bound := Bound);
 
 end intrinsic;
 
 
-intrinsic RelativeSplittingFieldExtra(fs::SeqEnum) -> FldNum
+intrinsic RelativeSplittingFieldExtra(fs::SeqEnum : Bound := Infinity()) -> FldNum
 {Returns a splitting field of the polynomials fs over their common base ring
 together with an infinite place.}
 
-K := RelativeSplittingField(fs);
+K := RelativeSplittingField(fs : Bound := Bound);
 SetInfinitePlaceUpwards(K);
 return K;
 
 end intrinsic;
 
 
-intrinsic RelativeSplittingFieldExtra(f::RngUPolElt) -> FldNum
+intrinsic RelativeSplittingFieldExtra(f::RngUPolElt : Bound := Infinity()) -> FldNum
 {Returns a splitting field of the polynomial f over its base ring together
 with an infinite place.}
 
-return RelativeSplittingFieldExtra([ f ]);
+return RelativeSplittingFieldExtra([ f ] : Bound := Bound);
 
 end intrinsic;
 

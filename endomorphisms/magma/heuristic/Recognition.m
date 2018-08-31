@@ -212,17 +212,18 @@ intrinsic AlgebraizeMatrixInRelativeField(A::., K::Fld) -> AlgMatElt
 {Returns approximations of the entries of A as elements of K. This assumes that
 K is at most a double extension of QQ.}
 
-test := true;
 rows_alg := [ ];
 for row in Rows(A) do
     row_alg := [ ];
     for c in Eltseq(row) do
         alpha, test_alpha := AlgebraizeElementInRelativeField(c, K);
-        test and:= test_alpha;
+        if not test_alpha then
+            return 0, false;
+        end if;
         Append(~row_alg, alpha);
     end for;
     Append(~rows_alg, row_alg);
 end for;
-return Matrix(rows_alg), test;
+return Matrix(rows_alg), true;
 
 end intrinsic;

@@ -15,7 +15,7 @@
 declare attributes FldCom : epscomp, epsLLL, epsinv, height_bound;
 declare attributes FldRe  : epscomp, epsLLL, epsinv, height_bound;
 
-declare verbose EndoFind, 1;
+declare verbose EndoFind, 2;
 
 
 intrinsic ComplexFieldExtra(prec::RngIntElt) -> FldCom

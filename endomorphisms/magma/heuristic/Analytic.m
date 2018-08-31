@@ -160,9 +160,19 @@ if not test then
     error "No suitable minimal polynomial found";
 end if;
 
-/* Create field and algebraize over it */
-L := RelativeSplittingFieldExtra(gensPol);
+/* Create field, using known maximum bounds */
+g := #Rows(P);
+if g eq 1 then
+    Bound := 2;
+elif g eq 2 then
+    Bound := 48;
+else
+    Bound := Infinity();
+end if;
+L := RelativeSplittingFieldExtra(gensPol : Bound := Bound);
 gens := [ ];
+
+/* Algebraize over it */
 for gen in gensPart do
     genApp, R := Explode(gen);
     A, test := AlgebraizeMatrixInRelativeField(genApp, L);
