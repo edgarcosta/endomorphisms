@@ -154,6 +154,7 @@ and via the infinite place of F the matrix A is mapped to ACC.}
 
 /* Determine matrices over CC */
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+print gensPart;
 /* Determine minimal polynomials needed */
 gensPol, test := RelativeMinimalPolynomialsMatrices(gensPart, F : UpperBound := UpperBound);
 if not test then
@@ -170,8 +171,8 @@ else
     Bound := Infinity();
 end if;
 L := RelativeSplittingFieldExtra(gensPol : Bound := Bound);
-gens := [ ];
 
+gens := [ ];
 /* Algebraize over it */
 for gen in gensPart do
     genApp, R := Explode(gen);

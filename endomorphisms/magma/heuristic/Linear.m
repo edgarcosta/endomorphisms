@@ -116,7 +116,7 @@ return MRe + CC.1*MIm;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::.) -> .
+intrinsic IntegralLeftKernel(M::. : OneRow := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
 RR := BaseRing(M);
@@ -124,8 +124,10 @@ MI := IdentityMatrix(RR, #Rows(M));
 MJ := HorizontalJoin(MI, (1 / RR`epsLLL) * M);
 L, K := LLL(MJ);
 rowsK := Rows(K); rowsK0 := [ ];
+if OneRow then
+    rowsK := [ rowsK[1] ];
+end if;
 for row in rowsK do
-    vprint EndoFind, 2 : row;
     prod := Matrix(RR, [ Eltseq(row) ])*M;
     test := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
     /* TODO: Uncomment next line if desired */

@@ -56,7 +56,7 @@ while degf lt UpperBound do
 
     /* Split and take an IntegralLeftKernel */
     MSplit := HorizontalSplitMatrix(M);
-    Ker, test_ker := IntegralLeftKernel(MSplit);
+    Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
     /* NOTE: We only consider the first element for now */
     if test_ker then
         for row in [ Rows(Ker)[1] ] do
@@ -113,7 +113,7 @@ intrinsic FractionalApproximation(a::FldComElt) -> FldRatElt
 
 CC := Parent(a); RR := RealField(CC);
 M := Matrix(RR, [ [ 1 ], [ -Real(a) ] ]);
-Ker, test_ker := IntegralLeftKernel(M);
+Ker, test_ker := IntegralLeftKernel(M : OneRow := true);
 if not test_ker then
     return Rationals() ! 0, false;
 end if;
@@ -133,7 +133,7 @@ intrinsic FractionalApproximation(a::FldReElt) -> FldRatElt
 
 RR := Parent(a);
 M := Matrix(RR, [ [ 1 ], [ -a ] ]);
-K, test_ker := IntegralLeftKernel(M);
+K, test_ker := IntegralLeftKernel(M : OneRow := true);
 if not test_ker then
     return Rationals() ! 0, false;
 end if;
@@ -185,13 +185,14 @@ M := Transpose(Matrix(CC, [ MLine ]));
 
 /* Split and take an IntegralLeftKernel */
 MSplit := HorizontalSplitMatrix(M);
-Ker, test_ker := IntegralLeftKernel(MSplit);
+Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
 /* NOTE: We only consider the first element for now */
 if test_ker then
     for row in [ Rows(Ker)[1] ] do
+        vprint EndoFind : "Row:", row;
         test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
         /* Do not use height test for now */
-        if true then
+        if test_height then
             den := row[#Eltseq(row)];
             if den ne 0 then
                 sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
