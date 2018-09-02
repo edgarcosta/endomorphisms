@@ -10,7 +10,6 @@ X = mPlaneCurve(f)
 
 Endo = EndomorphismData(X, prec = 200, molin_neurohr = True)
 lat = Endo.lattice()
-stdesc = lat._stdesc_
 print lat.pretty_print()
 
 Dec = Endo.decomposition()

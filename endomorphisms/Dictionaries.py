@@ -97,8 +97,8 @@ def dict_entries(entries):
         dicts.append(dikt)
     return dicts
 
-def desc_sthashes(sthashes):
-    return sagify_description(sthashes)
+def desc_sthash(sthash):
+    return sagify_description(sthash)
 
 def desc_entries(entries):
     _index_dict_ = index_dictionary()

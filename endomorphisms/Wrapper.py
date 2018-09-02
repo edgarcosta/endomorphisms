@@ -218,9 +218,9 @@ class Lattice:
         self.g = Endo.g
         self.F = Endo.F
         self._geo_rep_list_ = Endo._geo_rep_list_
-        self._list_, self._sthash_struct_ = magma.EndomorphismLattice(self._geo_rep_list_, nvals = 2)
+        self._list_, self._sthash_ = magma.EndomorphismLattice(self._geo_rep_list_, nvals = 2)
         self._desc_ = desc_lattice(self._list_)
-        self._sthash_desc_ = desc_sthashes(self._sthash_struct_)
+        self._sthash_ = desc_sthash(self._sthash_)
 
     def __repr__(self):
         return repr_lattice(self)

@@ -36,7 +36,7 @@ if Degree(L) eq 1 then
     entry, stpart, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep);
     entries := [ entry ]; stparts := [ stpart ]; realstrs := [ entry[2][2][3] ];
     Gp := Sym(1); Hs := [ Gp ];
-    return [* base, entries *], [* Gp, Hs, stparts, realstrs *];
+    return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]);
 end if;
 
 Gp, Gf, Gphi := AutomorphismGroup(L);

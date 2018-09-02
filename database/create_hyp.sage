@@ -44,12 +44,13 @@ while not done:
                         X = HyperellipticCurve(f, h)
                         Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
                         lat_str = Endo.lattice()._desc_
-                        sth_str = Endo.lattice()._stdesc_
+                        sth_str = Endo.lattice()._sthash_
                         line_new1 = repr(lat_str).replace('\n', '').replace(' ', '')
                         line_new2 = repr(sth_str).replace('\n', '').replace(' ', '')
                         outputstream.write(linestrip + ':' + line_new1 + ':' + line_new2 + '\n')
                     except:
                         print "Error"
+                        print Endo.lattice()
                         done = False
                         outputstream.write(line)
                 else:

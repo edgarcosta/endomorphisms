@@ -18,7 +18,6 @@ import os, shutil
 
 # Specify input and output:
 base_string = 'gce_genus3_nonhyperelliptic_possibly_special'
-base_string = 'picard_new'
 inputfile = base_string + '.txt'
 interfile = base_string + '_inter.txt'
 outputfile = base_string + '_endos.txt'
@@ -44,7 +43,7 @@ while not done:
                         X = mPlaneCurve(f)
                         Endo = EndomorphismData(X, prec = prec, molin_neurohr = True)
                         lat_str = Endo.lattice()._desc_
-                        sth_str = Endo.lattice()._stdesc_
+                        sth_str = Endo.lattice()._sthash_
                         line_new1 = repr(lat_str).replace('\n', '').replace(' ', '')
                         line_new2 = repr(sth_str).replace('\n', '').replace(' ', '')
                         outputstream.write(linestrip + ':' + line_new1 + ':' + line_new2 + '\n')
