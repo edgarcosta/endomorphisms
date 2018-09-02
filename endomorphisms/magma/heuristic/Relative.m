@@ -535,27 +535,30 @@ end intrinsic;
 //end intrinsic;
 
 
-//intrinsic RelativeFixedField(L::Fld, gens::SeqEnum) -> Fld
-//{Returns the fixed subfield of L under the automorphisms in gens, considered as
-//a field over the base ring of L.}
-//
-///* TODO: FixedField itself seems to work */
-//dL := Degree(L); F := BaseRing(L);
-//Ms := [ Matrix([ Eltseq(gen(L.1^i) - L.1^i) : i in [0..(dL - 1)] ]) : gen in gens ];
-//Ker := &meet[ Kernel(M) : M in Ms ];
-///* Get F-basis of fixed field over F */
-//B := [ &+[ b[i + 1]*L.1^i : i in [0..(dL - 1)] ] : b in Basis(Ker) ];
-///* Subfield automatically creates K as extension of F */
-//K := sub< L | B >;
-//return K;
-//
-//end intrinsic;
+intrinsic RelativeFixedField(L::Fld, gens::SeqEnum) -> Fld
+{Returns the fixed subfield of L under the automorphisms in gens, considered as
+a field over the base ring of L.}
+
+vprint EndoFind : "Using RelativeFixedField";
+dL := Degree(L); F := BaseRing(L);
+Ms := [ Matrix([ Eltseq(gen(L.1^i) - L.1^i) : i in [0..(dL - 1)] ]) : gen in gens ];
+Ms := [ Matrix([ Eltseq(gen(L.1) - L.1) : i in [0..(dL - 1)] ]) : gen in gens ];
+Ker := &meet[ Kernel(M) : M in Ms ];
+/* Get F-basis of fixed field over F */
+B := [ &+[ b[i + 1]*L.1^i : i in [0..(dL - 1)] ] : b in Basis(Ker) ];
+/* Subfield automatically creates K as extension of F */
+K := sub< L | B >;
+return K;
+
+end intrinsic;
 
 
 intrinsic FixedFieldExtra(L::Fld, gens::SeqEnum) -> Fld
 {Returns the fixed subfield of L under the automorphisms in gens, considered as
 a field over the base ring of L.}
 
+/* FixedField itself seems to work now */
+//K := RelativeFixedField(L, gens);
 K := FixedField(L, gens);
 SetInfinitePlaceDownwards(L, K);
 return K;

@@ -16,7 +16,9 @@ GalK, returns the endomorphism structure over the subfield corresponding to
 GalK.}
 
 /* Called Base because it is the version without Sato-Tate */
+vprint EndoFind : "Calculating representation over subfield...";
 EndoRep := EndomorphismRepresentation(GeoEndoRep, GalK);
+vprint EndoFind : "done.";
 EndoAlg, EndoDesc := EndomorphismAlgebraAndDescriptionBase(EndoRep);
 EndoStructBase := [* EndoRep, EndoAlg, EndoDesc *];
 return EndoStructBase;
@@ -70,6 +72,9 @@ intrinsic EndomorphismAlgebraAndDescriptionBase(EndoRep::SeqEnum) -> List
 of the corresponding algebra, ring, and algebra tensored with RR.}
 
 Rs := [ gen[2] : gen in EndoRep ];
+vprint EndoFind : "";
+vprint EndoFind : "Generators of endomorphism algebra:", Rs;
+vprint EndoFind : "Calculating structure...";
 /* Creation of relevant algebras */
 g := #Rows(Rs[1]) div 2;
 /* Ambient matrix algebra, plus generators of the endomorphism ring */
@@ -87,6 +92,7 @@ EndoAlgZZ, EndoDescZZ := EndomorphismAlgebraZZBase(C, GensC);
 Append(~EndoAlg, EndoAlgZZ); Append(~EndoDesc, EndoDescZZ);
 EndoAlgRR, EndoDescRR := EndomorphismAlgebraRRBase(C, EndoDescQQ);
 Append(~EndoAlg, EndoAlgRR); Append(~EndoDesc, EndoDescRR);
+vprint EndoFind : "done";
 return EndoAlg, EndoDesc;
 
 end intrinsic;

@@ -48,8 +48,10 @@ group GalK, determines the corresponding Sato-Tate group. Via Shorthand, a
 description of the geometric endomorphism algebra tensored with RR can be
 passed. Assumes that the genus equals 2.}
 
-GensH, Gphi := Explode(GalK);
-if #GensH eq 0 then
+vprint EndoFind: "";
+vprint EndoFind: "Calculating Sato-Tate group...";
+gensH, Gphi := Explode(GalK);
+if #gensH eq 0 then
     Shorthand := SatoTateShorthandG2(EndoStructBase);
     if Shorthand eq "A" then
         return "USp(4)";
@@ -65,7 +67,7 @@ if #GensH eq 0 then
         return "C_1";
     end if;
 end if;
-H := sub< Domain(Gphi) | GensH >;
+H := sub< Domain(Gphi) | gensH >;
 L := BaseRing(GeoEndoRep[1][1]);
 GalL := [* sub< Domain(Gphi) |  [ ] >, Gphi *];
 
@@ -95,7 +97,8 @@ if Shorthand eq "" then
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
 end if;
 descRR := EndoStructBase[3][3];
-K := FixedFieldExtra(L, [ Gphi(gen) : gen in GensH ]);
+K := FixedField(L, [ Gphi(gen) : gen in gensH ]);
+vprint EndoFind: "Real endomorphism algebra over base field:", descRR;
 
 /* Usually the shorthand and endomorphism structure of the base field determine
  * everything; in the rare cases where they do not we recalculate a bit. */
@@ -167,8 +170,8 @@ elif Shorthand eq "F" then
         elif IsIsomorphic(H, DihedralGroup(6)) then
             /* See Fité--Kedlaya--Rotger--Sutherland (4.3) for the next step */
             H_prime := Center(H);
-            GensH_prime := Generators(H_prime);
-            GalK_prime := [* GensH_prime, Gphi *];
+            gensH_prime := Generators(H_prime);
+            GalK_prime := [* gensH_prime, Gphi *];
             EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
@@ -209,8 +212,8 @@ elif Shorthand eq "F" then
         elif IsIsomorphic(H, CyclicGroup(6)) then
             /* Here we take the unique subgroup of order 2 */
             H_prime := Subgroups(H : OrderEqual := 2)[1]`subgroup;
-            GensH_prime := Generators(H_prime);
-            GalK_prime := [* GensH_prime, Gphi *];
+            gensH_prime := Generators(H_prime);
+            GalK_prime := [* gensH_prime, Gphi *];
             EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then

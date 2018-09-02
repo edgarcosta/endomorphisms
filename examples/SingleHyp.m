@@ -9,7 +9,7 @@ SetVerbose("EndoFind", 2);
 
 F := RationalsExtra();
 R<x> := PolynomialRing(F);
-// Big ST:
+// Big ST, this calculation takes about:
 f := x^6 - 5*x^4 + 10*x^3 - 5*x^2 + 2*x - 1; h := R ! 0;
 // CM:
 f := x^6 - 8*x^4 - 8*x^3 + 8*x^2 + 12*x - 8; h := 0;

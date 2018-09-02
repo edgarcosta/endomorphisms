@@ -82,8 +82,12 @@ entry := [* *];
 
 L := BaseRing(GeoEndoRep[1][1]);
 gensH, Gphi := Explode(GalK);
+vprint EndoFind: "";
+vprint EndoFind: "Galois group:", gensH;
 K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
+vprint EndoFind: "Base field:", K;
 K := ImproveField(K); K_seq := FieldDescription(K);
+vprint EndoFind: "Improved base field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
 

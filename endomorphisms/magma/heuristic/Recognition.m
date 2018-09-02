@@ -17,8 +17,6 @@ CC := Parent(a); RCC := PolynomialRing(CC);
 fCC := EmbedAtInfinitePlace(f, RCC); tups := Roots(fCC);
 for tup in tups do
     rt := tup[1];
-    //vprint EndoFind : "Absolute value:", RealField(5) ! Abs(a - rt);
-    //vprint EndoFind : "Evaluation:", ComplexField(5) ! Evaluate(fCC, rt);
     if Abs(a - rt) le CC`epscomp then
         return true;
     end if;

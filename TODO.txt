@@ -1,9 +1,11 @@
-Resolve RelativeField problem
+Get rid of Extra when not needed: everything can be recovered from the homology
+Stable root finding
 Pure Magma interface
 Better Analytic.m
 Better idempotent isolation
 Slay maps to elliptic curves once and for all
 Factors of Jacobian via GSp operations
+
 Wrapper.py: document Sage part
 FractionalCRT.m: reduction takes too much time
 Branches.m, Divisor.m, Cantor.m: appropriate margins in various computations
