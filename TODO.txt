@@ -1,6 +1,8 @@
+Use Pari
+Use lower precision when appropriate, and ShortVectors
+Alternate Analytic.m
 Better idempotent isolation
 Factors of Jacobian via GSp operations
-Better Analytic.m
 
 Slay maps to elliptic curves once and for all (general point, not just Weierstrass, to point at inf)
 Get rid of Extra when not needed: everything can be recovered from the homology

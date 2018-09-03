@@ -17,7 +17,7 @@ prec = 300
 import os, shutil
 
 # Specify input and output:
-base_string = 'gce_genus3_nonhyperelliptic_possibly_special_1_endos'
+base_string = 'gce_genus3_nonhyperelliptic_possibly_special_endos'
 inputfile = base_string + '.txt'
 
 # Ambient ring:

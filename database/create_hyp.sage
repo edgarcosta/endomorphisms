@@ -12,7 +12,7 @@ line_length = 3
 fh_index = 2
 st_index = -1
 # Precision:
-prec = 200
+prec = 300
 
 import os, shutil
 
