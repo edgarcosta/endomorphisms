@@ -52,7 +52,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
         try 
             /* TODO: Add this when it comes */
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
-            //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
+            return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
             return 1/(1 - 1);
         catch err
             error "No functionality for plane curves available";

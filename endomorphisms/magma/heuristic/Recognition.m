@@ -189,7 +189,6 @@ if test_ker then
     for row in [ Rows(Ker)[1] ] do
         vprint EndoFind : "Row:", row;
         test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-        /* Do not use height test for now */
         if test_height then
             den := row[#Eltseq(row)];
             if den ne 0 then

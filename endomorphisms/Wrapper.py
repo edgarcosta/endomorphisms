@@ -42,7 +42,7 @@ class EndomorphismData:
         self._geo_rep_dict_ = dict_rep(self._geo_rep_list_)
 
     def endomorphism_field(self):
-        return self._endo_fod_
+        return magma.BaseRing(self._geo_rep_list_[1][1])
 
     def geometric(self):
         return OverField(self, K = "geometric")

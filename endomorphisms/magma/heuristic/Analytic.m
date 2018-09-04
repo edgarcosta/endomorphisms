@@ -111,7 +111,7 @@ JP := ComplexStructure(P); JQ := ComplexStructure(Q);
 
 /* Determination of approximate endomorphisms by LLL */
 M := RationalHomomorphismEquations(JP, JQ);
-Ker, test := IntegralLeftKernel(M);
+Ker, test := IntegralLeftKernel(M : EndoRep := true);
 if not test then
     return [ ];
 end if;
@@ -154,7 +154,6 @@ and via the infinite place of F the matrix A is mapped to ACC.}
 
 /* Determine matrices over CC */
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
-print gensPart;
 /* Determine minimal polynomials needed */
 gensPol, test := RelativeMinimalPolynomialsMatrices(gensPart, F : UpperBound := UpperBound);
 if not test then

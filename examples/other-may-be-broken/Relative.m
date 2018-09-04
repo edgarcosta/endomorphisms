@@ -1,74 +1,45 @@
-AttachSpec("../../endomorphisms/magma/spec");
+SetVerbose("EndoFind", 1);
 
-print "Over QQ:";
-
-F := Rationals();
-R<x> := PolynomialRing(F);
-f := x^3 + x + 1;
-g := x^2 - 5;
-
-K := NumberFieldExtra(f);
-SetInfinitePlace(K, InfinitePlaces(K)[2]);
-
-K := NumberField(f);
-L := RelativeSplittingFieldExtra([f, g]);
+R<x> := PolynomialRing(Rationals());
+fs := [ x^2 + d : d in [1..3] ];
+L := RelativeSplittingFieldQQ(fs);
 print L;
+print FieldDescription(L);
+print ElementDescription(L.1);
+SetInfinitePlaceUpwards(L);
+print L`iota;
 
-print MakeRelative(QQ, QQ);
-print FieldDescription(QQ, QQ);
+print "";
+K<r> := NumberField(x^2 + 1);
+S<y> := PolynomialRing(K);
+L<s> := NumberField(y^2 + 2);
+M := ExtendRelativeNumberField(y^2 + 3);
+print M;
 
+print "";
+T<z> := PolynomialRing(L);
+M := ExtendRelativeNumberField(z^2 + 3);
+print M;
 
-print "Over a number field:";
+print "";
+M := ExtendRelativeSplittingField(L, y^3 + 3);
+print M;
 
-F<r> := NumberField(x^2 - 2);
-R<x> := PolynomialRing(F);
-f := x^3 + x - r;
-g := x^2 - 5;
-g := x^2 - 5 + r;
+print "";
+M := RelativeSplittingFieldExtra([ x^2 + 2, x^2 + 3 ]);
+print M;
 
-K := NumberField(f);
-L := RelativeSplittingFieldExtra([f, g]);
-print L;
-print Roots(f, L);
-
-print L;
-print MinimalPolynomial(L.1, F);
-
-Gp, Gf, Gphi := AutomorphismGroup(L);
-print RelativeFixedField(L, [ Gphi(Gp.1) ]);
-print RelativeFixedField(L, [ Gphi(g) : g in Gp ]);
-
-K := RelativeFixedField(L, [ Gphi(Gp.2) ]);
-print K;
-print K ! L ! K.1;
-
-pol := MinimalPolynomial(K.1/14, F);
-K := NumberField(pol);
-K := ClearFieldDenominator(K);
-print K;
-print MinimalPolynomial(K.1, F);
-print MinimalPolynomial(K.1);
+print "";
+M := RelativeSplittingFieldExtra([ y^2 + 2, y^2 + 3, y^2 + 5 ]);
+print M;
+print BaseRing(M);
 
 /*
-SetInfinitePlace(L, InfinitePlaces(L)[7]);
-print L`iota;
-print F`iota;
+print "";
+Ks := [* NumberField(x^2 + d) : d in [1..3] *];
+print RelativeCompositum(Ks);
 */
 
-print "Linear extension:";
-
-F := Rationals();
-R<x> := PolynomialRing(F);
-
-print RelativeSplittingFieldExtra(x);
-print RelativeSplittingFieldExtra(x^2 - 2);
-
-F<r> := NumberField(x^2 - 2);
-R<x> := PolynomialRing(F);
-
-L := RelativeSplittingFieldExtra(x);
-print L;
-Gp, Gf, Gphi := AutomorphismGroup(L);
-print Gp;
-
-exit;
+print "";
+Ls := [* NumberField(y^2 + d) : d in [2,3,5] *];
+print RelativeCompositum(Ls[1], Ls[2]);

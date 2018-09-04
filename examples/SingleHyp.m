@@ -28,7 +28,7 @@ f := R ! [ -30*r + 42, -156*r + 312, -66*r + 186, -1456*r + 1040, -90*r + 126, 1
 
 X := HyperellipticCurve(f, h);
 
-prec := 1000;
+prec := 500;
 CCSmall := ComplexField(5);
 
 print "Curve:";

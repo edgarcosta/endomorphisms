@@ -116,24 +116,33 @@ return MRe + CC.1*MIm;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::. : OneRow := false) -> .
+intrinsic IntegralLeftKernel(M::. : OneRow := false, EndoRep := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
 RR := BaseRing(M);
 MI := IdentityMatrix(RR, #Rows(M));
-MJ := HorizontalJoin(MI, (1 / RR`epsLLL) * M);
+if EndoRep then
+    eps := Minimum([ Abs(c) : c in Eltseq(M) | not Abs(c) lt RR`epscomp ]);
+    MJ := HorizontalJoin(MI, (10^12 / eps) * M);
+else
+    MJ := HorizontalJoin(MI, (10^(Precision(RR))) * M);
+end if;
+MJ := Matrix(Integers(), [ [ Round(c) : c in Eltseq(row) ] : row in Rows(MJ) ]);
+
 L, K := LLL(MJ);
 rowsK := Rows(K); rowsK0 := [ ];
 if OneRow then
     rowsK := [ rowsK[1] ];
 end if;
+
 for row in rowsK do
-    prod := Matrix(RR, [ Eltseq(row) ])*M;
-    test := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
-    /* TODO: Uncomment next line if desired */
-    //test := true;
-    if test then
-        Append(~rowsK0, row);
+    test1 := &and[ Abs(c) lt RR`height_bound : c in Eltseq(row) ];
+    if test1 then
+        prod := Matrix(RR, [ Eltseq(row) ])*M;
+        test2 := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
+        if test2 then
+            Append(~rowsK0, row);
+        end if;
     end if;
 end for;
 if #rowsK0 eq 0 then
