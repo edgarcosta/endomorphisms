@@ -557,8 +557,7 @@ intrinsic FixedFieldExtra(L::Fld, gens::SeqEnum) -> Fld
 {Returns the fixed subfield of L under the automorphisms in gens, considered as
 a field over the base ring of L.}
 
-/* FixedField itself seems to work now */
-//K := RelativeFixedField(L, gens);
+/* FixedField itself seems to work now, so ditch RelativeFixedField */
 K := FixedField(L, gens);
 SetInfinitePlaceDownwards(L, K);
 return K;

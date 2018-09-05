@@ -169,13 +169,13 @@ elif g eq 2 then
 else
     Bound := Infinity();
 end if;
-L := RelativeSplittingFieldExtra(gensPol : Bound := Bound);
+L := RelativeSplittingFieldExtra(&cat[ Eltseq(gen) : gen in gensPol] : Bound := Bound);
 
 gens := [ ];
 /* Algebraize over it */
-for gen in gensPart do
-    genApp, R := Explode(gen);
-    A, test := AlgebraizeMatrixInRelativeField(genApp, L);
+for i := 1 to #gensPart do
+    genApp, R := Explode(gensPart[i]);
+    A, test := AlgebraizeMatrixInRelativeField(genApp, L : minpolmat := gensPol[i]);
     if not test then
         error "No suitable algebraic element found";
     end if;

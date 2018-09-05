@@ -124,7 +124,7 @@ end if;
 
 /* Case where either K or L is small */
 if (Degree(K) eq 1) or (Degree(L) eq 1) then
-    Gp, Gf, Gphi := AutomorphismGroup(L);
+    Gp, Gf, Gphi := AutomorphismGroupImproved(L);
     return [* Generators(Gp), Gphi *];
 end if;
 
@@ -132,7 +132,7 @@ end if;
  * inside K */
 /* TODO: This is not very elegant, but the reason for this is that FixedGroup
  * fails for relative extensions */
-Gp, Gf, Gphi := AutomorphismGroup(L);
+Gp, Gf, Gphi := AutomorphismGroupImproved(L);
 Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
 Sort(~Hs, CompareGroups);
 for H in Hs do

@@ -57,28 +57,27 @@ while degf lt UpperBound do
     Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
     /* NOTE: We only consider the first element for now */
     if test_ker then
-        for row in [ Rows(Ker)[1] ] do
-            vprint EndoFind : "Row:", row;
-            test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-            /* TODO: Uncomment if desired */
-            //if true then
-            if test_height then
-                f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
-                if not Factor then
-                    if TestCloseToRoot(f, a) then
-                        return f, true;
-                    end if;
-                else
-                    Fac := Factorization(f);
-                    for tup in Fac do
-                        g := tup[1];
-                        if TestCloseToRoot(g, a) then
-                            return g, true;
-                        end if;
-                    end for;
+        row := Rows(Ker)[1];
+        vprint EndoFind : "Row:", row;
+        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+        /* TODO: Uncomment if desired */
+        //if true then
+        if test_height then
+            f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
+            if not Factor then
+                if TestCloseToRoot(f, a) then
+                    return f, true;
                 end if;
+            else
+                Fac := Factorization(f);
+                for tup in Fac do
+                    g := tup[1];
+                    if TestCloseToRoot(g, a) then
+                        return g, true;
+                    end if;
+                end for;
             end if;
-        end for;
+        end if;
     end if;
 end while;
 return 0, false;
@@ -99,7 +98,7 @@ for gen in gens do
         test and:= test_pol_new;
         Append(~pols_new, pol_new);
     end for;
-    pols cat:= pols_new;
+    Append(~pols, Matrix(#Rows(gen[1]), #Rows(Transpose(gen[1])), pols_new));
 end for;
 return pols, test;
 
@@ -164,12 +163,37 @@ return Matrix(rows_alg), test;
 end intrinsic;
 
 
-intrinsic AlgebraizeElementInRelativeField(a::FldComElt, K::Fld) -> .
+intrinsic AlgebraizeElementInRelativeFieldPari(a::FldComElt, K::Fld : minpol := 0) -> .
+{Returns an approximation of the complex number a as an element of K. This
+assumes that K an extension of QQ.}
+
+F := BaseRing(K);
+assert F eq Rationals();
+if minpol eq 0 then
+    minpol := RelativeMinimalPolynomial(a, F);
+end if;
+rts := [ tup[1] : tup in RootsImproved(minpol, K) ];
+
+CC := Parent(a);
+for rt in rts do
+    rtCC := CC ! Evaluate(rt, K`iota : Precision := Precision(CC));
+    if Abs(rtCC - a) le CC`epscomp then
+        vprint EndoFind : "Root:", rt;
+        return rt, true;
+    end if;
+end for;
+return 0, false;
+
+end intrinsic;
+
+
+intrinsic AlgebraizeElementInRelativeField(a::FldComElt, K::Fld : minpol := 0) -> .
 {Returns an approximation of the complex number a as an element of K. This
 assumes that K is at most a double extension of QQ.}
 
-/* An alternative, more stable way would be to find the corresponding roots in
- * K and check which one does the trick. This would be much slower, however. */
+if BaseRing(K) eq Rationals() then
+    return AlgebraizeElementInRelativeFieldPari(a, K : minpol := minpol);
+end if;
 
 degK := Degree(K); R<x> := PolynomialRing(K);
 F := BaseField(K); degF := Degree(F);
@@ -206,15 +230,19 @@ return 0, false;
 end intrinsic;
 
 
-intrinsic AlgebraizeMatrixInRelativeField(A::., K::Fld) -> AlgMatElt
+intrinsic AlgebraizeMatrixInRelativeField(A::., K::Fld : minpolmat := 0) -> AlgMatElt
 {Returns approximations of the entries of A as elements of K. This assumes that
 K is at most a double extension of QQ.}
 
-rows_alg := [ ];
-for row in Rows(A) do
-    row_alg := [ ];
-    for c in Eltseq(row) do
-        alpha, test_alpha := AlgebraizeElementInRelativeField(c, K);
+rows := Rows(A); rows_alg := [ ];
+for i in [1..#rows] do
+    row := Eltseq(rows[i]); row_alg := [ ];
+    for j in [1..#row] do
+        if IsZero(minpolmat) then
+            alpha, test_alpha := AlgebraizeElementInRelativeField(row[j], K);
+        else
+            alpha, test_alpha := AlgebraizeElementInRelativeField(row[j], K : minpol := minpolmat[i, j]);
+        end if;
         if not test_alpha then
             return 0, false;
         end if;

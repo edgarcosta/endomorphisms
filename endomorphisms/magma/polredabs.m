@@ -10,10 +10,10 @@ intrinsic Polredabs(f::RngUPolElt : Best := false) -> RngUPolElt, SeqEnum, BoolE
   else
     cmdp := "polredabs";
   end if;
-  
+
   try
     cmd := Sprintf(
-       "{u = %o(Pol(Vecrev(%o)),1); print(Vecrev(Vec(u[1])),Vecrev(Vec(lift(u[2]))))}", 
+       "{u = %o(Pol(Vecrev(%o)),1); print(Vecrev(Vec(u[1])),Vecrev(Vec(lift(u[2]))))}",
        cmdp, Coefficients(f));
     s := Pipe("gp -q", cmd);
     c := Index(s,"][");
@@ -26,7 +26,7 @@ intrinsic Polredabs(f::RngUPolElt : Best := false) -> RngUPolElt, SeqEnum, BoolE
   catch e
     vprintf EndoFind : "WARNING: need gp at command-line for polredabs!\n";
     return f, [0,1] cat [0: i in [1..Degree(f)-2]], false;
-  end try; 
+  end try;
   return Parent(f) ! sspol, ssroot, true;
 end intrinsic;
 
@@ -35,7 +35,7 @@ intrinsic Polredbestabs(f::RngUPolElt) -> RngUPolElt, SeqEnum, BoolElt
 
   fbest, fbest_root := Polredabs(f : Best := true);
   fredabs, fredabs_root, bl := Polredabs(fbest);
-  
+
   K := NumberField(f);
   Kbest := NumberField(fbest);
   iotabest := hom<K -> Kbest | fbest_root>;
@@ -79,7 +79,7 @@ intrinsic Polredbestabs(K::FldNum) -> RngUPolElt, Map, BoolElt
         return K, hom<K -> K | K.1>, false;
     end if;
     assert bl0 eq bl1;
-    
+
     Kbest := NumberField(fbest);
     iotabest := hom<K -> Kbest | fbest_root>;
     Kredabs := NumberField(fredabs);

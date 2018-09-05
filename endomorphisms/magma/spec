@@ -1,5 +1,6 @@
 {
   polredabs.m
+  roots.m
   bounds
   {
     MagmaInterface.m

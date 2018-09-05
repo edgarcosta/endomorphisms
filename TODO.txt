@@ -1,12 +1,4 @@
-Use Pari
-Use lower precision when appropriate, and ShortVectors
-Alternate Analytic.m
-Better idempotent isolation
-Factors of Jacobian via GSp operations
-
 Slay maps to elliptic curves once and for all (general point, not just Weierstrass, to point at inf)
-Get rid of Extra when not needed: everything can be recovered from the homology
-Stable root finding if LLL fails
 
 Wrapper.py: document Sage part
 FractionalCRT.m: reduction takes too much time

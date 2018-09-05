@@ -16,6 +16,7 @@ GalK, returns the endomorphism structure over the subfield corresponding to
 GalK.}
 
 /* Called Base because it is the version without Sato-Tate */
+vprint EndoFind : "";
 vprint EndoFind : "Calculating representation over subfield...";
 EndoRep := EndomorphismRepresentation(GeoEndoRep, GalK);
 vprint EndoFind : "done.";

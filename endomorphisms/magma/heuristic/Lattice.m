@@ -39,7 +39,7 @@ if Degree(L) eq 1 then
     return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]);
 end if;
 
-Gp, Gf, Gphi := AutomorphismGroup(L);
+Gp, Gf, Gphi := AutomorphismGroupImproved(L);
 Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
 Sort(~Hs, CompareGroups);
 
@@ -65,6 +65,10 @@ L_seq := FieldDescription(L); L_desc := [* L_seq, L *];
 Append(~entry, L_desc);
 
 GalL := [* [ ], [ ] *];
+vprint EndoFind: "";
+vprint EndoFind: "Galois group:", [ ];
+vprint EndoFind: "Base field:", L;
+vprint EndoFind: "Improved base field:", L;
 EndoStruct := EndomorphismStructure(GeoEndoRep, GalL);
 Append(~entry, EndoStruct);
 
