@@ -8,3 +8,16 @@ Divisor.m: get rid of Weierstrass condition (possible on one factor, on both if 
 Divisor.m: get rid of Weierstrass echelonization since it should not be needed
 Divisor.m: automatically scale equations to ge a rational non-Weierstrass point
 Debugging: Sato-Tate bug in CR's examples, understand rank 3 phenomenon in DS's example
+
+
+Idempotent finding is not in a good general state currently. Here is how to improve it:
+
+(1) Given a period matrix P, calculate the corresponding geometric endomorphism algebra over the splitting field L.
+
+(2) Calculate the central decomposition of that algebra. This gives rise to a bunch of factors Q_i, which can be split off by using the existing function ProjectionFromIdempotent. We can use the tangent representation to find the field over which this occurs. Fix one such factor and call it Q.
+
+(3) We get a map P --> Q for free with the projection. Calculate the endomorphism algebra of Q, either directly or by somehow passing it on from that of P (which should be possible in principle).
+
+(4) We get another lattice, this time for Q. We ascend in this lattice, and find a minimal height at which the corresponding algebra is no longer a division algebra. (Possible with MatrixAlgebra and IsDivisionAlgebra.) Find a corresponding idempotent (somehow!).
+
+(5) Calculate the corresponding curve (it should have indecomposable Jacobian) and find all maps from P to it.

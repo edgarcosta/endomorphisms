@@ -5,7 +5,7 @@
 */
 
 AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 2);
 
 F := QQ;
 R<x,y> := PolynomialRing(F, 2);
@@ -16,7 +16,7 @@ f := 1 + 7*x*y + 21*x^2*y^2 + 35*x^3*y^3 + 28*x^4*y^4 + 2*x^7 + 2*y^7;
 
 X := PlaneCurve(f);
 
-prec := 200;
+prec := 100;
 CCSmall := ComplexField(5);
 
 print "Curve:";
@@ -30,7 +30,6 @@ print "";
 print "Period matrix:";
 print ChangeRing(P, CCSmall);
 
-/*
 GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
 L<s> := BaseRing(GeoEndoRep[1][1]);
 
@@ -46,4 +45,3 @@ print lat;
 print "";
 print "Sato-Tate hash:";
 print sthash;
-*/

@@ -125,7 +125,7 @@ if EndoRep then
     eps := Minimum([ Abs(c) : c in Eltseq(M) | not Abs(c) lt RR`epscomp ]);
     MJ := HorizontalJoin(MI, (10^12 / eps) * M);
 else
-    MJ := HorizontalJoin(MI, (10^(Precision(RR) - 50)) * M);
+    MJ := HorizontalJoin(MI, (10^(Precision(RR) - 30)) * M);
 end if;
 MJ := Matrix(Integers(), [ [ Round(c) : c in Eltseq(row) ] : row in Rows(MJ) ]);
 
