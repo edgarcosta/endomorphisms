@@ -14,6 +14,14 @@ return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
 end intrinsic;
 
 
+intrinsic HasRootPari(f::RngUPolElt, K::Fld) -> .
+{Given a polynomial f and a field K, determines if f has a root in K.}
+
+return #RootsPari(f, K) ne 0;
+
+end intrinsic;
+
+
 intrinsic AutomorphismGroupPari(K::Fld) -> GrpPerm, RngIntElt, Map
 {Similar to usual function, but outsources to Pari for better performance.}
 

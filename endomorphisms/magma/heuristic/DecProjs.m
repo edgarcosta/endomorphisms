@@ -35,6 +35,7 @@ while i le n do
         /* Get elements, their base field, and inherit embedding */
         idems := IdempotentsFromStructure(EndoStruct);
         K := BaseRing(idems[1][1]);
+        /* Leave like this: finding the decomposition should be independent of a full lattice calculation */
         SetInfinitePlaceDownwards(L, K);
         return idems, K;
     end if;

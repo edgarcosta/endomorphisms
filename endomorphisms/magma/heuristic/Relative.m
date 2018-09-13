@@ -343,7 +343,7 @@ intrinsic ExtendRelativeSplittingField(K::Fld, f::RngUPolElt) -> Fld
 {Given a splitting field K | F and a polynomial f over F, returns an extension of F that contains both K and a splitting field of f.}
 
 L := K; F := BaseRing(K);
-if HasRoot(f, K) then
+if HasRootPari(f, K) then
     return K, hom< F -> F | F.1 >;
 end if;
 htot := hom< F -> F | F.1 >;
@@ -432,7 +432,8 @@ intrinsic RelativeSplittingFieldQQ(fs::SeqEnum : AssumeIrr := false, Bound := In
 ring QQ.}
 
 F := BaseRing(fs[1]); K := F;
-fs := Reverse(Sort(fs, ComparePolynomials));
+//fs := Reverse(Sort(fs, ComparePolynomials));
+fs := Sort(fs, ComparePolynomials);
 
 if AssumeIrr then
     if &and[ Degree(f) eq 1 : f in fs ] then
@@ -441,7 +442,7 @@ if AssumeIrr then
     end if;
     for f in fs do
         vprintf EndoFind : "Checking if %o has a root in %o\n", f, K;
-        test := HasRoot(f, K);
+        test := HasRootPari(f, K);
         vprintf EndoFind : "done\n";
         if not test then
             g := f*LCM([ Denominator(c) : c in Coefficients(f) ]);

@@ -231,7 +231,7 @@ elif Shorthand eq "F" then
             A := AlgebraOverCenter(A);
             M := BaseRing(A);
             f := DefiningPolynomial(M);
-            if HasRoot(f, K) then
+            if HasRootPari(f, K) then
                 return "D_2";
             else
                 return "J(C_2)";
