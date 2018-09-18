@@ -1,5 +1,3 @@
-Slay maps to elliptic curves once and for all (general point, not just Weierstrass, to point at inf)
-
 Wrapper.py: document Sage part
 FractionalCRT.m: reduction takes too much time
 Branches.m, Divisor.m, Cantor.m: appropriate margins in various computations
@@ -21,3 +19,9 @@ Idempotent finding is not in a good general state currently. Here is how to impr
 (4) We get another lattice, this time for Q. We ascend in this lattice, and find a minimal height at which the corresponding algebra is no longer a division algebra. (Possible with MatrixAlgebra and IsDivisionAlgebra.) Find a corresponding idempotent (somehow!).
 
 (5) Calculate the corresponding curve (it should have indecomposable Jacobian) and find all maps from P to it.
+
+() Splitting field (Pari!)
+(i) Idempotent factor and, starting from scratch after that, possible polarizations (perhaps non-inherited ones as well)
+(ii) Reconstruction from period matrix; geometric, then exact for hyperelliptic with endomorphism ring ZZ.
+
+Slay maps to elliptic curves once and for all (general point, not just Weierstrass, to point at inf)

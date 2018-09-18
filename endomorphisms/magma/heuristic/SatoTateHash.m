@@ -56,7 +56,7 @@ return [ x : x in X | #x ne 0 ];
 end intrinsic;
 
 
-intrinsic GaloisRepresentationOfElement(sigma::Map, GeoEndoRep :: SeqEnum) -> AlgMatElt
+intrinsic GaloisRepresentationOfElement(sigma::Map, GeoEndoRep::SeqEnum) -> AlgMatElt
 {Gives the matrix representation of sigma acting on the analytic
 representation.}
 
@@ -150,7 +150,7 @@ analytic representation, mapped to a group in SmallGroupDatabase and with
 automorphism orbits sorted to ensure uniqueness.}
 
 As := [ galrep[1] : galrep in GeoEndoRep ]; L := BaseRing(As[1]);
-Gp, Gf, Gphi := AutomorphismGroupImproved(L);
+Gp, Gf, Gphi := AutomorphismGroupPari(L);
 D := SmallGroupDatabase();
 id0 := IdentifyGroup(D, Gp); o, n := Explode(id0); G0 := SmallGroup(D, o, n);
 test, iso := IsIsomorphic(G0, Gp);

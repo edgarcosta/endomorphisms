@@ -19,7 +19,7 @@ As := [ gen[1] : gen in GeoEndoRep ];
 Rs := [ gen[2] : gen in GeoEndoRep ];
 
 /* Boundary cases */
-L := BaseRing(As[1]); F := BaseRing(L);
+L := BaseRing(As[1]);
 gensH, Gphi := Explode(GalK);
 /* Case where no extension is needed to find the geometric endomorphism ring */
 if Degree(L) eq 1 then
@@ -54,14 +54,13 @@ B := Basis(Lat);
 
 /* Constructing said basis */
 gens := [ ];
-K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
-K0 := ImproveField(K);
-test, h := IsIsomorphicExtra(K, K0);
+K, res := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
+K0, h := ImproveFieldExtra(K);
 for b in B do
     A := &+[ b[i] * As[i] : i in [1..n] ];
     R := &+[ b[i] * Rs[i] : i in [1..n] ];
     /* Coercion to subfield */
-    A := Matrix(K, A);
+    A := CoerceToSubfieldMatrix(A, L, K, res);
     A := Matrix([ [ h(c) : c in Eltseq(row) ] : row in Rows(A) ]);
     Append(~gens, [* A, R *]);
 end for;
@@ -113,7 +112,7 @@ end if;
 end function;
 
 
-intrinsic SubgroupGeneratorsUpToConjugacy(L::Fld, K::Fld) -> List
+intrinsic SubgroupGeneratorsUpToConjugacy(L::Fld, K::Fld, h::Map) -> List
 {Finds the subgroup generators up to conjugacy that correspond to the
 intersection of the extensions L and K of their common base field.}
 
@@ -124,23 +123,17 @@ end if;
 
 /* Case where either K or L is small */
 if (Degree(K) eq 1) or (Degree(L) eq 1) then
-    Gp, Gf, Gphi := AutomorphismGroupImproved(L);
+    Gp, Gf, Gphi := AutomorphismGroupPari(L);
     return [* Generators(Gp), Gphi *];
 end if;
 
 /* General case: take group corresponding to largest subfield of L that fits
  * inside K */
-/* TODO: This is not very elegant, but the reason for this is that FixedGroup
- * fails for relative extensions */
-Gp, Gf, Gphi := AutomorphismGroupImproved(L);
-Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
-Sort(~Hs, CompareGroups);
-for H in Hs do
-    M := FixedField(L, [ Gphi(h) : h in H ]);
-    test, f := IsSubfield(M, K);
-    if test then
-        return [* Generators(H), Gphi *];
-    end if;
-end for;
+/* TODO: Deal with case where K is not a subfield of L, but not as cruddily as
+ * Magma */
+Gp, Gf, Gphi := AutomorphismGroupPari(L);
+Helts := [ h : h in Gp | Gphi(h)(h(K.1)) eq h(K.1) ];
+H := sub< Gp | Helts >;
+return [* Generators(H), Gphi *];
 
 end intrinsic;

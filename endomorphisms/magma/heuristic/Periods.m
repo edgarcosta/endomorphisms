@@ -10,10 +10,7 @@
  */
 
 
-/* Enable MolinNeurohr to use the new code Pascal Molin and Christian Neurohr,
- * which is highly recommended */
-
-intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum : MolinNeurohr := true) -> ModMatFldElt
+intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum) -> ModMatFldElt
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
@@ -25,21 +22,13 @@ if #GeneratorsSequence(RCC) eq 1 then
     else
         gCC := Explode(eqsCC);
     end if;
-    if not MolinNeurohr then
-        JCC := AnalyticJacobian(gCC);
-        /* We divide by 2 because we integrate with respect to the canonical
-         * differential x^i dx / 2y
-         * (MN use x^i dx) */
-        return ChangeRing(BigPeriodMatrix(JCC), CC) / 2;
-    else
-        X := SE_Curve(gCC, 2 : Prec := Precision(CC));
-        return ChangeRing(X`BigPeriodMatrix, CC) / 2;
-    end if;
+    /* We divide by 2 because we integrate with respect to the canonical
+     * differential x^i dx / 2y
+     * (MN use x^i dx) */
+    X := SE_Curve(gCC, 2 : Prec := Precision(CC));
+    return ChangeRing(X`BigPeriodMatrix, CC) / 2;
 
 elif #GeneratorsSequence(RCC) eq 3 then
-    if not MolinNeurohr then
-        error "No functionality for plane curves available";
-    end if;
     test, fCC, e := IsSuperellipticEquation(eqsCC);
     if false then
         X := SE_Curve(fCC, 3 : Prec := Precision(CC));
@@ -50,7 +39,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
         try 
-            /* TODO: Add this when it comes */
+            /* TODO: Add this when it becomes available */
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
             //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
             return 1/(1 - 1);
@@ -65,13 +54,13 @@ end if;
 end intrinsic;
 
 
-intrinsic PeriodMatrix(X::Crv : prec := 300, MolinNeurohr := true) -> ModMatFldElt
+intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
-eqsCC := EmbedCurveEquations(X, prec);
+eqsCC := EmbedCurveEquations(X);
 eqsF := DefiningEquations(X);
-return PeriodMatrix(eqsCC, eqsF : MolinNeurohr := MolinNeurohr);
+return PeriodMatrix(eqsCC, eqsF);
 
 end intrinsic;
 
@@ -107,7 +96,7 @@ intrinsic SuperellipticCompatibility(P::., e::RngIntElt) -> .
 {Transforms the differentials on a superelliptic curve to compensate for conventions.}
 // TODO: Generalize this to apply beyond genus 3. This is a matter of fixing a
 // base of differentials. But actually superelliptic curves should be treated
-// as a class of their own.
+// as a class of their own. NOT NOW.
 
 rowsP := Rows(P);
 if #rowsP eq 3 then

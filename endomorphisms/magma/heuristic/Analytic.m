@@ -155,32 +155,11 @@ and via the infinite place of F the matrix A is mapped to ACC.}
 /* Determine matrices over CC */
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
-gensPol, test := RelativeMinimalPolynomialsMatrices(gensPart, F : UpperBound := UpperBound);
-if not test then
-    error "No suitable minimal polynomial found";
-end if;
-
-/* Create field, using known maximum bounds */
-g := #Rows(P);
-if g eq 1 then
-    Bound := 2;
-elif g eq 2 then
-    Bound := 48;
-else
-    Bound := Infinity();
-end if;
-L := RelativeSplittingFieldExtra(&cat[ Eltseq(gen) : gen in gensPol] : Bound := Bound);
-
-gens := [ ];
-/* Algebraize over it */
-for i := 1 to #gensPart do
-    genApp, R := Explode(gensPart[i]);
-    A, test := AlgebraizeMatrixInRelativeField(genApp, L : minpolmat := gensPol[i]);
-    if not test then
-        error "No suitable algebraic element found";
-    end if;
-    Append(~gens, [* A, R *]);
-end for;
+seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+K, seq := NumberFieldExtra(seqPart, F);
+r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
+As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
+gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 return gens;
 
 end intrinsic;
@@ -194,25 +173,5 @@ and a complex tangent representation ACC. We have ACC P = P R, and via the
 infinite place of F the matrix A is mapped to ACC.}
 
 return GeometricHomomorphismRepresentation(P, P, F : UpperBound := UpperBound);
-
-end intrinsic;
-
-
-/* Allow specification of field: */
-intrinsic GeometricEndomorphismRepresentationOverField(gensPart::SeqEnum, L::Fld) -> .
-{Given the output of GeometricEndomorphismRepresentationCC and a field L
-with an infinite places, writes the tangent representation of the former as
-matrices over the latter. Use when delegating to Sage.}
-
-gens := [ ];
-for gen in gensPart do
-    genApp, R := Explode(gen);
-    A, test := AlgebraizeMatrixInRelativeField(genApp, L);
-    if not test then
-        error "No suitable algebraic element found";
-    end if;
-    Append(~gens, [* A, R *]);
-end for;
-return gens;
 
 end intrinsic;

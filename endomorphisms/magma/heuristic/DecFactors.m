@@ -92,7 +92,7 @@ F := BaseRing(X);
 CC := BaseRing(P); RCC := PolynomialRing(CC);
 f, h := HyperellipticPolynomials(X);
 fCC := EmbedAtInfinitePlace(f, RCC); hCC := EmbedAtInfinitePlace(h, RCC);
-Q := PeriodMatrix([fCC, hCC] : MolinNeurohr:= true);
+Q := PeriodMatrix([fCC, hCC]);
 GeoIsogRep := GeometricHomomorphismRepresentationCC(P, Q);
 A := GeoIsogRep[1][1];
 
@@ -112,7 +112,7 @@ g := 4*f + h^2; R<x> := Parent(g);
 num := WA[2,2]*x + WA[1,2]; den := WA[2,1]*x + WA[1,1];
 g := R ! (den^6 * Evaluate(g, num/den));
 gCC := EmbedAtInfinitePlace(g, RCC);
-Q := PeriodMatrix([ gCC, 0 ] : MolinNeurohr := true);
+Q := PeriodMatrix([ gCC, 0 ]);
 GeoIsogRep := GeometricHomomorphismRepresentationCC(P, Q);
 A := GeoIsogRep[1][1];
 

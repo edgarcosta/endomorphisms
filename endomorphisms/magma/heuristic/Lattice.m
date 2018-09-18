@@ -29,7 +29,7 @@ intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum) -> List
 {Returns the lattice of endomorphisms by (conjugacy class of) subfield.}
 
 L := BaseRing(GeoEndoRep[1][1]);
-F := BaseRing(L); F_seq := FieldDescription(F);
+F := L`base; F_seq := FieldDescription(F);
 base := [* F_seq, F *];
 
 if Degree(L) eq 1 then
@@ -39,7 +39,7 @@ if Degree(L) eq 1 then
     return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]);
 end if;
 
-Gp, Gf, Gphi := AutomorphismGroupImproved(L);
+Gp, Gf, Gphi := AutomorphismGroupPari(L);
 Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
 Sort(~Hs, CompareGroups);
 
@@ -68,7 +68,6 @@ GalL := [* [ ], [ ] *];
 vprint EndoFind: "";
 vprint EndoFind: "Galois group:", [ ];
 vprint EndoFind: "Base field:", L;
-vprint EndoFind: "Improved base field:", L;
 EndoStruct := EndomorphismStructure(GeoEndoRep, GalL);
 Append(~entry, EndoStruct);
 
@@ -89,8 +88,7 @@ gensH, Gphi := Explode(GalK);
 vprint EndoFind: "";
 vprint EndoFind: "Galois group:", gensH;
 K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
-vprint EndoFind: "Base field:", K;
-K := ImproveField(K); K_seq := FieldDescription(K);
+K := ImproveFieldExtra(K); K_seq := FieldDescription(K);
 vprint EndoFind: "Improved base field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);

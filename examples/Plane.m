@@ -7,7 +7,9 @@
 AttachSpec("../endomorphisms/magma/spec");
 SetVerbose("EndoFind", 2);
 
-F := QQ;
+prec := 100;
+CCSmall := ComplexField(5);
+F := RationalsExtra(prec);
 R<x,y> := PolynomialRing(F, 2);
 z := 1;
 
@@ -15,17 +17,10 @@ f := y^3*z - x^4 - z^4;
 f := 1 + 7*x*y + 21*x^2*y^2 + 35*x^3*y^3 + 28*x^4*y^4 + 2*x^7 + 2*y^7;
 
 X := PlaneCurve(f);
-
-prec := 100;
-CCSmall := ComplexField(5);
-
 print "Curve:";
 print X;
 
-eqsCC := EmbedCurveEquations(X, prec);
-eqsF := DefiningEquations(X);
-P := PeriodMatrix(eqsCC, eqsF : MolinNeurohr := true);
-
+P := PeriodMatrix(X);
 print "";
 print "Period matrix:";
 print ChangeRing(P, CCSmall);

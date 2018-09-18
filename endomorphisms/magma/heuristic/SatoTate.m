@@ -27,7 +27,7 @@ end if;
 end intrinsic;
 
 
-intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld, h::Map : Shorthand := "") -> MonStgElt
 {Given a description EndoStructBase of an endomorphism algebra, a
 representation GeoEndoRep of a geometric endomorphism algebra, and a field K,
 determines the corresponding Sato-Tate group. Via Shorthand, a description of
@@ -35,7 +35,7 @@ the geometric endomorphism algebra tensored with RR can be passed.}
 
 /* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(EndoStructBase[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
 return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
 
 end intrinsic;
@@ -97,7 +97,7 @@ if Shorthand eq "" then
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
 end if;
 descRR := EndoStructBase[3][3];
-K := FixedField(L, [ Gphi(gen) : gen in gensH ]);
+K := FixedFieldExtra(L, [ Gphi(gen) : gen in gensH ]);
 vprint EndoFind: "Real endomorphism algebra over base field:", descRR;
 
 /* Usually the shorthand and endomorphism structure of the base field determine
@@ -285,7 +285,7 @@ g := #Rows(GeoEndoStructBase[1][1][1]);
 if g eq 2 then
     return SatoTateShorthandG2(GeoEndoStructBase);
 else
-    // TODO: Add other cases when they appear.
+    /* Add other cases when they appear. */
     return "undef";
 end if;
 

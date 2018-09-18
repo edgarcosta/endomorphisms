@@ -27,13 +27,13 @@ return EndoStructBase;
 end intrinsic;
 
 
-intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, K::Fld) -> List
+intrinsic EndomorphismStructureBase(GeoEndoRep::SeqEnum, K::Fld, h::Map) -> List
 {Given a representation of the geometric endomorphism ring and a field K,
 returns the endomorphism structure over K.}
 
 /* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
 return EndomorphismStructureBase(GeoEndoRep, GalK);
 
 end intrinsic;
@@ -55,14 +55,14 @@ return EndoStruct;
 end intrinsic;
 
 
-intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, K::Fld : Shorthand := "") -> List
+intrinsic EndomorphismStructure(GeoEndoRep::SeqEnum, K::Fld, h::Map : Shorthand := "") -> List
 {Given a representation of the geometric endomorphism ring and a field K,
 returns the endomorphism structure over K. Also calculates Sato-Tate group from
 Shorthand.}
 
 /* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
 return EndomorphismStructure(GeoEndoRep, GalK : Shorthand := Shorthand);
 
 end intrinsic;
@@ -110,7 +110,7 @@ for D in Ds do
     E1 := AlgebraOverCenter(D);
     F := BaseRing(E1);
     E2 := ChangeRing(E1, F);
-    FDesc := FieldDescription(ImproveField(F));
+    FDesc := FieldDescription(Polredbestabs(F));
     //FDesc := Eltseq(MinimalPolynomial(F.1));
     //FDesc := [ Integers() ! c : c in FDesc ];
 
@@ -211,7 +211,7 @@ Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
     //F := ClearDenominator(BaseRing(E1));
-    //F := ImproveField(F);
+    //F := Polredbestabs(F);
     //E2, f2 := ChangeRing(E1, F);
     F := BaseRing(E1);
     E2 := E1;

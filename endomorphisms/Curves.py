@@ -11,8 +11,8 @@
 
 from sage.all import magma
 
-def mHyperellipticCurve(f, h):
-    return magma.HyperellipticCurve(magma(f), magma(h))
+def mHyperellipticCurve(f, h, prec):
+    return magma.HyperellipticCurveExtra(magma(f), magma(h), magma(prec))
 
-def mPlaneCurve(f):
-    return magma.PlaneCurve(magma(f))
+def mPlaneCurve(f, prec):
+    return magma.PlaneCurveExtra(magma(f), magma(prec))

@@ -1,45 +1,94 @@
-SetVerbose("EndoFind", 1);
+/***
+ *  Example file
+ *
+ *  Written by Jeroen Sijsling (jeroen.sijsling@uni-ulm.de)
+ *
+ *  See LICENSE.txt for license details.
+ */
 
-R<x> := PolynomialRing(Rationals());
-fs := [ x^2 + d : d in [1..3] ];
-L := RelativeSplittingFieldQQ(fs);
+SetVerbose("EndoFind", 2);
+prec := 200;
+F := RationalsExtra(prec);
+CC := F`CC;
+
+R<x> := PolynomialRing(F);
+K<r> := NumberFieldExtra(x^2 - 2);
+S<y> := PolynomialRing(K);
+L<s> := NumberFieldExtra(y^2 - 3);
+Lalt := NumberFieldExtra(y^2 - 27);
+
 print L;
-print FieldDescription(L);
-print ElementDescription(L.1);
-SetInfinitePlaceUpwards(L);
+print L`base;
+print L`base_gen;
+print L`CC;
 print L`iota;
 
 print "";
-K<r> := NumberField(x^2 + 1);
-S<y> := PolynomialRing(K);
-L<s> := NumberField(y^2 + 2);
-M := ExtendRelativeNumberField(y^2 + 3);
-print M;
+print IsQQ(L);
+print FieldDescription(L);
+print ElementDescription(L.1);
+print InfinitePlacesExtra(L);
+print EvaluateExtra(r, L`iota);
 
 print "";
-T<z> := PolynomialRing(L);
-M := ExtendRelativeNumberField(z^2 + 3);
-print M;
+print EmbedAtInfinitePlace([ y^2 - 3, y^2 - 5 ]);
 
 print "";
-M := ExtendRelativeSplittingField(L, y^3 + 3);
-print M;
+Gp, Gf, Gphi := AutomorphismGroupPari(L);
+gens := [ Gphi(sigma) : sigma in Gp ];
+K, h := FixedFieldExtra(L, gens);
+print K;
+print K`base;
+print K`base_gen;
+print K`CC;
+print K`iota;
+print h;
 
 print "";
-M := RelativeSplittingFieldExtra([ x^2 + 2, x^2 + 3 ]);
-print M;
+test, h := IsIsomorphic(L, Lalt);
+TransferAttributes(L, Lalt, h);
+print Lalt;
+print Lalt`base;
+print Lalt`base_gen;
+print Lalt`CC;
+print Lalt`iota;
+print h;
 
 print "";
-M := RelativeSplittingFieldExtra([ y^2 + 2, y^2 + 3, y^2 + 5 ]);
-print M;
-print BaseRing(M);
+aCC := Sqrt(CC ! 2);
+print MinimalPolynomialExtra(aCC, K);
 
-/*
-print "";
-Ks := [* NumberField(x^2 + d) : d in [1..3] *];
-print RelativeCompositum(Ks);
-*/
+aCC := Sqrt(CC ! 3);
+print MinimalPolynomialExtra(aCC, K);
 
 print "";
-Ls := [* NumberField(y^2 + d) : d in [2,3,5] *];
-print RelativeCompositum(Ls[1], Ls[2]);
+time K, elts := NumberFieldExtra([ Sqrt(CC ! i ) : i in [1..5] ], F);
+time K, elts := NumberFieldExtra([ Sqrt(CC ! i ) : i in [1..5] ], L);
+print "";
+print K;
+print K`base;
+print K`base_gen;
+print K`CC;
+print K`iota;
+print elts;
+
+print "";
+time K, elts := SplittingFieldExtra([ Sqrt(CC ! i ) : i in [1..5] ], F);
+time K, elts := SplittingFieldExtra([ Sqrt(CC ! i ) : i in [1..5] ], L);
+print "";
+print K;
+print K`base;
+print K`base_gen;
+print K`CC;
+print K`iota;
+print elts;
+
+F := K`base;
+h := hom< F -> K | K`base_gen >;
+print CoerceToSubfieldElement(K`base_gen, K, F, h);
+print CoerceToSubfieldElement(K ! 1, K, F, h);
+
+F := RationalsExtra(prec);
+h := hom< F -> K | >;
+print CoerceToSubfieldElement(K ! 1, K, F, h);
+

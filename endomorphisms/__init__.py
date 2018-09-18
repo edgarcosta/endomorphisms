@@ -23,5 +23,5 @@ except RuntimeError as err:
 
 
 from Curves import mHyperellipticCurve, mPlaneCurve
-from Wrapper import EndomorphismData, OverField, Lattice, Decomposition
+from Wrapper import EndomorphismData, Lattice, Decomposition
 from UpperBounds import endomorphisms_upper_bound, RR_upper_bound, hyperelliptic_endomorphisms_upper_bound, hyperelliptic_RR_upper_bound

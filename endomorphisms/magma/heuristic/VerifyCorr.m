@@ -180,7 +180,7 @@ correspondence with tangent representation A if it exists.}
 
 /* Change everything to common extension: */
 KY := BaseRing(Y); KP := Parent(P[1]); KQ := Parent(Q[1]); KA := Parent(A[1,1]);
-L, phis := RelativeCompositum([* KY, KP, KQ, KA *]);
+L, phis := Compositum([* KY, KP, KQ, KA *]);
 phiY, phiP, phiQ, phiA := Explode(phis);
 XL := ChangeRing(X, L);
 YL := ChangeRingCurve(Y, phiY);

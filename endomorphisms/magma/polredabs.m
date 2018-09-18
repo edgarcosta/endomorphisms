@@ -45,12 +45,11 @@ intrinsic Polredbestabs(f::RngUPolElt) -> RngUPolElt, SeqEnum, BoolElt
   return fredabs, Eltseq(iota(K.1)), bl;
 end intrinsic;
 
-intrinsic Polredabs(K::FldNum : Best := false) -> FldNum, Map, BoolElt
+intrinsic Polredabs(K::Fld : Best := false) -> FldNum, Map, BoolElt
   { A smallest generating polynomial of the number field, using pari. }
 
-  if Degree(K) le 1 then
-    assert K eq RationalsAsNumberField();
-    return K;
+  if Type(K) eq FldRat then
+    return K, hom< K -> K | >;
   else
     fredabs, fredabs_root, bl := Polredabs(DefiningPolynomial(K));
     if IsZero(fredabs) then
@@ -62,12 +61,11 @@ intrinsic Polredabs(K::FldNum : Best := false) -> FldNum, Map, BoolElt
   end if;
 end intrinsic;
 
-intrinsic Polredbestabs(K::FldNum) -> RngUPolElt, Map, BoolElt
+intrinsic Polredbestabs(K::Fld) -> RngUPolElt, Map, BoolElt
   {A smallest generating polynomial of the number field, using pari.  First polredbest, then polredabs.}
 
-  if Degree(K) le 1 then
-    assert K eq RationalsAsNumberField();
-    return K;
+  if Type(K) eq FldRat then
+    return K, hom< K -> K | >;
   else
     f := DefiningPolynomial(K);
     fbest, fbest_root, bl0 := Polredabs(f : Best := true);

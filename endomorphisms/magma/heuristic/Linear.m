@@ -163,14 +163,6 @@ return Transpose(K), test;
 end intrinsic;
 
 
-intrinsic ConjugateMatrix(sigma::Map, M::.) -> .
-{Returns the transformation of the matrix M by the field automorphism sigma.}
-
-return Matrix([ [ sigma(elt) : elt in Eltseq(row) ] : row in Rows(M) ]);
-
-end intrinsic;
-
-
 intrinsic MatrixInBasis(M::., Bs::SeqEnum) -> .
 {Returns a vector that describes M as a rational combination of the elements in
 Bs. Assume that base field of M is at most a double extension of the field of
@@ -179,6 +171,25 @@ rationals.}
 MBs := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(b) ] : b in Eltseq(B) ] : B in Bs ]);
 MM := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(m) ] : m in Eltseq(M) ] ]);
 return Matrix(Solution(MBs, MM));
+
+end intrinsic;
+
+
+intrinsic FractionalApproximationMatrix(A::.) -> .
+{Returns a fractional approximation of the matrix A.}
+
+test := true;
+rows_alg := [ ];
+for row in Rows(A) do
+    row_alg := [ ];
+    for c in Eltseq(row) do
+        q, test_q := FractionalApproximation(c);
+        test and:= test_q;
+        Append(~row_alg, q);
+    end for;
+    Append(~rows_alg, row_alg);
+end for;
+return Matrix(rows_alg), test;
 
 end intrinsic;
 

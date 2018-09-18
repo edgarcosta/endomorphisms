@@ -17,13 +17,10 @@ from Representations import *
 from sage.all import magma
 
 class EndomorphismData:
-    def __init__(self, X, prec, bound = 0, molin_neurohr = True, periods = ""):
+    def __init__(self, X, periods = ""):
         self.X = X
         self.g = magma.Genus(self.X)
         self.F = magma.BaseRing(self.X)
-        self.prec = magma(prec)
-        self.bound = magma(bound)
-        self.molin_neurohr = magma(molin_neurohr)
         if periods:
             self._P_ = periods
         else:
@@ -34,24 +31,17 @@ class EndomorphismData:
         return repr_endomorphism_data(self)
 
     def period_matrix(self):
-        self._P_ = magma.PeriodMatrix(self.X, prec = self.prec, MolinNeurohr = self.molin_neurohr)
+        self._P_ = magma.PeriodMatrix(self.X)
         return self._P_
 
     def _calculate_geometric_representation_(self):
         self._geo_rep_list_ = magma.GeometricEndomorphismRepresentation(self._P_, self.F)
         self._geo_rep_dict_ = dict_rep(self._geo_rep_list_)
 
+    # TODO: Add geometric structure, general base fields
+
     def endomorphism_field(self):
         return magma.BaseRing(self._geo_rep_list_[1][1])
-
-    def geometric(self):
-        return OverField(self, K = "geometric")
-
-    def over_base(self):
-        return OverField(self, K = "base")
-
-    def over_field(self, K):
-        return OverField(self, K = K)
 
     def lattice(self):
         if not hasattr(self, "_lat_"):
@@ -77,6 +67,20 @@ class EndomorphismData:
         self._test_alg_ = True
         return self._test_alg_
 
+#  TODO: Get this to work and uncomment it
+#    def verify_algebra_NS(self):
+#        assert self.g == 2, "for now the upper bounds are only implemented for genus = 2";
+#        # X: y^2 = g(x)
+#        g = PolynomialRing(QQ, "x")(magma.Coefficients(magma.HyperellipticPolynomials(magma.SimplifiedModel(X))));
+#        factorsRR_geom = self._desc_[self._index_dict_['desc_RR']];
+#        algebra = self._list_[self._index_dict_['algebra']][self._index_dict_['alg_QQ']];
+#        if factorsRR_geom ==  ['RR', 'RR'] and len(magma.DirectSumDecomposition(algebra)) == 1:
+#            RM_coeff =  list(magma.Coefficients(magma.DefiningPolynomial(magma.BaseRing(magma.AlgebraOverCenter(algebra)))))
+#        else:
+#            RM_coeff = None;
+#        b, _, _ =  bounds.NeronSeveriBound.verify_curve(g = g, factorsRR_geom = factorsRR_geom, RM_coeff = RM_coeff);
+#        return b;
+
     def verify_saturated(self):
         self._sat_test_, self._sat_cert_ =  magma.VerifySaturated(self._geo_rep_list_, self._P_, nvals = 2)
         return self._sat_test_
@@ -96,114 +100,6 @@ class EndomorphismData:
             genTan = gen['tangent']
             test, corresp = self.correspondence(genTan)
             if not test:
-                self._rep_test_ = False
-            else:
-                gen['corresp'] = corresp
-        return self._rep_test_
-
-    def verify(self):
-        return (self.verify_algebra() and self.verify_saturated() and self.verify_representation())
-
-class OverField:
-    def __init__(self, Endo, K = "geometric"):
-        self.X = Endo.X
-        self.g = Endo.g
-        self.F = Endo.F
-        self._P_ = Endo._P_
-        self._geo_rep_list_ = Endo._geo_rep_list_
-        if K == "geometric":
-            self.field = Endo.endomorphism_field()
-        elif K == "base":
-            self.field = self.F
-        else:
-            self.field = magma(K)
-        self._list_ = magma.EndomorphismStructure(self._geo_rep_list_)
-        self._desc_ = desc_structure(self._list_)
-        self._index_dict_ = index_dictionary()
-
-    def __repr__(self):
-        return repr_over_field(self)
-
-    def pretty_print(self):
-        return pretty_print_over_field_description(self._desc_, self.g)
-
-    def _calculate_dictionary_(self):
-        if not hasattr(self, "_dict_"):
-            self._dict_ = dict_structure(self._list_)
-
-    def full(self):
-        self._calculate_dictionary_()
-        return self._dict_
-
-    def representation(self):
-        self._calculate_dictionary_()
-        return magma([ gen['tangent'] for gen in self._dict_['representation'] ])
-
-    def algebra(self):
-        self._calculate_dictionary_()
-        return self._dict_['algebra']
-
-    def description(self):
-        self._calculate_dictionary_()
-        return self._dict_['description']
-
-    def rosati_involution(self, A):
-        return magma.RosatiInvolution(self._list_[self._index_dict_['representation']], A)
-
-    def rosati_fixed_module(self):
-        return magma.RosatiFixedModule(self._geo_rep_list_)
-
-    def degree_estimate(self, A):
-        return magma.DegreeEstimate(self._list_[self._index_dict_['representation']], A)
-
-    def dimension_algebra(self):
-        return len(self._list_)
-
-    def has_generator(self, B = 1):
-        return magma.HasGenerator(self._list_, B = B, nvals = 2)
-
-    def few_generators(self):
-        return magma.FewGenerators(self._list_)
-
-    def verify_algebra(self):
-        # TODO: Integrate Davide and Edgar's functionality
-        self._test_alg_ = True
-        return self._test_alg_
-
-#  TODO: Get this to work and uncomment it
-#    def verify_algebra_NS(self):
-#        assert self.g == 2, "for now the upper bounds are only implemented for genus = 2";
-#        # X: y^2 = g(x)
-#        g = PolynomialRing(QQ, "x")(magma.Coefficients(magma.HyperellipticPolynomials(magma.SimplifiedModel(X))));
-#        factorsRR_geom = self._desc_[self._index_dict_['desc_RR']];
-#        algebra = self._list_[self._index_dict_['algebra']][self._index_dict_['alg_QQ']];
-#        if factorsRR_geom ==  ['RR', 'RR'] and len(magma.DirectSumDecomposition(algebra)) == 1:
-#            RM_coeff =  list(magma.Coefficients(magma.DefiningPolynomial(magma.BaseRing(magma.AlgebraOverCenter(algebra)))))
-#        else:
-#            RM_coeff = None;
-#        b, _, _ =  bounds.NeronSeveriBound.verify_curve(g = g, factorsRR_geom = factorsRR_geom, RM_coeff = RM_coeff);
-#        return b;
-
-    def verify_saturated(self):
-        self._sat_test_, self._sat_cert_ =  magma.VerifySaturated(self._list_[1], self._P_, nvals = 2)
-        return self._sat_test_
-
-    def set_base_point(self):
-        if not hasattr(self, "base_point"):
-            self.base_point = magma.NonWeierstrassBasePoint(self.X, self.field)
-
-    def correspondence(self, A):
-        self.set_base_point()
-        test, cert = magma.Correspondence(self.X, self.base_point, self.X, self.base_point, A, nvals = 2)
-        return cert
-
-    def verify_representation(self):
-        self._calculate_dictionary_()
-        self._rep_test_ = True
-        for gen in self._dict_['representation']:
-            genTan = gen['tangent']
-            corresp = self.correspondence(genTan)
-            if not corresp:
                 self._rep_test_ = False
             else:
                 gen['corresp'] = corresp

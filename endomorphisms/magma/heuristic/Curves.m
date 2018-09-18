@@ -26,6 +26,26 @@ return Curve(Scheme(ProjectiveSpace(S), Fhom));
 end intrinsic;
 
 
+intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::RngUPolElt, prec::RngIntElt) -> Crv
+{Returns the hyperelliptic curve defined by F, which can be given affinely or
+projectively.}
+
+QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ);
+return HyperellipticCurve(RQQ ! f, RQQ ! h);
+
+end intrinsic;
+
+
+intrinsic PlaneCurveExtra(F::RngMPolElt, prec::RngIntElt) -> Crv
+{Returns the plane curve defined by F, which can be given affinely or
+projectively.}
+
+QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ);
+return PlaneCurve(RQQ ! F);
+
+end intrinsic;
+
+
 intrinsic CurveType(X::Crv) -> MonStgElt
 {Returns a string that describes the type of curve that X belongs to, which is
 one of "hyperelliptic", "plane" and "general".}
@@ -41,16 +61,16 @@ end if;
 end intrinsic;
 
 
-intrinsic EmbedCurveEquations(X::Crv, prec::RngIntElt) -> MonStgElt
+intrinsic EmbedCurveEquations(X::Crv) -> MonStgElt
 {Returns the defining equations of X base changed to CC to precision prec,
 using the infinite place of the base ring of X.}
 
 if Type(X) eq CrvHyp or Type(X) eq CrvEll then
     f, h := HyperellipticPolynomials(X);
-    return EmbedAtInfinitePlace([ f, h ], prec + 10);
+    return EmbedAtInfinitePlace([ f, h ]);
 elif Type(X) eq CrvPln then
     F := DefiningPolynomial(X);
-    return EmbedAtInfinitePlace([ F ], prec + 10);
+    return EmbedAtInfinitePlace([ F ]);
 end if;
 error "Function not available for general curves";
 

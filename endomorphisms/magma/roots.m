@@ -31,15 +31,17 @@ rts := RootsPari(DefiningPolynomial(K), K); S := Sym(#rts);
 sigmas := [ ];
 for rt in rts do
     h := hom< K -> K | rt >;
-    L := [ ];
-    for i in [1..#rts] do
-        for j in [1..#rts] do
-            if h(rts[i]) eq rts[j] then
-                Append(~L, j);
-            end if;
+    if h(K`base_gen) eq K`base_gen then
+        L := [ ];
+        for i in [1..#rts] do
+            for j in [1..#rts] do
+                if h(rts[i]) eq rts[j] then
+                    Append(~L, j);
+                end if;
+            end for;
         end for;
-    end for;
-    Append(~sigmas, S ! L);
+        Append(~sigmas, S ! L);
+    end if;
 end for;
 Gp := sub< S | sigmas >;
 
@@ -64,27 +66,18 @@ return Gp, 0, Gphi;
 end intrinsic;
 
 
-intrinsic RootsImproved(f::RngUPolElt, K::Fld) -> ., ., .
-{Similar to usual function, but outsources to Pari for better performance.}
+intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
+{Given a polynomial f and a field K, finds the factorization of f over K.}
 
-//if Degree(f) eq 1 then
-//    return -Coefficient(f, 0)/Coefficient(f, 1);
-if BaseField(K) eq Rationals() then
-    return [ <rt, 1> : rt in RootsPari(f, K) ];
-else
-    return Roots(f, K);
-end if;
-
-end intrinsic;
-
-
-intrinsic AutomorphismGroupImproved(K::Fld) -> ., ., .
-{Similar to usual function, but outsources to Pari for better performance.}
-
-if BaseField(K) eq Rationals() then
-    return AutomorphismGroupPari(K);
-else
-    return AutomorphismGroup(K);
-end if;
+return Factorization(f, K);
+assert BaseRing(f) eq Rationals();
+assert BaseRing(K) eq Rationals();
+g := DefiningPolynomial(K);
+cmd := Sprintf(
+"{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(z->vector(poldegree(g),i, polcoeff(z,i-1)),lift(nfroots(g,f))))}",
+Coefficients(f), Coefficients(g));
+s := Pipe("gp -q", cmd);
+rts := [ K ! rt : rt in eval(s) ];
+return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
 
 end intrinsic;
