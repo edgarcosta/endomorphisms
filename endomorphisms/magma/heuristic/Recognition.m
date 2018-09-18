@@ -192,10 +192,9 @@ for rt in rts do
     end if;
 end for;
 
-/* TODO: Outsource this to pari as well */
 gs := FactorizationPari(f, K);
-for tupg in gs do
-    g := tupg[1]; gCC := EmbedAtInfinitePlace(g);
+for g in gs do
+    gCC := EmbedAtInfinitePlace(g);
     for tuprt in Roots(gCC) do
         rtCC := tuprt[1];
         if Abs(rtCC - aCC) le CC`epscomp then

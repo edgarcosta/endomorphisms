@@ -156,7 +156,8 @@ and via the infinite place of F the matrix A is mapped to ACC.}
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
-K, seq := NumberFieldExtra(seqPart, F);
+//K, seq := NumberFieldExtra(seqPart, F);
+K, seq := SplittingFieldExtra(seqPart, F);
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
 As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];

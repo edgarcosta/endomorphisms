@@ -46,7 +46,7 @@ print "";
 print "Geometric endomorphism representations:";
 print GeoEndoRep;
 
-lat, sthash := EndomorphismLattice(GeoEndoRep);
+time lat, sthash := EndomorphismLattice(GeoEndoRep);
 print "";
 print "Endomorphism lattice:";
 print lat;

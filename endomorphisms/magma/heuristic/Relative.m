@@ -437,7 +437,7 @@ F := K`base; genFCC0 := EvaluateExtra(F.1, F`iota);
 CC := K`CC;
 
 /* Get absolute field and we need an iso that respects results so far */
-Lrel := Compositum(K, SplittingField(gQQ));
+Lrel := Compositum(K, SplittingFieldPari(gQQ));
 Labs := AbsoluteField(Lrel);
 L, h := Polredbestabs(Labs);
 rtsg := RootsPari(gQQ, L);

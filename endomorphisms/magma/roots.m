@@ -69,15 +69,31 @@ end intrinsic;
 intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
 {Given a polynomial f and a field K, finds the factorization of f over K.}
 
-return Factorization(f, K);
 assert BaseRing(f) eq Rationals();
 assert BaseRing(K) eq Rationals();
 g := DefiningPolynomial(K);
 cmd := Sprintf(
-"{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(z->vector(poldegree(g),i, polcoeff(z,i-1)),lift(nfroots(g,f))))}",
+"{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); apply(h->apply(c->vector(poldegree(g),i,polcoeff(c,i-1)),lift(Vecrev(h))),nffactor(K,f)[,1]~)",
 Coefficients(f), Coefficients(g));
 s := Pipe("gp -q", cmd);
-rts := [ K ! rt : rt in eval(s) ];
-return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
+
+R := PolynomialRing(K);
+seqs := eval(s);
+facs := [ &+[ (K ! seq[i])*R.1^(i - 1) : i in [1..#seq] ] : seq in seqs ];
+return facs;
+
+end intrinsic;
+
+
+intrinsic SplittingFieldPari(f::RngUPolElt) -> .
+{Splitting field of f calculated using Pari.}
+
+assert BaseRing(f) eq Rationals();
+cmd := Sprintf(
+"{f = Pol(Vecrev(%o),'x); K = nfinit(f); nfsplitting(K)",
+Coefficients(f), Coefficients(f));
+s := Pipe("gp -q", cmd);
+R<x> := PolynomialRing(BaseRing(f));
+return Polredbestabs(NumberField(eval(s)));
 
 end intrinsic;
