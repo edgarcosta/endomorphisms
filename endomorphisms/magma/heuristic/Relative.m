@@ -155,6 +155,7 @@ CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaK in InfinitePlacesExtra(K) do
     genKCC := CC ! EvaluateExtra(genK, iotaK);
     genLCC := CC ! EvaluateExtra(genL, L`iota);
+    vprint EndoFind, 3 : RealField(5) ! Abs(genKCC - genLCC);
     if Abs(genKCC - genLCC) lt CC`epscomp then
         return iotaK;
     end if;
@@ -208,6 +209,9 @@ end intrinsic;
 intrinsic FixedFieldExtra(L::Fld, gens::SeqEnum) -> Fld
 {Returns the fixed subfield K of L under the automorphisms in gens, along with the inclusion of K in L.}
 
+if #gens eq 0 then
+    return L;
+end if;
 dL := Degree(L);
 Ms := [ Matrix([ Eltseq(gen(L.1^i) - L.1^i) : i in [0..(dL - 1)] ]) : gen in gens ];
 Ker := &meet[ Kernel(M) : M in Ms ];
@@ -216,13 +220,18 @@ K := sub< L | B >; hKL := CanonicalInclusionMap(K, L);
 K`base := L`base;
 K`base_gen := K ! L`base_gen;
 K`CC := L`CC;
-K`iota := DescendInfinitePlace(L, K, hKL);
 if Type(K) eq FldRat then
+    K`iota := InfinitePlacesExtra(K)[1];
     return K, hom< K -> L | >;
 end if;
-K0, hKK0 := ImproveFieldExtra(K); hKK0i := Inverse(hKK0);
-h := hom< K0 -> L | hKL(hKK0i(K0.1)) >;
-return K0, h;
+K0, hKK0 := Polredbestabs(K);
+hKK0i := Inverse(hKK0);
+hK0L := hom< K0 -> L | hKL(hKK0i(K0.1)) >;
+K0`base := K`base;
+K0`base_gen := hKK0(K`base_gen);
+K0`CC := K`CC;
+K0`iota := DescendInfinitePlace(L, K0, hK0L);
+return K0, hK0L;
 
 end intrinsic;
 
@@ -468,9 +477,6 @@ for rtf in rtsf do
         for tupa in tupsa do
             a := tupa[1]; aCC0 := tupa[2];
             aCC1 := EvaluateExtra(h(a), iotaL);
-            print tupa;
-            print h(a);
-            print aCC1;
             if not Abs(aCC1 - CC ! aCC0) lt CC`epscomp then
                 test := false;
                 break;
@@ -488,7 +494,6 @@ for rtf in rtsf do
                 end if;
             end for;
         end if;
-        print test;
 
         if test then
             L`iota := iotaL;
