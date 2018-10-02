@@ -10,15 +10,16 @@
  */
 
 
-intrinsic NonWeierstrassBasePointHyperelliptic(X::Crv, K::Fld : Bound := 2^10) -> SeqEnum
-{Given a curve X and a field K that is an extension of the base ring of X,
-returns a non-Weierstrass point on X over a small extension of K.}
+function NonWeierstrassBasePointHyperelliptic(X : Bound := 2^10)
 
+K := BaseRing(X);
 f, h := HyperellipticPolynomials(X);
 
 /* Elliptic case: */
 if Genus(X) eq 1 and Degree(f) eq 3 then
-    return [K ! 1, K ! 0, K ! 0];
+    XK := ChangeRing(X, K);
+    P := [ K ! 1, K ! 0, K ! 0 ];
+    return XK ! P;
 end if;
 
 /* Small point over the base field (only QQ permitted for now): */
@@ -38,7 +39,8 @@ if Type(BaseRing(X)) eq FldRat then
         h0 := Coefficient(h, Degree(g) div 2);
         P := [ Q[1], (Q[2] - h0)/(2*a*b), Q[3] ];
         P := [ K ! P[1], K ! P[2], K ! P[3] ];
-        return P;
+        XK := ChangeRing(X, K);
+        return XK ! P;
     end if;
 
     if #Qs_nW_fin ne 0 then
@@ -48,7 +50,8 @@ if Type(BaseRing(X)) eq FldRat then
         h0 := Evaluate(h, Q[1]);
         P := [ Q[1], (Q[2] - h0)/(2*a*b), Q[3] ];
         P := [ K ! P[1], K ! P[2], K ! P[3] ];
-        return P;
+        XK := ChangeRing(X, K);
+        return XK ! P;
     end if;
 end if;
 
@@ -61,13 +64,13 @@ if IsEven(d) then
     g0 := Coefficient(g, d);
     h0 := Coefficient(h, e);
     R<t> := PolynomialRing(K);
-    L := RelativeSplittingField(t^2 - g0);
-    L := ImproveField(L);
+    /* L is absolute over base field of the curve */
+    L, hKL := ExtendNumberFieldExtra(t^2 - g0);
     Q := [ 1, Roots(t^2 - g0, L)[1][1], 0 ];
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
-    return P;
+    XL := ChangeRingCurve(X, hKL);
+    return XL ! P;
 end if;
-print "a";
 
 /* Non-Weierstrass point in finite patch: */
 if IsOdd(d) then
@@ -80,36 +83,35 @@ if IsOdd(d) then
         n0 +:= 1;
     end while;
     R<t> := PolynomialRing(K);
-    L := RelativeSplittingField(t^2 - g0);
-    L := ImproveField(L);
+    L, hKL := ExtendNumberFieldExtra(t^2 - g0);
     Q := [ L ! n0, Roots(t^2 - g0, L)[1][1], 1 ];
     h0 := Evaluate(h, Q[1]);
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
-    return P;
+    XL := ChangeRingCurve(X, hKL);
+    return XL ! P;
 end if;
 error "All cases in NonWeierstrassBasePointHyperelliptic fell through";
 
-end intrinsic;
+end function;
 
 
-intrinsic NonWeierstrassBasePointPlane(X::Crv, K::Fld : Bound := 2^10) -> SeqEnum
-{Returns a non-Weierstrass point over a small extension of K.}
+function NonWeierstrassBasePointPlane(X : Bound := 2^10)
 
+K := BaseRing(X);
 Ps := RationalPoints(X);
 Ps_nW := [ P : P in Ps | not IsWeierstrassPlace(Place(P)) ];
 if #Ps_nW ne 0 then
     Hts := [ Maximum([ Height(c) : c in Eltseq(P) ]) : P in Ps_nW ];
     min, ind := Minimum(Hts);
-    L := K;
     P := Ps_nW[ind];
-    return Eltseq(P);
+    return X ! Eltseq(P);
 end if;
 
 f := DefiningPolynomial(X);
 R<x,y,z> := PolynomialRing(K, 3);
 S<t> := PolynomialRing(K);
 
-/* If there is a rational point, then take lines through it: */
+/* If there is a rational Weierstrass point, then take lines through it */
 if #Ps ne 0 then
     P0 := Ps[1];
     x0, y0, z0 := Explode(Eltseq(P0));
@@ -123,15 +125,14 @@ if #Ps ne 0 then
         Fac := Factorization(h(f));
         for tup in Fac do
             fac := tup[1];
-            L := NumberField(fac);
-            L := ImproveField(L);
+            L, hKL := ExtendNumberFieldExtra(fac);
             rt := Roots(fac, L)[1][1];
             if z0 ne 0 then
                 P := [ n0*rt + x0, rt + y0, z0 ];
             else
                 P := [ n0*rt + x0, y0, rt + z0 ];
             end if;
-            XL := ChangeRing(X, L);
+            XL := ChangeRingCurve(X, hKL);
             if not IsWeierstrassPlace(Place(XL ! P)) then
                 return P;
             end if;
@@ -143,78 +144,77 @@ end if;
 /* Otherwise lines through (0,0,1): */
 n0 := 0;
 while true do
-    h := hom< R -> S | [ n0, t, 1 ]>;
-    Fac := Factorization(h(f));
+    hRS := hom< R -> S | [ n0, t, 1 ]>;
+    Fac := Factorization(hRS(f));
     for tup in Fac do
-        L := NumberField(tup[1]);
-        L := ImproveField(L);
-        rt := Roots(h(f), L)[1][1];
+        L, hKL := ImproveFieldExtra(NumberFieldExtra(tup[1]));
+        rt := Roots(hRS(f), L)[1][1];
         P := [ n0, rt, 1 ];
-        XL := ChangeRing(X, L);
+        XL := ChangeRingCurve(X, hKL);
         if not IsWeierstrassPlace(Place(XL ! P)) then
-            return P;
+            return XL ! P;
         end if;
     end for;
     n0 +:= 1;
 end while;
 
-end intrinsic;
+end function;
 
 
-intrinsic NonWeierstrassBasePoint(X::Crv, K::Fld : Bound := 2^10) -> SeqEnum
-{Returns a non-Weierstrass point over a small extension of K.}
+intrinsic NonWeierstrassBasePoint(X::Crv : Bound := 2^10) -> SeqEnum
+{Given a curve X, returns a non-Weierstrass point on X over a small extension
+of its base field.}
 
 if Type(X) eq CrvHyp then
-    return NonWeierstrassBasePointHyperelliptic(X, K : Bound := Bound);
+    return NonWeierstrassBasePointHyperelliptic(X : Bound := Bound);
 elif Type(X) eq CrvPln then
-    return NonWeierstrassBasePointPlane(X, K : Bound := Bound);
+    return NonWeierstrassBasePointPlane(X : Bound := Bound);
 end if;
 error "Not implemented for general curves yet";
 
 end intrinsic;
 
 
-intrinsic Correspondence(X::Crv, P::SeqEnum, Y::Crv, Q::SeqEnum, A::.) -> .
+intrinsic Correspondence(A::., P::SeqEnum, Q::SeqEnum) -> .
 {Given curves X and Y with non-Weierstrass points P and Q respectively, finds a
 correspondence with tangent representation A if it exists.}
 
+X := Curve(P); Y := Curve(Q);
 /* Change everything to common extension: */
-KY := BaseRing(Y); KP := Parent(P[1]); KQ := Parent(Q[1]); KA := Parent(A[1,1]);
-L, phis := Compositum([* KY, KP, KQ, KA *]);
-phiY, phiP, phiQ, phiA := Explode(phis);
-XL := ChangeRing(X, L);
-YL := ChangeRingCurve(Y, phiY);
+// TODO: First take extension for Q, then over that field extension for P, to
+// avoid interference, that is, field incompatibilities
+KA := Parent(A[1,1]); KP := Parent(P[1]); KQ := Parent(Q[1]);
+L, phis := CompositumExtra([* KA, KP, KQ *]);
+phiA, phiP, phiQ := Explode(phis);
+
+/* Change to common base */
+XL := ChangeRingCurve(X, phiP);
+YL := ChangeRingCurve(Y, phiQ);
 PL := [ phiP(c) : c in Eltseq(P) ]; PL := XL ! PL;
 QL := [ phiQ(c) : c in Eltseq(Q) ]; QL := YL ! QL;
 AL := Matrix(L, [ [ phiA(c) : c in Eltseq(row) ] : row in Rows(A) ]);
 
-/* Make absolute: */
-M := AbsoluteField(L);
-XM := ChangeRing(XL, M);
-YM := ChangeRing(YL, M);
-PM := [ M ! c : c in Eltseq(PL) ]; PM := XM ! PM;
-QM := [ M ! c : c in Eltseq(QL) ]; QM := YM ! QM;
-AM := Matrix(M, [ [ M ! c : c in Eltseq(row) ] : row in Rows(AL) ]);
-
-if (#Rows(AM) eq #Rows(Transpose(AM))) and IsScalar(AM) then
-    return true, "Scalar: OK";
+/* Actual work */
+if (#Rows(AL) eq #Rows(Transpose(AL))) and IsScalar(AL) then
+    return true, "Scalar: OK for now";
 elif Genus(Y) eq 1 then
-    test, fs := CantorFromMatrixAmbientSplit(XM, PM, YM, QM, AM);
-    if test and (not CorrespondenceVerifyG1(XM, PM, YM, QM, AM, fs)) then
+    test, fs := CantorFromMatrixAmbientSplit(AL, PL, QL);
+    if test and (not CorrespondenceVerifyG1(AL, PL, QL)) then
         error "Pullback incorrect";
     end if;
     return test, fs;
 else
-    return DivisorFromMatrixAmbientSplit(XM, PM, YM, QM, AM);
+    return DivisorFromMatrixAmbientSplit(AL, PL, QL);
 end if;
 
 end intrinsic;
 
 
-intrinsic CorrespondenceVerifyG1(X::Crv, P::Pt, Y::Crv, Q::Pt, A::., fs::SeqEnum) -> BoolElt
+intrinsic CorrespondenceVerifyG1(A::., fs::SeqEnum, P::Pt, Q::Pt) -> BoolElt
 {Returns whether the morphism defined by fs indeed corresponds to the tangent
 representation A.}
 
+X := Curve(P); Y := Curve(Q);
 F := BaseRing(Parent(fs[1]));
 /* Check that the answer is a projection: */
 R<x,y> := PolynomialRing(F, 2);

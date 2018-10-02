@@ -7,6 +7,8 @@
  *  See LICENSE.txt for license details.
  */
 
+/* TODO: These have changed because of transposes. And add factorizations */
+
 
 intrinsic KerModKer0(h::., P::., Q::.) -> .
 {Returns the group of connected components of the kernel of the morphism h = (A, R) from P to Q.}
@@ -69,5 +71,3 @@ end if;
 return Ker0(proj, Q, C);
 
 end intrinsic;
-
-/* TODO: Factorizations */

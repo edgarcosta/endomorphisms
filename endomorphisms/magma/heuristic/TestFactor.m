@@ -14,55 +14,18 @@ intrinsic TestEllipticFactor(X::Crv, E::Crv, F::Fld : prec := 300) -> BoolElt
 {Given a curve X and an elliptic curve E, determines whether E is a factor of
 the Jacobian of X. Returns a map from X to E if this is the case.}
 
-P := PeriodMatrix(X : prec := prec);
-Q := PeriodMatrix(E : prec := prec);
-GeoHomoRep := GeometricHomomorphismRepresentation(P, Q, F);
-/* TODO: Add map */
-return #GeoHomoRep ne 0;
+P := PeriodMatrix(X : prec := prec); Q := PeriodMatrix(E : prec := prec);
+HomRep := GeometricHomomorphismRepresentation(P, Q, F);
+if #HomRep eq 0 then
+    return false;
+end if;
+gen0, d0 := MorphismOfSmallDegree(HomRep, F);
+return true, [* gen0, d0 *];
 
 end intrinsic;
 
 
-intrinsic EllipticCMCurve(D::RngIntElt : prec := 1000) -> BoolElt
-{Determines principal curve with CM by D.}
-
-CC := ComplexFieldExtra(prec); RR := RealField(CC);
-CCLarge := ComplexFieldExtra(prec + 100);
-if D mod 4 ne 0 then
-    tau := (Sqrt(CCLarge ! D) + 1)/2;
-else
-    tau := Sqrt(CCLarge ! D)/2;
-end if;
-jCC := CC ! jInvariant(tau);
-
-QQ := RationalsExtra();
-p := RelativeMinimalPolynomial(jCC, QQ);
-R<t> := PolynomialRing(QQ);
-if Degree(p) eq 1 then
-    K := RationalsExtra();
-    j := Roots(p, K)[1][1];
-else
-    K<r> := NumberFieldExtra(p);
-    j := K.1;
-end if;
-
-E := EllipticCurveFromjInvariant(j); E := WeierstrassModel(E);
-cs := Coefficients(E); a := cs[4]; b := cs[5];
-da := Denominator(a); db := Denominator(b);
-Fa := Factorization(da); Fb := Factorization(db);
-psa := [ tup[1] : tup in Fa ]; psb := [ tup[1] : tup in Fb ];
-ps := Set(psa cat psb);
-lambda := &*[ p^(Maximum(Ceiling(Valuation(da, p)/2), Ceiling(Valuation(da, p)/3))) : p in ps ];
-a *:= lambda^2; b *:= lambda^3;
-R<x> := PolynomialRing(K);
-f := x^3 + a*x + b;
-E := HyperellipticCurve(f);
-return E;
-
-end intrinsic;
-
-
-intrinsic MorphismOfSmallDegree(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : Bound := 10) -> List, RngIntElt
+intrinsic MorphismOfSmallDegree(HomRep::., F::Fld : Bound := 10) -> List, RngIntElt
 {Gives a morphism of small degree from the Jacobian corresponding to P to that
 corresponding to Q. The third argument F is the base field used.}
 
@@ -90,5 +53,38 @@ A0 := &+[ tup0[i]*HomRep[i][1] : i in [1..#HomRep] ];
 R0 := &+[ tup0[i]*HomRep[i][2] : i in [1..#HomRep] ];
 gen0 := [* A0, R0 *];
 return gen0, d0;
+
+end intrinsic;
+
+
+intrinsic EllipticCMCurve(D::RngIntElt : prec := 1000) -> BoolElt
+{Determines principal curve with CM by D.}
+
+QQ := RationalsExtra(prec); CC := QQ`CC; RR := RealField(CC);
+CCLarge := ComplexFieldExtra(prec + 100);
+if D mod 4 ne 0 then
+    tau := (Sqrt(CCLarge ! D) + 1)/2;
+else
+    tau := Sqrt(CCLarge ! D)/2;
+end if;
+jCC := CC ! jInvariant(tau);
+
+K, js := NumberFieldExtra(jCC, QQ); j := js[1];
+E := EllipticCurveFromjInvariant(j); E := WeierstrassModel(E);
+
+if Type(K) eq FldRat then
+    return MinimalModel(E);
+end if;
+cs := Coefficients(E); a := cs[4]; b := cs[5];
+da := Denominator(a); db := Denominator(b);
+Fa := Factorization(da); Fb := Factorization(db);
+psa := [ tup[1] : tup in Fa ]; psb := [ tup[1] : tup in Fb ];
+ps := Set(psa cat psb);
+lambda := &*[ p^(Maximum(Ceiling(Valuation(da, p)/2), Ceiling(Valuation(da, p)/3))) : p in ps ];
+a *:= lambda^2; b *:= lambda^3;
+R<x> := PolynomialRing(K);
+f := x^3 + a*x + b;
+E := HyperellipticCurve(f);
+return E;
 
 end intrinsic;

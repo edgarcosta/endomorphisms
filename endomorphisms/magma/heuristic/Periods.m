@@ -31,14 +31,14 @@ if #GeneratorsSequence(RCC) eq 1 then
 elif #GeneratorsSequence(RCC) eq 3 then
     test, fCC, e := IsSuperellipticEquation(eqsCC);
     if false then
-        X := SE_Curve(fCC, 3 : Prec := Precision(CC));
+        X := SE_Curve(fCC, e : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
         return SuperellipticCompatibility(P, e);
     else
         /* Note: only polynomials over QQ for now */
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
-        try 
+        try
             /* TODO: Add this when it becomes available */
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
             //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);

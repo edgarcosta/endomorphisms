@@ -10,6 +10,89 @@
  */
 
 
+intrinsic IdempotentsFromStructure(EndoStruct::List) -> List
+{Returns idempotents for the endomorphism structure EndoStruct.}
+
+g := #Rows(EndoStruct[1][1][1]);
+EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
+C, GensC := Explode(EndoAlg);
+Ds := DirectSumDecomposition(C);
+idemsC := &cat[ IdempotentsFromFactor(D, C, g) : D in Ds ];
+idemsrep := MatricesFromIdempotents(idemsC, EndoStruct);
+return idemsrep;
+
+end intrinsic;
+
+
+intrinsic IdempotentsFromRepresentation(EndoRep::SeqEnum) -> .
+{Returns idempotents for the endomorphism representation EndoRep.}
+
+EndoAlg, EndoDesc := EndomorphismAlgebraAndDescriptionBase(EndoRep);
+EndoStruct := [* EndoRep, EndoAlg, EndoDesc *];
+return IdempotentsFromStructure(EndoStruct);
+
+end intrinsic;
+
+
+intrinsic MatricesFromIdempotents(idems::SeqEnum, EndoStruct::List) -> SeqEnum
+{Returns the matrix representations corresponding to the idempotents in idems,
+using the endomorphism structure EndoStruct.}
+
+EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
+As := [ gen[1] : gen in EndoRep ];
+Rs := [ gen[2] : gen in EndoRep ];
+C, GensC := Explode(EndoAlg);
+
+idems := [ [ Rationals() ! c : c in Eltseq(idem) ] : idem in idems ];
+GensC := [ [ Rationals() ! c : c in Eltseq(gen) ] : gen in GensC ];
+idems := [ Eltseq(MatrixInBasis(idem, GensC)) : idem in idems ];
+
+idemsRep := [ ];
+for idem in idems do
+    idemA := &+[ idem[i] * As[i] : i in [1..#As] ];
+    idemR := &+[ idem[i] * Rs[i] : i in [1..#Rs] ];
+    Append(~idemsRep, [* idemA, idemR *]);
+end for;
+return idemsRep;
+
+end intrinsic;
+
+
+intrinsic ProjectionFromIdempotent(P::., idem::List) -> List
+{Given an idempotent idem for the period matrix P, returns a corresponding
+lattice and an analytic representation of the projection to it.}
+
+/* g is the dimension of the new abelian variety */
+A, R := Explode(idem); g := Rank(R) div 2;
+ACC := TangentRepresentation(R, P);
+CC := BaseRing(ACC); RR := RealField(CC);
+/* At this point A P = P R */
+
+/* Determine rows (corresponds to taking full-rank projection on components): */
+QLarge, indices := SubmatrixOfRank(ACC * P, g : ColumnsOrRows := "Rows");
+rowsA := Rows(A); rowsACC := Rows(ACC);
+B := Matrix([ [ c : c in Eltseq(rowsA[i]) ] : i in indices ]);
+BCC := Matrix([ [ c : c in Eltseq(rowsACC[i]) ] : i in indices ]);
+/* At this point B P = QLarge R */
+
+/* Determine columns (corresponds to finding generating elements of the lattice */
+QLargeSplit := VerticalSplitMatrix(QLarge);
+QSubSplit, indices := SubmatrixOfRank(QLargeSplit, 2*g : ColumnsOrRows := "Columns");
+QSplit, T, U := SaturateLattice(QSubSplit, QLargeSplit : ColumnsOrRows := "Columns");
+Q := CombineVerticallySplitMatrix(QSplit, CC);
+/* We now have QLarge = Q U, so B P = Q U R. We return B and U R. */
+
+S := U * R;
+proj := [* B, S, BCC *];
+if Maximum([ Abs(c) : c in Eltseq(BCC*P - Q*ChangeRing(S, CC)) ]) gt CC`epscomp then
+    error "Error in determining projection";
+end if;
+proj := [* B, S *];
+return Q, proj;
+
+end intrinsic;
+
+
 intrinsic IdempotentsFromLattice(Lat::List) -> .
 {Given a lattice Lat, returns idempotents over a small field extension.}
 /* TODO: Change field to be even smaller */
@@ -22,7 +105,6 @@ num_idemsgeo := NumberOfIdempotentsFromStructure(GeoEndoStruct);
 if num_idemsgeo eq 1 then
     /* Stop if there are no geometric idempotents and give some dummy output */
     K := entries[1][1][2];
-    SetInfinitePlaceDownwards(L, K);
     return [ ], K;
 end if;
 
@@ -35,8 +117,6 @@ while i le n do
         /* Get elements, their base field, and inherit embedding */
         idems := IdempotentsFromStructure(EndoStruct);
         K := BaseRing(idems[1][1]);
-        /* Leave like this: finding the decomposition should be independent of a full lattice calculation */
-        SetInfinitePlaceDownwards(L, K);
         return idems, K;
     end if;
     i +:= 1;
@@ -62,20 +142,6 @@ for factor_QQ in factors_QQ do
     end if;
 end for;
 return num_idems;
-
-end intrinsic;
-
-
-intrinsic IdempotentsFromStructure(EndoStruct::List) -> List
-{Returns idempotents for the endomorphism structure EndoStruct.}
-
-g := #Rows(EndoStruct[1][1][1]);
-EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
-C, GensC := Explode(EndoAlg);
-Ds := DirectSumDecomposition(C);
-idemsC := &cat[ IdempotentsFromFactor(D, C, g) : D in Ds ];
-idemsrep := MatricesFromIdempotents(idemsC, EndoStruct);
-return idemsrep;
 
 end intrinsic;
 
@@ -128,74 +194,5 @@ if not IsCommutative(E2) then
     end if;
 end if;
 return [ C ! D ! 1 ];
-
-end intrinsic;
-
-
-intrinsic MatricesFromIdempotents(idems::SeqEnum, EndoStruct::List) -> SeqEnum
-{Returns the matrix representations corresponding to the idempotents in idems,
-using the endomorphism structure EndoStruct.}
-
-EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
-GensTan := [ gen[1] : gen in EndoRep ];
-GensHom := [ gen[2] : gen in EndoRep ];
-GensApp := [ gen[3] : gen in EndoRep ];
-C, GensC := Explode(EndoAlg);
-
-idems := [ [ Rationals() ! c : c in Eltseq(idem) ] : idem in idems ];
-GensC := [ [ Rationals() ! c : c in Eltseq(gen) ] : gen in GensC ];
-idems := [ Eltseq(MatrixInBasis(idem, GensC)) : idem in idems ];
-
-idemsRep := [ ];
-for idem in idems do
-    idemTan := &+[ idem[i] * GensTan[i] : i in [1..#GensTan] ];
-    idemHom := &+[ idem[i] * GensHom[i] : i in [1..#GensHom] ];
-    idemApp := &+[ idem[i] * GensApp[i] : i in [1..#GensApp] ];
-    Append(~idemsRep, [* idemTan, idemHom, idemApp *]);
-end for;
-return idemsRep;
-
-end intrinsic;
-
-
-intrinsic IdempotentDenominator(idem::.) -> RngIntElt
-{Returns the degree of the morphism corresponding to the idempotent idem.}
-/* TODO: Use polarizations to get at the degree instead */
-
-idemTan, idemHom, idemApp := Explode(idem);
-return LCM([ Denominator(c) : c in Eltseq(idemHom) ]);
-
-end intrinsic;
-
-
-intrinsic ProjectionFromIdempotent(P::., idem::List) -> List
-{Given an idempotent idem for the period matrix P, returns a corresponding
-lattice and an analytic representation of the projection to it.}
-
-/* g is the dimension of the new abelian variety */
-A, R, ACC := Explode(idem); g := Rank(R) div 2;
-CC := BaseRing(ACC); RR := RealField(CC);
-/* At this point A P = P R */
-
-/* Determine rows (corresponds to taking full-rank projection on components): */
-QLarge, indices := SubmatrixOfRank(ACC * P, g : ColumnsOrRows := "Rows");
-rowsA := Rows(A); rowsACC := Rows(ACC);
-B := Matrix([ [ c : c in Eltseq(rowsA[i]) ] : i in indices ]);
-BCC := Matrix([ [ c : c in Eltseq(rowsACC[i]) ] : i in indices ]);
-/* At this point B P = QLarge R */
-
-/* Determine columns (corresponds to finding generating elements of the lattice */
-QLargeSplit := VerticalSplitMatrix(QLarge);
-QSubSplit, indices := SubmatrixOfRank(QLargeSplit, 2*g : ColumnsOrRows := "Columns");
-QSplit, T, U := SaturateLattice(QSubSplit, QLargeSplit : ColumnsOrRows := "Columns");
-Q := CombineVerticallySplitMatrix(QSplit, CC);
-/* We now have QLarge = Q U, so B P = Q U R. We return B and U R. */
-
-S := U * R;
-proj := [* B, S, BCC *];
-if Maximum([ Abs(c) : c in Eltseq(BCC*P - Q*ChangeRing(S, CC)) ]) gt CC`epscomp then
-    error "Error in determining projection";
-end if;
-return Q, proj;
 
 end intrinsic;

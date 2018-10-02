@@ -13,7 +13,8 @@ intrinsic StandardSymplecticMatrix(g::RngIntElt) -> AlgMatElt
 {Standard symplectic 2 g x 2 g matrix.}
 
 A := ScalarMatrix(g, 0); B := ScalarMatrix(g, 1); C := -B; D := A;
-return VerticalJoin(HorizontalJoin(A, B), HorizontalJoin(C, D));
+E := VerticalJoin(HorizontalJoin(A, B), HorizontalJoin(C, D));
+return ChangeRing(E, Rationals());
 
 end intrinsic;
 
@@ -127,13 +128,14 @@ M :=  Matrix(RR, [ [ MonomialCoefficient(c, var) : c in Comm ] : var in vars ]);
 Ker := IntegralLeftKernel(M);
 
 /* Culling the correct polarizations using the conditions on E */
-RR:=BaseRing(JP); Es := [];
+RR := BaseRing(JP); Es := [];
 for r in Rows(Ker) do
     E := Matrix(Rationals(), 2*gP, 2*gP, Eltseq(r));
+    ERR := ChangeRing(E, RR);
     /* Culling the correct polarizations using the conditions on E */
-    Comm1 := JP * E * Transpose(JP) - E;
+    Comm1 := JP * ERR * Transpose(JP) - ERR;
     if &and([Abs(c) lt RR`epscomp : c in Eltseq(Comm1)]) then
-        Comm2 := E + Transpose(E);
+        Comm2 := ERR + Transpose(ERR);
         if &and([Abs(c) lt RR`epscomp : c in Eltseq(Comm2)]) then
             Append(~Es, E);
         end if;

@@ -8,7 +8,7 @@ Divisor.m: automatically scale equations to ge a rational non-Weierstrass point
 Debugging: Sato-Tate bug in CR's examples, understand rank 3 phenomenon in DS's example
 
 
-Idempotent finding is not in a good general state currently. Here is how to improve it:
+Idempotent finding:
 
 (1) Given a period matrix P, calculate the corresponding geometric endomorphism algebra over the splitting field L.
 
@@ -20,8 +20,7 @@ Idempotent finding is not in a good general state currently. Here is how to impr
 
 (5) Calculate the corresponding curve (it should have indecomposable Jacobian) and find all maps from P to it.
 
-() Splitting field (Pari!)
-(i) Idempotent factor and, starting from scratch after that, possible polarizations (perhaps non-inherited ones as well)
-(ii) Reconstruction from period matrix; geometric, then exact for hyperelliptic with endomorphism ring ZZ.
+Idempotent factor and, starting from scratch after that, possible polarizations (perhaps non-inherited ones as well)
 
-Slay maps to elliptic curves once and for all (general point, not just Weierstrass, to point at inf)
+
+Map to elliptic curves

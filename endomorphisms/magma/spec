@@ -24,11 +24,14 @@
     Lattice.m
     Sagify.m
 
-    VerifySat.m
-    VerifyCorr.m
+    MaxIsotr.m
     DecProjs.m
-    DecFactors.m
+    DecDescs.m
+    DecCurves.m
+
+    VerifySat.m
     TestFactor.m
+    VerifyCorr.m
   }
   polarization
   {

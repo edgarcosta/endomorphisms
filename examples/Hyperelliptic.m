@@ -5,17 +5,18 @@
 */
 
 AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 2);
+SetVerbose("EndoFind", 0);
 
-prec := 100;
+prec := 300;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
 
+Xs := [* *];
 // Big Sato-Tate group, this calculation takes about 20 minutes:
 f := x^6 - 5*x^4 + 10*x^3 - 5*x^2 + 2*x - 1; h := R ! 0;
 // CM:
-f := x^6 - 8*x^4 - 8*x^3 + 8*x^2 + 12*x - 8; h := 0;
+//f := x^6 - 8*x^4 - 8*x^3 + 8*x^2 + 12*x - 8; h := 0;
 
 R<t> := PolynomialRing(Rationals());
 F<r> := NumberFieldExtra(t^2 - 5);
@@ -38,8 +39,7 @@ print "";
 print "Period matrix:";
 print ChangeRing(P, CCSmall);
 
-GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
-L<s> := BaseRing(GeoEndoRep[1][1]);
+time GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
 
 /* Entries can be made relative by using RelativeField if so desired */
 print "";

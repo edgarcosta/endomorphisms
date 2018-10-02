@@ -13,9 +13,8 @@ f, h = [-4*x^8 + 105*x^6 - 945*x^4 + 2100*x^2 - 5895*x + 420, x^4]
 f, h = [x^7 - 14*x^6 + 210*x^5 - 658*x^4 + 245*x^3 + 588*x^2 + 637*x - 686, R(0)]
 # Conductor 2^4 13^4, all twists have rational point, CM curve
 f, h = [x^6 - 8*x^4 - 8*x^3 + 8*x^2 + 12*x - 8, R(0)]
+f, h = [x^4+12*x^3+31*x^2-30*x+6, R(0)]
 X = mHyperellipticCurve(f, h, 300)
-
-X = mHyperellipticCurve(f, h, 200)
 
 Endo = EndomorphismData(X)
 lat = Endo.lattice()

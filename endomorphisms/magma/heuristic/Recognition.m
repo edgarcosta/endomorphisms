@@ -118,7 +118,7 @@ assert Precision(Parent(a)) ge Precision(CC);
 if Type(minpol) eq RngIntElt then
     minpol := MinimalPolynomialLLL(a, RationalsExtra(Precision(CC)));
 end if;
-rts := [ tup[1] : tup in RootsPari(minpol, K) ];
+rts := RootsPari(minpol, K);
 
 for rt in rts do
     rtCC := EvaluateExtra(rt, K`iota);

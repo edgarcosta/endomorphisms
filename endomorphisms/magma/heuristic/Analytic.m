@@ -158,9 +158,15 @@ gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 //K, seq := NumberFieldExtra(seqPart, F);
 K, seq := SplittingFieldExtra(seqPart, F);
+
+assert #seq eq #seqPart;
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
 As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
+for i in [1..#gens] do
+    abs := Max([ Abs(c) : c in Eltseq(EvaluateMatrixExtra(gens[i][1], K`iota) - gensPart[i][1]) ]);
+    assert abs lt BaseRing(P)`epscomp;
+end for;
 return gens;
 
 end intrinsic;
