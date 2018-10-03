@@ -136,10 +136,15 @@ if OneRow then
 end if;
 
 for row in rowsK do
+    //print row;
     test1 := &and[ Abs(c) lt RR`height_bound : c in Eltseq(row) ];
+    //print test1;
     if test1 then
         prod := Matrix(RR, [ Eltseq(row) ])*M;
         test2 := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
+        //print RR`epscomp;
+        //print test2;
+        //print Max([ Abs(c) : c in Eltseq(prod) ]);
         if test2 then
             Append(~rowsK0, row);
         end if;

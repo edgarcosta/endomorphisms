@@ -175,7 +175,12 @@ intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity
 {Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K.}
 
 /* Use minimal polynomial over QQ */
-CC := Parent(aCC); RCC := PolynomialRing(CC); QQ := RationalsExtra(Precision(CC));
+CC := Parent(aCC); RCC := PolynomialRing(CC);
+/* TODO: Deal with the horrible side effects that these declarations have */
+//QQ := RationalsExtra(Precision(CC));
+QQ := Rationals();
+QQ`base := Rationals(); QQ`base_gen := QQ`base ! 1;
+QQ`CC := K`CC; QQ`iota := QQ`CC ! 1;
 if Type(minpolQQ) eq RngIntElt then
     f := MinimalPolynomialLLL(aCC, QQ : UpperBound := UpperBound);
 else

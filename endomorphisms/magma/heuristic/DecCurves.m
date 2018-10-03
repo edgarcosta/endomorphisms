@@ -36,7 +36,13 @@ for U in Us do
     assert IsBigPeriodMatrix(Qnew);
     Append(~Qsnew, Qnew);
 end for;
-return [* ReconstructCurveG2(Q, F) : Q in Qsnew *];
+recs := [* *];
+for Q in Qsnew do
+    Y := ReconstructCurveG2(Q, F);
+    //print Y;
+    Append(~recs, Y);
+end for;
+return recs;
 
 end function;
 

@@ -5,19 +5,24 @@
 */
 
 AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 2);
 
 prec := 500;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);
-CC := F`CC;
+R<x,y> := PolynomialRing(F, 2);
+z := 1;
 
-R<x> := PolynomialRing(F);
-f := x^8 + x^6 + 1;
-X := HyperellipticCurve(f);
+f := x^3*z + 2*x^2*y^2 + x^2*y*z + 2*x^2*z^2 - x*y^2*z + x*y*z^2 - x*z^3 + y^3*z - y^2*z^2 + y*z^3 - z^4;
+f := x^3*z + x^2*y^2 - 3*x*y^2*z - 4*x*z^3 - 2*y^4 + y^3*z - 4*y^2*z^2 - 3*z^4;
+f := x^3*z + 2*x^2*y^2 + x^2*y*z + 3*x^2*z^2 - 4*x*y^3 - x*y^2*z + 5*x*y*z^2 + x*z^3 + 2*y^4 + 6*y^3*z + 6*y^2*z^2 + 2*y*z^3;
+f := 2*x^4 + 3*x^3*y + 4*x^3*z + 6*x^2*y^2 + 4*x^2*y*z + 7*x^2*z^2 + 4*x*y^3 + 4*x*y^2*z + 7*x*y*z^2 + 4*x*z^3 + 3*y^4 + 2*y^3*z + 3*y^2*z^2 + 5*y*z^3 + 2*z^4;
+
+X := PlaneCurve(f);
 
 P := PeriodMatrix(X);
 EndoRep := GeometricEndomorphismRepresentation(P, F);
+print EndoRep;
 
 for idem in IdempotentsFromRepresentation(EndoRep) do
     print idem[1];
@@ -28,6 +33,6 @@ for idem in IdempotentsFromRepresentation(EndoRep) do
     if g eq 1 then
         print [ jInvariant(EllipticCurve(HyperellipticPolynomials(Y))) : Y in Ys ];
     elif g eq 2 then
-        print [ WPSNormalize([2, 4, 6, 8, 10], IgusaInvariants(Y)) : Y in Ys ];
+        print [* WPSNormalize([2, 4, 6, 8, 10], IgusaInvariants(Y)) : Y in Ys *];
     end if;
 end for;
