@@ -17,6 +17,11 @@ https://github.com/pascalmolin/hcperiods
 ```
 and include the path to its spec file in your `.magmarc` file. This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes everything far more stable and reliable, so you will want to install it.
 
+Finally, in order to decompose Jacobians, you will need
+```
+https://github.com/JRSijsling/curve_reconstruction
+```
+
 Additional prerequisite for older Magma versions
 --
 In older version of Magma the file `magma/package/Algebra/AlgQuat/interface.m` had the following as line 145:
