@@ -31,7 +31,7 @@ end intrinsic;
 intrinsic SubmatrixOfRank(M::., rk::RngIntElt : ColumnsOrRows := "Columns") -> .
 {Returns a submatrix of M of rank rk, together with the corresponding list of
 rows or columns. Returns an error if such a matrix does not seem to exist.
-ColumnsOrRows specifies whether columns of rows are used.}
+ColumnsOrRows specifies which of the two are culled down.}
 /* TODO: Use an LU decomposition instead */
 
 /* Reducing to the case of columns */
@@ -136,15 +136,14 @@ if OneRow then
 end if;
 
 for row in rowsK do
-    //print row;
+    vprint EndoFind, 2 : row;
     test1 := &and[ Abs(c) lt RR`height_bound : c in Eltseq(row) ];
-    //print test1;
+    vprint EndoFind, 2 : test1;
     if test1 then
         prod := Matrix(RR, [ Eltseq(row) ])*M;
         test2 := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
-        //print RR`epscomp;
-        //print test2;
-        //print Max([ Abs(c) : c in Eltseq(prod) ]);
+        vprint EndoFind, 2 : ComplexField(5) ! RR`epscomp;
+        vprint EndoFind, 2 : ComplexField(5) ! Max([ Abs(c) : c in Eltseq(prod) ]);
         if test2 then
             Append(~rowsK0, row);
         end if;

@@ -5,10 +5,11 @@
 */
 
 AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 1);
-SetVerbose("CurveRec", 1);
+SetVerbose("EndoFind", 0);
+SetVerbose("CurveRec", 0);
 
 prec := 600;
+prec := 200;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);
 CC := F`CC;
@@ -25,21 +26,33 @@ f := x^7 + x^6 + 5*x^5 - 3*x^4 + 2*x^3 - 13*x^2 + 7*x - 1; h := x^3 + x;
 
 X := HyperellipticCurve(f, h);
 X := ReducedMinimalWeierstrassModel(X);
-print "Curve:";
-print X;
+Y := HyperellipticCurve(x^3 - 7371/16*x - 120285/32);
 
 P := PeriodMatrix(X);
-EndoRep := GeometricEndomorphismRepresentation(P, F);
+Q := PeriodMatrix(Y);
+HomRepPQ := GeometricHomomorphismRepresentationCC(P, Q);
+HomRepQP := GeometricHomomorphismRepresentationCC(Q, P);
+hPQ := HomRepPQ[1];
+hQP := HomRepQP[1];
 
-for idem in IdempotentsFromRepresentation(EndoRep) do
-    print idem[2];
-    Ys := DecompositionFactors(P, idem, F);
-    print Ys;
+print hPQ[2];
+print KerModKer0(hPQ, P, Q);
+K, hK := Ker0(hPQ, P, Q);
+print hK[2];
+C, hC := Coker(hPQ, P, Q);
+print hC[2];
+I, hI := Img(hPQ, P, Q);
+print hI[2];
 
-    g := Rank(idem[2]) div 2;
-    if g eq 1 then
-        print [ jInvariant(EllipticCurve(HyperellipticPolynomials(Y))) : Y in Ys ];
-    elif g eq 2 then
-        print [* WPSNormalize([2, 4, 6, 8, 10], IgusaInvariants(Y)) : Y in Ys *];
-    end if;
-end for;
+print hQP[2];
+print KerModKer0(hQP, Q, P);
+K, hK := Ker0(hQP, Q, P);
+print hK[2];
+C, hC := Coker(hQP, Q, P);
+print hC[2];
+I, hI := Img(hQP, Q, P);
+print hI[2];
+
+
+
+

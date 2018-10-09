@@ -39,7 +39,7 @@ end for;
 recs := [* *];
 for Q in Qsnew do
     Y := ReconstructCurveG2(Q, F);
-    //print Y;
+    vprint CurveRec, 1 : Y;
     Append(~recs, Y);
 end for;
 return recs;
