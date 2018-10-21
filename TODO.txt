@@ -24,3 +24,5 @@ Idempotent factor and, starting from scratch after that, possible polarizations 
 
 
 Map to elliptic curves
+Better symplectic subspaces for primes
+Good Prym and inherited polarization

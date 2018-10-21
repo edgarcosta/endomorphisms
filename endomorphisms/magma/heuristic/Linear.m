@@ -138,12 +138,15 @@ end if;
 for row in rowsK do
     vprint EndoFind, 2 : row;
     test1 := &and[ Abs(c) lt RR`height_bound : c in Eltseq(row) ];
+    //test1 := true;
     vprint EndoFind, 2 : test1;
     if test1 then
         prod := Matrix(RR, [ Eltseq(row) ])*M;
         test2 := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
-        vprint EndoFind, 2 : ComplexField(5) ! RR`epscomp;
-        vprint EndoFind, 2 : ComplexField(5) ! Max([ Abs(c) : c in Eltseq(prod) ]);
+        //test2 := &and[ Abs(c) lt 10^50*RR`epscomp : c in Eltseq(prod) ];
+        vprint EndoFind, 2 : test2;
+        vprint EndoFind, 3 : ComplexField(5) ! RR`epscomp;
+        vprint EndoFind, 3 : ComplexField(5) ! Max([ Abs(c) : c in Eltseq(prod) ]);
         if test2 then
             Append(~rowsK0, row);
         end if;

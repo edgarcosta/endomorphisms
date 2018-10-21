@@ -14,9 +14,9 @@ Endo = EndomorphismData(X)
 lat = Endo.lattice()
 print lat.pretty_print()
 
-print ""
-print lat._desc_
-print lat._sthash_
+#print ""
+#print lat._desc_
+#print lat._sthash_
 
 #Dec = Endo.decomposition()
 #print ""

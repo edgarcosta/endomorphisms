@@ -58,6 +58,7 @@ while degf lt UpperBound do
         row := Rows(Ker)[1];
         vprint EndoFind : "First row:", row;
         test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+        //test_height := true;
         if test_height then
             f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
             if TestCloseToRoot(f, a) then
@@ -202,6 +203,7 @@ for g in gs do
     gCC := EmbedAtInfinitePlace(g);
     for tuprt in Roots(gCC) do
         rtCC := tuprt[1];
+        //if Abs(rtCC - aCC) le 10^50*CC`epscomp then
         if Abs(rtCC - aCC) le CC`epscomp then
             return g, f;
         end if;

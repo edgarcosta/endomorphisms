@@ -137,3 +137,68 @@ end for;
 return Ts;
 
 end intrinsic;
+
+
+intrinsic IsogenousPPLatticesG3OneOff(E::.) -> .
+{bla.}
+
+p := 2; d := 6;
+assert d mod 2 eq 0;
+F := FiniteField(p);
+E := ChangeRing(StandardSymplecticMatrix(d div 2), F);
+V := VectorSpace(F, d);
+
+bases := CartesianPower(V, d div 2);
+subsps := [ ];
+for tup in bases do
+    basis := [ e : e in tup ];
+    test := true;
+    for tupv in CartesianPower(basis, 2) do
+        v1 := Matrix([ Eltseq(tupv[1]) ]);
+        v2 := Matrix([ Eltseq(tupv[2]) ]);
+        if not IsZero((v1*E*Transpose(v2))[1,1]) then
+            test := false;
+            break;
+        end if;
+    end for;
+    if test then
+        W := sub< V | basis >;
+        if Dimension(W) eq d div 2 then
+            if not W in subsps then
+                Append(~subsps, W);
+            end if;
+        end if;
+    end if;
+end for;
+
+L0 := Lattice(IdentityMatrix(Rationals(), d));
+Lats := [ ];
+for subsp in subsps do
+    B := ChangeRing(Matrix(Basis(L0)), Rationals());
+    M := p * B;
+    Mnew := Matrix(Rationals(), [ [ Integers() ! c : c in Eltseq(gen) ] : gen in Generators(subsp) ]) * B;
+    Append(~Lats, Lattice(VerticalJoin(M, Mnew)));
+end for;
+
+Ts := [ ];
+for Lat in Lats do
+    Ur := ChangeRing(ChangeRing(Matrix(Basis(Lat)), Integers()), Rationals());;
+    Append(~Ts, Ur);
+end for;
+return Ts;
+
+/* Sign */
+for i in [1..#Ts] do
+    T := Ts[i];
+    E0 := T*E*Transpose(T);
+    if Sign(E0[1,3]) lt 0 then
+        T := DiagonalMatrix(Rationals(), [1,1,-1,1]) * T;
+    end if;
+    if Sign(E0[2,4]) lt 0 then
+        T := DiagonalMatrix(Rationals(), [1,1,1,-1]) * T;
+    end if;
+    Ts[i] := T;
+end for;
+return Ts;
+
+end intrinsic;

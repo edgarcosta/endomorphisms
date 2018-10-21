@@ -40,7 +40,7 @@ intrinsic PlaneCurveExtra(F::RngMPolElt, prec::RngIntElt) -> Crv
 {Returns the plane curve defined by F, which can be given affinely or
 projectively.}
 
-QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ);
+QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ, #GeneratorsSequence(Parent(F)));
 return PlaneCurve(RQQ ! F);
 
 end intrinsic;
