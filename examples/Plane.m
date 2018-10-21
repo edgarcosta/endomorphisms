@@ -4,8 +4,7 @@
   directory; this file shows how to access the heuristic part.
 */
 
-AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 2);
+SetVerbose("EndoFind", 0);
 
 prec := 100;
 CCSmall := ComplexField(5);

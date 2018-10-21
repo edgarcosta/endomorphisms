@@ -4,7 +4,6 @@
   directory; this file shows how to access the heuristic part.
 */
 
-AttachSpec("../endomorphisms/magma/spec");
 SetVerbose("EndoFind", 1);
 SetVerbose("CurveRec", 1);
 
@@ -16,7 +15,8 @@ CC := F`CC;
 R<x> := PolynomialRing(F);
 f := x^8 + x^6 + 2; h := R ! 0;
 f := (-7 + x)*(-5 + x)*(4 + x)*(8 + x)*(17 + x)*(19 + x)*(20 + x); h := R ! 0;
-f := x^7 + x^6 + 5*x^5 - 3*x^4 + 2*x^3 - 13*x^2 + 7*x - 1; h := x^3 + x;
+/* This one gives error in reduction step, contradicting Dupont */
+//f := x^7 + x^6 + 5*x^5 - 3*x^4 + 2*x^3 - 13*x^2 + 7*x - 1; h := x^3 + x;
 //f := x^7 + x^6 + x^5 + x^3 + x^2 + x; h := x^4 + x^2 + 1;
 //f := -2*x^7 - 4*x^6 + 3*x^4 + x^3 - 2*x^2 - x; h := x^2 + x + 1;
 //f := x^7 - 2*x^5 - 4*x^4 - 2*x^3 + x; h := x^4 + x^2 + 1;

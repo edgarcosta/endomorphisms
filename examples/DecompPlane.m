@@ -4,9 +4,8 @@
   directory; this file shows how to access the heuristic part.
 */
 
-AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 2);
-
+SetVerbose("EndoFind", 1);
+SetVerbose("CurveRec", 1);
 prec := 500;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);
@@ -22,7 +21,6 @@ X := PlaneCurve(f);
 
 P := PeriodMatrix(X);
 EndoRep := GeometricEndomorphismRepresentation(P, F);
-print EndoRep;
 
 for idem in IdempotentsFromRepresentation(EndoRep) do
     print idem[1];
