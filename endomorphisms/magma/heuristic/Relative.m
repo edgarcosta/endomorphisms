@@ -355,6 +355,7 @@ CC := K`CC;
 Lrel := NumberField(gK);
 Labs := AbsoluteField(Lrel);
 L, h := Polredbestabs(Labs);
+//L := Labs; h := hom< L -> L | L.1 >;
 anew := h(Labs ! Lrel.1);
 f := MinimalPolynomial(K.1);
 rtsf := RootsPari(f, L);

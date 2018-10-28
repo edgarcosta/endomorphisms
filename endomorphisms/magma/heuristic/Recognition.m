@@ -26,7 +26,7 @@ return false;
 end function;
 
 
-intrinsic MinimalPolynomialLLL(a::FldComElt, F::Fld : UpperBound := Infinity()) -> RngUPolElt
+intrinsic MinimalPolynomialLLL(a::FldComElt, F::Fld : LowerBound := 1, UpperBound := Infinity(), StepSize := 1) -> RngUPolElt
 {Returns a relative minimal polynomial of the complex number a with respect to
 the stored infinite place of F.}
 
@@ -45,24 +45,26 @@ MLine cat:= [ powergen * powera : powergen in powersgen ];
 /* Successively adding other entries to find relations */
 while degf lt UpperBound do
     degf +:= 1;
-    vprint EndoFind : "Trying degree", degf;
     powera *:= a;
     MLine cat:= [ powergen * powera : powergen in powersgen ];
     M := Transpose(Matrix(CC, [ MLine ]));
 
-    /* Split and take an IntegralLeftKernel */
-    MSplit := HorizontalSplitMatrix(M);
-    Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
-    /* We only consider the first row */
-    if test_ker then
-        row := Rows(Ker)[1];
-        vprint EndoFind : "First row:", row;
-        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-        //test_height := true;
-        if test_height then
-            f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
-            if TestCloseToRoot(f, a) then
-                return f;
+    if (degf ge LowerBound) and (degf mod StepSize eq 0) then
+        /* Split and take an IntegralLeftKernel */
+        vprint EndoFind : "Trying degree", degf;
+        MSplit := HorizontalSplitMatrix(M);
+        Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
+        /* We only consider the first row */
+        if test_ker then
+            row := Rows(Ker)[1];
+            vprint EndoFind : "First row:", row;
+            test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+            //test_height := true;
+            if test_height then
+                f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
+                if TestCloseToRoot(f, a) then
+                    return f;
+                end if;
             end if;
         end if;
     end if;

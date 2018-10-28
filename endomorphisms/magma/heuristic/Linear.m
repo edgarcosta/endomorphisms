@@ -125,16 +125,27 @@ if EndoRep then
     eps := Minimum([ Abs(c) : c in Eltseq(M) | not Abs(c) lt RR`epscomp ]);
     MJ := HorizontalJoin(MI, (10^12 / eps) * M);
 else
-    MJ := HorizontalJoin(MI, (10^(Precision(RR) - 30)) * M);
+    //MJ := HorizontalJoin(MI, 10^(Precision(RR) - 30) * M);
+    MJ := HorizontalJoin(MI, Round(1/RR`epsLLL) * M);
 end if;
 MJ := Matrix(Integers(), [ [ Round(c) : c in Eltseq(row) ] : row in Rows(MJ) ]);
 
+/*
+if not OneRow then
+    L, K := LLL(MJ);
+    rowsK := Rows(K);
+else
+    rowsK := ShortestVectors(Lattice(MJ) : Proof := false);
+    rowsK := [ Eltseq(row)[1..#Rows(M)] : row in rowsK ];
+end if;
+*/
 L, K := LLL(MJ);
-rowsK := Rows(K); rowsK0 := [ ];
+rowsK := Rows(K);
 if OneRow then
     rowsK := [ rowsK[1] ];
 end if;
 
+rowsK0 := [ ];
 for row in rowsK do
     vprint EndoFind, 2 : row;
     test1 := &and[ Abs(c) lt RR`height_bound : c in Eltseq(row) ];
