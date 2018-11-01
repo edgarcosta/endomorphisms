@@ -369,26 +369,21 @@ RAprod := PolynomialRing(X`F, 4);
 // TODO: We cannot usually take X`g. Find out what this should be instead.
 P, Qs := ApproximationsFromTangentAction(X, Y, NormM, X`g + 2);
 
-ps_rts := [ ]; prs := [ ]; vss_red := [* *];
+prs := [ ]; vss_red := [* *];
 I := ideal<X`OF | 1>;
 
 d := LowerBound;
 while true do
     /* Find new prime */
     repeat
-        p_rt := RandomSplitPrime(f, B);
-        p, rt := Explode(p_rt);
-    until not p in [ tup[1] : tup in ps_rts ];
-    Append(~ps_rts, p_rt);
-    vprintf EndoCheck : "Split prime over %o\n", p;
+        pr, h := RandomSplitPrime(f, B);
+    until not pr in prs;
+    Append(~prs, pr); I *:= pr;
+    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
 
     /* Add corresponding data */
-    // TODO: This reduction step takes too long
-    pr := ideal<X`OF | [ p, rF - rt ]>;
-    Append(~prs, pr); I *:= pr;
-    X_red := ReduceCurveSplit(X, p, rt); Y_red := ReduceCurveSplit(Y, p, rt);
-    NormM_red := ReduceMatrixSplit(NormM, p, rt);
-    BI := Basis(I);
+    X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
+    NormM_red := ReduceMatrixSplit(NormM, h);
 
     while true do
         found, D_red, vs_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin);
@@ -409,7 +404,7 @@ while true do
     vs := [ ];
     for i in [1..#vss_red[1]] do
         v_reds := [* vs_red[i] : vs_red in vss_red *];
-        v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs, OF, I, BOF, BI, F) : j in [1..#v_reds[1]] ];
+        v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs) : j in [1..#v_reds[1]] ];
         Append(~vs, v);
     end for;
     vprintf EndoCheck : "done.\n";

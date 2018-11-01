@@ -198,7 +198,7 @@ gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF; RX := X`RA; KX := X`K
 /* TODO: Add decent margin here, + 1 already goes wrong occasionally */
 P, Qs := ApproximationsFromTangentAction(X, Y, NormM, gY + 2);
 
-ps_rts := [ ]; prs := [ ]; fss_red := [* *];
+prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
 have_to_check := true;
 
@@ -206,18 +206,14 @@ d := LowerBound;
 while true do
     /* Find new prime */
     repeat
-        p_rt := RandomSplitPrime(f, B);
-        p, rt := Explode(p_rt);
-    until not p in [ tup[1] : tup in ps_rts ];
-    Append(~ps_rts, p_rt);
-    vprintf EndoCheck : "Split prime over %o\n", p;
+        pr, h := RandomSplitPrime(f, B);
+    until not pr in prs;
+    Append(~prs, pr); I *:= pr;
+    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
 
     /* Add corresponding data */
-    pr := ideal<OF | [ p, rF - rt ]>;
-    Append(~prs, pr); I *:= pr;
-    X_red := ReduceCurveSplit(X, p, rt); Y_red := ReduceCurveSplit(Y, p, rt);
-    NormM_red := ReduceMatrixSplit(NormM, p, rt);
-    BI := Basis(I);
+    X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
+    NormM_red := ReduceMatrixSplit(NormM, h);
 
     while true do
         found, fs_red := CantorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, have_to_check := have_to_check);
@@ -242,13 +238,13 @@ while true do
         for mon in Monomials(Numerator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Numerator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            num +:= FractionalCRTSplit(rs, prs, OF, I, BOF, BI, F) * Monomial(RX, exp);
+            num +:= FractionalCRTSplit(rs, prs) * Monomial(RX, exp);
         end for;
         den := RX ! 0;
         for mon in Monomials(Denominator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Denominator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            den +:= FractionalCRTSplit(rs, prs, OF, I, BOF, BI, F) * Monomial(RX, exp);
+            den +:= FractionalCRTSplit(rs, prs) * Monomial(RX, exp);
         end for;
         Append(~fs, KX ! (num / den));
     end for;

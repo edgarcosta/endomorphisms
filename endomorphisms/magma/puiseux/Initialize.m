@@ -314,8 +314,7 @@ end if;
 X`OurB := OurBasisOfDifferentials(X);
 X`NormB, X`T := NormalizedBasisOfDifferentials(X);
 /* Use next line for DZB verification */
-//X`NormB := X`OurB;
-X`T := IdentityMatrix(X`F, X`g);
+//X`NormB := X`OurB; X`T := IdentityMatrix(X`F, X`g);
 _<u,v> := Parent(X`OurB[1]);
 vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
 vprint EndoCheck, 3 : X`OurB;
