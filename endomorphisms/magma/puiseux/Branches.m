@@ -23,7 +23,7 @@ forward DevelopPoint;
 
 forward InitializeLift;
 forward CreateLiftIterator;
-forward ApproximationsFromTangentAction;
+forward InitializedIterator;
 
 
 function LiftPuiseuxSeries(f, PR, e)
@@ -127,7 +127,7 @@ function DevelopPoint(X, P0, n)
  * Input:   An algebraic relation f between two variables,
  *          a point P0 that satisfies this,
  *          and the requested number of digits n.
- * Output:  A corresponding development of both components.
+ * Output:  A corresponding development of both components to O (n).
  *
  * The relation f has to be non-singular when developing in y.
  * The x-coordinate x0 of P can be specified as a constant element or as a
@@ -156,6 +156,8 @@ end if;
 log := 0;
 while log le Ceiling(Log(2, n)) - 1 do
     prec := Minimum(2^(log + 1), n);
+    /* prec + 1 might seem more logical, but that messes up the final term,
+     * which then requires a new iteration to be made */
     PR := PuiseuxSeriesRing(F, prec);
     if x0 in F then
         e := 1;
@@ -195,7 +197,8 @@ Qs := [ [ PR ! Q0[1], PR ! Q0[2] ] : i in [1..Y`g] ];
 for i in [1..Y`g] do
     Qs[i][1] +:= tjs0[i];
 end for;
-Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 1) ] : Qj in Qs ];
+/* Make sure precision buffer is always large enough to see first term */
+Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 2) ] : Qj in Qs ];
 return P, Qs;
 
 end function;
@@ -206,6 +209,9 @@ function CreateLiftIterator(X, Y, M)
  * Input:   Curves X and Y and a normalized matrix M.
  * Output:  An iterator that refines the Puiseux expansion upon application.
  */
+/* An extremely annoying corollary of Magma's Puiseux conventions is that
+ * precision gets thrown away. We simply shave a few digits off the iteration at
+ * every turn to deal with this. */
 
 fX := X`DEs[1]; dfX := Derivative(fX, X`RA.2); BX := X`NormB; gX := X`g;
 fY := Y`DEs[1]; dfY := Derivative(fY, Y`RA.2); BY := Y`NormB; gY := Y`g;
@@ -264,19 +270,37 @@ return Iterate;
 end function;
 
 
-intrinsic ApproximationsFromTangentAction(X::Crv, Y::Crv, M::., n::RngIntElt) -> Tup, Tup
+intrinsic InitializedIterator(X::Crv, Y::Crv, M::., n::RngIntElt) -> Tup, Tup
 {Given curves X and Y, a matrix M that gives the tangent representation of a
 homomorphism of Jacobians on the normalized basis of differentials, and an
-integer n, returns a development of the branches to precision at least O(n).}
+integer n, returns a development of the branches to precision at least O(n)
+plus or minus a negligible amount of digits.}
 
 e := PuiseuxRamificationIndex(M);
 P, Qs := InitializeLift(X, Y, M);
 IterateLift := CreateLiftIterator(X, Y, M);
-/* TODO: Determine exact bound needed here */
-for i:=1 to Ceiling(Log(2, n + e + 1)) + 1 do
-    P, Qs := IterateLift(P, Qs, n + e + 1);
-    //print Qs[1][1];
-end for;
+while true do
+    Pnew, Qsnew := IterateLift(P, Qs, n);
+    if Pnew eq P and Qsnew eq Qs then
+        P := Pnew; Qs := Qsnew; break;
+    end if;
+    P := Pnew; Qs := Qsnew;
+end while;
+return P, Qs, IterateLift;
+
+end intrinsic;
+
+
+intrinsic IterateIterator(P::SeqEnum, Qs::SeqEnum[SeqEnum], IterateLift) -> Tup, Tup
+{Applies IterateLift to the pair (P, Qs).}
+/* May want to include bound here too, but for now that is useless */
+
+e := ExponentDenominator(Qs[1][1]);
+prec := Minimum([ AbsolutePrecision(c) : c in P cat &cat(Qs) ]);
+P, Qs := IterateLift(P, Qs, Infinity());
+PR := PuiseuxSeriesRing(BaseRing(Parent(P[1])), Integers() ! (2*((e*prec) - 1) + 1));
+P := [ PR ! c : c in P ];
+Qs := [ [ PR ! c : c in Q ] : Q in Qs ];
 return P, Qs;
 
 end intrinsic;

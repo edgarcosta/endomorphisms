@@ -26,7 +26,7 @@ return Curve(Scheme(ProjectiveSpace(S), Fhom));
 end intrinsic;
 
 
-intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::RngUPolElt, prec::RngIntElt) -> Crv
+intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::., prec::RngIntElt) -> Crv
 {Returns the hyperelliptic curve defined by F, which can be given affinely or
 projectively.}
 

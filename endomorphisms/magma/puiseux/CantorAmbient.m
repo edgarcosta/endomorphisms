@@ -196,7 +196,7 @@ tjs0, f := InitializeImageBranch(NormM);
 /* Some global elements needed below */
 gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF; RX := X`RA; KX := X`KA;
 /* TODO: Add decent margin here, + 1 already goes wrong occasionally */
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, gY + 2);
+P, Qs := InitializedIterator(X, Y, NormM, gY + 2);
 
 prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
@@ -280,7 +280,7 @@ vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
 
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n*e);
+P, Qs := InitializedIterator(X, Y, NormM, n*e);
 vprintf EndoCheck, 4 : "Base point:\n";
 _<t> := Parent(P[1]);
 _<r> := BaseRing(Parent(P[1]));

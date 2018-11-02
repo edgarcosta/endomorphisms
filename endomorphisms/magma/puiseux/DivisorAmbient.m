@@ -205,7 +205,8 @@ tjs0, f := InitializeImageBranch(NormM);
 /* Some global elements needed below */
 F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
 Rprod := PolynomialRing(X`F, 4, "lex");
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, X`g);
+/* Bit more global margin just to be sure */
+P, Qs := InitializedIterator(X, Y, NormM, X`g + 6);
 
 prs := [ ]; DEss_red := [* *];
 I := ideal<X`OF | 1>;
@@ -289,7 +290,7 @@ vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n);
+P, Qs := InitializedIterator(X, Y, NormM, n);
 vprintf EndoCheck, 4 : "Base point:\n";
 _<t> := Parent(P[1]);
 _<r> := BaseRing(Parent(P[1]));
