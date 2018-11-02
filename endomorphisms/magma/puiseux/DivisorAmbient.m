@@ -77,7 +77,7 @@ function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := false)
  */
 
 /* Recovering a linear system */
-e := Maximum([ Maximum([ Denominator(Valuation(c - Coefficient(c, 0))) : c in Q ]) : Q in Qs ]);
+e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
 prec := Precision(Parent(P[1]));
 M := [ ];
 for f in fs do
@@ -85,6 +85,7 @@ for f in fs do
     for Q in Qs do
         seq := ExtractPoints(X, Y, P, Q);
         ev := Evaluate(f, seq);
+        /* Small buffer depending on genus */
         r cat:= [ Coefficient(ev, i/e) : i in [0..prec - X`g] ];
     end for;
     Append(~M, r);
@@ -101,8 +102,10 @@ eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
 
 if DivPP1 then
     Rprod := Codomain(hX);
-    GB := GroebnerBasis(ideal< Rprod | eqs >);
-    Append(~eqs, GB[#GB]);
+    I := ideal< Rprod | eqs >;
+    varord := VariableOrder();
+    GB := GroebnerBasis(EliminationIdeal(I, { varord[1], varord[3] }));
+    eqs cat:= GB;
 end if;
 
 /* Corresponding scheme */
@@ -167,15 +170,11 @@ intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : 
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
-vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 
 d := LowerBound;
 while true do
-    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := DivPP1, have_to_check := true);
+    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := DivPP1);
     if found then
         return true, S;
     end if;
@@ -195,22 +194,17 @@ intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : M
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
-vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
-F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
+F := X`F; OF := X`OF;
 Rprod := PolynomialRing(X`F, 4, "lex");
 /* Bit more global margin just to be sure */
 P, Qs := InitializedIterator(X, Y, NormM, X`g + 6);
 
 prs := [ ]; DEss_red := [* *];
 I := ideal<X`OF | 1>;
-have_to_check := true;
 
 d := LowerBound;
 while true do
@@ -226,7 +220,7 @@ while true do
     NormM_red := ReduceMatrixSplit(NormM, h);
 
     while true do
-        found, S_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, DivPP1 := DivPP1, have_to_check := have_to_check);
+        found, S_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, DivPP1 := DivPP1);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -238,7 +232,6 @@ while true do
             return false, [];
         end if;
     end while;
-    have_to_check := false;
     Append(~DEss_red, DefiningEquations(S_red));
 
     vprintf EndoCheck : "Fractional CRT... ";
@@ -252,7 +245,7 @@ while true do
                 Rprod_red := Parent(DEss_red[j][1]);
                 Append(~rs, MonomialCoefficient(DEss_red[j][i], Monomial(Rprod_red, exp)));
             end for;
-            DE +:= FractionalCRTSplit(rs, prs) * Monomial(Rprod, exp);
+            DE +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(Rprod, exp);
         end for;
         Append(~DEs, DE);
     end for;
@@ -279,31 +272,21 @@ end while;
 end intrinsic;
 
 
-function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := false, have_to_check := true)
+function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := false)
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 fs := CandidateDivisors(X, Y, d);
-//fsNew := CandidateDivisorsNew(X, Y, d);
 n := #fs + Margin;
-//n := 450;
 vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
 P, Qs := InitializedIterator(X, Y, NormM, n);
-vprintf EndoCheck, 4 : "Base point:\n";
-_<t> := Parent(P[1]);
-_<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */
 vprintf EndoCheck, 2 : "Solving linear system... ";
 ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
-//ICsNew := IrreducibleComponentsFromBranchesNew(X, Y, fsNew, P, Qs : DivPP1 := DivPP1);
 vprintf EndoCheck, 2 : "done.\n";
 
 for S in ICs do

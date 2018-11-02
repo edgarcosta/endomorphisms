@@ -139,8 +139,8 @@ for i in [1..#vsb] do
     num := &+[ vsb[i][#B + j]*B[j] : j in [1..#B] ];
     Append(~bs, num/den);
 end for;
-vprint EndoCheck, 4 : "Function basis before simplification:";
-vprint EndoCheck, 4 : as cat bs;
+//vprint EndoCheck, 3 : "Function basis before simplification:";
+//vprint EndoCheck, 3 : as cat bs;
 return as cat bs;
 
 end function;
@@ -174,13 +174,8 @@ vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
 P, Qs := InitializedIterator(X, Y, NormM, n*e);
-vprintf EndoCheck, 4 : "Base point:\n";
 _<t> := Parent(P[1]);
 _<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a Cantor morphism to it */
@@ -218,11 +213,7 @@ InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 X`RRgens := RRGenerators(X);
 X`globgens, X`DEs_sub := GlobalGenerators(X);
 
-vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
-vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent matrix after change of basis: ";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
 tjs0, f := InitializeImageBranch(NormM);
 
@@ -249,16 +240,12 @@ InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 X`RRgens := RRGenerators(X);
 X`globgens, X`DEs_sub := GlobalGenerators(X);
 
-vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
-vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent matrix after change of basis: ";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
 tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
-gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
+gY := Y`g; F := X`F; OF := X`OF;
 /* TODO: Add decent margin here, + 1 already goes wrong occasionally */
 P, Qs := InitializedIterator(X, Y, NormM, gY + 2);
 
@@ -334,20 +321,16 @@ if Y`g eq 1 then
     subsX := [ KA ! X`RA.1, KA ! X`RA.2 ];
     if X`is_hyperelliptic or (X`g eq 1) then
         if X`patch_index eq 3 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
             subsX := [ subsX[2] / subsX[1]^(g + 1), 1 / subsX[1] ];
         end if;
     elif X`is_planar then
         if X`patch_index eq 2 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
             subsX := [ subsX[1] / subsX[2], 1 / subsX[2] ];
         elif X`patch_index eq 3 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
             subsX := [ subsX[2] / subsX[1], 1 / subsX[1] ];
         end if;
     end if;
     if X`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying functions for uniformizer index of X";
         subsX := [ subsX[2], subsX[1] ];
     end if;
     fs := [ Evaluate(X`KA ! f, subsX) : f in fs ];
@@ -358,11 +341,9 @@ end if;
 if Y`g eq 1 then
     fs := [ -fs[1], fs[2] ];
     if Y`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying functions for uniformizer index of Y";
         fs := [ fs[2], fs[1] ];
     end if;
     if Y`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying functions for patch index of Y";
         fs := [ 1 / fs[2], fs[1] / fs[2]^2 ];
     end if;
 end if;

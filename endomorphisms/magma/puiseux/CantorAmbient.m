@@ -117,15 +117,6 @@ function CheckApproximation(X, Y, P, Qs, fs)
  * Verifies if the given functions approximate well
  */
 
-/* TODO: If this check fails, add some more precision in the global case */
-//dens := [ Denominator(f) : f in fs ];
-//for den in dens do
-//    print Evaluate(den, P);
-//    if IsWeaklyZero(Evaluate(den, P)) then
-//        return false;
-//    end if;
-//end for;
-
 g := Y`g;
 as := fs[1..g]; bs := fs[(g + 1)..(2*g)];
 for Q in Qs do
@@ -185,18 +176,13 @@ intrinsic CantorFromMatrixAmbientSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : M
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
-vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
-vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent matrix after change of basis: ";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
 tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
-gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF; RX := X`RA; KX := X`KA;
-/* TODO: Add decent margin here, + 1 already goes wrong occasionally */
-P, Qs := InitializedIterator(X, Y, NormM, gY + 2);
+F := X`F; OF := X`OF; RX := X`RA; KX := X`KA;
+P, Qs := InitializedIterator(X, Y, NormM, Y`g + 6);
 
 prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
@@ -238,7 +224,7 @@ while true do
         for mon in Monomials(Numerator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Numerator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            num +:= FractionalCRTSplit(rs, prs) * Monomial(RX, exp);
+            num +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RX, exp);
         end for;
         den := RX ! 0;
         for mon in Monomials(Denominator(fss_red[1][i])) do
@@ -281,13 +267,6 @@ vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
 P, Qs := InitializedIterator(X, Y, NormM, n*e);
-vprintf EndoCheck, 4 : "Base point:\n";
-_<t> := Parent(P[1]);
-_<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a Cantor morphism to it */
@@ -327,20 +306,16 @@ if Y`g eq 1 then
 subsX := [ K ! X`RA.1, K ! X`RA.2 ];
 if X`is_hyperelliptic or (X`g eq 1) then
     if X`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying functions for patch index of X";
         subsX := [ subsX[2] / subsX[1]^(g + 1), 1 / subsX[1] ];
     end if;
 elif X`is_planar then
     if X`patch_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying functions for patch index of X";
         subsX := [ subsX[1] / subsX[2], 1 / subsX[2] ];
     elif X`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying functions for patch index of X";
         subsX := [ subsX[2] / subsX[1], 1 / subsX[1] ];
     end if;
 end if;
 if X`unif_index eq 2 then
-    vprint EndoCheck, 3 : "Modifying functions for uniformizer index of X";
     subsX := [ subsX[2], subsX[1] ];
 end if;
 fs := [ X`KA ! Evaluate(f, subsX) : f in fs ];
@@ -351,11 +326,9 @@ end if;
 if Y`g eq 1 then
     fs := [ -fs[1], fs[2] ];
     if Y`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying functions for uniformizer index of Y";
         fs := [ fs[2], fs[1] ];
     end if;
     if Y`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying functions for patch index of Y";
         fs := [ 1 / fs[2], fs[1] / fs[2]^2 ];
     end if;
 end if;

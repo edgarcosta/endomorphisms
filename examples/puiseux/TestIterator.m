@@ -29,12 +29,12 @@ time InitializeCurve(X, P0);
 
 /* This is fast and does not give trouble so far */
 f := X`DEs[1];
-P := DevelopPoint(X, P0, 0);
-for n in [1..100] do
+P := DevelopPoint(X, P0, 98);
+for n in [98..100] do
     Pnew := DevelopPoint(X, P0, n);
-    //print "---";
-    //print Pnew[2] - P[2];
-    //print Evaluate(f, Pnew);
+    print Pnew[2] - P[2];
+    print Evaluate(f, Pnew);
+    print "---";
     P := Pnew;
 end for;
 
@@ -43,6 +43,7 @@ P, Qs, IterateLift := InitializedIterator(X, X, M, X`g + 5);
 print P;
 print Qs;
 
+/* Further iteration seems perfect now, no exceptions found yet */
 while true do
     Pnew, Qsnew := IterateIterator(P, Qs, IterateLift);
     print Qsnew[3][2] - Qs[3][2];

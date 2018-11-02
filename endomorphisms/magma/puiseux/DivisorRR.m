@@ -280,13 +280,8 @@ vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
 P, Qs := InitializedIterator(X, Y, NormM, n);
-vprintf EndoCheck, 4 : "Base point:\n";
 _<t> := Parent(P[1]);
 _<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */
@@ -324,11 +319,7 @@ X`RRgens := RRGenerators(X);
 //X`globgens, X`DEs_sub := GlobalGenerators(X);
 
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
-vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 
 d := LowerBound;
 while true do
@@ -355,15 +346,11 @@ X`RRgens := RRGenerators(X);
 //X`globgens, X`DEs_sub := GlobalGenerators(X);
 
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
-vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
-F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
+F := X`F; OF := X`OF;
 //RAprod := PolynomialRing(X`F, 4, "lex");
 RAprod := PolynomialRing(X`F, 4);
 // TODO: We cannot usually take X`g. Find out what this should be instead.

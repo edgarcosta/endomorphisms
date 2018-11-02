@@ -77,7 +77,7 @@ if Type(I) eq RngIntElt then
     end if;
 end if;
 rs := [ Integers() ! r : r in rs ];
-M := Matrix([ [ 1, CRT(rs, ps), I ] ]);
+M := Matrix([ [ 1, CRT(rs, ps), Norm(I) ] ]);
 Lat := Lattice(Kernel(Transpose(M)));
 /* Fast way of finding shortest vector */
 v := Basis(LLL(Lat))[1];

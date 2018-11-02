@@ -1,7 +1,3 @@
-Branches.m, Divisor.m, Cantor.m: appropriate margins in various computations
-Branches.m: make as fast as possible, add possibility to refine calculated approximation further when proceeding to higher degree or alternatively use iterator up to point where new refinement necessary
-
-
 Idempotent finding:
 
 (1) Given a period matrix P, calculate the corresponding geometric endomorphism algebra over the splitting field L.

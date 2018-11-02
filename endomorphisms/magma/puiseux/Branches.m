@@ -24,6 +24,7 @@ forward DevelopPoint;
 forward InitializeLift;
 forward CreateLiftIterator;
 forward InitializedIterator;
+forward IterateIterator;
 
 
 function LiftPuiseuxSeries(f, PR, e)
@@ -292,10 +293,11 @@ end intrinsic;
 
 
 intrinsic IterateIterator(P::SeqEnum, Qs::SeqEnum[SeqEnum], IterateLift) -> Tup, Tup
-{Applies IterateLift to the pair (P, Qs).}
+{Applies IterateLift to the pair (P, Qs) to add maximal possible precision that
+does not get lost later on.}
 /* May want to include bound here too, but for now that is useless */
 
-e := ExponentDenominator(Qs[1][1]);
+e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
 prec := Minimum([ AbsolutePrecision(c) : c in P cat &cat(Qs) ]);
 P, Qs := IterateLift(P, Qs, Infinity());
 PR := PuiseuxSeriesRing(BaseRing(Parent(P[1])), Integers() ! (2*((e*prec) - 1) + 1));

@@ -37,18 +37,20 @@ forward InitializeCurve;
 
 
 function OurAffinePatch(X, P0);
+/* The patches are chosen in such a way that we can later use the same differentials */
 
 if IsAffine(X) then
     return X, DefiningEquations(X), P0, 1;
 
 elif X`is_hyperelliptic or (X`g eq 1) then
-    /* Probably this does nothing... but still */
     U, P0, patch_index := AffinePatch(X, P0);
     DEs := DefiningEquations(AffinePatch(X, 1));
     RA := Parent(DEs[1]);
     d := 2*(X`g) + 2;
     if patch_index eq 3 then
-        DEs := [ RA ! (-RA.2^d * Evaluate(DE, [ 1/RA.2, RA.1/(RA.2^(d div 2)) ])) : DE in DEs ];
+        /* Minus inserted for consistency in defining polynomial:
+         * Magma sees usual als p (x) - y^2 but this patch as x^2 - p (y) */
+        DEs := [ RA ! (RA.2^d * Evaluate(DE, [ 1/RA.2, RA.1/(RA.2^(d div 2)) ])) : DE in DEs ];
     end if;
     U := Curve(AffineSpace(RA), DEs);
     return U, DEs, U ! Eltseq(P0), patch_index;
@@ -131,16 +133,20 @@ if g eq 0 then
 
 elif g eq 1 then
     /* Elliptic case: we use dx / 2y */
+    /* Usual version where the uniformizing coordinate u is that on PP^1 */
     if Degree(f, v) eq 2 then
         s := MonomialCoefficient(f, v^2);
         return [ s / Derivative(f, v) ];
     else
+        /* If coordinate on PP^1 did not work, then this is the expression in
+         * the new uniformizer */
         s := MonomialCoefficient(f, u^2);
         return [ -s / Derivative(f, v) ];
     end if;
 
 elif X`is_hyperelliptic then
-    /* (Hyper)elliptic case: we use x^i dx / 2y */
+    /* (Hyper)elliptic case: we use x^i dx / 2y
+     * In this case x is always the uniformizer */
     s := MonomialCoefficient(f, v^2);
     return [ s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
 
@@ -151,7 +157,6 @@ elif X`is_plane_quartic then
 else
     x := X`KU ! (X`RU).1;
     return [ X`KA ! (b / Differential(x)) : b in BasisOfDifferentialsFirstKind(X`U) ];
-    //error "OurBasisOfDifferentials not implemented yet for this curve";
 end if;
 
 end function;
@@ -170,23 +175,19 @@ F := X`F;
 M := Transpose(M);
 if X`g eq 1 or X`is_hyperelliptic then
     if X`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, Reverse(rows));
     end if;
 
 elif X`is_plane_quartic then
     if X`patch_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
     elif X`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying tangent action for patch index of X";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
     if X`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of X";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
     end if;
@@ -197,23 +198,19 @@ M := Transpose(M);
  * rows. */
 if Y`g eq 1 or Y`is_hyperelliptic then
     if Y`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of Y";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, Reverse(rows));
     end if;
 
 elif Y`is_plane_quartic then
     if Y`patch_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying tangent action for patch index of Y";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
     elif Y`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying tangent action for patch index of Y";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
     if Y`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying tangent action for uniformizing index of Y";
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
     end if;
@@ -302,19 +299,13 @@ vprint EndoCheck, 3 : X`P0;
 
 /* Construct equation order */
 if Type(X`F) eq FldRat then
-    X`rF := 1;
     X`OF := Integers();
-    X`BOF := Basis(X`OF);
 elif Type(X`F) eq FldNum then
-    X`rF := Denominator(X`F.1) * X`F.1;
-    X`OF := Order([ X`rF^i : i in [0..Degree(X`F) - 1] ]);
-    X`BOF := Basis(X`OF);
+    X`OF := EquationOrder(X`F);
 end if;
 
 X`OurB := OurBasisOfDifferentials(X);
 X`NormB, X`T := NormalizedBasisOfDifferentials(X);
-/* TODO: Seems to speed things up */
-//X`NormB := X`OurB; X`T := IdentityMatrix(X`F, X`g);
 _<u,v> := Parent(X`OurB[1]);
 vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
 vprint EndoCheck, 3 : X`OurB;
