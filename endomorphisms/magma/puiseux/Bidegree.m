@@ -15,6 +15,7 @@ import "Conventions.m": VariableOrder;
 
 intrinsic BiDimDeg(X::Crv, Y::Crv, D::Sch) -> SeqEnum
 {Given a subscheme D of the product X x Y, returns the dimension of the fibers of the projections to X and Y over the base point (P_0, Q_0) of X x Y, as well as the degree of these projections restricted to these fibers.}
+/* Note that we assume that there are no points at infinity */
 
 A4 := Ambient(D); RA4 := CoordinateRing(A4);
 RA2 := PolynomialRing(X`F, 2); A2 := AffineSpace(RA2);
@@ -31,6 +32,7 @@ end intrinsic;
 
 intrinsic Bidegree(X::Crv, Y::Crv, D::Sch) -> SeqEnum
 {Given a subscheme D of the product X x Y, returns the degree of the projections to X and Y over the base point (P_0, Q_0) restricted to the corresponding fibers.}
+/* Same as above, except that extension allows global degree calculation */
 
 A4 := Ambient(D); RA4 := CoordinateRing(A4);
 RA2 := PolynomialRing(X`F, 2); A2 := AffineSpace(RA2);

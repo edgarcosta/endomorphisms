@@ -78,6 +78,8 @@ F := Parent(M[1,1]);
 gY := #Rows(M);
 e := PuiseuxRamificationIndex(M);
 
+/* If Y has genus 1 then we know more about the start of the development since
+ * there is no need to desymmetrize */
 if gY eq 1 then
     r := Eltseq(Rows(M)[1]);
     RF := PolynomialRing(F); xF := RF.1; PF := PowerSeriesRing(F, #r + 1); tF := PF.1;
@@ -131,6 +133,8 @@ function DevelopPoint(X, P0, n)
  * The x-coordinate x0 of P can be specified as a constant element or as a
  * Puiseux series. In the latter case, the value for y is determined directly;
  * in the former, we consider x0 + t and find the corresponding value of y.
+ *
+ * (So this function does two things. Yes, that is bad practice...)
  */
 
 if Type(P0[1]) in [ RngSerPuisElt, RngSerPowElt ] then
@@ -173,7 +177,7 @@ function InitializeLift(X, Y, M)
 /*
  * Input:   Curves X and Y and a normalized matrix M.
  * Output:  The very first terms in the development of P and the corresponding
- *          branches Q_j.
+ *          branches Q_j. Note that this result can contain some superfluous terms.
  */
 
 P0 := X`P0; Q0 := Y`P0;
