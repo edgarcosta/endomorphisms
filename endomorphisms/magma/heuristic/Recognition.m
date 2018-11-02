@@ -42,6 +42,7 @@ degf := 0;
 powera := CC ! 1;
 MLine cat:= [ powergen * powera : powergen in powersgen ];
 
+vprint EndoFind : "";
 /* Successively adding other entries to find relations */
 while degf lt UpperBound do
     degf +:= 1;
@@ -51,20 +52,14 @@ while degf lt UpperBound do
 
     if (degf ge LowerBound) and (degf mod StepSize eq 0) then
         /* Split and take an IntegralLeftKernel */
-        vprint EndoFind : "Trying degree", degf;
         MSplit := HorizontalSplitMatrix(M);
         Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
         /* We only consider the first row */
         if test_ker then
             row := Rows(Ker)[1];
-            vprint EndoFind : "First row:", row;
-            test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-            //test_height := true;
-            if test_height then
-                f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
-                if TestCloseToRoot(f, a) then
-                    return f;
-                end if;
+            f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
+            if TestCloseToRoot(f, a) then
+                return f;
             end if;
         end if;
     end if;

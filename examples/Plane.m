@@ -4,7 +4,7 @@
   directory; this file shows how to access the heuristic part.
 */
 
-SetVerbose("EndoFind", 0);
+//SetVerbose("EndoFind", 1);
 
 prec := 100;
 CCSmall := ComplexField(5);

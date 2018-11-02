@@ -87,7 +87,7 @@ class EndomorphismData:
 
     def set_base_point(self):
         if not hasattr(self, "base_point"):
-            self.base_point = magma.NonWeierstrassBasePoint(self.X, self._endo_fod_)
+            self.base_point = magma.SmallBasePoint(self.X, self._endo_fod_, NW = True)
 
     def correspondence(self, A):
         self.set_base_point()
@@ -206,13 +206,13 @@ class Decomposition:
 
     def set_base_point(self):
         if not hasattr(self, "base_point"):
-            self.base_point = magma.NonWeierstrassBasePoint(self.X, self.field)
+            self.base_point = magma.SmallBasePoint(self.X, self.field, NW = True)
 
     def set_base_point_factor(self, fac):
         if not 'base_point' in fac['factor'].keys():
             Y = fac['factor']['algebraic']
             K = self.field
-            fac['factor']['base_point'] = magma.NonWeierstrassBasePoint(Y, K)
+            fac['factor']['base_point'] = magma.SmallBasePoint(Y, K, NW = True)
 
     def correspondence(self, fac):
         # TODO: Deal with bounds well instead of kicking it to Magma

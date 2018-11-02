@@ -313,7 +313,7 @@ end if;
 
 X`OurB := OurBasisOfDifferentials(X);
 X`NormB, X`T := NormalizedBasisOfDifferentials(X);
-/* Use next line for DZB verification */
+/* TODO: Seems to speed things up */
 //X`NormB := X`OurB; X`T := IdentityMatrix(X`F, X`g);
 _<u,v> := Parent(X`OurB[1]);
 vprintf EndoCheck, 3 : "Standard basis of differentials:\n";

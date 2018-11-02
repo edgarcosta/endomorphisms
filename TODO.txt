@@ -1,7 +1,5 @@
 Branches.m, Divisor.m, Cantor.m: appropriate margins in various computations
 Branches.m: make as fast as possible, add possibility to refine calculated approximation further when proceeding to higher degree or alternatively use iterator up to point where new refinement necessary
-Divisor.m: get rid of Weierstrass condition (possible on one factor, on both if leading terms given)
-Divisor.m: get rid of Weierstrass echelonization since it should not be needed
 
 
 Idempotent finding:

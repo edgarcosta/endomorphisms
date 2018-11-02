@@ -10,7 +10,7 @@
  */
 
 
-function NonWeierstrassBasePointHyperelliptic(X : Bound := 2^10)
+function SmallBasePointHyp(X : Bound := 2^10, NW := false)
 
 K := BaseRing(X);
 f, h := HyperellipticPolynomials(X);
@@ -30,12 +30,14 @@ if Type(BaseRing(X)) eq FldRat then
     g *:= (a*b)^2;
     Y := HyperellipticCurve(g);
     Qs := RationalPoints(Y : Bound := Bound);
-    Qs_nW := [ Q : Q in Qs | not IsWeierstrassPlace(Place(Q)) ];
-    Qs_nW_inf := [ Q : Q in Qs_nW | Q[3] eq 0 ];
-    Qs_nW_fin := [ Q : Q in Qs_nW | Q[3] ne 0 ];
+    if NW then
+        Qs := [ Q : Q in Qs | not IsWeierstrassPlace(Place(Q)) ];
+    end if;
+    Qs_inf := [ Q : Q in Qs | Q[3] eq 0 ];
+    Qs_fin := [ Q : Q in Qs | Q[3] ne 0 ];
 
-    if #Qs_nW_inf ne 0 then
-        Q := Qs_nW_inf[1];
+    if #Qs_inf ne 0 then
+        Q := Qs_inf[1];
         h0 := Coefficient(h, Degree(g) div 2);
         P := [ Q[1], (Q[2] - h0)/(2*a*b), Q[3] ];
         P := [ K ! P[1], K ! P[2], K ! P[3] ];
@@ -43,10 +45,10 @@ if Type(BaseRing(X)) eq FldRat then
         return XK ! P;
     end if;
 
-    if #Qs_nW_fin ne 0 then
-        Hts := [ Maximum([ Height(c) : c in Eltseq(Q) ]) : Q in Qs_nW_fin ];
+    if #Qs_fin ne 0 then
+        Hts := [ Maximum([ Height(c) : c in Eltseq(Q) ]) : Q in Qs_fin ];
         min, ind := Minimum(Hts);
-        Q := Qs_nW_fin[ind];
+        Q := Qs_fin[ind];
         h0 := Evaluate(h, Q[1]);
         P := [ Q[1], (Q[2] - h0)/(2*a*b), Q[3] ];
         P := [ K ! P[1], K ! P[2], K ! P[3] ];
@@ -58,7 +60,7 @@ end if;
 g := 4*f + h^2; Y := HyperellipticCurve(g);
 d := Degree(g);
 
-/* Non-Weierstrass point in infinite patch: */
+/* Infinite patch: */
 if IsEven(d) then
     e := d div 2;
     g0 := Coefficient(g, d);
@@ -72,7 +74,7 @@ if IsEven(d) then
     return XL ! P;
 end if;
 
-/* Non-Weierstrass point in finite patch: */
+/* Finite patch: */
 if IsOdd(d) then
     n0 := 0;
     while true do
@@ -90,20 +92,22 @@ if IsOdd(d) then
     XL := ChangeRingCurve(X, hKL);
     return XL ! P;
 end if;
-error "All cases in NonWeierstrassBasePointHyperelliptic fell through";
+error "All cases in SmallBasePointHyp fell through";
 
 end function;
 
 
-function NonWeierstrassBasePointPlane(X : Bound := 2^10)
+function SmallBasePointPlane(X : Bound := 2^10, NW := false)
 
 K := BaseRing(X);
 Ps := RationalPoints(X);
-Ps_nW := [ P : P in Ps | not IsWeierstrassPlace(Place(P)) ];
-if #Ps_nW ne 0 then
-    Hts := [ Maximum([ Height(c) : c in Eltseq(P) ]) : P in Ps_nW ];
+if NW then
+    Ps := [ P : P in Ps | not IsWeierstrassPlace(Place(P)) ];
+end if;
+if #Ps ne 0 then
+    Hts := [ Maximum([ Height(c) : c in Eltseq(P) ]) : P in Ps ];
     min, ind := Minimum(Hts);
-    P := Ps_nW[ind];
+    P := Ps[ind];
     return X ! Eltseq(P);
 end if;
 
@@ -111,7 +115,7 @@ f := DefiningPolynomial(X);
 R<x,y,z> := PolynomialRing(K, 3);
 S<t> := PolynomialRing(K);
 
-/* If there is a rational Weierstrass point, then take lines through it */
+/* If there is a rational point, then take lines through it */
 if #Ps ne 0 then
     P0 := Ps[1];
     x0, y0, z0 := Explode(Eltseq(P0));
@@ -133,8 +137,10 @@ if #Ps ne 0 then
                 P := [ n0*rt + x0, y0, rt + z0 ];
             end if;
             XL := ChangeRingCurve(X, hKL);
-            if not IsWeierstrassPlace(Place(XL ! P)) then
-                return P;
+            if NW then
+                if not IsWeierstrassPlace(Place(XL ! P)) then
+                    return P;
+                end if;
             end if;
         end for;
         n0 +:= 1;
@@ -151,8 +157,10 @@ while true do
         rt := Roots(hRS(f), L)[1][1];
         P := [ n0, rt, 1 ];
         XL := ChangeRingCurve(X, hKL);
-        if not IsWeierstrassPlace(Place(XL ! P)) then
-            return XL ! P;
+        if NW then
+            if not IsWeierstrassPlace(Place(XL ! P)) then
+                return XL ! P;
+            end if;
         end if;
     end for;
     n0 +:= 1;
@@ -161,14 +169,14 @@ end while;
 end function;
 
 
-intrinsic NonWeierstrassBasePoint(X::Crv : Bound := 2^10) -> SeqEnum
-{Given a curve X, returns a non-Weierstrass point on X over a small extension
-of its base field.}
+intrinsic SmallBasePoint(X::Crv : Bound := 2^10, NW := NW) -> SeqEnum
+{Given a curve X, returns a point on X over a small extension of its base
+field, which we can ask to be a non-Weierstrass point.}
 
 if Type(X) eq CrvHyp then
-    return NonWeierstrassBasePointHyperelliptic(X : Bound := Bound);
+    return SmallBasePointHyperelliptic(X : Bound := Bound, NW := NW);
 elif Type(X) eq CrvPln then
-    return NonWeierstrassBasePointPlane(X : Bound := Bound);
+    return SmallBasePointPlane(X : Bound := Bound, NW := NW);
 end if;
 error "Not implemented for general curves yet";
 

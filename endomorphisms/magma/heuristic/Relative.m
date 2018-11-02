@@ -175,7 +175,7 @@ CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaK in InfinitePlacesExtra(K) do
     genKCC := CC ! EvaluateExtra(genK, iotaK);
     genLCC := CC ! EvaluateExtra(genL, L`iota);
-    vprint EndoFind, 3 : RealField(5) ! Abs(genKCC - genLCC);
+    //vprint EndoFind, 3 : RealField(5) ! Abs(genKCC - genLCC);
     if Abs(genKCC - genLCC) lt CC`epscomp then
         return iotaK;
     end if;
@@ -311,14 +311,14 @@ assert Precision(Parent(aCCs[1])) ge Precision(K`CC);
 /* Iterative extension */
 tupsa := [ ];
 for aCC in aCCs do
-    vprint EndoFind, 2 : "Before extension:";
-    vprint EndoFind, 2 : K;
-    vprint EndoFind : "";
-    K, tupsa := ExtendNumberFieldExtra(K, tupsa, aCC);
-    vprint EndoFind, 2 : "";
-    vprint EndoFind, 2 : "After extension:";
-    vprint EndoFind, 2 : K;
-    vprint EndoFind, 2 : "";
+    Knew, tupsa := ExtendNumberFieldExtra(K, tupsa, aCC);
+    if Knew ne K then
+        vprint EndoFind : "";
+        vprint EndoFind : "After extension:";
+        vprint EndoFind : Knew;
+        vprint EndoFind : "";
+    end if;
+    K := Knew;
 end for;
 
 /* Sanity check before returning */
@@ -371,7 +371,6 @@ for rtf in rtsf do
     L`base_gen := h(K`base_gen);
 
     for iotaL in InfinitePlacesExtra(L) do
-        vprint EndoFind, 2 : iotaL;
         test := true;
 
         /* First test: generator of F */
@@ -443,14 +442,14 @@ assert Precision(Parent(aCCs[1])) ge Precision(K`CC);
 /* Iterative extension */
 tupsa := [ ];
 for aCC in aCCs do
-    vprint EndoFind, 2 : "Before extension:";
-    vprint EndoFind, 2 : K;
-    vprint EndoFind : "";
-    K, tupsa := ExtendSplittingFieldExtra(K, tupsa, aCC);
-    vprint EndoFind, 2 : "";
-    vprint EndoFind, 2 : "After extension:";
-    vprint EndoFind, 2 : K;
-    vprint EndoFind, 2 : "";
+    Knew, tupsa := ExtendSplittingFieldExtra(K, tupsa, aCC);
+    if Knew ne K then
+        vprint EndoFind : "";
+        vprint EndoFind : "After extension:";
+        vprint EndoFind : Knew;
+        vprint EndoFind : "";
+    end if;
+    K := Knew;
 end for;
 
 /* Sanity check before returning */
@@ -513,7 +512,6 @@ for rtf in rtsf do
     L`base_gen := h(K`base_gen);
 
     for iotaL in InfinitePlacesExtra(L) do
-        vprint EndoFind, 2 : iotaL;
         test := true;
 
         /* First test: generator of F */

@@ -4,8 +4,9 @@
   directory; this file shows how to access the heuristic part.
 */
 
-SetVerbose("EndoFind", 1);
-SetVerbose("CurveRec", 1);
+//SetVerbose("EndoFind", 1);
+//SetVerbose("CurveRec", 1);
+
 prec := 500;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);

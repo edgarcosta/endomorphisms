@@ -145,19 +145,19 @@ if OneRow then
     rowsK := [ rowsK[1] ];
 end if;
 
+CCSmall := ComplexField(5);
 rowsK0 := [ ];
 for row in rowsK do
-    vprint EndoFind, 2 : row;
-    test1 := &and[ Abs(c) lt RR`height_bound : c in Eltseq(row) ];
+    ht := Max([ Abs(c) : c in Eltseq(row) ]);
+    vprint EndoFind : "Height of row:", Round(Log(ht));
+    test1 := ht lt RR`height_bound;
     //test1 := true;
-    vprint EndoFind, 2 : test1;
     if test1 then
         prod := Matrix(RR, [ Eltseq(row) ])*M;
-        test2 := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
-        //test2 := &and[ Abs(c) lt 10^50*RR`epscomp : c in Eltseq(prod) ];
-        vprint EndoFind, 2 : test2;
-        vprint EndoFind, 3 : ComplexField(5) ! RR`epscomp;
-        vprint EndoFind, 3 : ComplexField(5) ! Max([ Abs(c) : c in Eltseq(prod) ]);
+        abs := Max([ Abs(c) : c in Eltseq(prod) ]);
+        test2 := abs lt RR`epscomp;
+        //test2 := abs lt 10^50*RR`epscomp;
+        vprint EndoFind : "Precision reached:", CCSmall ! abs;
         if test2 then
             Append(~rowsK0, row);
         end if;
