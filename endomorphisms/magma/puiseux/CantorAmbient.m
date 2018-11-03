@@ -37,11 +37,13 @@ function CandidateFunctions(X, d)
 
 g := X`g; f := X`DEs[1]; R := X`RA;
 x := R.1; y := R.2;
+/* Change in hyperelliptic case for greater effectiveness: */
 if Degree(f, x) lt Degree(f, y) then
     x := R.2; y := R.1;
 end if;
 
 if X`is_hyperelliptic or (g eq 1) then
+    /* This case distinction is a bit silly */
     if Degree(f) mod 2 eq 1 then
         nums := [ x^i : i in [0..(d div 2)] ] cat [ x^i*y : i in [0..((d - 2*g - 1) div 2)] ];
     else
@@ -149,7 +151,7 @@ return true;
 end function;
 
 
-intrinsic CantorFromMatrixAmbientGlobal(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity()) -> Sch
+intrinsic CantorFromMatrixAmbientGlobal(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
@@ -157,12 +159,12 @@ NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
+Iterator := InitializedIterator(X, Y, NormM, Y`g + 7);
 while true do
-    found, fs := CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, have_to_check := true);
+    found, fs, Iterator := CantorFromMatrixByDegree(X, Y, Iterator, d : Margin := Margin);
     if found then
         return true, ChangeFunctions(X, Y, fs);
     end if;
-    /* If that does not work, give up and try one degree higher: */
     d +:= 1;
     if d gt UpperBound then
         return false, [];
@@ -172,21 +174,22 @@ end while;
 end intrinsic;
 
 
-intrinsic CantorFromMatrixAmbientSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), B := 300) -> Sch
+intrinsic CantorFromMatrixAmbientSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
+/* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
-tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
 F := X`F; OF := X`OF; RX := X`RA; KX := X`KA;
-P, Qs := InitializedIterator(X, Y, NormM, Y`g + 6);
+/* Bit more global margin just to be sure */
+Iterator, f := InitializedIterator(X, Y, NormM, Y`g + 7);
+P := Iterator[1]; Qs := Iterator[2];
 
 prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
-have_to_check := true;
 
 d := LowerBound;
 while true do
@@ -201,8 +204,9 @@ while true do
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
     NormM_red := ReduceMatrixSplit(NormM, h);
 
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, Y`g + 7);
     while true do
-        found, fs_red := CantorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, have_to_check := have_to_check);
+        found, fs_red, Iterator_red := CantorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -214,7 +218,6 @@ while true do
             return false, [];
         end if;
     end while;
-    have_to_check := false;
     Append(~fss_red, fs_red);
 
     vprintf EndoCheck : "Fractional CRT... ";
@@ -255,18 +258,25 @@ end while;
 end intrinsic;
 
 
-function CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, have_to_check := true)
-/* Step mod p of the above */
+function CantorFromMatrixByDegree(X, Y, Iterator, d : Margin := 2^5)
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 dens, nums := CandidateFunctions(X, d);
 n := #dens + #nums + Margin;
-e := PuiseuxRamificationIndex(NormM);
+e := ExponentDenominator(Iterator[2][1][1]);
 vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
 
 /* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := InitializedIterator(X, Y, NormM, n*e);
+vprintf EndoCheck, 2 : "Expanding branches... ";
+while true do
+    P, Qs, _, _ := Explode(Iterator);
+    prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ]);
+    if prec ge n then
+        break;
+    end if;
+    Iterator := IterateIterator(Iterator);
+end while;
+P, Qs, _, _ := Explode(Iterator);
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a Cantor morphism to it */
@@ -285,11 +295,11 @@ if test then
         vprintf EndoCheck, 2 : "done.\n";
         if test2 then
             vprintf EndoCheck, 2 : "Functions found!\n";
-            return true, fs;
+            return true, fs, Iterator;
         end if;
     end if;
 end if;
-return false, [];
+return false, [], Iterator;
 
 end function;
 

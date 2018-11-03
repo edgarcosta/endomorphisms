@@ -39,15 +39,12 @@ for n in [98..100] do
 end for;
 
 M := Matrix(Rationals(), 3, 3, [ Random(D) : i in [1..9] ]);
-P, Qs, IterateLift := InitializedIterator(X, X, M, X`g + 5);
-P, Qs := InitializeLift(X, X, M);
-IterateLift := CreateLiftIterator(X, X, M);
-print P;
-print Qs;
+Iterator := InitializedIterator(X, X, M, X`g + 5);
 
 /* Further iteration seems perfect now, no exceptions found yet */
 while true do
-    Pnew, Qsnew := IterateIterator(P, Qs, IterateLift);
-    print Qsnew[3][2] - Qs[3][2];
-    P := Pnew; Qs := Qsnew;
+    IteratorNew := IterateIterator(Iterator);
+    QsNew := IteratorNew[2]; Qs := Iterator[2];
+    print QsNew[3][2] - Qs[3][2];
+    Iterator := IteratorNew;
 end while;

@@ -85,7 +85,7 @@ for f in fs do
     for Q in Qs do
         seq := ExtractPoints(X, Y, P, Q);
         ev := Evaluate(f, seq);
-        /* Small buffer depending on genus */
+        /* Small buffer: we might just as well take 1 instead of X`g */
         r cat:= [ Coefficient(ev, i/e) : i in [0..prec - X`g] ];
     end for;
     Append(~M, r);
@@ -118,9 +118,6 @@ end if;
 /* Corresponding scheme */
 A := AffineSpace(Rprod); S := Scheme(A, eqs);
 return [ S ];
-
-/* TODO: These steps may be a time sink and should be redundant, so we avoid
- *       them. They get eliminated as the degree increases anyway. */
 return [ ReducedSubscheme(I) : I in IrreducibleComponents(S) ];
 
 end function;
@@ -179,14 +176,12 @@ NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
+Iterator := InitializedIterator(X, Y, NormM, Y`g + 7);
 while true do
-    /* TODO: Add points as third return value and keyword argument */
-    /* This requires while to go in Branches: incorporate knowledge of n there. Make this a second version. */
-    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := Margin);
+    found, S, Iterator := DivisorFromMatrixByDegree(X, Y, Iterator, d : Margin := Margin);
     if found then
         return true, S;
     end if;
-    /* If that does not work, give up and try one degree higher */
     d +:= 1;
     if d gt UpperBound then
         return false, [];
@@ -203,13 +198,13 @@ intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : M
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
-tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
 F := X`F; OF := X`OF;
 Rprod := PolynomialRing(X`F, 4, "lex");
 /* Bit more global margin just to be sure */
-P, Qs := InitializedIterator(X, Y, NormM, X`g + 6);
+Iterator, f := InitializedIterator(X, Y, NormM, Y`g + 7);
+P := Iterator[1]; Qs := Iterator[2];
 
 prs := [ ]; DEss_red := [* *];
 I := ideal<X`OF | 1>;
@@ -227,8 +222,9 @@ while true do
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
     NormM_red := ReduceMatrixSplit(NormM, h);
 
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, Y`g + 7);
     while true do
-        found, S_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin);
+        found, S_red, Iterator_red := DivisorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -280,16 +276,25 @@ end while;
 end intrinsic;
 
 
-function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^5)
+function DivisorFromMatrixByDegree(X, Y, Iterator, d : Margin := 2^5)
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 fs := CandidateDivisors(X, Y, d);
 n := #fs + Margin;
 vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
-/* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := InitializedIterator(X, Y, NormM, n);
+vprintf EndoCheck, 2 : "Expanding branches... ";
+while true do
+    P, Qs, _, _ := Explode(Iterator);
+    prec := Precision(Parent(Qs[1][1]));
+    /* TODO: Multiply by ramification index like this? */
+    //prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ]);
+    if prec ge n then
+        break;
+    end if;
+    Iterator := IterateIterator(Iterator);
+end while;
+P, Qs, _, _ := Explode(Iterator);
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */
@@ -309,10 +314,10 @@ for S in ICs do
         vprintf EndoCheck, 2 : "done.\n";
         if test2 then
             vprintf EndoCheck, 2 : "Divisor found!\n";
-            return true, S;
+            return true, S, Iterator;
         end if;
     end if;
 end for;
-return false, [ ];
+return false, [ ], Iterator;
 
 end function;

@@ -22,7 +22,7 @@ forward InitializeImageBranch;
 forward DevelopPoint;
 
 forward InitializeLift;
-forward CreateLiftIterator;
+forward CreateLiftIteratorFunction;
 forward InitializedIterator;
 forward IterateIterator;
 
@@ -185,7 +185,7 @@ function InitializeLift(X, Y, M)
 
 P0 := X`P0; Q0 := Y`P0;
 e := PuiseuxRamificationIndex(M);
-tjs0 := InitializeImageBranch(M);
+tjs0, f := InitializeImageBranch(M);
 PR := Parent(tjs0[1]);
 
 /* Creating P */
@@ -200,10 +200,10 @@ for i in [1..Y`g] do
 end for;
 /* Make sure precision buffer is always large enough to see first term */
 Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 2) ] : Qj in Qs ];
-IterateLift := CreateLiftIterator(X, Y, M);
+IterateLift := CreateLiftIteratorFunction(X, Y, M);
 
 /* Fill out small terms */
-IterateLift := CreateLiftIterator(X, Y, M);
+IterateLift := CreateLiftIteratorFunction(X, Y, M);
 while true do
     Pnew, Qsnew := IterateLift(P, Qs, Y`g);
     if Pnew eq P and Qsnew eq Qs then
@@ -211,12 +211,12 @@ while true do
     end if;
     P := Pnew; Qs := Qsnew;
 end while;
-return P, Qs;
+return P, Qs, f;
 
 end function;
 
 
-function CreateLiftIterator(X, Y, M)
+function CreateLiftIteratorFunction(X, Y, M)
 /*
  * Input:   Curves X and Y and a normalized matrix M.
  * Output:  An iterator that refines the Puiseux expansion upon application.
@@ -282,15 +282,18 @@ return Iterate;
 end function;
 
 
-intrinsic InitializedIterator(X::Crv, Y::Crv, M::., n::RngIntElt) -> Tup, Tup
+intrinsic InitializedIterator(X::Crv, Y::Crv, M::., n::RngIntElt : MaxPrec := Infinity()) -> .
 {Given curves X and Y, a matrix M that gives the tangent representation of a
 homomorphism of Jacobians on the normalized basis of differentials, and an
 integer n, returns a development of the branches to precision at least O(n)
-plus or minus a negligible amount of digits.}
+plus or minus a negligible amount of digits. This development can be iterated
+further. A minimal polynomial of the required field extension is also
+returned. An optional input MaxPrec is to bound the precision in cases where we
+know such a bound.}
 
 e := PuiseuxRamificationIndex(M);
-P, Qs := InitializeLift(X, Y, M);
-IterateLift := CreateLiftIterator(X, Y, M);
+P, Qs, f := InitializeLift(X, Y, M);
+IterateLift := CreateLiftIteratorFunction(X, Y, M);
 while true do
     Pnew, Qsnew := IterateLift(P, Qs, n);
     if Pnew eq P and Qsnew eq Qs then
@@ -298,22 +301,23 @@ while true do
     end if;
     P := Pnew; Qs := Qsnew;
 end while;
-return P, Qs, IterateLift;
+return [* P, Qs, IterateLift, MaxPrec *], f;
 
 end intrinsic;
 
 
-intrinsic IterateIterator(P::SeqEnum, Qs::SeqEnum[SeqEnum], IterateLift) -> Tup, Tup
-{Applies IterateLift to the pair (P, Qs) to add maximal possible precision that
-does not get lost later on.}
+intrinsic IterateIterator(Iterator::List) -> .
+{Applies Iterator to add maximal possible precision that does not get lost
+later on.}
 /* May want to include bound here too, but for now that is useless */
 
+P, Qs, IterateLift, MaxPrec := Explode(Iterator);
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
-prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ]);
+prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ] cat [ MaxPrec ]);
 P, Qs := IterateLift(P, Qs, Infinity());
 PR := PuiseuxSeriesRing(BaseRing(Parent(P[1])), Integers() ! (2*((e*prec) - 1) + 1));
 P := [ PR ! c : c in P ];
 Qs := [ [ PR ! c : c in Q ] : Q in Qs ];
-return P, Qs;
+return [* P, Qs, IterateLift, MaxPrec *];
 
 end intrinsic;
