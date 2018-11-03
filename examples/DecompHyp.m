@@ -13,6 +13,7 @@ F := RationalsExtra(prec);
 CC := F`CC;
 
 R<x> := PolynomialRing(F);
+f := x^8 + x^6 + 1; h := R ! 0;
 f := x^8 + x^6 + 2; h := R ! 0;
 f := (-7 + x)*(-5 + x)*(4 + x)*(8 + x)*(17 + x)*(19 + x)*(20 + x); h := R ! 0;
 /* This one gives error in reduction step, contradicting Dupont */
@@ -33,6 +34,7 @@ EndoRep := GeometricEndomorphismRepresentation(P, F);
 
 for idem in IdempotentsFromRepresentation(EndoRep) do
     print idem[2];
+    print idem[1];
     Ys := DecompositionFactors(P, idem, F);
     print Ys;
 

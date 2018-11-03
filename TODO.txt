@@ -13,9 +13,9 @@ Idempotent finding:
 Idempotent factor and, starting from scratch after that, possible polarizations (perhaps non-inherited ones as well)
 
 
+Track map down to genus 2 factor
 Map to elliptic curves
 Better symplectic subspaces for primes
 Good Prym and inherited polarization
 
 Coinciding first branches
-Use normalized form to iterate?

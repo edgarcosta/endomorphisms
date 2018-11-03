@@ -174,7 +174,7 @@ intrinsic SmallBasePoint(X::Crv : Bound := 2^10, NW := NW) -> SeqEnum
 field, which we can ask to be a non-Weierstrass point.}
 
 if Type(X) eq CrvHyp then
-    return SmallBasePointHyperelliptic(X : Bound := Bound, NW := NW);
+    return SmallBasePointHyp(X : Bound := Bound, NW := NW);
 elif Type(X) eq CrvPln then
     return SmallBasePointPlane(X : Bound := Bound, NW := NW);
 end if;
@@ -218,7 +218,7 @@ end if;
 end intrinsic;
 
 
-intrinsic CorrespondenceVerifyG1(A::., fs::SeqEnum, P::Pt, Q::Pt) -> BoolElt
+intrinsic CorrespondenceVerifyG1(A::., fs::SeqEnum, P::Pt, Q::Pt : CheckDegree := false) -> BoolElt
 {Returns whether the morphism defined by fs indeed corresponds to the tangent
 representation A.}
 
@@ -233,12 +233,13 @@ if not R ! Numerator(K ! Evaluate(R ! fY, fs)) in IX then
     return false;
 end if;
 
-/* Only use if the degree is small, if at all
-AX := AffinePatch(X, 1); AY := AffinePatch(Y, 1);
-KX := FunctionField(AX); KY := FunctionField(AY);
-m := map<AX -> AY | fs >;
-print "Degree:", Degree(ProjectiveClosure(m));
-*/
+/* Only use if the degree is small, if at all */
+if CheckDegree then
+    AX := AffinePatch(X, 1); AY := AffinePatch(Y, 1);
+    KX := FunctionField(AX); KY := FunctionField(AY);
+    m := map<AX -> AY | fs >;
+    print "Degree:", Degree(ProjectiveClosure(m));
+end if;
 
 /* Check that the action on differentials is correct: */
 fX := R ! DefiningEquation(AffinePatch(X, 1));
