@@ -35,3 +35,25 @@ time test, fs := CantorFromMatrixAmbientSplit(X, P0, Y, Q0, T);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;
+
+fs := [ X`KU ! f : f in fs ];
+ceqs := Y`cantor_eqs;
+
+print "";
+print "Check 0:";
+print [ Evaluate(ceq, fs) : ceq in ceqs ];
+
+Y := BaseExtend(Y, X`KU);
+R<x> := PolynomialRing(BaseRing(Y));
+J := Jacobian(Y);
+P := Y ! [1, 0, 1];
+Q0 := Y ! [0, 3*r, 1];
+div0 := P - Q0;
+
+a := x^2 + fs[1]*x + fs[2];
+b := fs[3]*x + fs[4];
+div1 := J ! [a, b];
+
+print "";
+print "Improved Cantor representation:";
+print div1 + 2*div0;
