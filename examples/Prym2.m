@@ -46,14 +46,21 @@ print [ Evaluate(ceq, fs) : ceq in ceqs ];
 Y := BaseExtend(Y, X`KU);
 R<x> := PolynomialRing(BaseRing(Y));
 J := Jacobian(Y);
-P := Y ! [1, 0, 1];
-Q0 := Y ! [0, 3*r, 1];
-div0 := P - Q0;
 
 a := x^2 + fs[1]*x + fs[2];
 b := fs[3]*x + fs[4];
 div1 := J ! [a, b];
 
+P := Y ! [1, 0, 1];
+Q0 := Y ! [0, 3*r, 1];
+div0 := P - Q0;
 print "";
-print "Improved Cantor representation:";
+print "Improved Cantor representation, version 1:";
 print div1 + 2*div0;
+
+/* This always works, also without a rational Weierstrass point: */
+Q0m := Y ! [0, -3*r, 1];
+div0 := Q0 - Q0m;
+print "Improved Cantor representation, version 2:";
+print div1 - div0;
+
