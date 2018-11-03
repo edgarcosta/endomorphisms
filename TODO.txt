@@ -18,3 +18,4 @@ Better symplectic subspaces for primes
 Good Prym and inherited polarization
 
 Coinciding first branches
+Use normalized form to iterate?

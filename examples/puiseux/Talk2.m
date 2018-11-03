@@ -13,7 +13,7 @@ T := Matrix(F, [
 [ 1, -r],
 [ -r, 1]
 ]);
-//T := -T;
+T := -T;
 
 print "Field:";
 print F;
@@ -23,26 +23,18 @@ print "Tangent representation:";
 print T;
 
 print "Calculating divisor:";
-time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 1, DivPP1 := false);
+time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 1);
 eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print D;
 
 /*
-S<x2,x1> := PolynomialRing(F, 2);
-h := hom< R -> S | [ 0, 0, x2, x1 ] >;
-eqs := DefiningEquations(D)[5..8];
-I := EliminationIdeal(Ideal(D), { 3, 4 });
-Y := Scheme(AffineSpace(S), [ h(c) : c in GroebnerBasis(I) ]);
-Is := [ I : I in IrreducibleComponents(Y) | Dimension(I) eq 1 ];
-print Is[1];
-*/
-
 print "Calculating Cantor representation...";
 time test, fs := CantorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 36);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;
+*/
 
-exit;
+//exit;

@@ -200,6 +200,17 @@ for i in [1..Y`g] do
 end for;
 /* Make sure precision buffer is always large enough to see first term */
 Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 2) ] : Qj in Qs ];
+IterateLift := CreateLiftIterator(X, Y, M);
+
+/* Fill out small terms */
+IterateLift := CreateLiftIterator(X, Y, M);
+while true do
+    Pnew, Qsnew := IterateLift(P, Qs, Y`g);
+    if Pnew eq P and Qsnew eq Qs then
+        P := Pnew; Qs := Qsnew; break;
+    end if;
+    P := Pnew; Qs := Qsnew;
+end while;
 return P, Qs;
 
 end function;
@@ -298,7 +309,7 @@ does not get lost later on.}
 /* May want to include bound here too, but for now that is useless */
 
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
-prec := Minimum([ AbsolutePrecision(c) : c in P cat &cat(Qs) ]);
+prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ]);
 P, Qs := IterateLift(P, Qs, Infinity());
 PR := PuiseuxSeriesRing(BaseRing(Parent(P[1])), Integers() ! (2*((e*prec) - 1) + 1));
 P := [ PR ! c : c in P ];

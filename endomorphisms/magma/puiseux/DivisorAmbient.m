@@ -67,7 +67,7 @@ return divs;
 end function;
 
 
-function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := false)
+function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs)
 /*
  * Input:   Two curves X and Y,
  *          a basis of divisor equations fs,
@@ -95,22 +95,28 @@ B := Basis(Kernel(Matrix(M)));
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
-hX, hY := ExtractHomomorphismsRing(X, Y);
+hX, hY, hxs, hxsinv, hys, hysinv := ExtractHomomorphismsRing(X, Y);
 Rprod := Codomain(hX);
 eqs := [ Rprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
 
-if DivPP1 then
-    Rprod := Codomain(hX);
-    I := ideal< Rprod | eqs >;
+if X`is_hyperelliptic and Y`is_hyperelliptic then
+    Iprod := ideal< Rprod | eqs >;
     varord := VariableOrder();
-    GB := GroebnerBasis(EliminationIdeal(I, { varord[1], varord[3] }));
-    eqs cat:= GB;
+    Bxs := Basis(EliminationIdeal(Iprod, { varord[1], varord[3] }));
+    //Bys := Basis(EliminationIdeal(Iprod, { varord[1], varord[4] }));
+    if (#Bxs ne 0) then
+        gcdx := hxsinv(GCD([ hxs(b) : b in Bxs ]));
+        //gcdy := hysinv(GCD([ hys(b) : b in Bys ]));
+        eqs cat:= [ gcdx ];
+        //eqs := [ gcdx ] cat Reverse(eqs)[1..2] cat [ eqs[1] ];
+    else
+        eqs := [ Rprod ! 0 ];
+    end if;
 end if;
 
 /* Corresponding scheme */
-A := AffineSpace(Rprod);
-S := Scheme(A, eqs);
+A := AffineSpace(Rprod); S := Scheme(A, eqs);
 return [ S ];
 
 /* TODO: These steps may be a time sink and should be redundant, so we avoid
@@ -165,7 +171,7 @@ return false;
 end function;
 
 
-intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), DivPP1 := false) -> BoolElt, .
+intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0);
@@ -174,7 +180,9 @@ NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
 while true do
-    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := DivPP1);
+    /* TODO: Add points as third return value and keyword argument */
+    /* This requires while to go in Branches: incorporate knowledge of n there. Make this a second version. */
+    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := Margin);
     if found then
         return true, S;
     end if;
@@ -188,7 +196,7 @@ end while;
 end intrinsic;
 
 
-intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), DivPP1 := false, B := 300) -> BoolElt, .
+intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
@@ -220,7 +228,7 @@ while true do
     NormM_red := ReduceMatrixSplit(NormM, h);
 
     while true do
-        found, S_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, DivPP1 := DivPP1);
+        found, S_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -272,7 +280,7 @@ end while;
 end intrinsic;
 
 
-function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := false)
+function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^5)
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 fs := CandidateDivisors(X, Y, d);
@@ -286,7 +294,7 @@ vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */
 vprintf EndoCheck, 2 : "Solving linear system... ";
-ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
+ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs);
 vprintf EndoCheck, 2 : "done.\n";
 
 for S in ICs do

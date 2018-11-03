@@ -40,6 +40,8 @@ end for;
 
 M := Matrix(Rationals(), 3, 3, [ Random(D) : i in [1..9] ]);
 P, Qs, IterateLift := InitializedIterator(X, X, M, X`g + 5);
+P, Qs := InitializeLift(X, X, M);
+IterateLift := CreateLiftIterator(X, X, M);
 print P;
 print Qs;
 

@@ -35,11 +35,19 @@ function ExtractHomomorphismsRing(X, Y)
 RAX := X`RA; RAY := Y`RA;
 varord := VariableOrder();
 RAXY := PolynomialRing(X`F, 4, "grevlex");
-seqX := [ RAXY.varord[i] : i in [1..2] ];
-seqY := [ RAXY.varord[i] : i in [3..4] ];
-hX := hom< RAX -> RAXY | seqX >;
-hY := hom< RAY -> RAXY | seqY >;
-return hX, hY;
+seqX := [ RAXY.varord[i] : i in [1,2] ]; seqY := [ RAXY.varord[i] : i in [3,4] ];
+hX := hom< RAX -> RAXY | seqX >; hY := hom< RAY -> RAXY | seqY >;
+/* RAX is not the actual ring in which we are working, but we need some
+ * polynomial ring with two generators, so this one will do */
+seqxs := [ RAX ! 0 : i in [1..4] ];
+seqxs[varord[1]] := RAX.1; seqxs[varord[3]] := RAX.2;
+seqxsinv := [ RAXY.varord[i] : i in [1,3] ];
+hxs := hom< RAXY -> RAX | seqxs >; hxsinv := hom< RAX -> RAXY | seqxsinv >;
+seqys := [ RAX ! 0 : i in [1..4] ];
+seqys[varord[1]] := RAX.1; seqys[varord[4]] := RAX.2;
+seqysinv := [ RAXY.varord[i] : i in [1,4] ];
+hys := hom< RAXY -> RAX | seqys >; hysinv := hom< RAX -> RAXY | seqysinv >;
+return hX, hY, hxs, hxsinv, hys, hysinv;
 
 end function;
 
