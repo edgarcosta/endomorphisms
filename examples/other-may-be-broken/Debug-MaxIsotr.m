@@ -4,7 +4,6 @@
   directory; this file shows how to access the heuristic part.
 */
 
-AttachSpec("../endomorphisms/magma/spec");
 SetVerbose("EndoFind", 0);
 
 prec := 300;

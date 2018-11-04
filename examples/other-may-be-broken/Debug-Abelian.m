@@ -4,10 +4,6 @@
   directory; this file shows how to access the heuristic part.
 */
 
-AttachSpec("../endomorphisms/magma/spec");
-SetVerbose("EndoFind", 0);
-SetVerbose("CurveRec", 0);
-
 prec := 600;
 prec := 200;
 CCSmall := ComplexField(5);
@@ -52,7 +48,3 @@ C, hC := Coker(hQP, Q, P);
 print hC[2];
 I, hI := Img(hQP, Q, P);
 print hI[2];
-
-
-
-

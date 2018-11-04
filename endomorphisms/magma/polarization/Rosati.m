@@ -10,11 +10,11 @@
  */
 
 
-intrinsic RosatiInvolution(GeoEndoRep::SeqEnum, AorR::AlgMatElt) -> AlgMatElt
+intrinsic RosatiInvolution(EndoRep::SeqEnum, AorR::AlgMatElt) -> AlgMatElt
 {Returns the Rosati involution of a tangent or homology representation.}
 
-As := [ gen[1] : gen in GeoEndoRep ]; Rs := [ gen[2] : gen in GeoEndoRep ];
-g := #Rows(As[1]); isR := #Rows(AorR) eq 2*g;
+As := [ gen[1] : gen in EndoRep ]; Rs := [ gen[2] : gen in EndoRep ];
+g := #Rows(As[1]); IsR := #Rows(AorR) eq 2*g;
 
 if IsR then
     R := AorR;
@@ -35,17 +35,17 @@ if IsR then
     return Rdagger;
 else
     sdagger := Eltseq(MatrixInBasis(Rdagger, Rs));
-    Adagger := &+[ sdagger[i] * B[i] : i in [1..#Rs] ];
+    Adagger := &+[ sdagger[i] * As[i] : i in [1..#Rs] ];
     return Adagger;
 end if;
 
 end intrinsic;
 
 
-intrinsic DegreeEstimate(GeoEndoRep::SeqEnum, A::AlgMatElt) -> RngIntElt
+intrinsic DegreeEstimate(EndoRep::SeqEnum, A::AlgMatElt) -> RngIntElt
 {Estimates degree of corresponding endomorphism.}
 
-Adagger := RosatiInvolution(GeoEndoRep, A);
+Adagger := RosatiInvolution(EndoRep, A);
 tr := Trace(A * Adagger) * Factorial(#Rows(A) - 1);
 if IsExact(Parent(A)) then
     return (Integers() ! tr);
@@ -57,16 +57,18 @@ end if;
 end intrinsic;
 
 
-intrinsic RosatiFixedModule(GeoEndoRep::SeqEnum) -> SeqEnum
+intrinsic RosatiFixedModule(EndoRep::SeqEnum) -> SeqEnum
 {Gives a basis of the ZZ-module of homological representations that are fixed
 under Rosati.}
 
-Rs := [ gen[2] : gen in GeoEndoRep ];
+As := [ gen[1] : gen in EndoRep ]; Rs := [ gen[2] : gen in EndoRep ];
 J := StandardSymplecticMatrix(#Rows(Rs[1]) div 2);
 Rdiffs := [ (-J * Transpose(R) * J) - R : R in Rs ];
 M := Matrix([ Eltseq(MatrixInBasis(Rdiff, Rs)) : Rdiff in Rdiffs ]);
 B := Basis(Kernel(M));
+Asfixed := [ &+[ b[i]*As[i] : i in [1..#Rs] ] : b in B ];
 Rsfixed := [ &+[ b[i]*Rs[i] : i in [1..#Rs] ] : b in B ];
-return Rsfixed;
+EndoRepFixed := [ [* Asfixed[i], Rsfixed[i] *] : i in [1..#Rsfixed] ];
+return EndoRepFixed;
 
 end intrinsic;
