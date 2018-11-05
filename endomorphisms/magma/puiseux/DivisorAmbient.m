@@ -176,7 +176,7 @@ NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
-Iterator := InitializedIterator(X, Y, NormM, Y`g + 7);
+Iterator := InitializedIterator(X, Y, NormM, 2*Y`g + 1);
 while true do
     found, S, Iterator := DivisorFromMatrixByDegree(X, Y, Iterator, d : Margin := Margin);
     if found then
@@ -203,7 +203,7 @@ NormM := Y`T * NormM * (X`T)^(-1);
 F := X`F; OF := X`OF;
 Rprod := PolynomialRing(X`F, 4, "lex");
 /* Bit more global margin just to be sure */
-Iterator, f := InitializedIterator(X, Y, NormM, Y`g + 7);
+Iterator, f := InitializedIterator(X, Y, NormM, 2*Y`g + 1);
 P := Iterator[1]; Qs := Iterator[2];
 
 prs := [ ]; DEss_red := [* *];
@@ -222,7 +222,7 @@ while true do
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
     NormM_red := ReduceMatrixSplit(NormM, h);
 
-    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, Y`g + 7);
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, 2*Y`g + 1);
     while true do
         found, S_red, Iterator_red := DivisorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that

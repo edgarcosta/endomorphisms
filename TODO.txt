@@ -12,10 +12,12 @@ Idempotent finding:
 
 
 Good Prym and inherited polarization
-Debug patch change by not relying on Weierstrass property
+Transition maps correct on differentials
+Solve for remaining two functions
 Map to elliptic curves perfect
 Better symplectic subspaces for primes
 
+Jacobian addition via formal?
 Determine bi via iteration?
 Integrate improvements into algorithm run, try to use D0 if possible
 

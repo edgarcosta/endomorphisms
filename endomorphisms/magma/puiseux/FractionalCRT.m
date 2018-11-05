@@ -192,6 +192,7 @@ U`DEs := DefiningEquations(U`U);
 U`OurB := ReduceBasisOfDifferentialsSplit(X`OurB, h);
 U`NormB := ReduceBasisOfDifferentialsSplit(X`NormB, h);
 U`T := ReduceMatrixSplit(X`T, h);
+U`echelon_exps := X`echelon_exps;
 U`cantor_eqs := [* ReducePolynomialSplit(cantor_eq, h) : cantor_eq in X`cantor_eqs *];
 if assigned X`RRgens then
     nums := [ U`KU ! U`KA ! Numerator(ReduceRationalFunctionSplit(X`KA ! gen, h)) : gen in X`RRgens ];

@@ -16,7 +16,7 @@
 forward LiftPuiseuxSeries;
 
 forward InitializeMatrix;
-forward PuiseuxRamificationIndex;
+forward PuiseuxLeadingExponent;
 forward InitializeImageBranch;
 
 forward DevelopPoint;
@@ -42,31 +42,35 @@ return PR ! (&+L);
 end function;
 
 
-function PuiseuxRamificationIndex(M)
+function PuiseuxLeadingExponent(M, echelon_exps)
 /*
  * Input:   A matrix M that represents an endomorphism,
  *          after normalizing to an upper triangular form.
- * Output:  The ramification index of the corresponding Puiseux expansions.
+ * Output:  The ramification index of the corresponding Puiseux expansions and
+ *          the corresponding entries of M
  */
 
-gY := #Rows(M);
-e := gY;
-while true do
-    n := gY div e;
-    test := &or[ M[e*i, i] ne 0 : i in [1..n] ];
-    if test then
-        return e;
+rowsM := Rows(M);
+gY := #rowsM; gX := #Eltseq(rowsM[1]);
+exps := [ ]; vals := [ ];
+for i in [1..gY] do
+    j0 := Minimum([ j : j in [1..gX] | Eltseq(rowsM[i])[j] ne 0 ]);
+    exp := echelon_exps[j0]*(j0/i);
+    Append(~exps, exp);
+    Append(~vals, (1/exp) * rowsM[i][j0]);
+end for;
+exp0 := Minimum(exps);
+for i in [1..gY] do
+    if exps[i] ne exp0 then
+        vals[i] := 0;
     end if;
-    e := e - 1;
-    if e eq 0 then
-        return 1;
-    end if;
-end while;
+end for;
+return exp0, vals;
 
 end function;
 
 
-function InitializeImageBranch(M)
+function InitializeImageBranch(M, echelon_exps)
 /*
  * Input:   A matrix M that represents an endomorphism
  *          after normalizing to an upper triangular form.
@@ -77,7 +81,7 @@ function InitializeImageBranch(M)
 /* Recovering old invariants: */
 F := Parent(M[1,1]);
 gY := #Rows(M);
-e := PuiseuxRamificationIndex(M);
+exp, vals := PuiseuxLeadingExponent(M, echelon_exps);
 
 /* If Y has genus 1 then we know more about the start of the development since
  * there is no need to desymmetrize */
@@ -92,11 +96,7 @@ A := AffineSpace(F, gY); RA := CoordinateRing(A);
 eqs := [ ];
 for n in [1..gY] do
     powersum := &+[ RA.i^n : i in [1..gY] ];
-    if n mod e eq 0 then
-        Append(~eqs, powersum - e * M[n, n div e]);
-    else
-        Append(~eqs, powersum);
-    end if;
+    Append(~eqs, powersum - vals[n]);
 end for;
 S := Scheme(A, eqs);
 
@@ -111,12 +111,12 @@ K := SplittingField(h(G[#G]));
 SK := BaseExtend(S, K);
 P := Eltseq(Points(SK)[1]);
 /* Power series ring is used if possible for efficiency: */
-if e eq 1 then
+if exp eq 1 then
     PK := PowerSeriesRing(K, 2);
     wK := PK.1;
 else
     PK := PuiseuxSeriesRing(K, 2);
-    wK := PK.1^(1/e);
+    wK := PK.1^exp;
 end if;
 return [ P[i] * wK + O(wK^2) : i in [1..gY] ], h(G[#G]);
 
@@ -184,8 +184,7 @@ function InitializeLift(X, Y, M)
  */
 
 P0 := X`P0; Q0 := Y`P0;
-e := PuiseuxRamificationIndex(M);
-tjs0, f := InitializeImageBranch(M);
+tjs0, f := InitializeImageBranch(M, X`echelon_exps);
 PR := Parent(tjs0[1]);
 
 /* Creating P */
@@ -200,7 +199,6 @@ for i in [1..Y`g] do
 end for;
 /* Make sure precision buffer is always large enough to see first term */
 Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 2) ] : Qj in Qs ];
-IterateLift := CreateLiftIteratorFunction(X, Y, M);
 
 /* Fill out small terms */
 IterateLift := CreateLiftIteratorFunction(X, Y, M);
@@ -227,7 +225,7 @@ function CreateLiftIteratorFunction(X, Y, M)
 
 fX := X`DEs[1]; dfX := Derivative(fX, X`RA.2); BX := X`NormB; gX := X`g;
 fY := Y`DEs[1]; dfY := Derivative(fY, Y`RA.2); BY := Y`NormB; gY := Y`g;
-e := PuiseuxRamificationIndex(M);
+e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
 
     function Iterate(P, Qs, n);
     /*
@@ -291,7 +289,7 @@ further. A minimal polynomial of the required field extension is also
 returned. An optional input MaxPrec is to bound the precision in cases where we
 know such a bound.}
 
-e := PuiseuxRamificationIndex(M);
+e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
 P, Qs, f := InitializeLift(X, Y, M);
 IterateLift := CreateLiftIteratorFunction(X, Y, M);
 while true do

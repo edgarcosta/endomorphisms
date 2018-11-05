@@ -18,7 +18,7 @@ declare attributes Crv : g, U, P0, A, DEs, DEs_sub;
 declare attributes Crv : patch_index, unif_index;
 declare attributes Crv : RA, KA, RU, KU;
 declare attributes Crv : F, rF, OF, BOF;
-declare attributes Crv : OurB, NormB, T;
+declare attributes Crv : OurB, NormB, echelon_exps, T;
 declare attributes Crv : cantor_eqs;
 declare attributes Crv : RRgens, globgens;
 declare attributes Crv : initialized;
@@ -210,18 +210,26 @@ return M;
 end function;
 
 
-function NormalizedBasisOfDifferentials(X)
+function NormalizedBasisOfDifferentials(X : NonWP := false)
 /*
  * Input:   A curve X.
  * Output:  A differential basis Bnorm that is normalized with respect to the uniformizing parameter,
  *          and a matrix T such that multiplication by T on the left sends B to Bnorm.
  */
 
-P := DevelopPoint(X, X`P0, X`g + 7);
+P := DevelopPoint(X, X`P0, 2*X`g + 1);
 BP := [ Evaluate(b, P) : b in X`OurB ];
-T := Matrix([ [ Coefficient(BP[i], j - 1) : j in [1..X`g] ] : i in [1..X`g] ])^(-1);
+M := Matrix([ [ Coefficient(BP[i], j - 1) : j in [1..(2*X`g + 1)] ] : i in [1..X`g] ]);
+E, T := EchelonForm(M); c := #Rows(Transpose(E));
+echelon_exps := [ Minimum([ i : i in [1..c] | Eltseq(row)[i] ne 0 ]) : row in Rows(E) ];
+//print E;
+//print T;
+//print echelon_exps;
+if NonWP and (not echelon_exps eq [1..X`g]) then
+    error "Base point is Weierstrass";
+end if;
 NormB := [ &+[ T[i,j] * X`OurB[j] : j in [1..X`g] ] : i in [1..X`g] ];
-return NormB, T;
+return NormB, T, echelon_exps;
 
 end function;
 
@@ -294,11 +302,7 @@ elif Type(X`F) eq FldNum then
 end if;
 
 X`OurB := OurBasisOfDifferentials(X);
-if NonWP then
-    X`NormB, X`T := NormalizedBasisOfDifferentials(X);
-else
-    X`NormB := X`OurB; X`T := IdentityMatrix(X`F, X`g);
-end if;
+X`NormB, X`T, X`echelon_exps := NormalizedBasisOfDifferentials(X : NonWP := NonWP);
 _<u,v> := Parent(X`OurB[1]);
 vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
 vprint EndoCheck, 3 : X`OurB;
