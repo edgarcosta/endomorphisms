@@ -10,13 +10,15 @@ Idempotent finding:
 
 (5) Calculate the corresponding curve (it should have indecomposable Jacobian) and find all maps from P to it.
 
-Idempotent factor and, starting from scratch after that, possible polarizations (perhaps non-inherited ones as well)
 
-
-No extra curves
-Track map down to genus 2 factor
-Map to elliptic curves
-Better symplectic subspaces for primes
 Good Prym and inherited polarization
+Debug patch change by not relying on Weierstrass property
+Map to elliptic curves perfect
+Better symplectic subspaces for primes
 
-Coinciding first branches
+Determine bi via iteration?
+Integrate improvements into algorithm run, try to use D0 if possible
+
+Later:
+Try to develop a bit further if the first branches coincide (this first happens in genus 4)
+Divisor from Cantor? In principle this is all right: We pull back to X x Y^gY via the canonical map and then push to X x Y via idX x projection on the first coordinate. However, Magma cannot do this, since in it pushforwards are limited to maps between curves.

@@ -3,31 +3,30 @@ SetVerbose("EndoCheck", 3);
 prec := 100;
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
-F<r> := NumberFieldExtra(x^2 + 1);
+F := NumberFieldExtra(x^6 + 42*x^4 + 441*x^2 + 784);
 R<x> := PolynomialRing(F);
 
-f := x^8 + x^6 + 1; h := R ! 0;
+f := 16*x^7 + 357*x^5 - 819*x^3 + 448*x;
+f /:= 2; h := R ! 0;
 X := HyperellipticCurve(f, h);
-P0 := X ! [0, 1, 1];
+// Try to make one the point at infinity!
+P0 := X ! [1, 1, 1];
 
-f := 8*x^6 - 8*x^5 - 24*x^4 + 16*x^3 + 25*x^2 - 8*x - 9; h := R ! 0;
 Y := HyperellipticCurve(f, h);
-Q0 := Y ! [0, 3*r, 1];
+Q0 := Y ! [1, 1, 1];
 
 PX := PeriodMatrix(X);
 PY := PeriodMatrix(Y);
 
 HomRep := GeometricHomomorphismRepresentation(PX, PY, F);
-print HomRep;
-T := HomRep[1][1];
+T := HomRep[3][1];
+print T;
 
-print "";
-print "Calculating divisor:";
-time test, D := DivisorFromMatrixAmbientSplit(X, P0, Y, Q0, T);
-eqs := DefiningEquations(D);
-R<y2,y1,x2,x1> := Parent(eqs[1]);
-print "Divisor:";
-print GroebnerBasis(Ideal(D));
+/*
+This seems to work without needing a base field extension!
+Also, we run into the copy problem
+Finally, there is a problem in that the first iteration does not stabilize
+*/
 
 print "";
 print "Calculating Cantor representation...";

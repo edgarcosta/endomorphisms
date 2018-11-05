@@ -77,7 +77,7 @@ function AlgebraicUniformizerIndex(X)
  * Output:  Index of the uniformizer.
  */
 
-if X`g eq 1 then
+if (X`g eq 1) or X`is_hyperelliptic then
     fX := X`DEs[1]; RA := X`RA; P0 := X`P0;
     // Prefer coordinate on PP^1:
     /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
@@ -94,15 +94,6 @@ if X`g eq 1 then
         else
             return 1;
         end if;
-    end if;
-
-elif X`is_hyperelliptic then
-    // In this case we always get the coordinate on PP^1, since we avoid
-    // Weierstrass points.
-    if X`patch_index eq 1 then
-        return 1;
-    else
-        return 2;
     end if;
 
 else
@@ -131,24 +122,18 @@ g := X`g; RA := X`RA; u := RA.1; v := RA.2; f := X`DEs[1];
 if g eq 0 then
     return [ ];
 
-elif g eq 1 then
+elif (g eq 1) or X`is_hyperelliptic then
     /* Elliptic case: we use dx / 2y */
     /* Usual version where the uniformizing coordinate u is that on PP^1 */
     if Degree(f, v) eq 2 then
         s := MonomialCoefficient(f, v^2);
-        return [ s / Derivative(f, v) ];
+        return [ s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
     else
         /* If coordinate on PP^1 did not work, then this is the expression in
          * the new uniformizer */
         s := MonomialCoefficient(f, u^2);
-        return [ -s / Derivative(f, v) ];
+        return [ s*v^(i-1) / Derivative(f, v) : i in [1..g] ];
     end if;
-
-elif X`is_hyperelliptic then
-    /* (Hyper)elliptic case: we use x^i dx / 2y
-     * In this case x is always the uniformizer */
-    s := MonomialCoefficient(f, v^2);
-    return [ s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
 
 elif X`is_plane_quartic then
     /* Plane quartic case: we use ({x,y,1} / (dF / dy)) dx */
@@ -187,6 +172,8 @@ elif X`is_plane_quartic then
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
+    /* We need to correct for the uniformization index here because we do not
+     * do so above */
     if X`unif_index eq 2 then
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
@@ -210,6 +197,8 @@ elif Y`is_plane_quartic then
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
+    /* We need to correct for the uniformization index here because we do not
+     * do so above */
     if Y`unif_index eq 2 then
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
@@ -228,7 +217,7 @@ function NormalizedBasisOfDifferentials(X)
  *          and a matrix T such that multiplication by T on the left sends B to Bnorm.
  */
 
-P := DevelopPoint(X, X`P0, X`g);
+P := DevelopPoint(X, X`P0, X`g + 7);
 BP := [ Evaluate(b, P) : b in X`OurB ];
 T := Matrix([ [ Coefficient(BP[i], j - 1) : j in [1..X`g] ] : i in [1..X`g] ])^(-1);
 NormB := [ &+[ T[i,j] * X`OurB[j] : j in [1..X`g] ] : i in [1..X`g] ];
@@ -259,7 +248,7 @@ return Coefficients(eqpol);
 end function;
 
 
-procedure InitializeCurve(X, P0)
+procedure InitializeCurve(X, P0 : NonWP := true)
 
 if not assigned X`initialized then
     X`initialized := false;
@@ -305,7 +294,11 @@ elif Type(X`F) eq FldNum then
 end if;
 
 X`OurB := OurBasisOfDifferentials(X);
-X`NormB, X`T := NormalizedBasisOfDifferentials(X);
+if NonWP then
+    X`NormB, X`T := NormalizedBasisOfDifferentials(X);
+else
+    X`NormB := X`OurB; X`T := IdentityMatrix(X`F, X`g);
+end if;
 _<u,v> := Parent(X`OurB[1]);
 vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
 vprint EndoCheck, 3 : X`OurB;

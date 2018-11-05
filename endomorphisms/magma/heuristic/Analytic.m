@@ -160,6 +160,10 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 K, seq := SplittingFieldExtra(seqPart, F);
 
 assert #seq eq #seqPart;
+if #seq eq 0 then
+    return [ ];
+end if;
+
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
 As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];

@@ -50,7 +50,7 @@ prec := 1000;
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
 f := x^8 + x + 1; h := R ! 0;
-X := HyperellipticCurveExtra(f, h, prec);
+X := HyperellipticCurve(f, h);
 P0 := X ! [0, 1];
 time InitializeCurve(X, P0);
 
@@ -64,7 +64,7 @@ R<x,y,z> := PolynomialRing(F, 3);
 D := [-5..5];
 f := &+[ Random(D)*mon : mon in MonomialsOfDegree(R, 4) ];
 f := f - Evaluate(f, [0, 0, 1])*z^4;
-X := PlaneCurveExtra(f, prec);
+X := PlaneCurve(f);
 P0 := X ! [0, 0, 1];
 time InitializeCurve(X, P0);
 

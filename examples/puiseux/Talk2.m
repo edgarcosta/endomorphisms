@@ -33,8 +33,10 @@ print D;
 //GB := GroebnerBasis(Ideal(D));
 //print #GB;
 
+/*
 print "Calculating Cantor representation...";
 time test, fs := CantorFromMatrixAmbientSplit(X, P0, X, P0, T : LowerBound := 1);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;
+*/

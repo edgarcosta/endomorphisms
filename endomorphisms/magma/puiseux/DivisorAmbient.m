@@ -171,7 +171,7 @@ end function;
 intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
 NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
 
@@ -195,7 +195,7 @@ intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : M
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
-InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
 NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
 
