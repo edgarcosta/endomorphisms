@@ -93,7 +93,7 @@ end if;
 
 /* Determine the Shorthand if it was not passed */
 if Shorthand eq "" then
-    GeoEndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalL);
+    GeoEndoStructBase := EndomorphismsOverSubfield(GeoEndoRep, GalL);
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
 end if;
 descRR := EndoStructBase[3][3];
@@ -172,7 +172,7 @@ elif Shorthand eq "F" then
             H_prime := Center(H);
             gensH_prime := Generators(H_prime);
             GalK_prime := [* gensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
+            EndoStruct_prime := EndomorphismsOverSubfield(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "D_{6,1}";
@@ -214,7 +214,7 @@ elif Shorthand eq "F" then
             H_prime := Subgroups(H : OrderEqual := 2)[1]`subgroup;
             gensH_prime := Generators(H_prime);
             GalK_prime := [* gensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime);
+            EndoStruct_prime := EndomorphismsOverSubfield(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "C_{6,1}";
@@ -226,7 +226,7 @@ elif Shorthand eq "F" then
             /* In this case it suffices to check whether the polynomial that
              * defines the center of the geometric endomorphism ring in fact has
              * a root in the ground field */
-            struct := EndomorphismStructure(GeoEndoRep, [* [ ], Gphi *]);
+            struct := EndomorphismsOverSubfieldWithSatoTate(GeoEndoRep, [* [ ], Gphi *]);
             A := struct[2][1];
             A := AlgebraOverCenter(A);
             M := BaseRing(A);

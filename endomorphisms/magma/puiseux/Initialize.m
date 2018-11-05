@@ -256,7 +256,7 @@ return Coefficients(eqpol);
 end function;
 
 
-procedure InitializeCurve(X, P0 : NonWP := true)
+procedure InitializeCurve(X, P0 : NonWP := false)
 
 if not assigned X`initialized then
     X`initialized := false;

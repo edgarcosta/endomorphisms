@@ -96,7 +96,7 @@ intrinsic SuperellipticCompatibility(P::., e::RngIntElt) -> .
 {Transforms the differentials on a superelliptic curve to compensate for conventions.}
 // TODO: Generalize this to apply beyond genus 3. This is a matter of fixing a
 // base of differentials. But actually superelliptic curves should be treated
-// as a class of their own. NOT NOW.
+// as a class of their own. Not now: use base provided by Christian.
 
 rowsP := Rows(P);
 if #rowsP eq 3 then

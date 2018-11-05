@@ -1,3 +1,6 @@
+Structure:
+Perfect up to MaxIsotr.m, then think
+
 Idempotent finding:
 
 (1) Given a period matrix P, calculate the corresponding geometric endomorphism algebra over the splitting field L.

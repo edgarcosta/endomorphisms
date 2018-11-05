@@ -27,7 +27,7 @@ end intrinsic;
 intrinsic IdempotentsFromRepresentation(EndoRep::SeqEnum) -> .
 {Returns idempotents for the endomorphism representation EndoRep.}
 
-EndoAlg, EndoDesc := EndomorphismAlgebraAndDescriptionBase(EndoRep);
+EndoAlg, EndoDesc := EndomorphismStructureFromRepresentation(EndoRep);
 EndoStruct := [* EndoRep, EndoAlg, EndoDesc *];
 return IdempotentsFromStructure(EndoStruct);
 

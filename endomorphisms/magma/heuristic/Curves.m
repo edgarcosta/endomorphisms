@@ -27,8 +27,8 @@ end intrinsic;
 
 
 intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::., prec::RngIntElt) -> Crv
-{Returns the hyperelliptic curve defined by F, which can be given affinely or
-projectively.}
+{Returns the hyperelliptic curve over the rationals with precision prec defined
+by f and h.}
 
 QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ);
 return HyperellipticCurve(RQQ ! f, RQQ ! h);
@@ -37,8 +37,8 @@ end intrinsic;
 
 
 intrinsic PlaneCurveExtra(F::RngMPolElt, prec::RngIntElt) -> Crv
-{Returns the plane curve defined by F, which can be given affinely or
-projectively.}
+{Returns the plane curve over the rationals with precision prec defined by F,
+which can be given affinely or projectively.}
 
 QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ, #GeneratorsSequence(Parent(F)));
 return PlaneCurve(RQQ ! F);

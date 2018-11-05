@@ -10,7 +10,7 @@
  */
 
 
-intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, GalK::List) -> SeqEnum
+intrinsic EndomorphismRepresentationOverSubfield(GeoEndoRep::SeqEnum, GalK::List) -> SeqEnum
 {Given a geometric representation GeoEndoRep and a list of automorphisms GalK of
 their field of definition, returns a basis of the endomorphisms defined over
 the subfield determined by GalK.}
@@ -69,15 +69,15 @@ return gens;
 end intrinsic;
 
 
-intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, K::Fld) -> SeqEnum
+intrinsic EndomorphismRepresentationOverSubfield(GeoEndoRep::SeqEnum, K::Fld, h::Map) -> SeqEnum
 {Given a geometric representation GeoEndoRep and a subfield K of their field of
 definition, returns a basis of the endomorphisms defined over the subfield
 determined by GalK.}
 
 /* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K);
-return EndomorphismRepresentation(GeoEndoRep, GalK);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
+return EndomorphismRepresentationOverSubfield(GeoEndoRep, GalK);
 
 end intrinsic;
 

@@ -311,7 +311,10 @@ later on.}
 
 P, Qs, IterateLift, MaxPrec := Explode(Iterator);
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
-prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ] cat [ MaxPrec ]);
+L := [ c : c in &cat(Qs) | not IsWeaklyZero(c) ];
+prec := Minimum([ AbsolutePrecision(c) - 1/e : c in L ] cat [ MaxPrec ]);
+//prec := Minimum([ AbsolutePrecision(c) : c in L ] cat [ MaxPrec ]);
+//prec := (Precision(Parent(Qs[1][1])) - 1)/e;
 P, Qs := IterateLift(P, Qs, Infinity());
 PR := PuiseuxSeriesRing(BaseRing(Parent(P[1])), Integers() ! (2*((e*prec) - 1) + 1));
 P := [ PR ! c : c in P ];

@@ -23,7 +23,7 @@ print X;
 
 time P := PeriodMatrix(X);
 time GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
-print EndomorphismAlgebraAndDescriptionBase(GeoEndoRep);
+print EndomorphismStructureFromRepresentation(GeoEndoRep);
 
 /*
 for idem in IdempotentsFromRepresentation(EndoRep) do

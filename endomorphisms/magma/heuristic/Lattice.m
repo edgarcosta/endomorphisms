@@ -68,7 +68,7 @@ GalL := [* [ ], [ ] *];
 vprint EndoFind: "";
 vprint EndoFind: "Galois group:", [ ];
 vprint EndoFind: "Base field:", L;
-EndoStruct := EndomorphismStructure(GeoEndoRep, GalL);
+EndoStruct := EndomorphismsOverSubfieldWithSatoTate(GeoEndoRep, GalL);
 Append(~entry, EndoStruct);
 
 Shorthand := SatoTateShorthand(EndoStruct);
@@ -93,7 +93,7 @@ vprint EndoFind: "Improved base field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
 
-EndoStruct := EndomorphismStructure(GeoEndoRep, GalK : Shorthand := Shorthand);
+EndoStruct := EndomorphismsOverSubfieldWithSatoTate(GeoEndoRep, GalK : Shorthand := Shorthand);
 Append(~entry, EndoStruct);
 
 stpart := SatoTateHashPart(GeoEndoRep, GalK);
