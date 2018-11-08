@@ -21,29 +21,47 @@ print "";
 print "Geometric endomorphism representations:";
 print EndoRep;
 
-EndoAlg, EndoDesc := EndomorphismAlgebraAndDescriptionBase(EndoRep);
-EndoStruct := [* EndoRep, EndoAlg, EndoDesc *];
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
+EndoData := [* EndoRep, EndoAlg, EndoDesc *];
 
 /* Find period matrix of fixed */
-idems := IdempotentsFromStructure(EndoStruct);
+idems := IdempotentsFromStructure(EndoData);
 idem := idems[1];
 Q, proj := ProjectionFromIdempotent(P, idem);
 A, R := Explode(proj);
 
 EQ := InducedPolarization(StandardSymplecticMatrix(3), R);
 EQ0, T := FrobeniusFormAlternatingAlt(EQ);
+
+print "Check claim in documentation:";
+print EQ0 eq T*EQ*Transpose(T);
+
 v1 := Matrix(Rationals(), [[0,0,1,0]]);
 v2 := Matrix(Rationals(), [[0,0,0,1]]);
 EQ := ChangeRing(EQ, Rationals());
 T := ChangeRing(T, Rationals());
 
-/*
-print SymplecticSubmodules(4, 2);
+print "EQ0:";
+print EQ0;
+
+print "Number of symplectic submodules at 2:";
+print #SymplecticSubmodules(4, 2);
+print #SymplecticSubmodules(2, 2);
+print #SymplecticSubmodules(2, 4);
+//print #SymplecticSubmodules(2, 6);
+
 Us := IsogenousPPLatticesG2(EQ);
+print "Isogenous lattices:";
+print Us;
+
+print "Resulting polarizations:";
 for U in Us do
+    print Determinant(U);
     print U*EQ*Transpose(U);
 end for;
-*/
+
+exit;
+
 
 d := 6;
 EQ := Matrix(QQ, [[0,0,d,0],[0,0,0,1],[-d,0,0,0],[0,-1,0,0]]);

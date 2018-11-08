@@ -122,7 +122,7 @@ return K;
 end intrinsic;
 
 
-intrinsic EmbedAtInfinitePlace(f::RngUPolElt) -> RngUPolElt
+intrinsic EmbedAtInfinitePlacePolynomial(f::RngUPolElt) -> RngUPolElt
 {Returns the polynomial f considered as a complex polynomial to precision
 prec.}
 
@@ -139,7 +139,7 @@ end if;
 end intrinsic;
 
 
-intrinsic EmbedAtInfinitePlace(f::RngMPolElt) -> RngMPolElt
+intrinsic EmbedAtInfinitePlacePolynomial(f::RngMPolElt) -> RngMPolElt
 {Returns the polynomial f considered as a complex polynomial to precision
 prec.}
 
@@ -156,11 +156,11 @@ end if;
 end intrinsic;
 
 
-intrinsic EmbedAtInfinitePlace(fs::SeqEnum) -> SeqEnum
+intrinsic EmbedAtInfinitePlacePolynomials(fs::SeqEnum) -> SeqEnum
 {Returns the list of polynomials fs considered as complex polynomials to
 precision prec.}
 
-return [ EmbedAtInfinitePlace(f) : f in fs ];
+return [ EmbedAtInfinitePlacePolynomial(f) : f in fs ];
 
 end intrinsic;
 
@@ -222,7 +222,7 @@ intrinsic ImproveFieldExtra(K::Fld) -> Fld, Map
 {Polredbestabs plus attribute transfer.}
 
 K0, hKK0 := Polredbestabs(K);
-TransferAttributes(K, K0, hKK0);
+TransferAttributesExtra(K, K0, hKK0);
 return K0, hKK0;
 
 end intrinsic;
@@ -260,7 +260,7 @@ return K0, hK0L;
 end intrinsic;
 
 
-intrinsic TransferAttributes(K::Fld, L::Fld, h::Map)
+intrinsic TransferAttributesExtra(K::Fld, L::Fld, h::Map)
 {Transfer the attributes from K to L using the homomorphism h.}
 
 assert K eq Domain(h);
@@ -660,7 +660,7 @@ else
     Mabs := AbsoluteField(Mrel);
     M, hFM := Polredbestabs(Mabs);
 
-    /* TODO: RootsPari */
+    /* TODO: Find equivalent of RootsPari */
     rtsfK := Roots(ConjugatePolynomial(hFM, fKF), M);
     rtsfL := Roots(ConjugatePolynomial(hFM, fLF), M);
 

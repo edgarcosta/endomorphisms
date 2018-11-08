@@ -15,7 +15,7 @@ function TestCloseToRoot(f, a)
  * NumberFieldExtra */
 
 CC := Parent(a); RCC := PolynomialRing(CC);
-fCC := RCC ! EmbedAtInfinitePlace(f); rts := [ tup[1] : tup in Roots(fCC) ];
+fCC := RCC ! EmbedAtInfinitePlacePolynomial(f); rts := [ tup[1] : tup in Roots(fCC) ];
 for rt in rts do
     if Abs(a - rt) le CC`epscomp then
         return true;
@@ -197,7 +197,7 @@ end for;
 
 gs := FactorizationPari(f, K);
 for g in gs do
-    gCC := EmbedAtInfinitePlace(g);
+    gCC := EmbedAtInfinitePlacePolynomial(g);
     for tuprt in Roots(gCC) do
         rtCC := tuprt[1];
         //if Abs(rtCC - aCC) le 10^50*CC`epscomp then

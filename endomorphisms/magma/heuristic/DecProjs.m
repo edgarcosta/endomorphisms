@@ -12,12 +12,13 @@
 
 intrinsic IdempotentsFromStructure(EndoStruct::List) -> List
 {Returns idempotents for the endomorphism structure EndoStruct.}
+/* TODO: From Endomorphisms */
 
 g := #Rows(EndoStruct[1][1][1]);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
 C, GensC := Explode(EndoAlg);
 Ds := DirectSumDecomposition(C);
-idemsC := &cat[ IdempotentsFromFactor(D, C, g) : D in Ds ];
+idemsC := &cat[ IdempotentsFromFactor(D, C) : D in Ds ];
 idemsrep := MatricesFromIdempotents(idemsC, EndoStruct);
 return idemsrep;
 
@@ -26,14 +27,16 @@ end intrinsic;
 
 intrinsic IdempotentsFromRepresentation(EndoRep::SeqEnum) -> .
 {Returns idempotents for the endomorphism representation EndoRep.}
+/* Delegates to previous by first calculating structure */
 
-EndoAlg, EndoDesc := EndomorphismStructureFromRepresentation(EndoRep);
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
 EndoStruct := [* EndoRep, EndoAlg, EndoDesc *];
 return IdempotentsFromStructure(EndoStruct);
 
 end intrinsic;
 
 
+/* TODO: Idempotent does not refer to the same thing in this function and the next */
 intrinsic MatricesFromIdempotents(idems::SeqEnum, EndoStruct::List) -> SeqEnum
 {Returns the matrix representations corresponding to the idempotents in idems,
 using the endomorphism structure EndoStruct.}
@@ -58,6 +61,8 @@ return idemsRep;
 end intrinsic;
 
 
+/* TODO: Also make KernelFromIdempotent and figure out how to transfer polarizations to both */
+/* TODO: This function should be an image because of abelian functionality... */
 intrinsic ProjectionFromIdempotent(P::., idem::List) -> List
 {Given an idempotent idem for the period matrix P, returns a corresponding
 lattice and an analytic representation of the projection to it.}
@@ -93,9 +98,46 @@ return Q, proj;
 end intrinsic;
 
 
+intrinsic IdempotentsFromFactor(D::., C::.) -> .
+{Returns idempotents for the factor D in the direct sum decomposition of the
+endomorphism algebra C. For this to be guaranteed to work, we must assume the genus
+to be at most 3.}
+
+E1, f1 := AlgebraOverCenter(D);
+/* This seems a bit heavy-handed */
+//F := ClearDenominator(BaseRing(E1));
+//if Type(F) eq FldNum then
+//    F := ClearDenominator(F);
+//    F := ImproveField(F);
+//end if;
+//E2, f2 := ChangeRing(E1, F);
+E2 := E1;
+
+/* Fields have no idempotents */
+if IsCommutative(E2) then
+    return [ C ! D ! 1 ];
+end if;
+
+test_dim, d := IsSquare(Dimension(E2));
+/* Right now can only deal with algebras of dimension 4 */
+if d eq 2 then
+    test_quat, Q, f3 := IsQuaternionAlgebra(E2);
+    if test_quat then
+        test_mat, M, f4 := IsMatrixRing(Q : Isomorphism := true);
+        //f := f1 * f2 * f3 * f4;
+        f := f1 * f3 * f4;
+        invf := Inverse(f);
+        return [ C ! invf(M ! [1,0,0,0]), C ! invf(M ! [0,0,0,1]) ];
+    end if;
+end if;
+error "All cases in IdempotentsFromFactor fell through";
+
+end intrinsic;
+
+
+/* TODO: We want to improve the upcoming function */
 intrinsic IdempotentsFromLattice(Lat::List) -> .
 {Given a lattice Lat, returns idempotents over a small field extension.}
-/* TODO: Change field to be even smaller */
 
 entries := Lat[2];
 entries := Reverse(entries);
@@ -125,6 +167,7 @@ end while;
 end intrinsic;
 
 
+/* TODO: Probably delete this function */
 intrinsic NumberOfIdempotentsFromStructure(EndoStruct::List) -> RngIntElt
 {Returns the number of idempotents for the endomorphism structure EndoStruct.}
 
@@ -134,7 +177,7 @@ num_idems := 0;
 for factor_QQ in factors_QQ do
     albert, _, dim_sqrt, disc := Explode(factor_QQ);
     // TODO: the usual nastiness with powers of a quaternion algebra is again
-    // not covered, so watch out in that case.
+    // not covered, so watch out in that case. (Add error statement.)
     if (albert in ["I", "IV"]) and (disc eq 1) then
         num_idems +:= dim_sqrt;
     else
@@ -142,57 +185,5 @@ for factor_QQ in factors_QQ do
     end if;
 end for;
 return num_idems;
-
-end intrinsic;
-
-
-intrinsic IdempotentsFromFactor(D::., C::., g::RngIntElt) -> .
-{Returns idempotents for the factor D in the direct sum decomposition of the
-endomorphism algebra C. The genus of the curve involved in the background needs
-to be passed as g.}
-
-if g le 3 then
-    return IdempotentsFromFactorG3(D, C);
-else
-    error "Higher genus not implemented yet";
-end if;
-
-end intrinsic;
-
-
-intrinsic IdempotentsFromFactorG3(D::., C::.) -> .
-{Returns idempotents for the factor D in the direct sum decomposition of the
-endomorphism algebra C. The genus of the curve involved in the background needs
-to be passed as g. We assume the genus to be at most 3.}
-
-E1, f1 := AlgebraOverCenter(D);
-//F := ClearDenominator(BaseRing(E1));
-//if Type(F) eq FldNum then
-//    F := ClearDenominator(F);
-//    F := ImproveField(F);
-//end if;
-//E2, f2 := ChangeRing(E1, F);
-E2 := E1;
-if not IsCommutative(E2) then
-    test_dim, d := IsSquare(Dimension(E2));
-    if d eq 2 then
-        test_quat, Q, f3 := IsQuaternionAlgebra(E2);
-        if test_quat then
-            test_mat, M, f4 := IsMatrixRing(Q : Isomorphism := true);
-            //f := f1 * f2 * f3 * f4;
-            f := f1 * f3 * f4;
-            invf := Inverse(f);
-            return [ C ! invf(M ! [1,0,0,0]), C ! invf(M ! [0,0,0,1]) ];
-        end if;
-    elif d eq 3 then
-        //idems_E2 := IdempotentsInMatrixAlgebra(E2);
-        //invf1 := Inverse(f1);
-        //return [ C ! invf1(idem_E2) : idem_E2 in idems_E2 ];
-        error "All cases in IdempotentsFromFactorG3 fell through";
-    else
-        error "All cases in IdempotentsFromFactorG3 fell through";
-    end if;
-end if;
-return [ C ! D ! 1 ];
 
 end intrinsic;

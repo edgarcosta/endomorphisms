@@ -1,6 +1,7 @@
 Structure:
 Perfect up to MaxIsotr.m, then think
 
+
 Idempotent finding:
 
 (1) Given a period matrix P, calculate the corresponding geometric endomorphism algebra over the splitting field L.
@@ -14,14 +15,10 @@ Idempotent finding:
 (5) Calculate the corresponding curve (it should have indecomposable Jacobian) and find all maps from P to it.
 
 
-Good Prym and inherited polarization
-Transition maps correct on differentials
-Solve for remaining two functions
+Do polarizations and Prym absolutely right
 Map to elliptic curves perfect
-Better symplectic subspaces for primes
-
-Jacobian addition via formal?
-Determine bi via iteration?
+Transition maps correct on differentials
+Jacobian addition on Puiseux series via formal calculation?
 Integrate improvements into algorithm run, try to use D0 if possible
 
 Later:

@@ -67,10 +67,10 @@ using the infinite place of the base ring of X.}
 
 if Type(X) eq CrvHyp or Type(X) eq CrvEll then
     f, h := HyperellipticPolynomials(X);
-    return EmbedAtInfinitePlace([ f, h ]);
+    return EmbedAtInfinitePlacePolynomials([ f, h ]);
 elif Type(X) eq CrvPln then
     F := DefiningPolynomial(X);
-    return EmbedAtInfinitePlace([ F ]);
+    return EmbedAtInfinitePlacePolynomials([ F ]);
 end if;
 error "Function not available for general curves";
 
@@ -102,5 +102,69 @@ elif Type(X) eq CrvPln then
     return PlaneCurve(FL);
 end if;
 error "Function not available for general curves";
+
+end intrinsic;
+
+
+function CurveDescriptionHyperelliptic(X, F)
+
+if Genus(X) eq 1 then
+    desc := "ell";
+
+    K := BaseRing(X); F := BaseRing(K);
+    K_seq := FieldDescription(K, F);
+    field := K_seq;
+
+    f, h := HyperellipticPolynomials(X);
+    f_seq := Eltseq(f); h_seq := Eltseq(h);
+    f_seq_seq := [ ElementDescription(coeff, F) : coeff in f_seq ];
+    h_seq_seq := [ ElementDescription(coeff, F) : coeff in h_seq ];
+    coeffs := [ f_seq_seq, h_seq_seq ];
+
+else
+    desc := "hyp";
+    field := [ ];
+    coeffs := [ ];
+end if;
+
+return [* desc, field, coeffs *];
+
+end function;
+
+
+function CurveDescriptionPlane(X, F)
+
+desc := "pln";
+
+K := BaseRing(X); F := BaseRing(K);
+
+K_seq := FieldDescription(K, F);
+field := K_seq;
+
+f := DefiningPolynomials(X)[1];
+mons := Monomials(f);
+coeffsexps := [ ];
+for mon in mons do
+    coeff := MonomialCoefficient(f, mon);
+    coeff_seq := ElementDescription(coeff, F);
+    exp := Exponents(mon);
+    Append(~coeffsexps, [* coeff_seq, exp *]);
+end for;
+
+return [* desc, field, coeffsexps *];
+
+end function;
+
+
+intrinsic CurveDescription(X::Crv, F::Fld) -> List
+{Returns a string description of the curve X over the field F.}
+
+if Type(X) eq CrvHyp then
+    return CurveDescriptionHyperelliptic(X, F);
+elif Type(X) eq CrvPln then
+    return CurveDescriptionPlane(X, F);
+else
+    error "No description for general curves yet";
+end if;
 
 end intrinsic;

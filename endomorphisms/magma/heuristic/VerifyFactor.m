@@ -12,7 +12,8 @@
 
 intrinsic TestEllipticFactor(X::Crv, E::Crv, F::Fld : prec := 300) -> BoolElt
 {Given a curve X and an elliptic curve E, determines whether E is a factor of
-the Jacobian of X. Returns a map from X to E if this is the case.}
+the Jacobian of X. Returns an analytic map from X to E if this is the case.}
+/* TODO: Add algebraic map */
 
 P := PeriodMatrix(X : prec := prec); Q := PeriodMatrix(E : prec := prec);
 HomRep := GeometricHomomorphismRepresentation(P, Q, F);
@@ -25,7 +26,7 @@ return true, [* gen0, d0 *];
 end intrinsic;
 
 
-intrinsic MorphismOfSmallDegree(HomRep::., F::Fld : Bound := 10) -> List, RngIntElt
+intrinsic MorphismOfSmallDegree(P::., Q::., F::Fld : Bound := 10) -> List, RngIntElt
 {Gives a morphism of small degree from the Jacobian corresponding to P to that
 corresponding to Q. The third argument F is the base field used.}
 
@@ -62,14 +63,14 @@ intrinsic EllipticCMCurve(D::RngIntElt : prec := 1000) -> BoolElt
 
 QQ := RationalsExtra(prec); CC := QQ`CC; RR := RealField(CC);
 CCLarge := ComplexFieldExtra(prec + 100);
-if D mod 4 ne 0 then
-    tau := (Sqrt(CCLarge ! D) + 1)/2;
+if -D mod 4 ne 0 then
+    tau := (Sqrt(CCLarge ! -D) + 1)/2;
 else
-    tau := Sqrt(CCLarge ! D)/2;
+    tau := Sqrt(CCLarge ! -D)/2;
 end if;
 jCC := CC ! jInvariant(tau);
 
-K, js := NumberFieldExtra(jCC, QQ); j := js[1];
+K, js := NumberFieldExtra([ jCC ], QQ); j := js[1];
 E := EllipticCurveFromjInvariant(j); E := WeierstrassModel(E);
 
 if Type(K) eq FldRat then

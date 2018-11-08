@@ -12,7 +12,6 @@
 
 function DecompositionFactorsG1(P, idem, F)
 
-/* Projection map */
 Q, proj := ProjectionFromIdempotent(P, idem);
 A, R := Explode(proj);
 return [* ReconstructCurveG1(Q, F) *];
@@ -22,11 +21,11 @@ end function;
 
 function DecompositionFactorsG2(P, idem, F)
 
-/* Projection map */
 Q, proj := ProjectionFromIdempotent(P, idem);
 A, R := Explode(proj);
 
-/* Induced polarization and overlattices needed to make them principal */
+/* Induced polarization and overlattices needed to make it principal */
+/* TODO: Take actual kernel and induced polarization on that, then same idea */
 EQ := InducedPolarization(StandardSymplecticMatrix(3), R);
 Us := IsogenousPPLatticesG2(EQ);
 
@@ -39,7 +38,6 @@ end for;
 recs := [* *];
 for Q in Qsnew do
     Y := ReconstructCurveG2(Q, F);
-    //print Y;
     Append(~recs, Y);
 end for;
 return recs;
@@ -48,7 +46,8 @@ end function;
 
 
 intrinsic DecompositionFactors(P::ModMatFldElt, idem::List, F::Fld) -> .
-{Finds curves corresponding to given Jacobian factor.}
+{Finds curves corresponding to Prym variety of given idempotent.}
+/* TODO: So no image, but a kernel */
 
 g := Rank(idem[2]) div 2;
 if g eq 1 then
@@ -56,7 +55,7 @@ if g eq 1 then
 elif g eq 2 then
     return DecompositionFactorsG2(P, idem, F);
 else
-    error "Finding factors not implemented for given genus";
+    error "Finding factors not implemented for genus larger than 2";
 end if;
 
 end intrinsic;

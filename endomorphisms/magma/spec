@@ -7,7 +7,7 @@
   }
   heuristic
   {
-    Precision.m
+    CCExtra.m
     Relative.m
     Recognition.m
 
@@ -26,11 +26,10 @@
 
     MaxIsotr.m
     DecProjs.m
-    DecDescs.m
     DecCurves.m
 
     VerifySat.m
-    TestFactor.m
+    VerifyFactor.m
     VerifyCorr.m
   }
   polarization
@@ -44,13 +43,13 @@
   {
     Conventions.m
     Initialize.m
-    RiemannRoch.m
     FractionalCRT.m
     Branches.m
     CantorAmbient.m
     DivisorAmbient.m
+    Bidegree.m
+    RiemannRoch.m
     CantorRR.m
     DivisorRR.m
-    Bidegree.m
   }
 }

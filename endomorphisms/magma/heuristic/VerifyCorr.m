@@ -187,6 +187,7 @@ intrinsic Correspondence(A::., P::SeqEnum, Q::SeqEnum) -> .
 {Given curves X and Y with non-Weierstrass points P and Q respectively, finds a
 correspondence with tangent representation A if it exists.}
 
+/* TODO: Removing X and Y seems silly: better to remove P and Q in fact */
 X := Curve(P); Y := Curve(Q);
 /* Change everything to common extension: */
 // TODO: First take extension for Q, then over that field extension for P, to
@@ -242,6 +243,7 @@ if CheckDegree then
 end if;
 
 /* Check that the action on differentials is correct: */
+/* TODO: Make this compatible with the other functions */
 fX := R ! DefiningEquation(AffinePatch(X, 1));
 fY := R ! DefiningEquation(AffinePatch(Y, 1));
 dx := K ! 1;

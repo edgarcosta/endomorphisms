@@ -23,7 +23,7 @@ intrinsic Ker0(h::., P::., Q::.) -> .
     assert #Rows(R) eq #Rows(Transpose(Q)); assert #Rows(Transpose(R)) eq #Rows(Transpose(P));
     RMS := RMatrixSpace(Integers(), #Rows(R), #Rows(Transpose(R)));
     /* Correct for right action taken by Magma */
-    R0 := RMS ! R; B := Basis(Kernel(Transpose(R0)));
+    R0 := RMS ! (Denominator(R)*R); B := Basis(Kernel(Transpose(R0)));
     if #B eq 0 then
         return 0, [0, 0];
     end if;

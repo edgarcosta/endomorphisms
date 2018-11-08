@@ -68,7 +68,7 @@ GalL := [* [ ], [ ] *];
 vprint EndoFind: "";
 vprint EndoFind: "Galois group:", [ ];
 vprint EndoFind: "Base field:", L;
-EndoStruct := EndomorphismsOverSubfieldWithSatoTate(GeoEndoRep, GalL);
+EndoStruct := EndomorphismDataWithSatoTate(GeoEndoRep, GalL);
 Append(~entry, EndoStruct);
 
 Shorthand := SatoTateShorthand(EndoStruct);
@@ -79,7 +79,7 @@ end intrinsic;
 
 
 intrinsic EndomorphismLatticeGeneralStep(GeoEndoRep::SeqEnum, GalK::List, Shorthand::MonStgElt) -> List
-{Part of the above.}
+{Returns the entry of the endomorphism lattice over the field corresponding to GalK.}
 
 entry := [* *];
 
@@ -93,7 +93,7 @@ vprint EndoFind: "Improved base field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
 
-EndoStruct := EndomorphismsOverSubfieldWithSatoTate(GeoEndoRep, GalK : Shorthand := Shorthand);
+EndoStruct := EndomorphismDataWithSatoTate(GeoEndoRep, GalK : Shorthand := Shorthand);
 Append(~entry, EndoStruct);
 
 stpart := SatoTateHashPart(GeoEndoRep, GalK);

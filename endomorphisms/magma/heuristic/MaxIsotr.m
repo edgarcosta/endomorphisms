@@ -11,7 +11,9 @@
 
 
 intrinsic InducedPolarization(E::., R::.) -> .
-{bla}
+{Given a matrix E corresponding to a polarization, returns the pushforward of E along R.}
+// A map from gX to gY gives R that is 2 gY x 2 gX, since on homology we go from rank 2 gX to rank 2 gY.
+// But what does this function actually do??? Pullback along dual.
 
 Q := R*E*Transpose(R);
 d := GCD([ Integers() ! c : c in Eltseq(Q) ]);
@@ -21,7 +23,7 @@ end intrinsic;
 
 
 intrinsic FrobeniusFormAlternatingAlt(E::.) -> .
-{T E Transpose(T) = E0.}
+{Returns a different standard form E0 and a matrix T with T E Transpose(T) = E0.}
 
 E1, T1 := FrobeniusFormAlternating(ChangeRing(E, Integers()));
 g := #Rows(E) div 2; S := Sym(2*g);
@@ -34,11 +36,35 @@ return E2, T2;
 end intrinsic;
 
 
+function SymplecticSubmodulesPrime(p, d)
+// This is really stupid: right cosets are better. However, do not see how to
+// do that now and can get by without.
+
+assert d mod 2 eq 0;
+FF := FiniteField(p);
+V := VectorSpace(FF, d);
+B0 := [ V.i : i in [1..(d div 2)] ];
+G := SymplecticGroup(d, FF);
+Ws := [ ];
+for g in G do
+    W := sub< V | [ b*g : b in B0 ] >;
+    if not W in Ws then
+        Append(~Ws, W);
+    end if;
+end for;
+return Ws;
+
+end function;
+
+
 function SymplecticSubmodulesPrimePower(pf, d)
+// Based on a suggestion of John Voight
 
 assert d mod 2 eq 0;
 test, p, f := IsPrimePower(pf);
-assert test;
+if f eq 1 then
+    return SymplecticSubmodulesPrime(p, d);
+end if;
 
 R := quo< Integers() | pf >;
 M := RSpace(R, d);
@@ -76,8 +102,10 @@ end function;
 
 
 intrinsic SymplecticSubmodules(n::RngIntElt, d::RngIntElt) -> .
-{All symplectic submodules.}
+{All symplectic submodules of index n in rank 2*d, or alternatively the maximal
+symplectic submodules of (ZZ / n ZZ)^(2*d) with the canonical form.}
 
+assert d mod 2 eq 0;
 Fac := Factorization(n);
 pfs := [ tup[1]^tup[2] : tup in Fac ];
 L0 := Lattice(IdentityMatrix(Rationals(), d));
@@ -104,7 +132,8 @@ end intrinsic;
 
 
 intrinsic IsogenousPPLatticesG2(E::.) -> .
-{Finds isogenous lattices on which the polarization is principal.}
+{Given an alternating form E, finds the sublattices to ZZ^2d of smallest possible index on which E induces a principal polarization. These are returned in matrix form, that is, as a span of a basis in the rows. This basis is symplectic in the usual sense.}
+/* In general, we would isolate the blocks with given d and deal with those one at a time */
 
 E0, T0 := FrobeniusFormAlternatingAlt(E);
 n := Abs(E0[3,4]);
@@ -112,7 +141,6 @@ n := Abs(E0[3,4]);
 Ts := [ ];
 for Lat in SymplecticSubmodules(n, 2) do
     Ur := ChangeRing(Matrix(Basis(Lat)), Rationals());
-    //U := DiagonalJoin(IdentityMatrix(Rationals(), 2), Ur);
     U := DiagonalJoin(Ur, IdentityMatrix(Rationals(), 2));
     Append(~Ts, U*ChangeRing(T0, Rationals()));
 end for;
@@ -121,71 +149,6 @@ end for;
 sigma := Sym(4) ! [1, 3, 2, 4];
 P := PermutationMatrix(Integers(), sigma);
 Ts := [ P*T : T in Ts ];
-
-/* Sign */
-for i in [1..#Ts] do
-    T := Ts[i];
-    E0 := T*E*Transpose(T);
-    if Sign(E0[1,3]) lt 0 then
-        T := DiagonalMatrix(Rationals(), [1,1,-1,1]) * T;
-    end if;
-    if Sign(E0[2,4]) lt 0 then
-        T := DiagonalMatrix(Rationals(), [1,1,1,-1]) * T;
-    end if;
-    Ts[i] := T;
-end for;
-return Ts;
-
-end intrinsic;
-
-
-intrinsic IsogenousPPLatticesG3OneOff(E::.) -> .
-{bla.}
-
-p := 2; d := 6;
-assert d mod 2 eq 0;
-F := FiniteField(p);
-E := ChangeRing(StandardSymplecticMatrix(d div 2), F);
-V := VectorSpace(F, d);
-
-bases := CartesianPower(V, d div 2);
-subsps := [ ];
-for tup in bases do
-    basis := [ e : e in tup ];
-    test := true;
-    for tupv in CartesianPower(basis, 2) do
-        v1 := Matrix([ Eltseq(tupv[1]) ]);
-        v2 := Matrix([ Eltseq(tupv[2]) ]);
-        if not IsZero((v1*E*Transpose(v2))[1,1]) then
-            test := false;
-            break;
-        end if;
-    end for;
-    if test then
-        W := sub< V | basis >;
-        if Dimension(W) eq d div 2 then
-            if not W in subsps then
-                Append(~subsps, W);
-            end if;
-        end if;
-    end if;
-end for;
-
-L0 := Lattice(IdentityMatrix(Rationals(), d));
-Lats := [ ];
-for subsp in subsps do
-    B := ChangeRing(Matrix(Basis(L0)), Rationals());
-    M := p * B;
-    Mnew := Matrix(Rationals(), [ [ Integers() ! c : c in Eltseq(gen) ] : gen in Generators(subsp) ]) * B;
-    Append(~Lats, Lattice(VerticalJoin(M, Mnew)));
-end for;
-
-Ts := [ ];
-for Lat in Lats do
-    Ur := ChangeRing(ChangeRing(Matrix(Basis(Lat)), Integers()), Rationals());;
-    Append(~Ts, Ur);
-end for;
-return Ts;
 
 /* Sign */
 for i in [1..#Ts] do
