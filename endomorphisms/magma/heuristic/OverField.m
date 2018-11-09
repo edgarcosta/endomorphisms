@@ -42,7 +42,13 @@ Ker := VectorSpace(Rationals(), n);
  * under a given generator */
 for genH in gensH do
     sigma := Gphi(genH);
-    Msigma := Matrix([ MatrixInBasis(ConjugateMatrix(sigma, A), As) : A in As ]);
+    rows := [ ];
+    for A in As do
+        test, row := MatrixInBasis(ConjugateMatrix(sigma, A), As);
+        assert test;
+        Append(~rows, row);
+    end for;
+    Msigma := Matrix(rows);
     Msigma -:= IdentityMatrix(Rationals(), n);
     Ker meet:= Kernel(Msigma);
 end for;

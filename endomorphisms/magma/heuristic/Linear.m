@@ -182,13 +182,25 @@ end intrinsic;
 
 
 intrinsic MatrixInBasis(M::., Bs::SeqEnum) -> .
-{Returns a vector that describes M as a rational combination of the elements in
-Bs. Assume that base field of M is at most a double extension of the field of
-rationals.}
+{Returns a vector that describes M as a rational combination of the elements in Bs.}
 
+if #Bs eq 0 then
+    return false, 0;
+end if;
 MBs := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(b) ] : b in Eltseq(B) ] : B in Bs ]);
 MM := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(m) ] : m in Eltseq(M) ] ]);
-return Matrix(Solution(MBs, MM));
+return IsConsistent(MBs, MM);
+
+end intrinsic;
+
+
+intrinsic IsMultiple(v::., v0::.) -> .
+{Whether v is a multiple of v0 or not.}
+
+M := Matrix([ Eltseq(v) ]);
+M0 := Matrix([ Eltseq(v0) ]);
+test, tup := MatrixInBasis(M, [ M0 ]);
+return test, Eltseq(tup)[1];
 
 end intrinsic;
 

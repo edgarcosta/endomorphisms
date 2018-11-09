@@ -22,12 +22,15 @@ return #RootsPari(f, K) ne 0;
 end intrinsic;
 
 
-intrinsic AutomorphismGroupPari(K::Fld) -> GrpPerm, RngIntElt, Map
+intrinsic AutomorphismGroupPari(K::Fld) -> .
 {Similar to usual function, but outsources to Pari for better performance.}
 
 assert BaseRing(K) eq Rationals();
-rts := RootsPari(DefiningPolynomial(K), K); S := Sym(#rts);
+if IsQQ(K) then
+    return AutomorphismGroup(K);
+end if;
 
+rts := RootsPari(DefiningPolynomial(K), K); S := Sym(#rts);
 sigmas := [ ];
 for rt in rts do
     h := hom< K -> K | rt >;

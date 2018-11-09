@@ -1,9 +1,3 @@
-/*
-  An example in Magma (to be made into an intuitve package there as well).
-  Examples of verifications and projections can be found in the puiseux/
-  directory; this file shows how to access the heuristic part.
-*/
-
 SetVerbose("EndoFind", 0);
 
 prec := 300;
@@ -21,13 +15,9 @@ print "";
 print "Geometric endomorphism representations:";
 print EndoRep;
 
-EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
-EndoData := [* EndoRep, EndoAlg, EndoDesc *];
-
-/* Find period matrix of fixed */
-idems := IdempotentsFromStructure(EndoData);
+idems := IsotypicalIdempotents(P, EndoRep);
 idem := idems[1];
-Q, proj := ProjectionFromIdempotent(P, idem);
+Q, proj := IsotypicalComponentProjection(P, idem);
 A, R := Explode(proj);
 
 EQ := InducedPolarization(StandardSymplecticMatrix(3), R);
@@ -59,9 +49,6 @@ for U in Us do
     print Determinant(U);
     print U*EQ*Transpose(U);
 end for;
-
-exit;
-
 
 d := 6;
 EQ := Matrix(QQ, [[0,0,d,0],[0,0,0,1],[-d,0,0,0],[0,-1,0,0]]);

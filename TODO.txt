@@ -1,25 +1,13 @@
 Structure:
 Perfect up to MaxIsotr.m, then think
-
-
-Idempotent finding:
-
-(1) Given a period matrix P, calculate the corresponding geometric endomorphism algebra over the splitting field L.
-
-(2) Calculate the central decomposition of that algebra. This gives rise to a bunch of factors Q_i, which can be split off by using the existing function ProjectionFromIdempotent. We can use the tangent representation to find the field over which this occurs. Fix one such factor and call it Q.
-
-(3) We get a map P --> Q for free with the projection. Calculate the endomorphism algebra of Q, either directly or by somehow passing it on from that of P (which should be possible in principle).
-
-(4) We get another lattice, this time for Q. We ascend in this lattice, and find a minimal height at which the corresponding algebra is no longer a division algebra. (Possible with MatrixAlgebra and IsDivisionAlgebra.) Find a corresponding idempotent (somehow!).
-
-(5) Calculate the corresponding curve (it should have indecomposable Jacobian) and find all maps from P to it.
-
+TODOs and Compositum
 
 Do polarizations and Prym absolutely right
-Map to elliptic curves perfect
-Transition maps correct on differentials
-Jacobian addition on Puiseux series via formal calculation?
+May need to recalculate projection maps after reconstructing with twist (but probably not if done right)
+
+Map to elliptic curves perfect, general base point, transition maps correct on differentials
 Integrate improvements into algorithm run, try to use D0 if possible
+Jacobian addition on Puiseux series via formal calculation
 
 Later:
 Try to develop a bit further if the first branches coincide (this first happens in genus 4)

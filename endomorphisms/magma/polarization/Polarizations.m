@@ -19,96 +19,6 @@ return ChangeRing(E, Rationals());
 end intrinsic;
 
 
-/* TODO: Superseded by FrobeniusFormAlternating */
-//function IntegralSymplecticBasisRecursive(E)
-///* {Given an alternating integral matrix E, outputs an integral matrix T such
-// * that T * E * Transpose(T) is in alternative symplectic standard form.} */
-//
-//E := Matrix(Integers(), [ [ c : c in Eltseq(row) ] : row in Rows(E) ]);
-///* Use the Smith normal form to find two elements with smallest possible
-// * pairing value and that can be extended to a basis: */
-//d := #Rows(E);
-//S, P, Q := SmithForm(E);
-//v1 := Matrix([ Eltseq(Rows(P)[1]) ]);
-//v2 := Matrix([ Eltseq(Rows(Transpose(Q))[1]) ]);
-//top := VerticalJoin(v1, v2);
-//if d eq 2 then
-//    return top;
-//end if;
-//K := Kernel(Transpose(VerticalJoin(v1*E, v2*E)));
-//B := Basis(K);
-//F := Matrix(Integers(), [ [ (Matrix(B[i]) * E * Transpose(Matrix(B[j])))[1,1] : j in [1..#B] ] : i in [1..#B] ]);
-//FSym := IntegralSymplecticBasisRecursive(F);
-//bottom := FSym * Matrix([ b : b in B ]);
-//T := VerticalJoin(top, bottom);
-//return T;
-//
-//end function;
-
-
-/* TODO: Superseded by FrobeniusFormAlternating */
-//intrinsic IntegralSymplecticBasis(E::AlgMatElt) -> AlgMatElt
-//{Given an alternating integral matrix E, outputs an integral matrix T such that T * E * Transpose(T) is in symplectic standard form.}
-//
-//d := #Rows(E);
-//rows := Rows(IntegralSymplecticBasisRecursive(E));
-//indices := [ i : i in [1..d] | IsOdd(i) ] cat [ i : i in [1..d] | IsEven(i) ];
-//T := Matrix(Integers(), [ [ c : c in Eltseq(rows[index]) ] : index in indices ]);
-//return T;
-//
-//end intrinsic;
-
-
-/* TODO: This function needs integrality properties */
-//intrinsic FindSymplecticBasis(M::.) -> .
-//{Determines a symplectic basis of the module M.}
-//
-//V := SymplecticSpace(Matrix(M));
-//S := HyperbolicSplitting(V);
-//n := #S;
-//B := &cat[ [ Vector(v) : v in S[1][i] ] : i in [1..n] ];
-//return Matrix(B);
-//end intrinsic;
-
-
-intrinsic PrincipallyPolarizedCover(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt
-{Given a period matrix admitting a polarization by E, find a (in general non-trivial) quotient of P with the property on which E induces a principal polarization.}
-
-E0, T := FrobeniusFormAlternating(ChangeRing(E, Integers()));
-T := ChangeRing(T, Rationals());
-/* Now T*E*Transpose(T) = E0 */
-g := #Rows(E0) div 2;
-rows := Rows(T);
-rows1 := rows[1..g];
-rows2 := [ (1/E0[i, g + i])*rows[g + i] : i in [1..g] ];
-U := Matrix(Rationals(), [ [ c : c in Eltseq(row) ] : row in rows1 cat rows2 ]);
-Ui := U^(-1);
-Q := P*ChangeRing(Ui, BaseRing(P));
-return Q, Ui;
-
-end intrinsic;
-
-
-
-intrinsic PrincipallyPolarizedQuotient(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt
-{Given a period matrix admitting a polarization by E, find a (in general non-trivial) quotient of P with the property on which E induces a principal polarization.}
-
-E0, T := FrobeniusFormAlternating(ChangeRing(E, Integers()));
-T := ChangeRing(T, Rationals());
-/* Now T*E*Transpose(T) = E0 */
-g := #Rows(E0) div 2;
-rows := Rows(T);
-rows1 := rows[1..g];
-rows2 := [ (1/E0[i, g + i])*rows[g + i] : i in [1..g] ];
-lcm := LCM([ Integers() ! E0[i, g + i] : i in [1..g] ]);
-U := lcm*Matrix(Rationals(), [ [ c : c in Eltseq(row) ] : row in rows1 cat rows2 ]);
-Ui := U^(-1);
-Q := P*ChangeRing(Ui, BaseRing(P));
-return Q, Ui;
-
-end intrinsic;
-
-
 intrinsic FindPolarizationBasis(P::ModMatFldElt) -> SeqEnum
 {Determines a basis of the alternating forms giving rise to a polarization on the period matrix P.}
 
@@ -182,5 +92,42 @@ for tup in CP do
     end if;
 end for;
 return Es0;
+
+end intrinsic;
+
+
+intrinsic SinglePrincipallyPolarizedCover(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt
+{Given a period matrix admitting a polarization by E, find a (in general non-trivial) cover of P with the property on which E induces a principal polarization.}
+
+E0, T := FrobeniusFormAlternating(ChangeRing(E, Integers()));
+T := ChangeRing(T, Rationals());
+/* Now T*E*Transpose(T) = E0 */
+g := #Rows(E0) div 2;
+rows := Rows(T);
+rows1 := rows[1..g];
+rows2 := [ (1/E0[i, g + i])*rows[g + i] : i in [1..g] ];
+U := Matrix(Rationals(), [ [ c : c in Eltseq(row) ] : row in rows1 cat rows2 ]);
+Ui := U^(-1);
+Q := P*ChangeRing(Ui, BaseRing(P));
+return Q, Ui;
+
+end intrinsic;
+
+
+intrinsic SinglePrincipallyPolarizedQuotient(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt
+{Given a period matrix admitting a polarization by E, find a (in general non-trivial) quotient of P with the property on which E induces a principal polarization.}
+
+E0, T := FrobeniusFormAlternating(ChangeRing(E, Integers()));
+T := ChangeRing(T, Rationals());
+/* Now T*E*Transpose(T) = E0 */
+g := #Rows(E0) div 2;
+rows := Rows(T);
+rows1 := rows[1..g];
+rows2 := [ (1/E0[i, g + i])*rows[g + i] : i in [1..g] ];
+lcm := LCM([ Integers() ! E0[i, g + i] : i in [1..g] ]);
+U := lcm*Matrix(Rationals(), [ [ c : c in Eltseq(row) ] : row in rows1 cat rows2 ]);
+Ui := U^(-1);
+Q := P*ChangeRing(Ui, BaseRing(P));
+return Q, Ui;
 
 end intrinsic;

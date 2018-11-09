@@ -49,12 +49,15 @@ and Q, returns an analytic representation A of that same homomorphism, so that
 A P = Q R.}
 
 CC := BaseRing(P);
-P0, s0 := InvertibleSubmatrix(P : IsPeriodMatrix := true);
+//P0, s0 := InvertibleSubmatrix(P : IsPeriodMatrix := true);
+P0, s0 := InvertibleSubmatrix(P);
 QR := Q * ChangeRing(R, CC);
 QR0 := Submatrix(QR, [ 1..#Rows(QR) ], s0);
 A := NumericalLeftSolve(P0, QR0);
-if Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) gt CC`epscomp then
-    error "Error in determining tangent representation";
+test := Maximum([ Abs(c) : c in Eltseq(A*P0 - QR0) ]);
+test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return A;
 
@@ -81,8 +84,9 @@ SplitAP := VerticalSplitMatrix(A * P);
 SplitQ := VerticalSplitMatrix(Q);
 RRR := NumericalRightSolve(SplitQ, SplitAP);
 R := Matrix(Integers(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
-if Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) gt CC`epscomp then
-    error "Error in determining homology representation";
+test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return R;
 
@@ -124,9 +128,6 @@ for r in Rows(Ker) do
     Comm := ChangeRing(R, RR) * JP - JQ * ChangeRing(R, RR);
     if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
         A := TangentRepresentation(R, P, Q);
-        if Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) gt CC`epscomp then
-            error "Error in determining homomorphism representations";
-        end if;
         Append(~gens, [* A, R *]);
     end if;
 end for;

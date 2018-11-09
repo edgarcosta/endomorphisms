@@ -122,17 +122,36 @@ for rt in rts do
     rtCC := EvaluateExtra(rt, K`iota);
     if Abs(rtCC - CC ! a) le CC`epscomp then
         vprint EndoFind : "Root:", rt;
-        return rt, true;
+        return true, rt;
     end if;
 end for;
-return 0, false;
+return false, 0;
+
+end intrinsic;
+
+
+intrinsic AlgebraizeMatrix(M::., K::Fld) -> .
+{Returns an approximation of the complex matrix M over K.}
+
+rows := [ ];
+for rowCC in Rows(M) do
+    row := [ ];
+    for cCC in Eltseq(rowCC) do
+        test, c := AlgebraizeElement(cCC, K);
+        if not test then
+            return false, 0;
+        end if;
+        Append(~row, c);
+    end for;
+    Append(~rows, row);
+end for;
+return true, Matrix(rows);
 
 end intrinsic;
 
 
 intrinsic AlgebraizeElementLLL(a::FldComElt, K::Fld : minpol := 0) -> .
-{Returns an approximation of the complex number a as an element of K. This
-assumes that K is at most a double extension of QQ.}
+{Returns an approximation of the complex number a as an element of K.}
 
 degK := Degree(K); R<x> := PolynomialRing(K);
 F := BaseField(K); degF := Degree(F);
@@ -158,13 +177,13 @@ if test_ker then
                 sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
                 if (RR ! Abs(sCC - a)) lt RR`epscomp then
                     s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
-                    return s, true;
+                    return true, s;
                 end if;
             end if;
         end if;
     end for;
 end if;
-return 0, false;
+return false, 0;
 
 end intrinsic;
 

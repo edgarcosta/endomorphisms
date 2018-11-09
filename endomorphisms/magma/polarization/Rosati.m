@@ -11,7 +11,7 @@
 
 
 intrinsic RosatiInvolution(EndoRep::SeqEnum, AorR::AlgMatElt) -> AlgMatElt
-{Returns the Rosati involution of a tangent or homology representation.}
+{Returns the Rosati involution of a tangent or homology representation. Assumes that the source has the standard principal polarization.}
 
 As := [ gen[1] : gen in EndoRep ]; Rs := [ gen[2] : gen in EndoRep ];
 g := #Rows(As[1]); IsR := #Rows(AorR) eq 2*g;
@@ -25,7 +25,9 @@ else;
         //s := Eltseq(MatrixInBasis(AorR, gensApp));
         //s := [ Round(c) : c in s ];
     end if;
-    s := Eltseq(MatrixInBasis(A, As));
+    test, s := MatrixInBasis(A, As);
+    assert test;
+    s := Eltseq(s);
     R := &+[ s[i] * Rs[i] : i in [1..#Rs] ];
 end if;
 
@@ -34,7 +36,9 @@ Rdagger := -J * Transpose(R) * J;
 if IsR then
     return Rdagger;
 else
-    sdagger := Eltseq(MatrixInBasis(Rdagger, Rs));
+    test, sdagger := MatrixInBasis(Rdagger, Rs);
+    assert test;
+    sdagger := Eltseq(sdagger);
     Adagger := &+[ sdagger[i] * As[i] : i in [1..#Rs] ];
     return Adagger;
 end if;
@@ -64,7 +68,13 @@ under Rosati.}
 As := [ gen[1] : gen in EndoRep ]; Rs := [ gen[2] : gen in EndoRep ];
 J := StandardSymplecticMatrix(#Rows(Rs[1]) div 2);
 Rdiffs := [ (-J * Transpose(R) * J) - R : R in Rs ];
-M := Matrix([ Eltseq(MatrixInBasis(Rdiff, Rs)) : Rdiff in Rdiffs ]);
+rowsM := [ ];
+for Rdiff in Rdiffs do
+    test, s := MatrixInBasis(Rdiff, Rs);
+    assert test;
+    Append(~rowsM, Eltseq(s));
+end for;
+M := Matrix(rowsM);
 B := Basis(Kernel(M));
 Asfixed := [ &+[ b[i]*As[i] : i in [1..#Rs] ] : b in B ];
 Rsfixed := [ &+[ b[i]*Rs[i] : i in [1..#Rs] ] : b in B ];

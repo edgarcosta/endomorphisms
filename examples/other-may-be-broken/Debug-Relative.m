@@ -1,12 +1,5 @@
-/***
- *  Example file
- *
- *  Written by Jeroen Sijsling (jeroen.sijsling@uni-ulm.de)
- *
- *  See LICENSE.txt for license details.
- */
-
 SetVerbose("EndoFind", 2);
+
 prec := 200;
 F := RationalsExtra(prec);
 CC := F`CC;

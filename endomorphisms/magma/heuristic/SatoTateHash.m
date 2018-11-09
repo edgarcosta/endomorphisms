@@ -64,7 +64,8 @@ rows := [ ];
 As := [ galrep[1] : galrep in GeoEndoRep ]; L := BaseRing(As[1]);
 for A in As do
     B := ConjugateMatrix(sigma, A);
-    row := MatrixInBasis(B, As);
+    test, row := MatrixInBasis(B, As);
+    assert test;
     Append(~rows, row);
 end for;
 return Matrix(rows);

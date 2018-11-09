@@ -1,9 +1,3 @@
-/*
-  An example in Magma (to be made into an intuitve package there as well).
-  Examples of verifications and projections can be found in the puiseux/
-  directory; this file shows how to access the heuristic part.
-*/
-
 //SetVerbose("EndoFind", 1);
 
 prec := 300;
