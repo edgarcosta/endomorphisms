@@ -1,11 +1,8 @@
-Structure:
-Perfect up to MaxIsotr.m, then think
-TODOs and Compositum
-
+Structure: Perfect up to MaxIsotr.m, then think
 Do polarizations and Prym absolutely right
-May need to recalculate projection maps after reconstructing with twist (but probably not if done right)
+Compose projection maps for after reconstruction
+Map to elliptic curves perfect, general base point from which to take these, transition maps correct on differentials
 
-Map to elliptic curves perfect, general base point, transition maps correct on differentials
 Integrate improvements into algorithm run, try to use D0 if possible
 Jacobian addition on Puiseux series via formal calculation
 

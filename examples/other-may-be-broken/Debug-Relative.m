@@ -24,7 +24,8 @@ print InfinitePlacesExtra(L);
 print EvaluateExtra(r, L`iota);
 
 print "";
-print EmbedAtInfinitePlace([ y^2 - 3, y^2 - 5 ]);
+print EmbedAtInfinitePlacePolynomials([ y^2 - 3, y^2 - 5 ]);
+
 
 print "";
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
@@ -39,7 +40,7 @@ print h;
 
 print "";
 test, h := IsIsomorphic(L, Lalt);
-TransferAttributes(L, Lalt, h);
+TransferAttributesExtra(L, Lalt, h);
 print Lalt;
 print Lalt`base;
 print Lalt`base_gen;
@@ -85,3 +86,17 @@ F := RationalsExtra(prec);
 h := hom< F -> K | >;
 print CoerceToSubfieldElement(K ! 1, K, F, h);
 
+prec := 200;
+F := RationalsExtra(prec);
+CC := F`CC;
+
+R<x> := PolynomialRing(F);
+K<r> := NumberFieldExtra(x^2 - 2);
+S<y> := PolynomialRing(K);
+L1, s := NumberFieldExtra(y^2 - (r + 1));
+L2, s := NumberFieldExtra(y^2 - (r + 2));
+L3, s := NumberFieldExtra(y^3 + y - (r + 3));
+
+print CompositumExtra(L1, L2);
+print CompositumExtra([* L1, L2 *]);
+print CompositumExtra([* L1, L2, L3 *]);

@@ -20,7 +20,6 @@ g := #Rows(EndoStructBase[1][1][1]);
 if g eq 2 then
     return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
 else
-    // TODO: Add other cases when they appear.
     return "undef";
 end if;
 

@@ -194,7 +194,6 @@ intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity
 /* Use minimal polynomial over QQ */
 CC := Parent(aCC); RCC := PolynomialRing(CC);
 /* TODO: Deal with the horrible side effects that these declarations have */
-//QQ := RationalsExtra(Precision(CC));
 QQ := Rationals();
 QQ`base := Rationals(); QQ`base_gen := QQ`base ! 1;
 QQ`CC := K`CC; QQ`iota := QQ`CC ! 1;

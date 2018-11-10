@@ -13,7 +13,7 @@
 intrinsic VerifySaturated(GeoEndoRep::SeqEnum, P::ModMatFldElt) -> BoolElt, AlgMatElt
 {Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
 is saturated in the corresponding algebra.}
-// TODO: Generalize to isogenies
+/* TODO: Generalize to isogenies */
 
 Rs := [ gen[2] : gen in GeoEndoRep ];
 // Creation of relevant algebras

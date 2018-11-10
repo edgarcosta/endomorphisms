@@ -32,7 +32,8 @@ intrinsic SubmatrixOfRank(M::., rk::RngIntElt : ColumnsOrRows := "Columns") -> .
 {Returns a submatrix of M of rank rk, together with the corresponding list of
 rows or columns. Returns an error if such a matrix does not seem to exist.
 ColumnsOrRows specifies which of the two are culled down.}
-/* TODO: Use an LU decomposition instead */
+/* TODO: Use an LU decomposition instead. However, no numerical version of that
+ * seems to work. */
 
 /* Reducing to the case of columns */
 if ColumnsOrRows eq "Columns" then

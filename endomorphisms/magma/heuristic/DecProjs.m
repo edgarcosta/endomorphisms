@@ -16,7 +16,7 @@ forward NonCentralIdempotentsStepTwo;
 forward FindIdempotentsStupid;
 forward IsTrueIdempotent;
 /* TODO: Too much information is recalculated: this should be reproved by true abelian functionality if possible */
-/* TODO: Endomorphism calculation of factors should proceed by using maps to factor and its dual. */
+/* TODO: Endomorphism calculation of factors should instead work by using maps to factor and its dual. */
 
 
 intrinsic IsotypicalIdempotents(P::., EndoRep::.) -> .
@@ -313,21 +313,5 @@ for idem in idems do
     Append(~comps, [* Qroot, hcomp *]);
 end for;
 return comps;
-
-end intrinsic;
-
-
-intrinsic ReconstructCurveFromRoot(root::.) -> .
-{Curve reconstruction with extension if needed.}
-
-Qroot, hcomp := Explode(root); K := BaseRing(hcomp[1]);
-g := #Rows(Qroot);
-if g eq 1 then
-    return ReconstructCurveG1(Qroot, K);
-elif g eq 2 then
-    /* TODO: First take isogeny! */
-    return ReconstructCurveG2(Qroot, K);
-end if;
-error "Reconstruction for genus larger than 2 not yet implemented";
 
 end intrinsic;

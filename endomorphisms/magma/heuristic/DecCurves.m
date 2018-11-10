@@ -59,3 +59,18 @@ else
 end if;
 
 end intrinsic;
+
+
+intrinsic ReconstructCurveFromRoot(root::.) -> .
+{Curve reconstruction with extension if needed.}
+
+Qroot, hcomp := Explode(root); K := BaseRing(hcomp[1]);
+g := #Rows(Qroot);
+if g eq 1 then
+    return ReconstructCurveG1(Qroot, K);
+elif g eq 2 then
+    return ReconstructCurveG2(Qroot, K);
+end if;
+error "Reconstruction for genus larger than 2 not yet implemented";
+
+end intrinsic;
