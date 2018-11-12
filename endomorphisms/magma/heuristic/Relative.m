@@ -225,11 +225,19 @@ intrinsic SubfieldExtra(L::Fld, seq::.) -> .
 if IsQQ(L) then
     K := L;
     h := hom< K -> L | >;
+    return K, h;
 else
-    K, h := sub< L | Eltseq(seq) cat [ L`base_gen ] >;
+    K := sub< L | seq >; hKL := CanonicalInclusionMap(K, L);
+    if IsQQ(K) then
+        RestrictAttributesExtra(L, K, hKL);
+        return K, hKL;
+    end if;
+    K0, hKK0 := Polredbestabs(K);
+    hKK0i := Inverse(hKK0);
+    hK0L := hom< K0 -> L | hKL(hKK0i(K0.1)) >;
+    RestrictAttributesExtra(L, K0, hK0L);
+    return K0, hK0L;
 end if;
-RestrictAttributesExtra(L, K, h);
-return K, h;
 
 end intrinsic;
 
@@ -256,8 +264,6 @@ end for;
 end intrinsic;
 
 
-
-
 intrinsic ImproveFieldExtra(K::Fld) -> Fld, Map
 {Polredbestabs plus attribute transfer.}
 
@@ -278,6 +284,8 @@ dL := Degree(L);
 Ms := [ Matrix([ Eltseq(gen(L.1^i) - L.1^i) : i in [0..(dL - 1)] ]) : gen in gens ];
 Ker := &meet[ Kernel(M) : M in Ms ];
 B := [ &+[ b[i + 1]*L.1^i : i in [0..(dL - 1)] ] : b in Basis(Ker) ];
+return SubfieldExtra(L, B);
+
 K := sub< L | B >; hKL := CanonicalInclusionMap(K, L);
 K`base := L`base;
 K`base_gen := K ! L`base_gen;
@@ -300,14 +308,15 @@ return K0, hK0L;
 end intrinsic;
 
 
-intrinsic FixedGroupExtra(L::Fld, K::Fld, AutL::.) -> .
-{Extension of FixedGroup.}
+intrinsic FixedGroupExtra(L::Fld, K::Fld, h::., AutL::.) -> .
+{More stable and precise version of FixedGroup: AutL is the automorphism group of L and h is the inclusion of K into L.}
 
 Gp, Gf, Gphi := Explode(AutL);
 if IsQQ(L) then
     return Gp;
 else
-    return sub< Gp | [ g : g in Gp | (Gphi(g))(K.1) eq K.1 ] >;
+    r := h(K.1);
+    return sub< Gp | [ g : g in Gp | (Gphi(g))(r) eq r ] >;
 end if;
 
 end intrinsic;

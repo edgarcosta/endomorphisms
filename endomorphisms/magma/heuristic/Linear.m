@@ -201,6 +201,9 @@ intrinsic IsMultiple(v::., v0::.) -> .
 M := Matrix([ Eltseq(v) ]);
 M0 := Matrix([ Eltseq(v0) ]);
 test, tup := MatrixInBasis(M, [ M0 ]);
+if not test then
+    return false, 0;
+end if;
 return test, Eltseq(tup)[1];
 
 end intrinsic;

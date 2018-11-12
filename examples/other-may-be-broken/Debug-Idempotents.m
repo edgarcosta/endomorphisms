@@ -16,33 +16,23 @@ print "Curve:";
 print X;
 
 P := PeriodMatrix(X);
-EndoRep := GeometricEndomorphismRepresentation(P, F);
-print [ tup[2] : tup in EndoRep ];
+EndoRep, L := GeometricEndomorphismRepresentation(P, F);
 
 idems := IsotypicalIdempotents(P, EndoRep);
 print idems;
 
-/*
-comps_proj := IsotypicalComponentsWithProjections(P, EndoRep);
-print comps_proj;
+//comps := IsotypicalComponentsWithInclusions(P, EndoRep);
+comps := IsotypicalComponentsWithProjections(P, EndoRep);
+comp := comps[2];
+print comp[3];
 
-comp := comps_proj[1];
-Q, h := Explode(comp);
-print IsotypicalComponentFoD(Q, h); 
+Q, h, incdata := Explode(comp);
+print SplittingIdempotents(Q, h, incdata); 
 
-comps := RootsOfIsotypicalComponentWithProjections(Q, h); 
-print comps;
-*/
-
-comps_inc := IsotypicalComponentsWithInclusions(P, EndoRep);
-print comps_inc;
-
-comp := comps_inc[1];
-Q, h := Explode(comp);
-print IsotypicalComponentFoD(Q, h); 
-
-roots := RootsOfIsotypicalComponentWithInclusions(Q, h); 
+roots := RootsOfIsotypicalComponentWithProjections(Q, h, incdata); 
 root := roots[1];
-print root;
+print root[3];
 
-print ReconstructCurveFromRoot(root);
+//comps := SplitComponentsWithInjections(P, EndoRep);
+comps := SplitComponentsWithProjections(P, EndoRep);
+print comps;

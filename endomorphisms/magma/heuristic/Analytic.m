@@ -54,7 +54,7 @@ P0, s0 := InvertibleSubmatrix(P);
 QR := Q * ChangeRing(R, CC);
 QR0 := Submatrix(QR, [ 1..#Rows(QR) ], s0);
 A := NumericalLeftSolve(P0, QR0);
-test := Maximum([ Abs(c) : c in Eltseq(A*P0 - QR0) ]);
+//test := Maximum([ Abs(c) : c in Eltseq(A*P0 - QR0) ]);
 test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
 if test gt CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
@@ -172,7 +172,7 @@ for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EvaluateMatrixExtra(gens[i][1], K`iota) - gensPart[i][1]) ]);
     assert abs lt BaseRing(P)`epscomp;
 end for;
-return gens;
+return gens, K;
 
 end intrinsic;
 

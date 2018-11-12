@@ -15,6 +15,10 @@ intrinsic KerModKer0(h::., P::., Q::.) -> .
 A := h[1]; R := h[2]; CC := BaseRing(A);
 assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le CC`epscomp;
 assert #Rows(R) eq #Rows(Transpose(Q)); assert #Rows(Transpose(R)) eq #Rows(Transpose(P));
+test := &and[ IsIntegral(c) : c in Eltseq(R) ];
+if not test then
+    error "Homology representation not integral";
+end if;
 
 L := Lattice(Transpose(R));
 return quo< PureLattice(L) | L >;
@@ -49,6 +53,10 @@ itan := TangentRepresentation(ihom, K, P);
 assert IsZero(R*ihom);
 L := Lattice(Transpose(ihom));
 assert L eq PureLattice(L);
+test := Maximum([ Abs(c) : c in Eltseq(itan*K - P*ChangeRing(ihom, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
+end if;
 
 return K, [* itan, ihom *];
 
@@ -97,6 +105,10 @@ ptan := TangentRepresentation(phom, Q, C);
 
 /* Check output */
 assert IsZero(phom*R);
+test := Maximum([ Abs(c) : c in Eltseq(ptan*Q - C*ChangeRing(phom, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
+end if;
 
 return C, [* ptan, phom *];
 
@@ -117,7 +129,14 @@ if C eq 0 then
     R := IdentityMatrix(Rationals(), #Rows(Transpose(Q)));
     return Q, [* A, R *];
 end if;
-return Ker0(proj, Q, C);
+
+/* Check output */
+K, i := Ker0(proj, Q, C); itan, ihom := Explode(i);
+test := Maximum([ Abs(c) : c in Eltseq(itan*K - Q*ChangeRing(ihom, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
+end if;
+return K, i;
 
 end intrinsic;
 
@@ -130,13 +149,20 @@ A := h[1]; R := h[2]; CC := BaseRing(A);
 assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le CC`epscomp;
 
 /* Compose previous algorithms */
-K, inc := Ker0(h, P, Q);
+K, i := Ker0(h, P, Q);
 if K eq 0 then
     A := IdentityMatrix(BaseRing(P), #Rows(P));
     R := IdentityMatrix(Rationals(), #Rows(Transpose(P)));
     return P, [* A, R *];
 end if;
-return Coker(inc, K, P);
+
+/* Check output */
+C, p := Coker(i, K, P); ptan, phom := Explode(p);
+test := Maximum([ Abs(c) : c in Eltseq(ptan*P - C*ChangeRing(phom, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
+end if;
+return C, p;
 
 end intrinsic;
 
