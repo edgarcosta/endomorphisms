@@ -9,6 +9,12 @@
  *  See LICENSE.txt for license details.
  */
 
+ /* TODO: Flag for projection or injection
+  * Given factor, determine overlattice over CC, extend number field by
+  * tangent, return over latter field, which should give no problems in small
+  * genus
+  */
+
 
 function DecompositionFactorsG1(P, idem, F)
 

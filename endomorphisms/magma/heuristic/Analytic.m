@@ -83,7 +83,7 @@ CC := BaseRing(P);
 SplitAP := VerticalSplitMatrix(A * P);
 SplitQ := VerticalSplitMatrix(Q);
 RRR := NumericalRightSolve(SplitQ, SplitAP);
-R := Matrix(Integers(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
+R := Matrix(Rationals(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
 test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
 if test gt CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;

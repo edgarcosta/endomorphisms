@@ -169,7 +169,7 @@ end while;
 end function;
 
 
-intrinsic SmallBasePoint(X::Crv : Bound := 2^10, NW := NW) -> SeqEnum
+intrinsic SmallBasePoint(X::Crv : Bound := 2^10, NW := false) -> SeqEnum
 {Given a curve X, returns a point on X over a small extension of its base
 field, which we can ask to be a non-Weierstrass point.}
 

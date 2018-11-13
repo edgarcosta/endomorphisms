@@ -112,13 +112,13 @@ if Genus(X) eq 1 then
     desc := "ell";
 
     K := BaseRing(X); F := BaseRing(K);
-    K_seq := FieldDescription(K, F);
+    K_seq := FieldDescriptionExtra(K, F);
     field := K_seq;
 
     f, h := HyperellipticPolynomials(X);
     f_seq := Eltseq(f); h_seq := Eltseq(h);
-    f_seq_seq := [ ElementDescription(coeff, F) : coeff in f_seq ];
-    h_seq_seq := [ ElementDescription(coeff, F) : coeff in h_seq ];
+    f_seq_seq := [ ElementDescriptionExtra(coeff, F) : coeff in f_seq ];
+    h_seq_seq := [ ElementDescriptionExtra(coeff, F) : coeff in h_seq ];
     coeffs := [ f_seq_seq, h_seq_seq ];
 
 else
@@ -138,7 +138,7 @@ desc := "pln";
 
 K := BaseRing(X); F := BaseRing(K);
 
-K_seq := FieldDescription(K, F);
+K_seq := FieldDescriptionExtra(K, F);
 field := K_seq;
 
 f := DefiningPolynomials(X)[1];
@@ -146,7 +146,7 @@ mons := Monomials(f);
 coeffsexps := [ ];
 for mon in mons do
     coeff := MonomialCoefficient(f, mon);
-    coeff_seq := ElementDescription(coeff, F);
+    coeff_seq := ElementDescriptionExtra(coeff, F);
     exp := Exponents(mon);
     Append(~coeffsexps, [* coeff_seq, exp *]);
 end for;

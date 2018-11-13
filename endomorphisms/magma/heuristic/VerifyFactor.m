@@ -10,38 +10,22 @@
  */
 
 
-intrinsic TestEllipticFactor(X::Crv, E::Crv, F::Fld : prec := 300) -> BoolElt
-{Given a curve X and an elliptic curve E, determines whether E is a factor of
-the Jacobian of X. Returns an analytic map from X to E if this is the case.}
-/* TODO: Add algebraic map */
-
-P := PeriodMatrix(X : prec := prec); Q := PeriodMatrix(E : prec := prec);
-HomRep := GeometricHomomorphismRepresentation(P, Q, F);
-if #HomRep eq 0 then
-    return false;
-end if;
-gen0, d0 := MorphismOfSmallDegree(HomRep, F);
-return true, [* gen0, d0 *];
-
-end intrinsic;
-
-
-intrinsic MorphismOfSmallDegree(P::., Q::., F::Fld : Bound := 10) -> List, RngIntElt
+intrinsic MorphismOfSmallDegreeHeuristic(P::., Q::., F::Fld : Bound := 10) -> List, RngIntElt
 {Gives a morphism of small degree from the Jacobian corresponding to P to that
 corresponding to Q. The third argument F is the base field used.}
 
-g := #Rows(P);
+gX := #Rows(P); gY := #Rows(Q);
 HomRep := GeometricHomomorphismRepresentation(P, Q, F);
 Rs := [ rep[2] : rep in HomRep ];
 
 D := [-Bound..Bound];
-M1 := ChangeRing(StandardSymplecticMatrix(1), Rationals());
-Mg := ChangeRing(StandardSymplecticMatrix(g), Rationals());
+MgX := ChangeRing(StandardSymplecticMatrix(gX), Rationals());
+MgY := ChangeRing(StandardSymplecticMatrix(gY), Rationals());
 CP := CartesianPower(D, #Rs);
 d0 := Infinity();
 for tup in CP do
     R := &+[ tup[i] * Rs[i] : i in [1..#Rs] ];
-    C := R*Mg*Transpose(R)*M1^(-1);
+    C := R*MgX*Transpose(R)*MgY^(-1);
     test := IsScalar(C);
     d := Abs(C[1,1]);
     if (not IsZero(R)) and d lt d0 then
@@ -58,7 +42,17 @@ return gen0, d0;
 end intrinsic;
 
 
-intrinsic EllipticCMCurve(D::RngIntElt : prec := 1000) -> BoolElt
+intrinsic MorphismOfSmallDegreeHeuristic(X::Crv, Y::Crv : Bound := 10) -> .
+{Gives a morphism of small degree from X to Y.}
+
+F := BaseRing(X);
+P := PeriodMatrix(X); Q := PeriodMatrix(Y);
+return MorphismOfSmallDegree(P, Q, F);
+
+end intrinsic;
+
+
+intrinsic EllipticCMCurve(D::RngIntElt : prec := 10000) -> BoolElt
 {Determines principal curve with CM by D.}
 
 QQ := RationalsExtra(prec); CC := QQ`CC; RR := RealField(CC);

@@ -26,7 +26,7 @@ R<t> := PolynomialRing(Rationals());
 F<r> := NumberFieldExtra(t^2 - t + 1);
 R<x> := PolynomialRing(F);
 f := x^6 + r; h := R ! 0;
-f := R ! [ -30*r + 42, -156*r + 312, -66*r + 186, -1456*r + 1040, -90*r + 126, 156*r - 312, -22*r + 62 ]; h := R ! 0;
+//f := R ! [ -30*r + 42, -156*r + 312, -66*r + 186, -1456*r + 1040, -90*r + 126, 156*r - 312, -22*r + 62 ]; h := R ! 0;
 
 X := HyperellipticCurve(f, h);
 print "Curve:";

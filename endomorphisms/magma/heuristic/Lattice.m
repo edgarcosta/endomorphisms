@@ -29,7 +29,7 @@ intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum) -> List
 {Returns the lattice of endomorphisms by (conjugacy class of) subfield.}
 
 L := BaseRing(GeoEndoRep[1][1]);
-F := L`base; F_seq := FieldDescription(F);
+F := L`base; F_seq := FieldDescriptionExtra(F);
 base := [* F_seq, F *];
 
 if Degree(L) eq 1 then
@@ -61,7 +61,7 @@ intrinsic EndomorphismLatticeGeometricStep(GeoEndoRep::SeqEnum) -> List
 entry := [* *];
 
 L := BaseRing(GeoEndoRep[1][1][1]);
-L_seq := FieldDescription(L); L_desc := [* L_seq, L *];
+L_seq := FieldDescriptionExtra(L); L_desc := [* L_seq, L *];
 Append(~entry, L_desc);
 
 GalL := [* [ ], [ ] *];
@@ -88,7 +88,7 @@ gensH, Gphi := Explode(GalK);
 vprint EndoFind: "";
 vprint EndoFind: "Galois group:", gensH;
 K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
-K := ImproveFieldExtra(K); K_seq := FieldDescription(K);
+K := ImproveFieldExtra(K); K_seq := FieldDescriptionExtra(K);
 vprint EndoFind: "Improved base field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);

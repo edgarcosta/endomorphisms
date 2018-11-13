@@ -25,6 +25,11 @@ end intrinsic;
 intrinsic AutomorphismGroupPari(K::Fld) -> .
 {Similar to usual function, but outsources to Pari for better performance.}
 
+if assigned K`aut then
+    Gp, Gf, Gphi := AutomorphismGroupPari(K`aut);
+    return Gp, Gf, Gphi;
+end if;
+
 assert BaseRing(K) eq Rationals();
 if IsQQ(K) then
     return AutomorphismGroup(K);

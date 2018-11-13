@@ -110,7 +110,7 @@ for D in Ds do
     E1 := AlgebraOverCenter(D);
     F := BaseRing(E1);
     E2 := ChangeRing(E1, F);
-    FDesc := FieldDescription(Polredbestabs(F));
+    FDesc := FieldDescriptionExtra(Polredbestabs(F));
     //FDesc := Eltseq(MinimalPolynomial(F.1));
     //FDesc := [ Integers() ! c : c in FDesc ];
 

@@ -143,8 +143,7 @@ idems_geo := NonCentralIdempotents(GeoEndoData);
 
 /* Find automorphism group (over QQ for now) */
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
-AutL := [* Gp, Gf, Gphi *];
-H := FixedGroupExtra(L, K, hKL, AutL);
+H := FixedGroupExtra(L, K, hKL);
 
 /* Find subgroups corresponding to fields between L and K */
 S := Subgroups(H); Js := [ rec`subgroup : rec in S ];

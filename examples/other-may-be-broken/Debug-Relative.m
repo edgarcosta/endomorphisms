@@ -99,4 +99,5 @@ L3, s := NumberFieldExtra(y^3 + y - (r + 3));
 
 print CompositumExtra(L1, L2);
 print CompositumExtra([* L1, L2 *]);
-print CompositumExtra([* L1, L2, L3 *]);
+M := CompositumExtra([* L1, L2, L3 *]);
+print M;

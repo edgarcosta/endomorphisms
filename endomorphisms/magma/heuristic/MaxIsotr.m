@@ -13,7 +13,8 @@
 intrinsic InducedPolarization(E::., R::.) -> .
 {Given a matrix E corresponding to a polarization, returns the pushforward of E along R.}
 // A map from gX to gY gives R that is 2 gY x 2 gX, since on homology we go from rank 2 gX to rank 2 gY.
-// But what does this function actually do??? Pullback along dual.
+// But what does this function actually do??? Pullback along dual. Use it and
+// after we get to PPAV dualize for real.
 
 Q := R*E*Transpose(R);
 d := GCD([ Integers() ! c : c in Eltseq(Q) ]);
@@ -131,6 +132,7 @@ return Lats;
 end intrinsic;
 
 
+/* TODO: Generalize (quite involved, project?) */
 intrinsic IsogenousPPLatticesG2(E::.) -> .
 {Given an alternating form E, finds the sublattices to ZZ^2d of smallest possible index on which E induces a principal polarization. These are returned in matrix form, that is, as a span of a basis in the rows. This basis is symplectic in the usual sense.}
 /* In general, we would isolate the blocks with given d and deal with those one at a time */

@@ -96,6 +96,7 @@ return Es0;
 end intrinsic;
 
 
+/* Next two functions should be redundant */
 intrinsic SinglePrincipallyPolarizedCover(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt
 {Given a period matrix admitting a polarization by E, find a (in general non-trivial) cover of P with the property on which E induces a principal polarization.}
 
