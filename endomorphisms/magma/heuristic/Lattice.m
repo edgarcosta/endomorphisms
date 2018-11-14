@@ -88,8 +88,8 @@ gensH, Gphi := Explode(GalK);
 vprint EndoFind: "";
 vprint EndoFind: "Galois group:", gensH;
 K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
-K := ImproveFieldExtra(K); K_seq := FieldDescriptionExtra(K);
-vprint EndoFind: "Improved base field:", K;
+K_seq := FieldDescriptionExtra(K);
+vprint EndoFind: "Base field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
 

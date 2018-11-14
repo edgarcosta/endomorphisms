@@ -676,7 +676,7 @@ return Matrix([ [ CoerceToSubfieldElement(a, L, K, h) : a in Eltseq(row) ] : row
 end intrinsic;
 
 
-intrinsic CompositumExtra(K::Fld, L::Fld) -> Fld
+intrinsic CompositumExtra(K::Fld, L::Fld : Compat := true) -> Fld
 {Returns the compositum of the fields K and L over their common base field, by
 taking the splitting field of the polynomial defining L to extend K. We require
 L to be normal over the base.}
@@ -712,6 +712,10 @@ fLK := ConjugatePolynomial(hFK, fLF);
 g := Factorization(fLK, K)[1][1];
 M, rL, hKM := ExtendNumberFieldExtra(g);
 hLM := hom< L -> M | rL >;
+
+if not Compat then
+    return M, [* hKM, hLM *];
+end if;
 
 /* Take place compatible with both previous ones */
 CC := K`CC; genK := hKM(K.1); genL := hLM(L.1);

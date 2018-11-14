@@ -157,8 +157,7 @@ and via the infinite place of F the matrix A is mapped to ACC.}
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
-//K, seq := NumberFieldExtra(seqPart, F);
-K, seq := SplittingFieldExtra(seqPart, F);
+K, seq := NumberFieldExtra(seqPart, F);
 
 assert #seq eq #seqPart;
 if #seq eq 0 then
@@ -184,6 +183,25 @@ triples of an algebraized tangent representation A, a homology representation R
 and a complex tangent representation ACC. We have ACC P = P R, and via the
 infinite place of F the matrix A is mapped to ACC.}
 
-return GeometricHomomorphismRepresentation(P, P, F : UpperBound := UpperBound);
+Q := P;
+/* Determine matrices over CC */
+gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+/* Determine minimal polynomials needed */
+seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+K, seq := SplittingFieldExtra(seqPart, F);
+
+assert #seq eq #seqPart;
+if #seq eq 0 then
+    return [ ];
+end if;
+
+r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
+As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
+gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
+for i in [1..#gens] do
+    abs := Max([ Abs(c) : c in Eltseq(EvaluateMatrixExtra(gens[i][1], K`iota) - gensPart[i][1]) ]);
+    assert abs lt BaseRing(P)`epscomp;
+end for;
+return gens, K;
 
 end intrinsic;

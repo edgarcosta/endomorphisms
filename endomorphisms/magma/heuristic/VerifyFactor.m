@@ -10,7 +10,7 @@
  */
 
 
-intrinsic MorphismOfSmallDegreeHeuristic(P::., Q::., F::Fld : Bound := 10) -> List, RngIntElt
+intrinsic MorphismOfSmallDegree(P::., Q::., F::Fld : Bound := 10) -> List, RngIntElt
 {Gives a morphism of small degree from the Jacobian corresponding to P to that
 corresponding to Q. The third argument F is the base field used.}
 
@@ -42,12 +42,12 @@ return gen0, d0;
 end intrinsic;
 
 
-intrinsic MorphismOfSmallDegreeHeuristic(X::Crv, Y::Crv : Bound := 10) -> .
+intrinsic MorphismOfSmallDegree(X::Crv, Y::Crv : Bound := 10) -> .
 {Gives a morphism of small degree from X to Y.}
 
 F := BaseRing(X);
 P := PeriodMatrix(X); Q := PeriodMatrix(Y);
-return MorphismOfSmallDegreeHeuristic(P, Q, F);
+return MorphismOfSmallDegree(P, Q, F);
 
 end intrinsic;
 

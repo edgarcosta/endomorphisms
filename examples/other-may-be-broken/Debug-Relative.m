@@ -18,8 +18,8 @@ print L`iota;
 
 print "";
 print IsQQ(L);
-print FieldDescription(L);
-print ElementDescription(L.1);
+print FieldDescriptionExtra(L);
+print ElementDescriptionExtra(L.1);
 print InfinitePlacesExtra(L);
 print EvaluateExtra(r, L`iota);
 

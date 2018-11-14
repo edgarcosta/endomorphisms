@@ -15,7 +15,6 @@ intrinsic EndomorphismData(GeoEndoRep::SeqEnum, GalK::List) -> List
 GalK, returns the endomorphism structure over the subfield corresponding to
 GalK.}
 
-/* Called Base because it is the version without Sato-Tate */
 vprint EndoFind : "";
 vprint EndoFind : "Calculating representation over subfield...";
 EndoRep := EndomorphismRepresentation(GeoEndoRep, GalK);
@@ -72,7 +71,11 @@ intrinsic EndomorphismStructure(EndoRep::SeqEnum) -> List
 {Given a representation EndoRep of an endomorphism ring, returns a description
 of the corresponding algebra, ring, and algebra tensored with RR.}
 
-Rs := [ gen[2] : gen in EndoRep ];
+Rs := [ gen[2] : gen in EndoRep ]; g := #Rows(Rs[1]) div 2;
+if g gt 3 then
+    print "No stable functionality for curves over genus greater than 3 yet";
+end if;
+
 vprint EndoFind : "";
 vprint EndoFind : "Generators of endomorphism algebra:", Rs;
 vprint EndoFind : "Calculating structure...";
@@ -101,6 +104,7 @@ end intrinsic;
 
 intrinsic EndomorphismAlgebraQQ(C::AlgAss) -> .
 {Given an associative algebra C, returns a description of it.}
+/* TODO: Depends on genus <= 3 */
 
 /* Central decomposition */
 Ds := DirectSumDecomposition(C);
@@ -111,8 +115,6 @@ for D in Ds do
     F := BaseRing(E1);
     E2 := ChangeRing(E1, F);
     FDesc := FieldDescriptionExtra(Polredbestabs(F));
-    //FDesc := Eltseq(MinimalPolynomial(F.1));
-    //FDesc := [ Integers() ! c : c in FDesc ];
 
     _, d := IsSquare(Dimension(E2));
     if IsTotallyReal(F) then
@@ -120,8 +122,6 @@ for D in Ds do
             DescFactorQQ := [* "I", FDesc, 1, 1, 1 *];
 
         elif d eq 2 then
-            /* TODO: Depends on genus <= 3:
-             * Problem is matrix algebra over division algebra */
             test, Q := IsQuaternionAlgebra(E2);
             DQFin := Discriminant(Q); NDQ := Integers() ! Norm(DQFin);
             if NDQ eq 1 then
@@ -133,7 +133,6 @@ for D in Ds do
             end if;
 
         elif d eq 3 then
-            /* TODO: Depends on genus <= 3 */
             DescFactorQQ := [* "I", FDesc, 1, 1, d *];
 
         else
@@ -141,7 +140,6 @@ for D in Ds do
         end if;
 
     else
-        /* TODO: Depends on genus <= 3 */
         if d le 3 then
             DescFactorQQ := [* "IV", FDesc, 1, 1, d *];
         else
@@ -210,17 +208,15 @@ test, ind := IsSquare(DOC / DOM);
 Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
-    //F := ClearDenominator(BaseRing(E1));
-    //F := Polredbestabs(F);
-    //E2, f2 := ChangeRing(E1, F);
     F := BaseRing(E1);
+    /* TODO: Optionally, we could improve and change ring here, but that has
+     * undocumented behavior and does not accept field morphisms, so not for now */
     E2 := E1;
     test, d := IsSquare(Dimension(E2));
 
     if d eq 2 and IsQQ(F) then
         test, Q, f3 := IsQuaternionAlgebra(E2);
         if test then
-            //f := f1 * f2 * f3;
             f := f1 * f3;
             OO := QuaternionOrder([ f(gen) : gen in GensC ]);
             if IsEichler(OO) then
@@ -236,7 +232,7 @@ return GensC, [ Integers() ! ind, -1 ];
 end intrinsic;
 
 
-/* The following two functions are not essential */
+/* TODO: The following two functions are of various degrees of redundance */
 
 intrinsic HasGenerator(EndoStruct::List : B := 1) -> BoolElt, .
 {Determines whether a single generator for the endomorphism ring exists, and

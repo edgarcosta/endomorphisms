@@ -62,3 +62,46 @@ end for;
 return true, "";
 
 end intrinsic;
+
+
+intrinsic SaturateLattice(L::., M::. : ColumnsOrRows := "Columns") -> .
+{Given a basis of a lattice L and a generating set of a lattice M in which L is
+of finite index, returns a basis of M along with matrices that give expressions
+of the provided generating sets in this basis. The flag ColumnsOrRows specifies
+whether column of row vectors are interpreted as generating the lattice.}
+
+/* In the end we have L = T B, M = U B in case of Rows and L = B T, M = B U in
+ * case of Columns. */
+
+if ColumnsOrRows eq "Columns" then
+    B, T, U := SaturateLattice(Transpose(L), Transpose(M) : ColumnsOrRows := "Rows");
+    return Transpose(B), Transpose(T), Transpose(U);
+end if;
+
+CC := BaseRing(L);
+subL, s0 := InvertibleSubmatrix(L);
+subM := Submatrix(M, [1..#Rows(M)], s0);
+S := NumericalLeftSolve(subL, subM);
+S, test := FractionalApproximationMatrix(S);
+if not test then
+    error "No suitable fractional approximation found";
+end if;
+/* At this point we have S L = M, where S has rational entries and an integral
+* inverse */
+
+/* Now we write S = R S0, where R is integral and where S0 has an integral
+ * inverse */
+S0 := ChangeRing(Matrix(Basis(Lattice(S))), Rationals());
+S0i := S0^(-1); R := S * S0i;
+/* The result is that the following B, T, U can be used */
+B := ChangeRing(S0, CC) * L; T := S0i; U := R;
+
+/* Final sanity check */
+test1 := Minimum([ Abs(c) : c in Eltseq(L - ChangeRing(T, CC)*B) ]) lt CC`epscomp;
+test2 := Minimum([ Abs(c) : c in Eltseq(M - ChangeRing(U, CC)*B) ]) lt CC`epscomp;
+if not (test1 and test2) then
+    error "Error in determining saturated lattice";
+end if;
+return B, T, U;
+
+end intrinsic;

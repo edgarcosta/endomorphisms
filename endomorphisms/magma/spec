@@ -10,6 +10,7 @@
     CCExtra.m
     Relative.m
     Recognition.m
+    Sagify.m
 
     Curves.m
     Periods.m
@@ -17,15 +18,15 @@
     Linear.m
     Analytic.m
 
-    OverField.m
-    Structure.m
     SatoTate.m
     SatoTateHash.m
+
+    OverField.m
+    Structure.m
     Lattice.m
-    Sagify.m
 
     MaxIsotr.m
-    DecProjs.m
+    DecFacts.m
     DecCurves.m
 
     VerifySat.m

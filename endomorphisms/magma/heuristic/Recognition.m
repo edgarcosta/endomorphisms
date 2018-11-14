@@ -26,15 +26,14 @@ return false;
 end function;
 
 
-intrinsic MinimalPolynomialLLL(a::FldComElt, F::Fld : LowerBound := 1, UpperBound := Infinity(), StepSize := 1) -> RngUPolElt
-{Returns a relative minimal polynomial of the complex number a with respect to
-the stored infinite place of F.}
+intrinsic MinimalPolynomialLLL(a::FldComElt, K::Fld : LowerBound := 1, UpperBound := Infinity(), StepSize := 1) -> RngUPolElt
+{Returns a relative minimal polynomial of the complex number a with respect to the stored infinite place of K.}
 
-degF := Degree(F); R<x> := PolynomialRing(F); CC := F`CC;
+degK := Degree(K); R<x> := PolynomialRing(K); CC := K`CC;
 
 /* The next line is slightly inefficient, but it is not a bottleneck. It takes
- * the images in CC of a power basis of F over QQ. */
-powersgen := [ CC ! EvaluateExtra(F.1^i, F`iota) : i in [0..(degF - 1)] ];
+ * the images in CC of a power basis of K over QQ. */
+powersgen := [ CC ! EvaluateExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
 
 /* Create first entry corresponding to constant term */
 MLine := [ ];
@@ -57,7 +56,7 @@ while degf lt UpperBound do
         /* We only consider the first row */
         if test_ker then
             row := Rows(Ker)[1];
-            f := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * x^i : i in [0..degf] ];
+            f := &+[ &+[ row[i*degK + j + 1]*K.1^j : j in [0..(degK - 1)] ] * x^i : i in [0..degf] ];
             if TestCloseToRoot(f, a) then
                 return f;
             end if;
@@ -103,6 +102,25 @@ if (RR ! Abs(q - a)) lt RR`epscomp then
 else
     return Rationals() ! 0, false;
 end if;
+
+end intrinsic;
+
+
+intrinsic FractionalApproximationMatrix(A::.) -> .
+{Returns a fractional approximation of the matrix A.}
+
+test := true;
+rows_alg := [ ];
+for row in Rows(A) do
+    row_alg := [ ];
+    for c in Eltseq(row) do
+        q, test_q := FractionalApproximation(c);
+        test and:= test_q;
+        Append(~row_alg, q);
+    end for;
+    Append(~rows_alg, row_alg);
+end for;
+return Matrix(rows_alg), test;
 
 end intrinsic;
 
@@ -189,11 +207,12 @@ end intrinsic;
 
 
 intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), minpolQQ := 0) -> RngUPolElt
-{Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K.}
+{Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. More stable than MinimalPolynomialLLL via the use of RootsPari. If the minimal polynomial over QQ is already known, then it can be specified by using the keyword argument minpolQQ. This minimal polynomial over QQ is the second return value.}
 
 /* Use minimal polynomial over QQ */
 CC := Parent(aCC); RCC := PolynomialRing(CC);
-/* TODO: Deal with the horrible side effects that these declarations have */
+/* Note that these declarations have severe side effects that force us to work
+ * with a fixed precision */
 QQ := Rationals();
 QQ`base := Rationals(); QQ`base_gen := QQ`base ! 1;
 QQ`CC := K`CC; QQ`iota := QQ`CC ! 1;
@@ -218,7 +237,6 @@ for g in gs do
     gCC := EmbedAtInfinitePlacePolynomial(g);
     for tuprt in Roots(gCC) do
         rtCC := tuprt[1];
-        //if Abs(rtCC - aCC) le 10^50*CC`epscomp then
         if Abs(rtCC - aCC) le CC`epscomp then
             return g, f;
         end if;

@@ -18,10 +18,9 @@ forward IsTrueIdempotent;
 
 /* TODO: Too much information is recalculated: this should be reproved by true abelian functionality if possible */
 /* TODO: Endomorphism calculation of factors should instead work by using maps to factor and its dual. */
-/* TODO: Make choice between projection and inclusion a flag */
 
 
-intrinsic IsotypicalIdempotents(P::., GeoEndoRep::.) -> .
+intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
 {Returns factors of the Jacobian and appropriate spanning set of idempotents over CC.}
 
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
@@ -53,14 +52,21 @@ return [* idemA, idemR *];
 end function;
 
 
-intrinsic ComponentWithProjection(P::., idem::. : CoerceToBase := true) -> .
-{Returns projection from Jacobian P corresponding to idempotent idem.}
+intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjOrInc := "Proj") -> .
+{Returns component and map corresponding to idempotent idem.}
 
 L := BaseRing(idem[1]);
-R := idem[2]; //R := R*Denominator(R);
-ACC := TangentRepresentation(R, P, P);
-Q, h := ImgProj([* ACC, R *], P, P);
+if ProjOrInc eq "Proj" then
+    R := idem[2]; //R := R*Denominator(R);
+    ACC := TangentRepresentation(R, P, P);
+    Q, h := ImgProj([* ACC, R *], P, P);
+else
+    R := 1 - idem[2]; //R := R*Denominator(R);
+    ACC := TangentRepresentation(R, P, P);
+    Q, h := Ker0([* ACC, R *], P, P);
+end if;
 BCC := h[1]; S := h[2];
+
 /* Recalculation */
 test, B := AlgebraizeMatrix(BCC, L);
 assert test;
@@ -74,51 +80,13 @@ return Q, [* B, S *], incdata;
 end intrinsic;
 
 
-intrinsic ComponentWithInclusion(P::., idem::. : CoerceToBase := true) -> .
-{Returns inclusion into Jacobian P corresponding to idempotent idem.}
-
-L := BaseRing(idem[1]);
-R := 1 - idem[2]; //R := R*Denominator(R);
-ACC := TangentRepresentation(R, P, P);
-Q, h := Ker0([* ACC, R *], P, P);
-BCC := h[1]; S := h[2];
-/* Recalculation */
-test, B := AlgebraizeMatrix(BCC, L);
-assert test;
-if not CoerceToBase then
-    return Q, [* B, S *], 0;
-end if;
-K, hKL := SubfieldExtra(L, Eltseq(B));
-if CoerceToBase then
-    B := CoerceToSubfieldMatrix(B, L, K, hKL);
-end if;
-incdata := [* L, K, hKL *];
-return Q, [* B, S *], incdata;
-
-end intrinsic;
-
-
-intrinsic IsotypicalComponentsWithProjections(P::., EndoRep::. : CoerceToBase := true) -> .
-{Returns isotypical components Q = B^d of the Jacobian and projections from P to these Q.}
+intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, ProjOrInc := "Proj") -> .
+{Returns isotypical components Q = B^d of the Jacobian with maps.}
 
 idems := IsotypicalIdempotents(P, EndoRep);
 comps := [ ];
 for idem in idems do
-    Q, h, incdata := ComponentWithProjection(P, idem : CoerceToBase := CoerceToBase);
-    Append(~comps, [* Q, h, incdata *]);
-end for;
-return comps;
-
-end intrinsic;
-
-
-intrinsic IsotypicalComponentsWithInclusions(P::., EndoRep::. : CoerceToBase := true) -> .
-{Returns isotypical components Q = B^d of the Jacobian and inclusions from these Q to P.}
-
-idems := IsotypicalIdempotents(P, EndoRep);
-comps := [ ];
-for idem in idems do
-    Q, h, incdata := ComponentWithInclusion(P, idem : CoerceToBase := CoerceToBase);
+    Q, h, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjOrInc := ProjOrInc);
     Append(~comps, [* Q, h, incdata *]);
 end for;
 return comps;
@@ -134,7 +102,7 @@ L, K, hKL := Explode(incdata);
 GeoEndoRepCC := GeometricEndomorphismRepresentationCC(Q);
 GeoEndoRep := [ ];
 for tupCC in GeoEndoRepCC do
-    test, A := AlgebraizeMatrix(tupCC[1], K); R := tupCC[2];
+    test, A := AlgebraizeMatrix(tupCC[1], L); R := tupCC[2];
     Append(~GeoEndoRep, [* A, R *]);
 end for;
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
@@ -192,13 +160,8 @@ function NonCentralIdempotentsStepOne(EndoData)
 
 C := EndoData[2][1];
 E1, f1 := AlgebraOverCenter(C);
-/* This seems a bit heavy-handed */
-//F := ClearDenominator(BaseRing(E1));
-//if Type(F) eq FldNum then
-//    F := ClearDenominator(F);
-//    F := ImproveField(F);
-//end if;
-//E2, f2 := ChangeRing(E1, F);
+/* TODO: Optionally, we could improve and change ring here, but that has
+ * undocumented behavior and does not accept field morphisms, so not for now */
 E2 := E1;
 
 /* Fields have no idempotents */
@@ -214,7 +177,6 @@ if d eq 2 then
     if not test_mat then
         return true, [ C ! 1 ];
     end if;
-    //f := f1 * f2 * f3 * f4;
     f := f1 * f3 * f4;
     invf := Inverse(f);
     return true, [ C ! invf(M ! [1,0,0,0]), C ! invf(M ! [0,0,0,1]) ];
@@ -298,9 +260,9 @@ return false;
 end function;
 
 
-intrinsic RootsOfIsotypicalComponentWithProjections(Q::., h::., incdata::.) -> .
-{Returns components along with projection maps over smallest possible field.}
-/* We emphatically do not want a single component and multiple maps to it here,
+intrinsic RootsOfIsotypicalComponent(Q::., h::., incdata::. : ProjOrInc := "Proj") -> .
+{Returns components along with maps over smallest possible field.}
+/* We emphatically do not want a single component and multiple maps for it,
  * because that causes us to miss factors that become isogenous only later */
 
 idems, incdataroot := SplittingIdempotents(Q, h, incdata);
@@ -308,7 +270,7 @@ comps := [ ];
 for idem in idems do
     /* No need to coerce since we are already over smallest possible field
      * Still, it might be interesting to know what the morphism generates */
-    Qroot, hroot, _ := ComponentWithProjection(Q, idem : CoerceToBase := false);
+    Qroot, hroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjOrInc := ProjOrInc);
     Append(~comps, [* Qroot, hroot, incdataroot *]);
 end for;
 return comps;
@@ -316,63 +278,26 @@ return comps;
 end intrinsic;
 
 
-intrinsic RootsOfIsotypicalComponentWithInclusions(Q::., h::., incdata::.) -> .
-{Returns components along with inclusion maps over smallest possible field.}
-/* We emphatically do not want a single component and multiple maps to it here,
- * because that causes us to miss factors that become isogenous only later */
-
-idems, incdataroot := SplittingIdempotents(Q, h, incdata);
-comps := [ ];
-for idem in idems do
-    /* No need to coerce since we are already over smallest possible field
-     * Still, it might be interesting to know what the morphism generates */
-    Qroot, hroot, _ := ComponentWithInclusion(Q, idem : CoerceToBase := false);
-    Append(~comps, [* Qroot, hroot, incdataroot *]);
-end for;
-return comps;
-
-end intrinsic;
-
-
-intrinsic SplitComponentsWithProjections(P::., GeoEndoRep::.) -> .
+intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : ProjOrInc := "Proj") -> .
 {Returns maximal possible splitting of the Jacobian P over the smallest field over which this occurs, plus corresponding projections.}
 
 L := BaseRing(GeoEndoRep[1][1]);
 comps := [ ];
-comps_iso := IsotypicalComponentsWithProjections(P, GeoEndoRep : CoerceToBase := false);
+comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjOrInc := ProjOrInc);
 for comp_iso in comps_iso do
     Q, h, incdata := Explode(comp_iso);
     A, R := Explode(h);
-    for comp_root in RootsOfIsotypicalComponentWithProjections(Q, h, incdata) do
+    for comp_root in RootsOfIsotypicalComponent(Q, h, incdata : ProjOrInc := ProjOrInc) do
         Qroot, hroot, incdataroot := Explode(comp_root);
         print incdataroot;
         L, K, hKL := Explode(incdataroot);
         A0 := CoerceToSubfieldMatrix(A, L, K, hKL);
         Aroot, Rroot := Explode(hroot);
-        hcomp := [* Aroot*A0, Rroot*R *];
-        Append(~comps, [* Qroot, hcomp, incdataroot *]);
-    end for;
-end for;
-return comps;
-
-end intrinsic;
-
-
-intrinsic SplitComponentsWithInclusions(P::., GeoEndoRep::.) -> .
-{Returns maximal possible splitting of the Jacobian P over the smallest field over which this occurs, plus corresponding inclusions.}
-
-L := BaseRing(GeoEndoRep[1][1]);
-comps := [ ];
-comps_iso := IsotypicalComponentsWithInclusions(P, GeoEndoRep : CoerceToBase := false);
-for comp_iso in comps_iso do
-    Q, h, incdata := Explode(comp_iso);
-    A, R := Explode(h);
-    for comp_root in RootsOfIsotypicalComponentWithProjections(Q, h, incdata) do
-        Qroot, hroot, incdataroot := Explode(comp_root);
-        L, K, hKL := Explode(incdataroot);
-        A0 := CoerceToSubfieldMatrix(A, L, K, hKL);
-        Aroot, Rroot := Explode(hroot);
-        hcomp := [* A0*Aroot, R*Rroot *];
+        if ProjOrInc eq "Proj" then
+            hcomp := [* Aroot*A0, Rroot*R *];
+        else
+            hcomp := [* A0*Aroot, R*Rroot *];
+        end if;
         Append(~comps, [* Qroot, hcomp, incdataroot *]);
     end for;
 end for;

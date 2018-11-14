@@ -26,26 +26,6 @@ return Curve(Scheme(ProjectiveSpace(S), Fhom));
 end intrinsic;
 
 
-intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::., prec::RngIntElt) -> Crv
-{Returns the hyperelliptic curve over the rationals with precision prec defined
-by f and h.}
-
-QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ);
-return HyperellipticCurve(RQQ ! f, RQQ ! h);
-
-end intrinsic;
-
-
-intrinsic PlaneCurveExtra(F::RngMPolElt, prec::RngIntElt) -> Crv
-{Returns the plane curve over the rationals with precision prec defined by F,
-which can be given affinely or projectively.}
-
-QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ, #GeneratorsSequence(Parent(F)));
-return PlaneCurve(RQQ ! F);
-
-end intrinsic;
-
-
 intrinsic CurveType(X::Crv) -> MonStgElt
 {Returns a string that describes the type of curve that X belongs to, which is
 one of "hyperelliptic", "plane" and "general".}
@@ -166,5 +146,25 @@ elif Type(X) eq CrvPln then
 else
     error "No description for general curves yet";
 end if;
+
+end intrinsic;
+
+
+intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::., prec::RngIntElt) -> Crv
+{Returns the hyperelliptic curve over the rationals with precision prec defined
+by f and h. Only relevant in the Sage interface.}
+
+QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ);
+return HyperellipticCurve(RQQ ! f, RQQ ! h);
+
+end intrinsic;
+
+
+intrinsic PlaneCurveExtra(F::RngMPolElt, prec::RngIntElt) -> Crv
+{Returns the plane curve over the rationals with precision prec defined by F,
+which can be given affinely or projectively. Only relevant in the Sage interface.}
+
+QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ, #GeneratorsSequence(Parent(F)));
+return PlaneCurve(RQQ ! F);
 
 end intrinsic;

@@ -22,58 +22,6 @@ return #RootsPari(f, K) ne 0;
 end intrinsic;
 
 
-intrinsic AutomorphismGroupPari(K::Fld) -> .
-{Similar to usual function, but outsources to Pari for better performance.}
-
-if assigned K`aut then
-    Gp, Gf, Gphi := AutomorphismGroupPari(K`aut);
-    return Gp, Gf, Gphi;
-end if;
-
-assert BaseRing(K) eq Rationals();
-if IsQQ(K) then
-    return AutomorphismGroup(K);
-end if;
-
-rts := RootsPari(DefiningPolynomial(K), K); S := Sym(#rts);
-sigmas := [ ];
-for rt in rts do
-    h := hom< K -> K | rt >;
-    if h(K`base_gen) eq K`base_gen then
-        L := [ ];
-        for i in [1..#rts] do
-            for j in [1..#rts] do
-                if h(rts[i]) eq rts[j] then
-                    Append(~L, j);
-                end if;
-            end for;
-        end for;
-        Append(~sigmas, S ! L);
-    end if;
-end for;
-Gp := sub< S | sigmas >;
-
-for i in [1..#rts] do
-    if rts[i] eq K.1 then
-        n0 := i;
-    end if;
-end for;
-
-tups := [ ]; hs := [ ];
-for sigma in Gp do
-    j := Eltseq(sigma)[n0];
-    h := hom< K -> K | rts[j] >;
-    Append(~tups, <sigma, h>);
-    Append(~hs, h);
-end for;
-hs := Set(hs);
-Gphi := map< Gp -> hs | tups >;
-
-return Gp, 0, Gphi;
-
-end intrinsic;
-
-
 intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
 {Given a polynomial f and a field K, finds the factorization of f over K.}
 
@@ -103,5 +51,56 @@ Coefficients(f), Coefficients(f));
 s := Pipe("gp -q", cmd);
 R<x> := PolynomialRing(BaseRing(f));
 return Polredbestabs(NumberField(eval(s)));
+
+end intrinsic;
+
+
+intrinsic AutomorphismGroupPari(K::Fld) -> .
+{Similar to usual function, but outsources to Pari for better performance.}
+
+if assigned K`aut then
+    Gp, Gf, Gphi := Explode(K`aut);
+    return Gp, Gf, Gphi;
+end if;
+
+assert BaseRing(K) eq Rationals();
+/* Special case of QQ  */
+if IsQQ(K) then
+    Gp, Gf, Gphi := AutomorphismGroup(K);
+    K`aut := [* Gp, 0, Gphi *];
+    return Gp, 0, Gphi ;
+end if;
+
+/* Determine all roots of the defining polynomial */
+rts := RootsPari(DefiningPolynomial(K), K); S := Sym(#rts);
+
+sigmas := [ ]; tups := [ ]; hs := [ ];
+for rt in rts do
+    /* Automorphism as map */
+    h := hom< K -> K | rt >;
+    /* Test if it fixes the base, and if so determine the associated
+     * permutation representation */
+    if h(K`base_gen) eq K`base_gen then
+        L := [ ];
+        for i in [1..#rts] do
+            for j in [1..#rts] do
+                if h(rts[i]) eq rts[j] then
+                    Append(~L, j);
+                end if;
+            end for;
+        end for;
+        sigma := S ! L;
+        Append(~sigmas, sigma);
+        Append(~hs, h);
+        Append(~tups, <sigma, h>);
+    end if;
+end for;
+Gp := sub< S | sigmas >;
+hs := Set(hs);
+Gphi := map< Gp -> hs | tups >;
+
+/* Assign and return */
+K`aut := [* Gp, 0, Gphi *];
+return Gp, 0, Gphi;
 
 end intrinsic;

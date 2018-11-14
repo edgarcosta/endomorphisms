@@ -17,7 +17,8 @@ print EndoRep;
 
 idems := IsotypicalIdempotents(P, EndoRep);
 idem := idems[1];
-Q, proj := IsotypicalComponentProjection(P, idem);
+
+Q, proj := ComponentFromIdempotent(P, idem);
 A, R := Explode(proj);
 
 EQ := InducedPolarization(StandardSymplecticMatrix(3), R);

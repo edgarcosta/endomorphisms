@@ -119,10 +119,9 @@ return G0, trs0, id0;
 end function;
 
 
-//intrinsic CanonizeTraces(G::Grp, trs::SeqEnum) -> SeqEnum
 function CanonizeTraces(G, trs)
-//{Maps traces to a group in SmallGroupDatabase and with automorphism orbits
-//sorted to ensure uniqueness.}
+// Maps traces to a group in SmallGroupDatabase and with automorphism orbits
+// sorted to ensure uniqueness.
 
 G0, trs0, id0 := MapTraces(G, trs);
 f := ClassMap(G0);
