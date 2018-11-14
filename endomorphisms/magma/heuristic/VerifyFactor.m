@@ -47,7 +47,7 @@ intrinsic MorphismOfSmallDegreeHeuristic(X::Crv, Y::Crv : Bound := 10) -> .
 
 F := BaseRing(X);
 P := PeriodMatrix(X); Q := PeriodMatrix(Y);
-return MorphismOfSmallDegree(P, Q, F);
+return MorphismOfSmallDegreeHeuristic(P, Q, F);
 
 end intrinsic;
 
