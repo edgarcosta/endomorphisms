@@ -44,6 +44,7 @@ end intrinsic;
 
 intrinsic MorphismOfSmallDegree(X::Crv, Y::Crv : Bound := 10) -> .
 {Gives a morphism of small degree from X to Y.}
+/* TODO: Verify this by getting everything to common base field */
 
 F := BaseRing(X);
 P := PeriodMatrix(X); Q := PeriodMatrix(Y);
@@ -52,19 +53,21 @@ return MorphismOfSmallDegree(P, Q, F);
 end intrinsic;
 
 
-intrinsic EllipticCMCurve(D::RngIntElt : prec := 10000) -> BoolElt
-{Determines principal curve with CM by D.}
+intrinsic EllipticCMCurve(D::RngIntElt, F::Fld) -> BoolElt
+{Determines principal curve with CM by D over some extension of the base F.}
 
-QQ := RationalsExtra(prec); CC := QQ`CC; RR := RealField(CC);
-CCLarge := ComplexFieldExtra(prec + 100);
-if -D mod 4 ne 0 then
+CC := F`CC; RR := RealField(CC);
+CCLarge := ComplexFieldExtra(Precision(CC) + 100);
+if -D mod 4 eq 1 then
     tau := (Sqrt(CCLarge ! -D) + 1)/2;
-else
+elif -D mod 4 eq 0 then
     tau := Sqrt(CCLarge ! -D)/2;
+else
+    error "D is not the discriminant of a quadratic order";
 end if;
 jCC := CC ! jInvariant(tau);
 
-K, js := NumberFieldExtra([ jCC ], QQ); j := js[1];
+K, js := NumberFieldExtra([ jCC ], F); j := js[1];
 E := EllipticCurveFromjInvariant(j); E := WeierstrassModel(E);
 
 if Type(K) eq FldRat then

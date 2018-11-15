@@ -132,7 +132,7 @@ return Lats;
 end intrinsic;
 
 
-/* TODO: Generalize (quite involved, project?) */
+/* TODO: Generalize */
 intrinsic IsogenousPPLatticesG2(E::.) -> .
 {Given an alternating form E, finds the sublattices to ZZ^2d of smallest possible index on which E induces a principal polarization. These are returned in matrix form, that is, as a span of a basis in the rows. This basis is symplectic in the usual sense.}
 /* In general, we would isolate the blocks with given d and deal with those one at a time */

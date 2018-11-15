@@ -1,3 +1,4 @@
+Button push decomposition
 Do polarizations and Prym absolutely right, rearrange structure accordingly
 Map to elliptic curves perfect, general base point from which to take these, transition maps correct on differentials
 
@@ -7,4 +8,7 @@ Jacobian addition on Puiseux series via formal calculation
 Later:
 Try to develop a bit further if the first branches coincide (this first happens in genus 4)
 Divisor from Cantor? In principle this is all right: We pull back to X x Y^gY via the canonical map and then push to X x Y via idX x projection on the first coordinate. However, Magma cannot do this, since in it pushforwards are limited to maps between curves.
-Be completely conscientious with subfields and their inclusions
+
+Projects:
+Decomposition of algebra
+General symplectic subgroup
