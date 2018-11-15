@@ -17,7 +17,6 @@ forward FindIdempotentsStupid;
 forward IsTrueIdempotent;
 
 /* TODO: Too much information is recalculated: this should be reproved by true abelian functionality if possible */
-/* TODO: Endomorphism calculation of factors should instead work by using maps to factor and its dual. */
 
 
 intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
@@ -59,15 +58,15 @@ L := BaseRing(idem[1]);
 if ProjOrInc eq "Proj" then
     R := idem[2]; //R := R*Denominator(R);
     ACC := TangentRepresentation(R, P, P);
-    //Q, h := ImgProj([* ACC, R *], P, P);
+    //Q, mor := ImgProj([* ACC, R *], P, P);
     /* TODO: This line is needed because of a segfault issue */
-    Q, h := ImgIdemp([* ACC, R *], P);
+    Q, mor := ImgIdemp([* ACC, R *], P);
 else
     R := 1 - idem[2]; //R := R*Denominator(R);
     ACC := TangentRepresentation(R, P, P);
-    Q, h := Ker0([* ACC, R *], P, P);
+    Q, mor := Ker0([* ACC, R *], P, P);
 end if;
-BCC := h[1]; S := h[2];
+BCC := mor[1]; S := mor[2];
 
 /* Recalculation */
 test, B := AlgebraizeMatrix(BCC, L);
@@ -88,15 +87,15 @@ intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, Pr
 idems := IsotypicalIdempotents(P, EndoRep);
 comps := [ ];
 for idem in idems do
-    Q, h, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjOrInc := ProjOrInc);
-    Append(~comps, [* Q, h, incdata *]);
+    Q, mor, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjOrInc := ProjOrInc);
+    Append(~comps, [* Q, mor, incdata *]);
 end for;
 return comps;
 
 end intrinsic;
 
 
-intrinsic SplittingIdempotents(Q::., h::., incdata::.) -> .
+intrinsic SplittingIdempotents(Q::., mor::., incdata::.) -> .
 {Returns further idempotents over the smallest field where the isotypical component splits as far as possible.}
 
 L, K, hKL := Explode(incdata);
@@ -262,18 +261,17 @@ return false;
 end function;
 
 
-intrinsic RootsOfIsotypicalComponent(Q::., h::., incdata::. : ProjOrInc := "Proj") -> .
+intrinsic RootsOfIsotypicalComponent(Q::., mor::., incdata::. : ProjOrInc := "Proj") -> .
 {Returns components along with maps over smallest possible field.}
 /* We emphatically do not want a single component and multiple maps for it,
  * because that causes us to miss factors that become isogenous only later */
 
-idems, incdataroot := SplittingIdempotents(Q, h, incdata);
+idems, incdataroot := SplittingIdempotents(Q, mor, incdata);
 comps := [ ];
 for idem in idems do
-    /* No need to coerce since we are already over smallest possible field
-     * Still, it might be interesting to know what the morphism generates */
-    Qroot, hroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjOrInc := ProjOrInc);
-    Append(~comps, [* Qroot, hroot, incdataroot *]);
+    /* No need to coerce since we are already over smallest possible field */
+    Qroot, morroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjOrInc := ProjOrInc);
+    Append(~comps, [* Qroot, morroot, incdataroot *]);
 end for;
 return comps;
 
@@ -287,20 +285,19 @@ L := BaseRing(GeoEndoRep[1][1]);
 comps := [ ];
 comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjOrInc := ProjOrInc);
 for comp_iso in comps_iso do
-    Q, h, incdata := Explode(comp_iso);
-    A, R := Explode(h);
-    for comp_root in RootsOfIsotypicalComponent(Q, h, incdata : ProjOrInc := ProjOrInc) do
-        Qroot, hroot, incdataroot := Explode(comp_root);
-        print incdataroot;
+    Q, mor, incdata := Explode(comp_iso);
+    A, R := Explode(mor);
+    for comp_root in RootsOfIsotypicalComponent(Q, mor, incdata : ProjOrInc := ProjOrInc) do
+        Qroot, morroot, incdataroot := Explode(comp_root);
         L, K, hKL := Explode(incdataroot);
         A0 := CoerceToSubfieldMatrix(A, L, K, hKL);
-        Aroot, Rroot := Explode(hroot);
+        Aroot, Rroot := Explode(morroot);
         if ProjOrInc eq "Proj" then
-            hcomp := [* Aroot*A0, Rroot*R *];
+            morcomp := [* Aroot*A0, Rroot*R *];
         else
-            hcomp := [* A0*Aroot, R*Rroot *];
+            morcomp := [* A0*Aroot, R*Rroot *];
         end if;
-        Append(~comps, [* Qroot, hcomp, incdataroot *]);
+        Append(~comps, [* Qroot, morcomp, incdataroot *]);
     end for;
 end for;
 return comps;

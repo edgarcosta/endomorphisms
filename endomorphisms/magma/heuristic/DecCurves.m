@@ -10,21 +10,20 @@
  */
 
 
-function DecompositionFactorsG1(P, idem, K : ProjOrInc := "Proj")
+function ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := "Proj")
 
-Q, mor := ComponentFromIdempotent(P, idem : ProjOrInc := ProjOrInc);
+A, R := Explode(mor);
 E, h := ReconstructCurveG1(Q, K);
-return [ [* E, h, Q, mor *] ];
+Anew := ConjugateMatrix(h, A);
+return [ [* E, Q, [* Anew, R *] *] ];
 
 end function;
 
 
-function DecompositionFactorsG2(P, idem, K : ProjOrInc := "Proj")
+function ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := "Proj")
 
-g := #Rows(P);
-Q, mor := ComponentFromIdempotent(P, idem : ProjOrInc := ProjOrInc);
-A, R := Explode(mor);
-
+gP := #Rows(P);
+A, R := Explode(mor); K := BaseRing(A);
 EQ := InducedPolarization(StandardSymplecticMatrix(g), R : ProjOrInc := ProjOrInc);
 Us := IsogenousPPLatticesG2(EQ);
 
@@ -41,38 +40,24 @@ for U in Us do
     /* Reconstruct curves (some of them may give rise to an extension, but the
      * tangent representation is always the identity) */
     Y, h := ReconstructCurveG2(Q, K);
-    Append(~facs, [* E, h, Q, [* A, Rnew *] *]);
+    Anew := ConjugateMatrix(h, A);
+    Append(~facs, [* Y, Q, [* Anew, Rnew *] *]);
 end for;
 return facs;
 
 end function;
 
 
-intrinsic DecompositionFactors(P::ModMatFldElt, idem::List, K::Fld : ProjOrInc := "Proj") -> .
-{Finds curves corresponding to Prym variety of given idempotent.}
+intrinsic ReconstructionsFromComponent(P::., Q::., mor::. : ProjOrInc := "Proj") -> .
+{Given a factor (Q, mor) of the Jacobian, finds corresponding curves along with morphisms to them.}
 
-g := Rank(idem[2]) div 2;
-if g eq 1 then
-    return DecompositionFactorsG1(P, idem, K : ProjOrInc := ProjOrInc);
-elif g eq 2 then
-    return DecompositionFactorsG2(P, idem, K : ProjOrInc := ProjOrInc);
+gQ := #Rows(Q);
+if gQ eq 1 then
+    return ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := ProjOrInc);
+elif gQ eq 2 then
+    return ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := ProjOrInc);
 else
     error "Finding factors not yet implemented for genus larger than 2";
 end if;
-
-end intrinsic;
-
-
-intrinsic ReconstructCurveFromRoot(root::.) -> .
-{Curve reconstruction with extension if needed.}
-
-Qroot, hcomp := Explode(root); K := BaseRing(hcomp[1]);
-g := #Rows(Qroot);
-if g eq 1 then
-    return ReconstructCurveG1(Qroot, K);
-elif g eq 2 then
-    return ReconstructCurveG2(Qroot, K);
-end if;
-error "Reconstruction for genus larger than 2 not yet implemented";
 
 end intrinsic;
