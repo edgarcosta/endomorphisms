@@ -9,59 +9,55 @@
  *  See LICENSE.txt for license details.
  */
 
- /* TODO: Flag for projection or injection
-  * Given factor, determine overlattice over CC, extend number field by
-  * tangent, return over latter field, which should give no problems in small
-  * genus
-  */
 
+function DecompositionFactorsG1(P, idem, K : ProjOrInc := "Proj")
 
-function DecompositionFactorsG1(P, idem, F)
-
-Q, proj := ProjectionFromIdempotent(P, idem);
-A, R := Explode(proj);
-return [* ReconstructCurveG1(Q, F) *];
+Q, mor := ComponentFromIdempotent(P, idem : ProjOrInc := ProjOrInc);
+E, h := ReconstructCurveG1(Q, K);
+return [ [* E, h, Q, mor *] ];
 
 end function;
 
 
-function DecompositionFactorsG2(P, idem, F)
+function DecompositionFactorsG2(P, idem, K : ProjOrInc := "Proj")
 
-Q, proj := ProjectionFromIdempotent(P, idem);
-A, R := Explode(proj);
+g := #Rows(P);
+Q, mor := ComponentFromIdempotent(P, idem : ProjOrInc := ProjOrInc);
+A, R := Explode(mor);
 
-/* Induced polarization and overlattices needed to make it principal */
-/* TODO: Take actual kernel and induced polarization on that, then same idea */
-EQ := InducedPolarization(StandardSymplecticMatrix(3), R);
+EQ := InducedPolarization(StandardSymplecticMatrix(g), R : ProjOrInc := ProjOrInc);
 Us := IsogenousPPLatticesG2(EQ);
 
-Qsnew := [ ];
+facs := [ ];
 for U in Us do
-    Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
+    if ProjOrInc eq "Proj" then
+        Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
+        Rnew := T*R;
+    else
+        Qnew := Q*ChangeRing(Transpose(U), BaseRing(Q));
+        Rnew := Transpose(T)*R;
+    end if;
     assert IsBigPeriodMatrix(Qnew);
-    Append(~Qsnew, Qnew);
+    /* Reconstruct curves (some of them may give rise to an extension, but the
+     * tangent representation is always the identity) */
+    Y, h := ReconstructCurveG2(Q, K);
+    Append(~facs, [* E, h, Q, [* A, Rnew *] *]);
 end for;
-recs := [* *];
-for Q in Qsnew do
-    Y := ReconstructCurveG2(Q, F);
-    Append(~recs, Y);
-end for;
-return recs;
+return facs;
 
 end function;
 
 
-intrinsic DecompositionFactors(P::ModMatFldElt, idem::List, F::Fld) -> .
+intrinsic DecompositionFactors(P::ModMatFldElt, idem::List, K::Fld : ProjOrInc := "Proj") -> .
 {Finds curves corresponding to Prym variety of given idempotent.}
-/* TODO: So no image, but a kernel */
 
 g := Rank(idem[2]) div 2;
 if g eq 1 then
-    return DecompositionFactorsG1(P, idem, F);
+    return DecompositionFactorsG1(P, idem, K : ProjOrInc := ProjOrInc);
 elif g eq 2 then
-    return DecompositionFactorsG2(P, idem, F);
+    return DecompositionFactorsG2(P, idem, K : ProjOrInc := ProjOrInc);
 else
-    error "Finding factors not implemented for genus larger than 2";
+    error "Finding factors not yet implemented for genus larger than 2";
 end if;
 
 end intrinsic;

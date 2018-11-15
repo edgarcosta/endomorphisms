@@ -10,15 +10,15 @@
  */
 
 
-intrinsic InducedPolarization(E::., R::.) -> .
-{Given a matrix E corresponding to a polarization, returns the pushforward of E along R.}
-// A map from gX to gY gives R that is 2 gY x 2 gX, since on homology we go from rank 2 gX to rank 2 gY.
-// But what does this function actually do??? Pullback along dual. Use it and
-// after we get to PPAV dualize for real.
+intrinsic InducedPolarization(E::., R::. : ProjOrInc := "Proj") -> .
+{Given a matrix E corresponding to a polarization, returns the pushforward (default) or pullback of E along R. The pullback is the pairing directly induced via the map represented by R, and the pushforward is its dual.}
 
-Q := R*E*Transpose(R);
-d := GCD([ Integers() ! c : c in Eltseq(Q) ]);
-return Matrix(ChangeRing(Q/d, Integers()));
+if ProjOrInc eq "Proj" then
+    Q := R*E*Transpose(R);
+else
+    Q := Transpose(R)*E*R;
+end if;
+return Q;
 
 end intrinsic;
 
@@ -26,13 +26,14 @@ end intrinsic;
 intrinsic FrobeniusFormAlternatingAlt(E::.) -> .
 {Returns a different standard form E0 and a matrix T with T E Transpose(T) = E0.}
 
-E1, T1 := FrobeniusFormAlternating(ChangeRing(E, Integers()));
+/* Some coercions are involved to make everything defined over QQ */
+E1, T1 := FrobeniusFormAlternating(Matrix(ChangeRing(E, Integers())));
 g := #Rows(E) div 2; S := Sym(2*g);
 sigma := S ! (&cat[ [ i, g + i ] : i in [1..g] ]);
 P := PermutationMatrix(Integers(), sigma);
 E2 := P*E1*Transpose(P);
 T2 := P*T1;
-return E2, T2;
+return ChangeRing(E2, Rationals()), ChangeRing(T2, Rationals());
 
 end intrinsic;
 
@@ -138,7 +139,7 @@ intrinsic IsogenousPPLatticesG2(E::.) -> .
 /* In general, we would isolate the blocks with given d and deal with those one at a time */
 
 E0, T0 := FrobeniusFormAlternatingAlt(E);
-n := Abs(E0[3,4]);
+n := Integers() ! Abs(E0[3,4]);
 
 Ts := [ ];
 for Lat in SymplecticSubmodules(n, 2) do

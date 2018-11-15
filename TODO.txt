@@ -12,3 +12,4 @@ Divisor from Cantor? In principle this is all right: We pull back to X x Y^gY vi
 Projects:
 Decomposition of algebra
 General symplectic subgroup
+Isogenous lattices in general

@@ -56,6 +56,32 @@ return Es;
 end intrinsic;
 
 
+intrinsic IsPolarization(E::., P::.) -> .
+{Tests whether or not E defines a polarization on P.}
+
+CC := BaseRing(P);
+/* Test Hermitian property */
+Ei := ChangeRing(E, CC);
+prod1 := P * Ei * Transpose(P);
+if not Maximum([ Abs(c) : c in Eltseq(prod1) ]) lt BaseRing(P)`epscomp then
+    return false, 0;
+end if;
+
+/* Test positivity */
+TPc := Matrix([ [ Conjugate(c) : c in Eltseq(r) ] : r in Rows(Transpose(P)) ]);
+prod2 := BaseRing(P).1 * P * Ei * TPc;
+res := [ Re(ev[1]) : ev in Eigenvalues(prod2) ];
+if &and([ re gt CC`epsinv : re in res ]) then
+    return true, E;
+elif &and([ -re gt CC`epsinv : re in res ]) then
+    return true, -E;
+else
+    return false, 0;
+end if;
+
+end intrinsic;
+
+
 intrinsic FindPrincipalPolarization(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
 {Finds some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori */
@@ -67,27 +93,9 @@ Es0 := [ ];
 for tup in CP do
     E := &+[ tup[i]*Es[i] : i in [1..n] ];
     if Abs(Determinant(E)) eq 1 then
-        /* Test Hermitian property */
-        Ei := ChangeRing(E, CC);
-        prod1 := P * Ei * Transpose(P);
-        test1 := Maximum([ Abs(c) : c in Eltseq(prod1) ]) lt BaseRing(P)`epscomp;
-
-        /* Test positivity */
-        TPc := Matrix([ [ Conjugate(c) : c in Eltseq(r) ] : r in Rows(Transpose(P)) ]);
-        prod2 := BaseRing(P).1 * P * Ei * TPc;
-        res := [ Re(ev[1]) : ev in Eigenvalues(prod2) ];
-        if &and([ re gt CC`epsinv : re in res ]) then
-            test2 := true;
-        elif &and([ -re gt CC`epsinv : re in res ]) then
-            test2 := true;
-            E *:= -1;
-        else
-            test2 := false;
-        end if;
-        if test1 and test2 then
-            if not E in Es0 then
-                Append(~Es0, E);
-            end if;
+        test, E := IsPolarization(E, P);
+        if test and not E in Es0 then
+            Append(~Es0, E);
         end if;
     end if;
 end for;

@@ -130,8 +130,8 @@ if C eq 0 then
     return Q, [* A, R *];
 end if;
 
-/* Check output */
 K, i := Ker0(proj, Q, C); itan, ihom := Explode(i);
+/* Check output */
 test := Maximum([ Abs(c) : c in Eltseq(itan*K - Q*ChangeRing(ihom, CC)) ]);
 if test gt CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
@@ -156,8 +156,8 @@ if K eq 0 then
     return P, [* A, R *];
 end if;
 
-/* Check output */
 C, p := Coker(i, K, P); ptan, phom := Explode(p);
+/* Check output */
 test := Maximum([ Abs(c) : c in Eltseq(ptan*P - C*ChangeRing(phom, CC)) ]);
 if test gt CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
@@ -168,7 +168,7 @@ end intrinsic;
 
 
 /* No longer used, but might be useful for rationality questions */
-intrinsic ImgIdemp(P::., idem::List) -> List
+intrinsic ImgIdemp(idem::List, P::.) -> List
 {Given an idempotent idem for the period matrix P, returns a corresponding
 lattice and an analytic representation of the projection to it.}
 
@@ -192,9 +192,9 @@ QSplit, T, U := SaturateLattice(QSubSplit, QLargeSplit : ColumnsOrRows := "Colum
 Q := CombineVerticallySplitMatrix(QSplit, CC);
 /* We now have QLarge = Q U, so B P = Q U R. We return B and U R. */
 
-/* Check output */
 S := U * R;
 proj := [* B, S, BCC *];
+/* Check output */
 if Maximum([ Abs(c) : c in Eltseq(BCC*P - Q*ChangeRing(S, CC)) ]) gt CC`epscomp then
     error "Error in determining projection";
 end if;

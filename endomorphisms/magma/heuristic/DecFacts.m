@@ -59,7 +59,9 @@ L := BaseRing(idem[1]);
 if ProjOrInc eq "Proj" then
     R := idem[2]; //R := R*Denominator(R);
     ACC := TangentRepresentation(R, P, P);
-    Q, h := ImgProj([* ACC, R *], P, P);
+    //Q, h := ImgProj([* ACC, R *], P, P);
+    /* TODO: This line is needed because of a segfault issue */
+    Q, h := ImgIdemp([* ACC, R *], P);
 else
     R := 1 - idem[2]; //R := R*Denominator(R);
     ACC := TangentRepresentation(R, P, P);
