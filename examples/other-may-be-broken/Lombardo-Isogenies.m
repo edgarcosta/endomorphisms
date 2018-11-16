@@ -1,5 +1,3 @@
-AttachSpec("../../endomorphisms/magma/spec");
-
 function TestIsogeny()
 Cpx := ComplexFieldExtra(500);
 

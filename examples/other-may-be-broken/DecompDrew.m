@@ -27,7 +27,7 @@ print EndomorphismStructureFromRepresentation(EndoRep);
 
 idems := IdempotentsFromRepresentation(EndoRep);
 Q := Ker0(idems[1], P, P);
-E := FindPolarizationBasis(Q)[1];
+E := PolarizationBasis(Q)[1];
 print FrobeniusFormAlternatingAlt(E);
 
 Us := IsogenousPPLatticesG2(E);

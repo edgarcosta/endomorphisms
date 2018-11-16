@@ -9,6 +9,10 @@
  *  See LICENSE.txt for license details.
  */
 
+import "SatoTate.m": SatoTateShorthand;
+forward EndomorphismLatticeGeometricStep;
+forward EndomorphismLatticeGeneralStep;
+
 
 function CompareGroups(G1, G2);
 // Input:   Two subgroups or groups.
@@ -55,8 +59,8 @@ return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]
 end intrinsic;
 
 
-intrinsic EndomorphismLatticeGeometricStep(GeoEndoRep::SeqEnum) -> List
-{Returns the geometric entry of the endomorphism lattice.}
+function EndomorphismLatticeGeometricStep(GeoEndoRep)
+// Returns the geometric entry of the endomorphism lattice.
 
 entry := [* *];
 
@@ -75,11 +79,12 @@ Shorthand := SatoTateShorthand(EndoStruct);
 stpart := SatoTateHashPart(GeoEndoRep, GalL);
 return entry, stpart, Shorthand;
 
-end intrinsic;
+end function;
 
 
-intrinsic EndomorphismLatticeGeneralStep(GeoEndoRep::SeqEnum, GalK::List, Shorthand::MonStgElt) -> List
-{Returns the entry of the endomorphism lattice over the field corresponding to GalK.}
+function EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand)
+// Returns the entry of the endomorphism lattice over the field corresponding
+// to GalK.
 
 entry := [* *];
 
@@ -100,4 +105,4 @@ stpart := SatoTateHashPart(GeoEndoRep, GalK);
 
 return entry, stpart;
 
-end intrinsic;
+end function;

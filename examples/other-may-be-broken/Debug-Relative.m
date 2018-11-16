@@ -1,4 +1,4 @@
-SetVerbose("EndoFind", 2);
+SetVerbose("EndoFind", 0);
 
 prec := 200;
 F := RationalsExtra(prec);
@@ -17,7 +17,6 @@ print L`CC;
 print L`iota;
 
 print "";
-print IsQQ(L);
 print FieldDescriptionExtra(L);
 print ElementDescriptionExtra(L.1);
 print InfinitePlacesExtra(L);
@@ -25,7 +24,6 @@ print EvaluateExtra(r, L`iota);
 
 print "";
 print EmbedAtInfinitePlacePolynomials([ y^2 - 3, y^2 - 5 ]);
-
 
 print "";
 Gp, Gf, Gphi := AutomorphismGroupPari(L);

@@ -6,12 +6,12 @@ print #SymplecticSubmodules(2, 2);
 print #SymplecticSubmodules(2, 4);
 //print #SymplecticSubmodules(2, 6);
 
-print "Checking IsogenousPPLatticesG2...";
+print "Checking IsogenousPPLattices...";
 d := 6;
 EQ := Matrix(QQ, [[0,0,d,0],[0,0,0,1],[-d,0,0,0],[0,-1,0,0]]);
 M := RandomSymplecticMatrix(2, 15);
 EQ := M*EQ*Transpose(M);
-Us := IsogenousPPLatticesG2(EQ);
+Us := IsogenousPPLattices(EQ);
 for U in Us do
     if not U*EQ*Transpose(U) eq d*ChangeRing(StandardSymplecticMatrix(2), Rationals()) then
         print "Problem";
@@ -56,7 +56,7 @@ test, EQ := IsPolarization(EQ, Q);
 print "Sanity check for induced polarization:";
 print test;
 print EQ;
-print FindPolarizationBasis(Q);
+print PolarizationBasis(Q);
 
 EQ0, T := FrobeniusFormAlternatingAlt(EQ);
 print "Check claim in documentation:";
@@ -66,7 +66,7 @@ print "EQ0:";
 print EQ0;
 print BaseRing(EQ0);
 
-Us := IsogenousPPLatticesG2(EQ);
+Us := IsogenousPPLattices(EQ);
 print "Isogenous lattices:";
 print Us;
 
@@ -77,7 +77,7 @@ for U in Us do
 end for;
 
 print "Checking isogenous lattices via cover...";
-Us := IsogenousPPLatticesG2(EQ);
+Us := IsogenousPPLattices(EQ);
 for U in Us do
     Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
     Qnew := Q*ChangeRing(Transpose(U), BaseRing(Q));

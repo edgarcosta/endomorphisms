@@ -16,6 +16,7 @@
     Periods.m
 
     Linear.m
+    Saturate.m
     Analytic.m
 
     SatoTate.m
@@ -28,9 +29,8 @@
     MaxIsotr.m
     DecFacts.m
     DecCurves.m
+    TestFactor.m
 
-    VerifySat.m
-    VerifyFactor.m
     VerifyCorr.m
   }
   polarization

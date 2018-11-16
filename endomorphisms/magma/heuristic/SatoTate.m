@@ -9,6 +9,12 @@
  *  See LICENSE.txt for license details.
  */
 
+import "OverField.m": SubgroupGeneratorsUpToConjugacy;
+forward SatoTateGroupG2QQ;
+forward SatoTateShorthand;
+forward SatoTateShorthandG2;
+
+
 intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
 {Given a description EndoStructBase of an endomorphism algebra, a
 representation GeoEndoRep of a geometric endomorphism algebra, and a Galois
@@ -40,12 +46,12 @@ return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
 end intrinsic;
 
 
-intrinsic SatoTateGroupG2QQ(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
-{Given a description EndoStructBase of an endomorphism algebra, a
-representation GeoEndoRep of a geometric endomorphism algebra, and a Galois
-group GalK, determines the corresponding Sato-Tate group. Via Shorthand, a
-description of the geometric endomorphism algebra tensored with RR can be
-passed. Assumes that the genus equals 2.}
+function SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := "")
+// Given a description EndoStructBase of an endomorphism algebra, a
+// representation GeoEndoRep of a geometric endomorphism algebra, and a Galois
+// group GalK, determines the corresponding Sato-Tate group. Via Shorthand, a
+// description of the geometric endomorphism algebra tensored with RR can be
+// passed. Assumes that the genus equals 2.
 
 vprint EndoFind: "";
 vprint EndoFind: "Calculating Sato-Tate group...";
@@ -273,12 +279,12 @@ elif Shorthand eq "F" then
 end if;
 error "All cases in SatoTateGroupG2QQ fell through";
 
-end intrinsic;
+end function;
 
 
-intrinsic SatoTateShorthand(GeoEndoStructBase::List) -> MonStgElt
-{Returns the letter describing the neutral connected component of the Sato-Tate
-group corresponding to GeoEndoStructBase.}
+function SatoTateShorthand(GeoEndoStructBase)
+// Returns the letter describing the neutral connected component of the
+// Sato-Tate group corresponding to GeoEndoStructBase.
 
 g := #Rows(GeoEndoStructBase[1][1][1]);
 if g eq 2 then
@@ -288,12 +294,13 @@ else
     return "undef";
 end if;
 
-end intrinsic;
+end function;
 
 
-intrinsic SatoTateShorthandG2(GeoEndoStructBase::List) -> MonStgElt
-{Returns the letter describing the neutral connected component of the Sato-Tate
-group corresponding to GeoEndoStructBase. Assumes that the genus equals 2.}
+function SatoTateShorthandG2(GeoEndoStructBase)
+// Returns the letter describing the neutral connected component of the
+// Sato-Tate group corresponding to GeoEndoStructBase. Assumes that the genus
+// equals 2.
 
 descRR := GeoEndoStructBase[3][3];
 case descRR:
@@ -307,4 +314,4 @@ case descRR:
     else: error "Shorthand algorithm obtains contradiction with classification";
 end case;
 
-end intrinsic;
+end function;

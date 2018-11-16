@@ -10,6 +10,10 @@
  */
 
 
+forward MinimalPolynomialLLL;
+forward AlgebraizeElementLLL;
+
+
 function TestCloseToRoot(f, a)
 /* Tests whether complex number a is close to a root of polynomial f over
  * NumberFieldExtra */
@@ -26,8 +30,9 @@ return false;
 end function;
 
 
-intrinsic MinimalPolynomialLLL(a::FldComElt, K::Fld : LowerBound := 1, UpperBound := Infinity(), StepSize := 1) -> RngUPolElt
-{Returns a relative minimal polynomial of the complex number a with respect to the stored infinite place of K.}
+function MinimalPolynomialLLL(a, K : LowerBound := 1, UpperBound := Infinity(), StepSize := 1)
+// Returns a relative minimal polynomial of the complex number a with respect
+// to the stored infinite place of K.
 
 degK := Degree(K); R<x> := PolynomialRing(K); CC := K`CC;
 
@@ -65,7 +70,45 @@ while degf lt UpperBound do
 end while;
 return "Failed to find minimal polynomial using LLL";
 
-end intrinsic;
+end function;
+
+
+function AlgebraizeElementLLL(a, K)
+// Returns an approximation of the complex number a as an element of K.
+
+degK := Degree(K); R<x> := PolynomialRing(K);
+F := BaseField(K); degF := Degree(F);
+CC := Parent(a); RR := RealField(CC); prec := Precision(CC);
+
+genK := CC ! EvaluateExtra(K.1, K`iota); genF := CC ! EvaluateExtra(F.1, F`iota);
+powersgenK := [ CC ! EvaluateExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
+powersgenF := [ CC ! EvaluateExtra(F.1^i, F`iota) : i in [0..(degF - 1)] ];
+MLine := &cat[ [ powergenF * powergenK : powergenF in powersgenF ] : powergenK in powersgenK ] cat [-a];
+M := Transpose(Matrix(CC, [ MLine ]));
+
+/* Split and take an IntegralLeftKernel */
+MSplit := HorizontalSplitMatrix(M);
+Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
+/* NOTE: We only consider the first element for now */
+if test_ker then
+    for row in [ Rows(Ker)[1] ] do
+        vprint EndoFind : "Row:", row;
+        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
+        if test_height then
+            den := row[#Eltseq(row)];
+            if den ne 0 then
+                sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
+                if (RR ! Abs(sCC - a)) lt RR`epscomp then
+                    s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
+                    return true, s;
+                end if;
+            end if;
+        end if;
+    end for;
+end if;
+return false, 0;
+
+end function;
 
 
 intrinsic FractionalApproximation(a::FldComElt) -> FldRatElt
@@ -164,44 +207,6 @@ for rowCC in Rows(M) do
     Append(~rows, row);
 end for;
 return true, Matrix(rows);
-
-end intrinsic;
-
-
-intrinsic AlgebraizeElementLLL(a::FldComElt, K::Fld : minpol := 0) -> .
-{Returns an approximation of the complex number a as an element of K.}
-
-degK := Degree(K); R<x> := PolynomialRing(K);
-F := BaseField(K); degF := Degree(F);
-CC := Parent(a); RR := RealField(CC); prec := Precision(CC);
-
-genK := CC ! EvaluateExtra(K.1, K`iota); genF := CC ! EvaluateExtra(F.1, F`iota);
-powersgenK := [ CC ! EvaluateExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
-powersgenF := [ CC ! EvaluateExtra(F.1^i, F`iota) : i in [0..(degF - 1)] ];
-MLine := &cat[ [ powergenF * powergenK : powergenF in powersgenF ] : powergenK in powersgenK ] cat [-a];
-M := Transpose(Matrix(CC, [ MLine ]));
-
-/* Split and take an IntegralLeftKernel */
-MSplit := HorizontalSplitMatrix(M);
-Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
-/* NOTE: We only consider the first element for now */
-if test_ker then
-    for row in [ Rows(Ker)[1] ] do
-        vprint EndoFind : "Row:", row;
-        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-        if test_height then
-            den := row[#Eltseq(row)];
-            if den ne 0 then
-                sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
-                if (RR ! Abs(sCC - a)) lt RR`epscomp then
-                    s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
-                    return true, s;
-                end if;
-            end if;
-        end if;
-    end for;
-end if;
-return false, 0;
 
 end intrinsic;
 

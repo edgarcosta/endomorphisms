@@ -9,6 +9,8 @@
  *  See LICENSE.txt for license details.
  */
 
+forward SubgroupGeneratorsUpToConjugacy;
+
 
 intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, GalK::List) -> SeqEnum
 {Given a geometric representation GeoEndoRep and a list of automorphisms GalK of
@@ -114,9 +116,9 @@ end if;
 end function;
 
 
-intrinsic SubgroupGeneratorsUpToConjugacy(L::Fld, K::Fld, h::Map) -> List
-{Finds the subgroup generators up to conjugacy that correspond to the subfield
-K of L.}
+function SubgroupGeneratorsUpToConjugacy(L, K, h)
+// Finds the subgroup generators up to conjugacy that correspond to the
+// subfield K of L.
 
 /* Case where L and K coincide */
 if L eq K then
@@ -136,4 +138,4 @@ Helts := [ h : h in Gp | Gphi(h)(h(K.1)) eq h(K.1) ];
 H := sub< Gp | Helts >;
 return [* Generators(H), Gphi *];
 
-end intrinsic;
+end function;

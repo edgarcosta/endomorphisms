@@ -9,6 +9,11 @@
  *  See LICENSE.txt for license details.
  */
 
+import "OverField.m": SubgroupGeneratorsUpToConjugacy;
+forward EndomorphismAlgebraQQ;
+forward EndomorphismAlgebraRR;
+forward EndomorphismAlgebraZZ;
+
 
 intrinsic EndomorphismData(GeoEndoRep::SeqEnum, GalK::List) -> List
 {Given a representation of the geometric endomorphism ring and a Galois group
@@ -102,8 +107,8 @@ return EndoAlg, EndoDesc;
 end intrinsic;
 
 
-intrinsic EndomorphismAlgebraQQ(C::AlgAss) -> .
-{Given an associative algebra C, returns a description of it.}
+function EndomorphismAlgebraQQ(C)
+// Given an associative algebra C, returns a description of it.
 /* TODO: Depends on genus <= 3 */
 
 /* Central decomposition */
@@ -152,12 +157,12 @@ end for;
 
 return C, EndoDescQQ;
 
-end intrinsic;
+end function;
 
 
-intrinsic EndomorphismAlgebraRR(C::AlgAss, EndoDescQQ::List) -> .
-{Given an associative algebra C and its description over QQ, returns a
-description of the algebra tensored with RR.}
+function EndomorphismAlgebraRR(C, EndoDescQQ)
+// Given an associative algebra C and its description over QQ, returns a
+// description of the algebra tensored with RR.
 /* TODO: Depends on genus <= 3 */
 
 EndoDescRR := [ ];
@@ -192,12 +197,12 @@ end for;
 Sort(~EndoDescRR);
 return EndoDescRR, EndoDescRR;
 
-end intrinsic;
+end function;
 
 
-intrinsic EndomorphismAlgebraZZ(C::AlgAss, GensC::SeqEnum) -> .
-{Given an associative algebra C and generators GensC of an order in it, returns
-a description of said order.}
+function EndomorphismAlgebraZZ(C, GensC)
+// Given an associative algebra C and generators GensC of an order in it,
+// returns a description of said order.
 
 /* Calculating index */
 OC := Order(Integers(), GensC);
@@ -229,14 +234,13 @@ if #Ds eq 1 then
 end if;
 return GensC, [ Integers() ! ind, -1 ];
 
-end intrinsic;
+end function;
 
 
 /* TODO: The following two functions are of various degrees of redundance */
-
-intrinsic HasGenerator(EndoStruct::List : B := 1) -> BoolElt, .
-{Determines whether a single generator for the endomorphism ring exists, and
-returns it if it does.}
+function HasGenerator(EndoStruct : B := 1)
+// Determines whether a single generator for the endomorphism ring exists, and
+// returns it if it does.
 
 g := #Rows(EndoStruct[1][1][1]);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
@@ -262,12 +266,12 @@ for tup in CP do
 end for;
 return false, min;
 
-end intrinsic;
+end function;
 
 
-intrinsic FewGenerators(EndoStruct::List) -> SeqEnum
-{Returns a small generating set of the endomorphism ring corresponding to
-EndoStruct.}
+function FewGenerators(EndoStruct)
+// Returns a small generating set of the endomorphism ring corresponding to
+// EndoStruct.
 
 g := #Rows(EndoStruct[1][1][1]);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoStruct);
@@ -289,4 +293,4 @@ if #Ds eq 1 then
     end for;
 end if;
 
-end intrinsic;
+end function;

@@ -1,4 +1,4 @@
-AttachSpec("../../endomorphisms/magma/spec");
+import "../../endomorphisms/magma/heuristic/Saturate.m": SaturateLattice;
 
 CC := ComplexFieldExtra(100);
 RR := RealField(CC);
@@ -36,5 +36,3 @@ print T;
 print "";
 print U;
 print "";
-
-exit;

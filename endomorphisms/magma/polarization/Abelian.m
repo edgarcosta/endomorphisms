@@ -7,6 +7,8 @@
  *  See LICENSE.txt for license details.
  */
 
+import "../heuristic/Saturate.m": SaturateLattice;
+
 
 intrinsic KerModKer0(h::., P::., Q::.) -> .
 {Returns the group of connected components of the kernel of the morphism h = (A, R) from P to Q.}

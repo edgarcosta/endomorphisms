@@ -19,7 +19,7 @@ return ChangeRing(E, Rationals());
 end intrinsic;
 
 
-intrinsic FindPolarizationBasis(P::ModMatFldElt) -> SeqEnum
+intrinsic PolarizationBasis(P::ModMatFldElt) -> SeqEnum
 {Determines a basis of the alternating forms giving rise to a polarization on the period matrix P.}
 
 JP := ComplexStructure(P); RR := BaseRing(JP);
@@ -82,11 +82,11 @@ end if;
 end intrinsic;
 
 
-intrinsic FindPrincipalPolarization(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
-{Finds some principal polarization for P.}
+intrinsic SomePrincipalPolarization(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
+{Tries to return some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori */
 
-Es := FindPolarizationBasis(P); CC := BaseRing(P);
+Es := PolarizationBasis(P); CC := BaseRing(P);
 n := #Es; CP := CartesianPower(D, n);
 
 Es0 := [ ];
@@ -105,8 +105,10 @@ end intrinsic;
 
 
 /* Next two functions should be redundant */
-intrinsic SinglePrincipallyPolarizedCover(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt
-{Given a period matrix admitting a polarization by E, find a (in general non-trivial) cover of P with the property on which E induces a principal polarization.}
+function SinglePrincipallyPolarizedCover(P, E)
+// Given a period matrix admitting a polarization by E, find a (in general
+// non-trivial) cover of P with the property on which E induces a principal
+// polarization.
 
 E0, T := FrobeniusFormAlternating(ChangeRing(E, Integers()));
 T := ChangeRing(T, Rationals());
@@ -120,11 +122,13 @@ Ui := U^(-1);
 Q := P*ChangeRing(Ui, BaseRing(P));
 return Q, Ui;
 
-end intrinsic;
+end function;
 
 
-intrinsic SinglePrincipallyPolarizedQuotient(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt
-{Given a period matrix admitting a polarization by E, find a (in general non-trivial) quotient of P with the property on which E induces a principal polarization.}
+function SinglePrincipallyPolarizedQuotient(P, E)
+// Given a period matrix admitting a polarization by E, find a (in general
+// non-trivial) quotient of P with the property on which E induces a principal
+// polarization.
 
 E0, T := FrobeniusFormAlternating(ChangeRing(E, Integers()));
 T := ChangeRing(T, Rationals());
@@ -139,4 +143,4 @@ Ui := U^(-1);
 Q := P*ChangeRing(Ui, BaseRing(P));
 return Q, Ui;
 
-end intrinsic;
+end function;

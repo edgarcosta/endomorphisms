@@ -9,6 +9,9 @@
  *  See LICENSE.txt for license details.
  */
 
+forward VerifySaturatedAtPrime;
+forward SaturateLattice;
+
 
 intrinsic VerifySaturated(GeoEndoRep::SeqEnum, P::ModMatFldElt) -> BoolElt, AlgMatElt
 {Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
@@ -40,9 +43,9 @@ return true, "";
 end intrinsic;
 
 
-intrinsic VerifySaturatedAtPrime(GeoEndoRep::SeqEnum, P::ModMatFldElt, p::RngIntElt) -> BoolElt, AlgMatElt
-{Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
-is saturated in the corresponding algebra at p.}
+function VerifySaturatedAtPrime(GeoEndoRep, P, p)
+// Returns a boolean that indicates whether the endomorphism ring in GeoEndoRep
+// is saturated in the corresponding algebra at p.
 
 /* Uses an extremely naive algorithm by excluding every intermediate element
  * directly */
@@ -61,14 +64,15 @@ for tup in [ tup : tup in CP | not &and[ c eq 0 : c in tup ] ] do
 end for;
 return true, "";
 
-end intrinsic;
+end function;
 
 
-intrinsic SaturateLattice(L::., M::. : ColumnsOrRows := "Columns") -> .
-{Given a basis of a lattice L and a generating set of a lattice M in which L is
-of finite index, returns a basis of M along with matrices that give expressions
-of the provided generating sets in this basis. The flag ColumnsOrRows specifies
-whether column of row vectors are interpreted as generating the lattice.}
+function SaturateLattice(L, M : ColumnsOrRows := "Columns")
+// Given a basis of a lattice L and a generating set of a lattice M in which L
+// is of finite index, returns a basis of M along with matrices that give
+// expressions of the provided generating sets in this basis. The flag
+// ColumnsOrRows specifies whether column of row vectors are interpreted as
+// generating the lattice.
 
 /* In the end we have L = T B, M = U B in case of Rows and L = B T, M = B U in
  * case of Columns. */
@@ -104,4 +108,4 @@ if not (test1 and test2) then
 end if;
 return B, T, U;
 
-end intrinsic;
+end function;

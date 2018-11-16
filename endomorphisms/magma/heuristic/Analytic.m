@@ -22,9 +22,9 @@ return NumericalRightSolve(PSplit, iPSplit);
 end intrinsic;
 
 
-intrinsic RationalHomomorphismEquations(JP::., JQ::.) -> .
-{Given two complex structures JP and JQ, returns the equations on homology
-satisfied by a homomorphism between the two corresponding abelian varieties.}
+function RationalHomomorphismEquations(JP, JQ)
+// Given two complex structures JP and JQ, returns the equations on homology
+// satisfied by a homomorphism between the two corresponding abelian varieties.
 
 /* Basic invariants */
 RR := BaseRing(JP);
@@ -40,7 +40,7 @@ Comm := Eltseq(M * ChangeRing(JP, R) - ChangeRing(JQ, R) * M);
 /* Splitting previous linear equations by formal variable */
 return Matrix(RR, [ [MonomialCoefficient(c, var) : c in Comm] : var in vars ]);
 
-end intrinsic;
+end function;
 
 
 intrinsic TangentRepresentation(R::., P::ModMatFldElt, Q::ModMatFldElt) -> .

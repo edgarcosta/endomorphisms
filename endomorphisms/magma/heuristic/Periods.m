@@ -9,7 +9,13 @@
  *  See LICENSE.txt for license details.
  */
 
+import "Curves.m": EmbedCurveEquations;
+forward IsSuperellipticEquation;
+forward SuperellipticCompatibility;
 
+
+/* TODO: This stupid intrinsic should go, but it is used in curve
+ * reconstruction, so I wait for the Magma update */
 intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum) -> ModMatFldElt
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
@@ -65,9 +71,9 @@ return PeriodMatrix(eqsCC, eqsF);
 end intrinsic;
 
 
-intrinsic IsSuperellipticEquation(eqs::SeqEnum) -> BoolElt, ., .
-{Returns whether the plane curve defined by eqs is of the form y^e z^* = f (x,
-z). If so, return the inhomogenous form of f along with e.}
+function IsSuperellipticEquation(eqs)
+// Returns whether the plane curve defined by eqs is of the form y^e z^* = f
+// (x, z). If so, return the inhomogenous form of f along with e.
 
 R<x,y,z> := Parent(eqs[1]);
 if #GeneratorsSequence(R) eq 1 then
@@ -89,11 +95,12 @@ C := MonomialCoefficient(F, monsy[1]);
 f := -f/C;
 return true, f, e;
 
-end intrinsic;
+end function;
 
 
-intrinsic SuperellipticCompatibility(P::., e::RngIntElt) -> .
-{Transforms the differentials on a superelliptic curve to compensate for conventions.}
+function SuperellipticCompatibility(P, e)
+// Transforms the differentials on a superelliptic curve to compensate for
+// conventions.
 // TODO: Generalize this to apply beyond genus 3. This is a matter of fixing a
 // base of differentials. But actually superelliptic curves should be treated
 // as a class of their own. Not now: use base provided by Christian.
@@ -104,4 +111,4 @@ if #rowsP eq 3 then
 end if;
 error "Need g = 3 for now";
 
-end intrinsic;
+end function;

@@ -9,6 +9,8 @@
  *  See LICENSE.txt for license details.
  */
 
+forward IsogenousPPLatticesG2;
+
 
 intrinsic InducedPolarization(E::., R::. : ProjOrInc := "Proj") -> .
 {Given a matrix E corresponding to a polarization, returns the pushforward (default) or pullback of E along R. The pullback is the pairing directly induced via the map represented by R, and the pushforward is its dual.}
@@ -133,9 +135,27 @@ return Lats;
 end intrinsic;
 
 
-/* TODO: Generalize */
-intrinsic IsogenousPPLatticesG2(E::.) -> .
+intrinsic IsogenousPPLattices(E::.) -> .
 {Given an alternating form E, finds the sublattices to ZZ^2d of smallest possible index on which E induces a principal polarization. These are returned in matrix form, that is, as a span of a basis in the rows. This basis is symplectic in the usual sense.}
+
+g := #Rows(E) div 2;
+if g eq 1 then
+    return [ E ];
+elif g eq 2 then
+    return IsogenousPPLatticesG2(E);
+else
+    error "No functionality for principally polarized lattices in genus strictly larger than 2 yet";
+end if;
+
+end intrinsic;
+
+
+/* TODO: Generalize */
+function IsogenousPPLatticesG2(E)
+// Given an alternating form E, finds the sublattices to ZZ^2d of smallest
+// possible index on which E induces a principal polarization. These are
+// returned in matrix form, that is, as a span of a basis in the rows. This
+// basis is symplectic in the usual sense.
 /* In general, we would isolate the blocks with given d and deal with those one at a time */
 
 E0, T0 := FrobeniusFormAlternatingAlt(E);
@@ -167,4 +187,4 @@ for i in [1..#Ts] do
 end for;
 return Ts;
 
-end intrinsic;
+end function;

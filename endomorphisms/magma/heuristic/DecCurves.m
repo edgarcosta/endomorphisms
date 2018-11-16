@@ -25,7 +25,7 @@ function ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := "Proj")
 gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
 EQ := InducedPolarization(StandardSymplecticMatrix(g), R : ProjOrInc := ProjOrInc);
-Us := IsogenousPPLatticesG2(EQ);
+Us := IsogenousPPLattices(EQ);
 
 facs := [ ];
 for U in Us do

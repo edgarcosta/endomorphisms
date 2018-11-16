@@ -1,7 +1,4 @@
-Button push decomposition
-Do polarizations and Prym absolutely right, rearrange structure accordingly
 Map to elliptic curves perfect, general base point from which to take these, transition maps correct on differentials
-
 Integrate improvements into algorithm run, try to use D0 if possible
 Jacobian addition on Puiseux series via formal calculation
 

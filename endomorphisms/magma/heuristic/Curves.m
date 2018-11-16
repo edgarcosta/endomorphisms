@@ -41,9 +41,9 @@ end if;
 end intrinsic;
 
 
-intrinsic EmbedCurveEquations(X::Crv) -> MonStgElt
-{Returns the defining equations of X base changed to CC to precision prec,
-using the infinite place of the base ring of X.}
+function EmbedCurveEquations(X)
+// Returns the defining equations of X base changed to CC to precision prec,
+// using the infinite place of the base ring of X.
 
 if Type(X) eq CrvHyp or Type(X) eq CrvEll then
     f, h := HyperellipticPolynomials(X);
@@ -54,7 +54,7 @@ elif Type(X) eq CrvPln then
 end if;
 error "Function not available for general curves";
 
-end intrinsic;
+end function;
 
 
 intrinsic ChangeRingCurve(X::Crv, h::.) -> Crv
@@ -150,6 +150,7 @@ end if;
 end intrinsic;
 
 
+/* These functions are only used in Sage */
 intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::., prec::RngIntElt) -> Crv
 {Returns the hyperelliptic curve over the rationals with precision prec defined
 by f and h. Only relevant in the Sage interface.}
