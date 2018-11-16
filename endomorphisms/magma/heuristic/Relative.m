@@ -84,7 +84,7 @@ return [ K`CC ! tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexField(Preci
 end intrinsic;
 
 
-intrinsic EvaluateExtra(r::., iota::.) -> .
+intrinsic EmbedExtra(r::., iota::.) -> .
 {Evaluates infinite place.}
 
 seq := Eltseq(r);
@@ -93,10 +93,10 @@ return &+[ seq[i]*iota^(i - 1) : i in [1..#seq] ];
 end intrinsic;
 
 
-intrinsic EvaluateMatrixExtra(M::., iota::.) -> .
+intrinsic EmbedMatrixExtra(M::., iota::.) -> .
 {Evaluates infinite place.}
 
-return Matrix([ [ EvaluateExtra(r, iota) : r in Eltseq(row) ] : row in Rows(M) ]);
+return Matrix([ [ EmbedExtra(r, iota) : r in Eltseq(row) ] : row in Rows(M) ]);
 
 end intrinsic;
 
@@ -137,7 +137,7 @@ return L0, hLL0(L ! r), hKL * hLL0;
 end intrinsic;
 
 
-intrinsic EmbedAtInfinitePlacePolynomial(f::RngUPolElt) -> RngUPolElt
+intrinsic EmbedPolynomialExtra(f::RngUPolElt) -> RngUPolElt
 {Returns the polynomial f considered as a complex polynomial to precision
 prec.}
 
@@ -148,13 +148,13 @@ if IsZero(f) then
 else
     prec := Precision(BaseRing(RCC));
     mons := Monomials(f);
-    return &+[ EvaluateExtra(MonomialCoefficient(f, mon), K`iota) * RCC.1^Degree(mon) : mon in mons ];
+    return &+[ EmbedExtra(MonomialCoefficient(f, mon), K`iota) * RCC.1^Degree(mon) : mon in mons ];
 end if;
 
 end intrinsic;
 
 
-intrinsic EmbedAtInfinitePlacePolynomial(f::RngMPolElt) -> RngMPolElt
+intrinsic EmbedPolynomialExtra(f::RngMPolElt) -> RngMPolElt
 {Returns the polynomial f considered as a complex polynomial to precision
 prec.}
 
@@ -165,17 +165,17 @@ if IsZero(f) then
 else
     prec := Precision(BaseRing(RCC));
     mons := Monomials(f);
-    return &+[ EvaluateExtra(MonomialCoefficient(f, mon), K`iota) * Monomial(RCC, Exponents(mon)) : mon in mons ];
+    return &+[ EmbedExtra(MonomialCoefficient(f, mon), K`iota) * Monomial(RCC, Exponents(mon)) : mon in mons ];
 end if;
 
 end intrinsic;
 
 
-intrinsic EmbedAtInfinitePlacePolynomials(fs::SeqEnum) -> SeqEnum
+intrinsic EmbedPolynomialExtras(fs::SeqEnum) -> SeqEnum
 {Returns the list of polynomials fs considered as complex polynomials to
 precision prec.}
 
-return [ EmbedAtInfinitePlacePolynomial(f) : f in fs ];
+return [ EmbedPolynomialExtra(f) : f in fs ];
 
 end intrinsic;
 
@@ -188,8 +188,8 @@ assert L eq Codomain(h);
 assert Precision(K`CC) eq Precision(L`CC);
 CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaK in InfinitePlacesExtra(K) do
-    genKCC := CC ! EvaluateExtra(genK, iotaK);
-    genLCC := CC ! EvaluateExtra(genL, L`iota);
+    genKCC := CC ! EmbedExtra(genK, iotaK);
+    genLCC := CC ! EmbedExtra(genL, L`iota);
     if Abs(genKCC - genLCC) lt CC`epscomp then
         return iotaK;
     end if;
@@ -207,8 +207,8 @@ assert L eq Codomain(h);
 assert Precision(K`CC) eq Precision(L`CC);
 CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaL in InfinitePlacesExtra(L) do
-    genKCC := CC ! EvaluateExtra(genK, K`iota);
-    genLCC := CC ! EvaluateExtra(genL, iotaL);
+    genKCC := CC ! EmbedExtra(genK, K`iota);
+    genLCC := CC ! EmbedExtra(genL, iotaL);
     if Abs(genKCC - genLCC) lt CC`epscomp then
         return iotaL;
     end if;
@@ -254,8 +254,8 @@ if IsQQ(K) then
     L`iota := InfinitePlacesExtra(L)[1]; return;
 end if;
 for iotaL in InfinitePlacesExtra(L) do
-    evL := EvaluateExtra(h(K.1), iotaL);
-    evK := EvaluateExtra(K.1, K`iota);
+    evL := EmbedExtra(h(K.1), iotaL);
+    evK := EmbedExtra(K.1, K`iota);
     if Abs(evL - evK) lt CC`epscomp then
         L`iota := iotaL; return;
     end if;
@@ -382,12 +382,12 @@ end for;
 
 /* Sanity check before returning */
 F := K`base; CC := K`CC;
-genFCC0 := CC ! EvaluateExtra(F.1, F`iota);
-genFCC1 := CC ! EvaluateExtra(K`base_gen, K`iota);
+genFCC0 := CC ! EmbedExtra(F.1, F`iota);
+genFCC1 := CC ! EmbedExtra(K`base_gen, K`iota);
 assert Abs(genFCC1 - genFCC0) lt CC`epscomp;
 for tupa in tupsa do
     aCC0 := CC ! tupa[2];
-    aCC1 := CC ! EvaluateExtra(tupa[1], K`iota);
+    aCC1 := CC ! EmbedExtra(tupa[1], K`iota);
     assert Abs(aCC1 - aCC0) lt CC`epscomp;
 end for;
 return K, [ tupa[1] : tupa in tupsa ];
@@ -422,12 +422,12 @@ end for;
 
 /* Sanity check before returning */
 F := L`base; CC := L`CC;
-genFCC0 := CC ! EvaluateExtra(F.1, F`iota);
-genFCC1 := CC ! EvaluateExtra(L`base_gen, L`iota);
+genFCC0 := CC ! EmbedExtra(F.1, F`iota);
+genFCC1 := CC ! EmbedExtra(L`base_gen, L`iota);
 assert Abs(genFCC1 - genFCC0) lt CC`epscomp;
 for tupa in tupsa do
     aCC0 := CC ! tupa[2];
-    aCC1 := CC ! EvaluateExtra(tupa[1], L`iota);
+    aCC1 := CC ! EmbedExtra(tupa[1], L`iota);
     assert Abs(aCC1 - aCC0) lt CC`epscomp;
 end for;
 return L, [ tupa[1] : tupa in tupsa ], h;
@@ -449,7 +449,7 @@ if Degree(gK) eq 1 then
 end if;
 
 /* Information about the base needed later */
-F := K`base; genFCC0 := EvaluateExtra(F.1, F`iota);
+F := K`base; genFCC0 := EmbedExtra(F.1, F`iota);
 CC := K`CC;
 
 /* Get absolute field and we need an iso that respects results so far */
@@ -475,7 +475,7 @@ for rtf in rtsf do
         test := true;
 
         /* First test: generator of F */
-        genFCC1 := EvaluateExtra(L`base_gen, iotaL);
+        genFCC1 := EmbedExtra(L`base_gen, iotaL);
         if not Abs(genFCC1 - genFCC0) lt CC`epscomp then
             test := false;
         end if;
@@ -483,7 +483,7 @@ for rtf in rtsf do
         /* Second test: old a */
         for tupa in tupsa do
             a := tupa[1]; aCC0 := tupa[2];
-            aCC1 := EvaluateExtra(h(a), iotaL);
+            aCC1 := EmbedExtra(h(a), iotaL);
             if not Abs(aCC1 - CC ! aCC0) lt CC`epscomp then
                 test := false;
                 break;
@@ -491,7 +491,7 @@ for rtf in rtsf do
         end for;
 
         /* Third test: new a */
-        anewCC1 := EvaluateExtra(anew, iotaL);
+        anewCC1 := EmbedExtra(anew, iotaL);
         if not Abs(anewCC1 - CC ! anewCC) lt CC`epscomp then
             test := false;
         end if;
@@ -559,12 +559,12 @@ end for;
 
 /* Sanity check before returning */
 F := K`base; CC := K`CC;
-genFCC0 := CC ! EvaluateExtra(F.1, F`iota);
-genFCC1 := CC ! EvaluateExtra(K`base_gen, K`iota);
+genFCC0 := CC ! EmbedExtra(F.1, F`iota);
+genFCC1 := CC ! EmbedExtra(K`base_gen, K`iota);
 assert Abs(genFCC1 - genFCC0) lt CC`epscomp;
 for tupa in tupsa do
     aCC0 := CC ! tupa[2];
-    aCC1 := CC ! EvaluateExtra(tupa[1], K`iota);
+    aCC1 := CC ! EmbedExtra(tupa[1], K`iota);
     assert Abs(aCC1 - aCC0) lt CC`epscomp;
 end for;
 return K, [ tupa[1] : tupa in tupsa ];
@@ -599,7 +599,7 @@ if Degree(gK) eq 1 then
 end if;
 
 /* Information about the base needed later */
-F := K`base; genFCC0 := EvaluateExtra(F.1, F`iota);
+F := K`base; genFCC0 := EmbedExtra(F.1, F`iota);
 CC := K`CC;
 
 /* Get absolute field and we need an iso that respects results so far */
@@ -624,7 +624,7 @@ for rtf in rtsf do
         test := true;
 
         /* First test: generator of F */
-        genFCC1 := EvaluateExtra(L`base_gen, iotaL);
+        genFCC1 := EmbedExtra(L`base_gen, iotaL);
         if not Abs(genFCC1 - genFCC0) lt CC`epscomp then
             test := false;
         end if;
@@ -632,7 +632,7 @@ for rtf in rtsf do
         /* Second test: old a */
         for tupa in tupsa do
             a := tupa[1]; aCC0 := tupa[2];
-            aCC1 := EvaluateExtra(h(a), iotaL);
+            aCC1 := EmbedExtra(h(a), iotaL);
             if not Abs(aCC1 - CC ! aCC0) lt CC`epscomp then
                 test := false;
                 break;
@@ -643,7 +643,7 @@ for rtf in rtsf do
         if test then
             test := false;
             for rtg in rtsg do
-                anewCC1 := EvaluateExtra(rtg, iotaL);
+                anewCC1 := EmbedExtra(rtg, iotaL);
                 if Abs(anewCC1 - CC ! anewCC) lt CC`epscomp then
                     test := true;
                     anew := rtg;
@@ -774,11 +774,11 @@ end if;
 
 /* Take place compatible with both previous ones */
 CC := K`CC; genK := hKM(K.1); genL := hLM(L.1);
-genKCC0 := CC ! EvaluateExtra(K.1, K`iota);
-genLCC0 := CC ! EvaluateExtra(L.1, L`iota);
+genKCC0 := CC ! EmbedExtra(K.1, K`iota);
+genLCC0 := CC ! EmbedExtra(L.1, L`iota);
 for iotaM in InfinitePlacesExtra(M) do
-    genKCC := CC ! EvaluateExtra(genK, iotaM);
-    genLCC := CC ! EvaluateExtra(genL, iotaM);
+    genKCC := CC ! EmbedExtra(genK, iotaM);
+    genLCC := CC ! EmbedExtra(genL, iotaM);
     if Abs(genKCC - genKCC0) lt CC`epscomp then
         if Abs(genLCC - genLCC0) lt CC`epscomp then
             M`iota := iotaM;

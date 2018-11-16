@@ -19,7 +19,7 @@ function TestCloseToRoot(f, a)
  * NumberFieldExtra */
 
 CC := Parent(a); RCC := PolynomialRing(CC);
-fCC := RCC ! EmbedAtInfinitePlacePolynomial(f); rts := [ tup[1] : tup in Roots(fCC) ];
+fCC := RCC ! EmbedPolynomialExtra(f); rts := [ tup[1] : tup in Roots(fCC) ];
 for rt in rts do
     if Abs(a - rt) le CC`epscomp then
         return true;
@@ -38,7 +38,7 @@ degK := Degree(K); R<x> := PolynomialRing(K); CC := K`CC;
 
 /* The next line is slightly inefficient, but it is not a bottleneck. It takes
  * the images in CC of a power basis of K over QQ. */
-powersgen := [ CC ! EvaluateExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
+powersgen := [ CC ! EmbedExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
 
 /* Create first entry corresponding to constant term */
 MLine := [ ];
@@ -80,9 +80,9 @@ degK := Degree(K); R<x> := PolynomialRing(K);
 F := BaseField(K); degF := Degree(F);
 CC := Parent(a); RR := RealField(CC); prec := Precision(CC);
 
-genK := CC ! EvaluateExtra(K.1, K`iota); genF := CC ! EvaluateExtra(F.1, F`iota);
-powersgenK := [ CC ! EvaluateExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
-powersgenF := [ CC ! EvaluateExtra(F.1^i, F`iota) : i in [0..(degF - 1)] ];
+genK := CC ! EmbedExtra(K.1, K`iota); genF := CC ! EmbedExtra(F.1, F`iota);
+powersgenK := [ CC ! EmbedExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
+powersgenF := [ CC ! EmbedExtra(F.1^i, F`iota) : i in [0..(degF - 1)] ];
 MLine := &cat[ [ powergenF * powergenK : powergenF in powersgenF ] : powergenK in powersgenK ] cat [-a];
 M := Transpose(Matrix(CC, [ MLine ]));
 
@@ -180,7 +180,7 @@ end if;
 rts := RootsPari(minpol, K);
 
 for rt in rts do
-    rtCC := EvaluateExtra(rt, K`iota);
+    rtCC := EmbedExtra(rt, K`iota);
     if Abs(rtCC - CC ! a) le CC`epscomp then
         vprint EndoFind : "Root:", rt;
         return true, rt;
@@ -230,7 +230,7 @@ end if;
 /* If this applies, then it is fast, so we consider this case first */
 rts := RootsPari(f, K);
 for rt in rts do
-    rtCC := CC ! EvaluateExtra(rt, K`iota);
+    rtCC := CC ! EmbedExtra(rt, K`iota);
     if Abs(rtCC - aCC) le CC`epscomp then
         R := PolynomialRing(K);
         return R.1 - rt, f;
@@ -239,7 +239,7 @@ end for;
 
 gs := FactorizationPari(f, K);
 for g in gs do
-    gCC := EmbedAtInfinitePlacePolynomial(g);
+    gCC := EmbedPolynomialExtra(g);
     for tuprt in Roots(gCC) do
         rtCC := tuprt[1];
         if Abs(rtCC - aCC) le CC`epscomp then

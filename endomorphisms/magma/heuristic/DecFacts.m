@@ -297,6 +297,10 @@ for comp_iso in comps_iso do
         else
             morcomp := [* A0*Aroot, R*Rroot *];
         end if;
+        /* TODO: Remove this sanity check before the Append statement at some point */
+        Atest := morcomp[1]; Rtest := morcomp[2];
+        ACCtest := EmbedMatrixExtra(Atest, K`iota); CC := BaseRing(ACCtest);
+        assert Maximum([ Abs(c) : c in Eltseq(ACCtest*P - Qroot*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
         Append(~comps, [* Qroot, morcomp, incdataroot *]);
     end for;
 end for;
