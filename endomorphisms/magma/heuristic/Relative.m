@@ -34,11 +34,13 @@ F := K`base;
 if IsQQ(F) then
     FinK := F;
     h := hom< F -> FinK | >;
+    hFK := hom< F -> K | >;
 else
     FinK := sub< K | K`base_gen >;
     h := hom< F -> FinK | K`base_gen >;
+    hFK := hom< F -> K | K`base_gen >;
 end if;
-return F, FinK, h;
+return F, hFK, FinK, h;
 
 end intrinsic;
 
@@ -51,7 +53,7 @@ if not assigned K`base then
     return [ Rationals() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
 end if;
 /* Now fields with extra structure */
-_, F, _ := BaseFieldExtra(K);
+_, _, F := BaseFieldExtra(K);
 if IsQQ(F) then
     return [ Rationals() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
 else
@@ -751,8 +753,8 @@ elif IsQQ(L) then
     return M, [* hKM, hLM *];
 end if;
 
-F, FinK, hFK := BaseFieldExtra(K);
-F, FinL, hFL := BaseFieldExtra(L);
+F, _, FinK, hFK := BaseFieldExtra(K);
+F, _, FinL, hFL := BaseFieldExtra(L);
 
 /* Find minimal polynomial of both fields over the base */
 fK := MinimalPolynomial(K.1, FinK);

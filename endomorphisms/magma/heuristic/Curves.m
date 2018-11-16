@@ -9,6 +9,8 @@
  *  See LICENSE.txt for license details.
  */
 
+declare attributes Crv : plane_model, period_matrix, geo_endo_rep, base_endo_rep;
+
 
 intrinsic PlaneCurve(F::RngMPolElt) -> Crv
 {Returns the plane curve defined by F, which can be given affinely or
@@ -167,5 +169,35 @@ which can be given affinely or projectively. Only relevant in the Sage interface
 
 QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ, #GeneratorsSequence(Parent(F)));
 return PlaneCurve(RQQ ! F);
+
+end intrinsic;
+
+
+intrinsic PlaneModel(X::Crv) -> .
+{Returns a plane model for more complicated curves.}
+
+if assigned X`plane_model then
+    return X`plane_model;
+end if;
+
+if Type(X) eq CrvHyp or Type(X) eq CrvPln then
+    X`plane_model := X;
+    return X`plane_model;
+end if;
+
+F := DefiningPolynomial(AlgorithmicFunctionField(FunctionField(X)));
+L := Parent(F); K := BaseRing(L);
+
+R := PolynomialRing(BaseRing(K));
+S := PolynomialRing(BaseRing(K), 2);
+h := hom< R -> S | S.1 >;
+F0 := S ! 0;
+
+coeffs := Coefficients(F);
+for i in [1..#coeffs] do
+    F0 +:= h(R ! coeffs[i])*S.2^(i - 1);
+end for;
+X`plane_model := PlaneCurve(F0);
+return X`plane_model;
 
 end intrinsic;

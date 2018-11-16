@@ -116,7 +116,7 @@ end if;
 end function;
 
 
-function SubgroupGeneratorsUpToConjugacy(L, K, h)
+function SubgroupGeneratorsUpToConjugacy(L, K, hKL)
 // Finds the subgroup generators up to conjugacy that correspond to the
 // subfield K of L.
 
@@ -134,7 +134,7 @@ end if;
 /* General case: take group corresponding to largest subfield of L that fits
  * inside K */
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
-Helts := [ h : h in Gp | Gphi(h)(h(K.1)) eq h(K.1) ];
+Helts := [ h : h in Gp | Gphi(h)(hKL(K.1)) eq hKL(K.1) ];
 H := sub< Gp | Helts >;
 return [* Generators(H), Gphi *];
 

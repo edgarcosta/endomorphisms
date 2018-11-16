@@ -47,7 +47,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
         try
             /* TODO: Add this when it becomes available */
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
-            //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
+            return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
             return 1/(1 - 1);
         catch err
             error "No functionality for plane curves available";
@@ -61,12 +61,17 @@ end intrinsic;
 
 
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
-{Returns the period matrix of the curve defined by the complex polynomials
-eqsCC.}
+{Returns the period matrix of X.}
 
-eqsCC := EmbedCurveEquations(X);
-eqsF := DefiningEquations(X);
-return PeriodMatrix(eqsCC, eqsF);
+if assigned X`period_matrix then
+    return X`period_matrix;
+end if;
+
+Y := PlaneModel(X);
+eqsCC := EmbedCurveEquations(Y);
+eqsF := DefiningEquations(Y);
+X`period_matrix := PeriodMatrix(eqsCC, eqsF);
+return X`period_matrix;
 
 end intrinsic;
 

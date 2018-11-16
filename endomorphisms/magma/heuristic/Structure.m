@@ -77,9 +77,6 @@ intrinsic EndomorphismStructure(EndoRep::SeqEnum) -> List
 of the corresponding algebra, ring, and algebra tensored with RR.}
 
 Rs := [ gen[2] : gen in EndoRep ]; g := #Rows(Rs[1]) div 2;
-if g gt 3 then
-    print "No stable functionality for curves over genus greater than 3 yet";
-end if;
 
 vprint EndoFind : "";
 vprint EndoFind : "Generators of endomorphism algebra:", Rs;
@@ -141,7 +138,7 @@ for D in Ds do
             DescFactorQQ := [* "I", FDesc, 1, 1, d *];
 
         else
-            DescFactorQQ := [* "I, II or III", FDesc, -1, -1, -1 *];
+            DescFactorQQ := [* "Some Albert type", FDesc, -1, -1, -1 *];
         end if;
 
     else
@@ -183,8 +180,8 @@ for DescFactorQQ in EndoDescQQ do
         EndoDescRR cat:= [ "M_2 (RR)" : i in [1..e] ];
     elif AlbertType eq "III" then
         EndoDescRR cat:= [ "HH" : i in [1..e] ];
-    elif AlbertType eq "I, II or III" then
-        EndoDescRR cat:= [ "RR, M_2 (RR) or HH" : i in [1..e] ];
+    elif AlbertType eq "Some Albert type" then
+        EndoDescRR cat:= [ "Some RR-algebra" : i in [1..e] ];
     elif AlbertType eq "IV" then
         if m eq 1 then
             str := "CC";

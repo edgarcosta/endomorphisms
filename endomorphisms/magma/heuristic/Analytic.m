@@ -146,7 +146,7 @@ return GeometricHomomorphismRepresentationCC(P, P);
 end intrinsic;
 
 
-intrinsic GeometricHomomorphismRepresentation(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : UpperBound := Infinity()) -> SeqEnum
+intrinsic GeometricHomomorphismRepresentation(P::ModMatFldElt, Q::ModMatFldElt, F::Fld) -> SeqEnum
 {Given period matrices P and Q, as well as a field F, this function determines
 a ZZ-basis of homomorphisms between the corresponding abelian varieties. These
 are returned as triples of an algebraized tangent representation A, a homology
@@ -176,7 +176,7 @@ return gens, K;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : UpperBound := Infinity()) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld) -> SeqEnum
 {Given a period matrix P and a field F, this function determines a ZZ-basis of
 endomorphisms of the corresponding abelian variety. These are returned as
 triples of an algebraized tangent representation A, a homology representation R
@@ -203,5 +203,23 @@ for i in [1..#gens] do
     assert abs lt BaseRing(P)`epscomp;
 end for;
 return gens, K;
+
+end intrinsic;
+
+
+intrinsic GeometricEndomorphismRepresentation(X::Crv) -> SeqEnum
+{Given a curve X over a field, this function determines a ZZ-basis of
+endomorphisms of the corresponding abelian variety. These are returned as
+triples of an algebraized tangent representation A, a homology representation R
+and a complex tangent representation ACC. We have ACC P = P R for the period
+matrix P of X, and via the infinite place of the base field the matrix A is
+mapped to ACC.}
+
+if assigned X`geo_endo_rep then
+    return X`geo_endo_rep;
+end if;
+
+X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
+return X`geo_endo_rep;
 
 end intrinsic;
