@@ -49,10 +49,10 @@ function EmbedCurveEquations(X)
 
 if Type(X) eq CrvHyp or Type(X) eq CrvEll then
     f, h := HyperellipticPolynomials(X);
-    return EmbedPolynomialExtras([ f, h ]);
+    return EmbedPolynomialsExtra([ f, h ]);
 elif Type(X) eq CrvPln then
     F := DefiningPolynomial(X);
-    return EmbedPolynomialExtras([ F ]);
+    return EmbedPolynomialsExtra([ F ]);
 end if;
 error "Function not available for general curves";
 

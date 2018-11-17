@@ -71,10 +71,13 @@ BCC := mor[1]; S := mor[2];
 /* Recalculation */
 test, B := AlgebraizeMatrix(BCC, L);
 assert test;
-K, hKL := SubfieldExtra(L, Eltseq(B));
 if CoerceToBase then
+    K, hKL := SubfieldExtra(L, Eltseq(B));
+    incdata := [* L, K, hKL *];
     B := CoerceToSubfieldMatrix(B, L, K, hKL);
+    return Q, [* B, S *], incdata;
 end if;
+K, hKL := SubfieldExtra(L, Eltseq(B));
 incdata := [* L, K, hKL *];
 return Q, [* B, S *], incdata;
 
@@ -124,13 +127,14 @@ end if;
 /* Run through lattice and use smallest field where decomposition occurs */
 for J in Reverse(Js) do
     gensM := Generators(J); GalM := [* gensM, Gphi *];
-    EndoData := EndomorphismData(GeoEndoRep, GalM);
+    EndoData, hML := EndomorphismData(GeoEndoRep, GalM);
     idems := NonCentralIdempotents(EndoData);
+    M := BaseRing(idems[1][1]);
     if #idems eq #idems_geo then
-        M, hML := FixedFieldExtra(L, [ Gphi(genM) : genM in gensM ]);
         return idems, [* L, M, hML *];
     end if;
 end for;
+return idems_geo, [* L, L, CanonicalInclusionMap(L, L) *];
 
 end intrinsic;
 
@@ -267,6 +271,7 @@ intrinsic RootsOfIsotypicalComponent(Q::., mor::., incdata::. : ProjOrInc := "Pr
  * because that causes us to miss factors that become isogenous only later */
 
 idems, incdataroot := SplittingIdempotents(Q, mor, incdata);
+
 comps := [ ];
 for idem in idems do
     /* No need to coerce since we are already over smallest possible field */
@@ -287,7 +292,11 @@ comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjOrI
 for comp_iso in comps_iso do
     Q, mor, incdata := Explode(comp_iso);
     A, R := Explode(mor);
-    for comp_root in RootsOfIsotypicalComponent(Q, mor, incdata : ProjOrInc := ProjOrInc) do
+    comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjOrInc := ProjOrInc);
+    /* TODO: For now no redundant factors */
+    //for i in [1..#comp_roots] do
+    for i in [1..1] do
+        comp_root := comp_roots[i];
         Qroot, morroot, incdataroot := Explode(comp_root);
         L, K, hKL := Explode(incdataroot);
         A0 := CoerceToSubfieldMatrix(A, L, K, hKL);

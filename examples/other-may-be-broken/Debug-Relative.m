@@ -20,10 +20,10 @@ print "";
 print FieldDescriptionExtra(L);
 print ElementDescriptionExtra(L.1);
 print InfinitePlacesExtra(L);
-print EvaluateExtra(r, L`iota);
+print EmbedExtra(r, L`iota);
 
 print "";
-print EmbedAtInfinitePlacePolynomials([ y^2 - 3, y^2 - 5 ]);
+print EmbedPolynomialsExtra([ y^2 - 3, y^2 - 5 ]);
 
 print "";
 Gp, Gf, Gphi := AutomorphismGroupPari(L);

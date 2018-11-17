@@ -1,9 +1,10 @@
+G1, G2 Drew and general issues
 Map to elliptic curves perfect, general base point from which to take these, transition maps correct on differentials
 Integrate improvements into algorithm run, try to use D0 if possible
 Jacobian addition on Puiseux series via formal calculation
 
 Later:
-Remember certain calculations, like geometric endomorphism representation
+Return only single factors for idempotents
 Try to develop a bit further if the first branches coincide (this first happens in genus 4)
 Divisor from Cantor? In principle this is all right: We pull back to X x Y^gY via the canonical map and then push to X x Y via idX x projection on the first coordinate. However, Magma cannot do this, since in it pushforwards are limited to maps between curves.
 

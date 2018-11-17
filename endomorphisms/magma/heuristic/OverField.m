@@ -23,15 +23,15 @@ L := BaseRing(As[1]); gensH, Gphi := Explode(GalK);
 
 /* Case where no extension is needed to find the geometric endomorphism ring */
 if Degree(L) eq 1 then
-    return GeoEndoRep;
+    return GeoEndoRep, CanonicalInclusionMap(L, L);
 /* Case where we ask for the geometric endomorphism ring */
 elif #gensH eq 0 then
-    return GeoEndoRep;
+    return GeoEndoRep, CanonicalInclusionMap(L, L);
 else
     H := sub< Domain(Gphi) | gensH >;
     /* Case where we ask for the geometric endomorphism ring (again) */
     if #H eq 1 then
-        return GeoEndoRep;
+        return GeoEndoRep, CanonicalInclusionMap(L, L);
     end if;
 end if;
 
@@ -60,15 +60,15 @@ B := Basis(Lat);
 
 /* Constructing said basis */
 gens := [ ];
-K, res := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
+K, hKL := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
 for b in B do
     A := &+[ b[i] * As[i] : i in [1..n] ];
     R := &+[ b[i] * Rs[i] : i in [1..n] ];
     /* Coercion to subfield */
-    A := CoerceToSubfieldMatrix(A, L, K, res);
+    A := CoerceToSubfieldMatrix(A, L, K, hKL);
     Append(~gens, [* A, R *]);
 end for;
-return gens;
+return gens, hKL;
 
 end intrinsic;
 

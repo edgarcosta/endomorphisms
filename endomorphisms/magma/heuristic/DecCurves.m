@@ -12,10 +12,21 @@
 
 function ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := "Proj")
 
-A, R := Explode(mor);
-E, h := ReconstructCurveG1(Q, K);
+A, R := Explode(mor); K := BaseRing(A);
+Rnew := R;
+if Im(Q[1,2]/Q[1,1]) lt 0 then
+    Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
+    T := Matrix(Rationals(), [[0, 1],[1, 0]]);
+    if ProjOrInc eq "Proj" then
+        Rnew := T*R;
+    else
+        Rnew := R*T;
+    end if;
+end if;
+assert IsBigPeriodMatrix(Q);
+E, h := ReconstructCurve(Q, K : Base := true);
 Anew := ConjugateMatrix(h, A);
-return [ [* E, Q, [* Anew, R *] *] ];
+return [ [* E, [* Anew, Rnew *] *] ];
 
 end function;
 
@@ -24,24 +35,28 @@ function ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := "Proj")
 
 gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
-EQ := InducedPolarization(StandardSymplecticMatrix(g), R : ProjOrInc := ProjOrInc);
-Us := IsogenousPPLattices(EQ);
+EQ := InducedPolarization(StandardSymplecticMatrix(gP), R : ProjOrInc := ProjOrInc);
+vprint CurveRec: "Frobenius form:";
+vprint CurveRec: FrobeniusFormAlternatingAlt(EQ);
+Ts := IsogenousPPLattices(EQ);
 
 facs := [ ];
-for U in Us do
+for T in Ts do
     if ProjOrInc eq "Proj" then
-        Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
+        Qnew := Q*ChangeRing(T^(-1), BaseRing(Q));
         Rnew := T*R;
     else
-        Qnew := Q*ChangeRing(Transpose(U), BaseRing(Q));
-        Rnew := Transpose(T)*R;
+        Qnew := Q*ChangeRing(Transpose(T), BaseRing(Q));
+        Rnew := R*Transpose(T);
     end if;
     assert IsBigPeriodMatrix(Qnew);
     /* Reconstruct curves (some of them may give rise to an extension, but the
      * tangent representation is always the identity) */
-    Y, h := ReconstructCurveG2(Q, K);
+    Y, h := ReconstructCurve(Qnew, K);
+    vprint CurveRec: "Reconstructed curve:";
+    vprint CurveRec: Y;
     Anew := ConjugateMatrix(h, A);
-    Append(~facs, [* Y, Q, [* Anew, Rnew *] *]);
+    Append(~facs, [* Y, [* Anew, Rnew *] *]);
 end for;
 return facs;
 

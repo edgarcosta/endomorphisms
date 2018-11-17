@@ -171,7 +171,7 @@ end if;
 end intrinsic;
 
 
-intrinsic EmbedPolynomialExtras(fs::SeqEnum) -> SeqEnum
+intrinsic EmbedPolynomialsExtra(fs::SeqEnum) -> SeqEnum
 {Returns the list of polynomials fs considered as complex polynomials to
 precision prec.}
 
@@ -289,6 +289,9 @@ else
     if IsQQ(K) then
         DescendAttributesExtra(L, K, hKL);
         return K, hKL;
+    end if;
+    if K eq L then
+        return L, CanonicalInclusionMap(L, L);
     end if;
     K0, hKK0 := Polredbestabs(K);
     hKK0i := Inverse(hKK0);
@@ -694,7 +697,7 @@ assert L eq Codomain(h);
 if IsQQ(K) then
     return K ! a;
 else
-    return a @@ h;
+    return K ! (a @@ h);
 end if;
 
 end intrinsic;
@@ -726,7 +729,7 @@ end intrinsic;
 intrinsic CoerceToSubfieldMatrix(M::., L::Fld, K::Fld, h::Map) -> .
 {Realizes M as a matrix over K.}
 
-return Matrix([ [ CoerceToSubfieldElement(a, L, K, h) : a in Eltseq(row) ] : row in Rows(M) ]);
+return Matrix(K, [ [ CoerceToSubfieldElement(a, L, K, h) : a in Eltseq(row) ] : row in Rows(M) ]);
 
 end intrinsic;
 

@@ -22,11 +22,11 @@ GalK.}
 
 vprint EndoFind : "";
 vprint EndoFind : "Calculating representation over subfield...";
-EndoRep := EndomorphismRepresentation(GeoEndoRep, GalK);
+EndoRep, hKL := EndomorphismRepresentation(GeoEndoRep, GalK);
 vprint EndoFind : "done.";
 EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
-return EndoData;
+return EndoData, hKL;
 
 end intrinsic;
 
