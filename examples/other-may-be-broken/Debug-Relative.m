@@ -84,18 +84,14 @@ F := RationalsExtra(prec);
 h := hom< F -> K | >;
 print CoerceToSubfieldElement(K ! 1, K, F, h);
 
-prec := 200;
-F := RationalsExtra(prec);
-CC := F`CC;
-
-R<x> := PolynomialRing(F);
-K<r> := NumberFieldExtra(x^2 - 2);
+R<x> := PolynomialRing(Rationals());
+K<r> := BaseNumberFieldExtra(x^2 - 2, prec);
 S<y> := PolynomialRing(K);
 L1, s := NumberFieldExtra(y^2 - (r + 1));
 L2, s := NumberFieldExtra(y^2 - (r + 2));
 L3, s := NumberFieldExtra(y^3 + y - (r + 3));
 
-print CompositumExtra(L1, L2);
-print CompositumExtra([* L1, L2 *]);
+M := CompositumExtra(L1, L2);
+print M;
 M := CompositumExtra([* L1, L2, L3 *]);
 print M;

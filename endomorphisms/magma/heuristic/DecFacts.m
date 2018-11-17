@@ -11,8 +11,9 @@
 
 
 forward MatricesFromIdempotent;
-forward NonCentralIdempotentsStepOne;
-forward NonCentralIdempotentsStepTwo;
+forward SplittingIdempotentsAlgebraStepOne;
+forward SplittingIdempotentsAlgebraStepOneSubstep;
+forward SplittingIdempotentsAlgebraStepTwo;
 forward FindIdempotentsStupid;
 forward IsTrueIdempotent;
 
@@ -111,7 +112,7 @@ for tupCC in GeoEndoRepCC do
 end for;
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
-idems_geo := NonCentralIdempotents(GeoEndoData);
+idems_geo := SplittingIdempotentsAlgebra(GeoEndoData);
 
 /* Find automorphism group (over QQ for now) */
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
@@ -128,7 +129,7 @@ end if;
 for J in Reverse(Js) do
     gensM := Generators(J); GalM := [* gensM, Gphi *];
     EndoData, hML := EndomorphismData(GeoEndoRep, GalM);
-    idems := NonCentralIdempotents(EndoData);
+    idems := SplittingIdempotentsAlgebra(EndoData);
     M := BaseRing(idems[1][1]);
     if #idems eq #idems_geo then
         return idems, [* L, M, hML *];
@@ -139,7 +140,7 @@ return idems_geo, [* L, L, CanonicalInclusionMap(L, L) *];
 end intrinsic;
 
 
-intrinsic NonCentralIdempotents(EndoData::.) -> .
+intrinsic SplittingIdempotentsAlgebra(EndoData::.) -> .
 {Returns further decomposition.}
 
 /* Assert small dimension */
@@ -147,23 +148,38 @@ g := #Rows(EndoData[1][1][1]);
 assert g le 4;
 
 /* Try successively more complicated methods */
-test1, idems := NonCentralIdempotentsStepOne(EndoData);
+test1, idems := SplittingIdempotentsAlgebraStepOne(EndoData);
 if test1 then
     return [ MatricesFromIdempotent(idem, EndoData) : idem in idems ];
 end if;
-test2, idems := NonCentralIdempotentsStepTwo(EndoData);
+test2, idems := SplittingIdempotentsAlgebraStepTwo(EndoData);
 if test2 then
     return [ MatricesFromIdempotent(idem, EndoData) : idem in idems ];
 end if;
-print "All known cases in NonCentralIdempotents fell through, returning unit element";
+print "All known cases in SplittingIdempotentsAlgebra fell through, returning unit element";
 return [ MatricesFromIdempotent(EndoData[2][1] ! 1, EndoData) : idem in idems ];
 
 end intrinsic;
 
 
-function NonCentralIdempotentsStepOne(EndoData)
+function SplittingIdempotentsAlgebraStepOne(EndoData)
 
 C := EndoData[2][1];
+idems := [ ];
+for D in DirectSumDecomposition(C) do
+    test, idemsD := SplittingIdempotentsAlgebraStepOneSubstep(D);
+    if not test then
+        return false, [ ];
+    end if;
+    idems cat:= [ C ! idem : idem in idemsD ];
+end for;
+return true, idems;
+
+end function;
+
+
+function SplittingIdempotentsAlgebraStepOneSubstep(C)
+
 E1, f1 := AlgebraOverCenter(C);
 /* TODO: Optionally, we could improve and change ring here, but that has
  * undocumented behavior and does not accept field morphisms, so not for now */
@@ -191,7 +207,7 @@ return false, [ ];
 end function;
 
 
-function NonCentralIdempotentsAlgebraStepTwo(EndoData);
+function SplittingIdempotentsAlgebraStepTwo(EndoData);
 /* Catches M3 over QQ or CM, M4 over ZZ or CM, M2 over quaternion algebra */
 
 C := EndoData[2][1]; d := Dimension(C);
