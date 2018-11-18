@@ -4,10 +4,10 @@
   directory; this file shows how to access the heuristic part.
 */
 
-SetVerbose("EndoFind", 0);
-SetVerbose("CurveRec", 0);
+SetVerbose("EndoFind", 2);
+SetVerbose("CurveRec", 2);
 
-prec := 300;
+prec := 500;
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
 
@@ -74,5 +74,5 @@ print test_gl2_gen;
 
 print "";
 print "Heuristic Jacobian factors:";
-facs := HeuristicJacobianFactors(X);
+facs := HeuristicJacobianFactors(X : AllMaps := false);
 print facs;

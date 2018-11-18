@@ -99,7 +99,7 @@ EndoAlgZZ, EndoDescZZ := EndomorphismAlgebraZZ(C, GensC);
 Append(~EndoAlg, EndoAlgZZ); Append(~EndoDesc, EndoDescZZ);
 EndoAlgRR, EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ);
 Append(~EndoAlg, EndoAlgRR); Append(~EndoDesc, EndoDescRR);
-vprint EndoFind : "done";
+//vprint EndoFind : "done";
 return EndoAlg, EndoDesc;
 
 end intrinsic;

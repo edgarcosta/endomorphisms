@@ -1,4 +1,4 @@
-G1, G2 Drew and general issues
+G2: Drew, general issues with positivity and homology correction
 Map to elliptic curves perfect: CM, signs, base point and transitions
 Integrate improvements into algorithm run, try to use D0 if possible
 Jacobian addition on Puiseux series via formal calculation

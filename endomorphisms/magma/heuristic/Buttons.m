@@ -91,13 +91,13 @@ return Center(A) eq A;
 end intrinsic;
 
 
-intrinsic HeuristicJacobianFactors(X::Crv) -> .
+intrinsic HeuristicJacobianFactors(X::Crv : AllMaps := false) -> .
 {Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors.}
 
 P := PeriodMatrix(X);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 
-comps := SplitComponents(P, GeoEndoRep);
+comps := SplitComponents(P, GeoEndoRep : AllMaps := AllMaps);
 Ys := [ ];
 for comp in comps do
     Q, mor := Explode(comp);
