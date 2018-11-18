@@ -38,13 +38,3 @@ GeoEndoRepCC := GeometricEndomorphismRepresentationCC(P);
 GeoHomRepCC := GeometricHomomorphismRepresentationCC(P, Q);
 GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
 print GeoEndoRep;
-
-/*
-Rs := [ tup[2] : tup in GeoHomRepCC ];
-E := StandardSymplecticMatrix(4);
-E := StandardSymplecticMatrix(3);
-for R in Rs do
-    print R*E*Transpose(R);
-end for;
-*/
-

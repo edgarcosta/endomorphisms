@@ -15,15 +15,18 @@ f := (-7 + x)*(-5 + x)*(4 + x)*(8 + x)*(17 + x)*(19 + x)*(20 + x); h := R ! 0;
 
 X := HyperellipticCurve(f, h);
 X := ReducedMinimalWeierstrassModel(X);
+print "";
 print "Curve:";
 print X;
 
 P := PeriodMatrix(X);
 EndoRep := GeometricEndomorphismRepresentation(P, F);
 
-comps := SplitComponents(P, EndoRep);
-for comp in comps do
-    Q, mor := Explode(comp);
-    recs := ReconstructionsFromComponent(P, Q, mor);
-    print recs;
-end for;
+Y := HyperellipticCurve(x^3 - x^2 - 14916*x - 205884);
+tup, d0 := MorphismOfSmallDegree(X, Y);
+print "";
+print "Degree:";
+print d0;
+print "";
+print "Map:";
+print tup;

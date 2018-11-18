@@ -95,3 +95,5 @@ M := CompositumExtra(L1, L2);
 print M;
 M := CompositumExtra([* L1, L2, L3 *]);
 print M;
+M := CompositumExtra([* L1, L1 *]);
+print M;

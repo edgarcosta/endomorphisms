@@ -157,11 +157,11 @@ and via the infinite place of F the matrix A is mapped to ACC.}
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
-K, seq := NumberFieldExtra(seqPart, F);
+K, seq, hFK := NumberFieldExtra(seqPart, F);
 
 assert #seq eq #seqPart;
 if #seq eq 0 then
-    return [ ];
+    return [ ], hFK;
 end if;
 
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
@@ -171,7 +171,7 @@ for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1], K`iota) - gensPart[i][1]) ]);
     assert abs lt BaseRing(P)`epscomp;
 end for;
-return gens, K;
+return gens, hFK;
 
 end intrinsic;
 
@@ -188,11 +188,11 @@ Q := P;
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
-K, seq := SplittingFieldExtra(seqPart, F);
+K, seq, hFK := SplittingFieldExtra(seqPart, F);
 
 assert #seq eq #seqPart;
 if #seq eq 0 then
-    return [ ];
+    return [ ], hFK;
 end if;
 
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
@@ -202,7 +202,7 @@ for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1], K`iota) - gensPart[i][1]) ]);
     assert abs lt BaseRing(P)`epscomp;
 end for;
-return gens, K;
+return gens, hFK;
 
 end intrinsic;
 

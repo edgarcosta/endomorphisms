@@ -299,7 +299,7 @@ return comps;
 end intrinsic;
 
 
-intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : ProjOrInc := "Proj") -> .
+intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : ProjOrInc := "Proj", AllMaps := false) -> .
 {Returns maximal possible splitting of the Jacobian P over the smallest field over which this occurs, plus corresponding projections.}
 
 L := BaseRing(GeoEndoRep[1][1]);
@@ -309,9 +309,12 @@ for comp_iso in comps_iso do
     Q, mor, incdata := Explode(comp_iso);
     A, R := Explode(mor);
     comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjOrInc := ProjOrInc);
-    /* TODO: For now no redundant factors */
-    //for i in [1..#comp_roots] do
-    for i in [1..1] do
+    if AllMaps then
+        N := #comp_roots;
+    else
+        N := 1;
+    end if;
+    for i in [1..N] do
         comp_root := comp_roots[i];
         Qroot, morroot, incdataroot := Explode(comp_root);
         L, K, hKL := Explode(incdataroot);

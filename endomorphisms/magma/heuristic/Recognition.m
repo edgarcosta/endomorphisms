@@ -46,7 +46,7 @@ degf := 0;
 powera := CC ! 1;
 MLine cat:= [ powergen * powera : powergen in powersgen ];
 
-vprint EndoFind : "";
+vprint EndoFind, 2 : "";
 /* Successively adding other entries to find relations */
 while degf lt UpperBound do
     degf +:= 1;

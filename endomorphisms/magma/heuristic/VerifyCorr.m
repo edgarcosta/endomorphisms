@@ -9,6 +9,10 @@
  *  See LICENSE.txt for license details.
  */
 
+forward SmallBasePointHyp;
+forward SmallBasePointPlane;
+forward CorrespondenceVerifyG1;
+
 
 function SmallBasePointHyp(X : Bound := 2^10, NW := false)
 
@@ -17,80 +21,97 @@ f, h := HyperellipticPolynomials(X);
 
 /* Elliptic case: */
 if Genus(X) eq 1 and Degree(f) eq 3 then
-    XK := ChangeRing(X, K);
-    P := [ K ! 1, K ! 0, K ! 0 ];
-    return XK ! P;
+    P := [ 1, 0, 0 ];
+    return X ! P, CanonicalInclusionMap(K, K);
 end if;
 
 /* Small point over the base field (only QQ permitted for now): */
-if Type(BaseRing(X)) eq FldRat then
+if Type(K) eq FldRat then
     g := 4*f + h^2;
     lcm := LCM([ Denominator(c) : c in Coefficients(g) ]);
     a, b := SquareFreeFactorization(lcm);
     g *:= (a*b)^2;
     Y := HyperellipticCurve(g);
     Qs := RationalPoints(Y : Bound := Bound);
+
+    /* Exclude Weierstrass points among small points */
     if NW then
         Qs := [ Q : Q in Qs | not IsWeierstrassPlace(Place(Q)) ];
     end if;
+
+    /* Partition any points returned into infinite and finite points */
     Qs_inf := [ Q : Q in Qs | Q[3] eq 0 ];
     Qs_fin := [ Q : Q in Qs | Q[3] ne 0 ];
 
+    /* First try to transform back infinite place */
     if #Qs_inf ne 0 then
         Q := Qs_inf[1];
         h0 := Coefficient(h, Degree(g) div 2);
         P := [ Q[1], (Q[2] - h0)/(2*a*b), Q[3] ];
-        P := [ K ! P[1], K ! P[2], K ! P[3] ];
-        XK := ChangeRing(X, K);
-        return XK ! P;
+        P := [ P[1], P[2], P[3] ];
+        return X ! P, CanonicalInclusionMap(K, K);
     end if;
 
+    /* Otherwise transform back finite place */
     if #Qs_fin ne 0 then
         Hts := [ Maximum([ Height(c) : c in Eltseq(Q) ]) : Q in Qs_fin ];
         min, ind := Minimum(Hts);
         Q := Qs_fin[ind];
         h0 := Evaluate(h, Q[1]);
         P := [ Q[1], (Q[2] - h0)/(2*a*b), Q[3] ];
-        P := [ K ! P[1], K ! P[2], K ! P[3] ];
-        XK := ChangeRing(X, K);
-        return XK ! P;
+        P := [ P[1], P[2], P[3] ];
+        return X ! P, CanonicalInclusionMap(K, K);
     end if;
 end if;
 
+/* Preparing to deal with general base field */
 g := 4*f + h^2; Y := HyperellipticCurve(g);
 d := Degree(g);
 
-/* Infinite patch: */
-if IsEven(d) then
+/* Prefer infinite places: */
+if IsEven(d) or not NW then
     e := d div 2;
-    g0 := Coefficient(g, d);
-    h0 := Coefficient(h, e);
+    g0 := Coefficient(g, 2*e); h0 := Coefficient(h, e);
     R<t> := PolynomialRing(K);
-    /* L is absolute over base field of the curve */
-    L, hKL := ExtendNumberFieldExtra(t^2 - g0);
-    Q := [ 1, Roots(t^2 - g0, L)[1][1], 0 ];
+
+    rts := Roots(t^2 - g0);
+    L := K;
+    if #rts eq 0 then
+        L, hKL := NumberFieldExtra(t^2 - g0);
+        X := ChangeRingCurve(X, hKL);
+        rts := Roots(t^2 - g0, L);
+    end if;
+    Q := [ 1, rts[1][1], 0 ];
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
-    XL := ChangeRingCurve(X, hKL);
-    return XL ! P;
+    return X ! P, hKL;
 end if;
 
 /* Finite patch: */
 if IsOdd(d) then
     n0 := 0;
-    while true do
-        g0 := Evaluate(g, n0);
-        if g0 ne 0 then
-            break;
-        end if;
-        n0 +:= 1;
-    end while;
+    /* Next if NW is superfluous */
+    if NW then
+        while true do
+            g0 := Evaluate(g, n0);
+            if g0 ne 0 then
+                break;
+            end if;
+            n0 +:= 1;
+        end while;
+    end if;
     R<t> := PolynomialRing(K);
-    L, hKL := ExtendNumberFieldExtra(t^2 - g0);
-    Q := [ L ! n0, Roots(t^2 - g0, L)[1][1], 1 ];
+
+    rts := Roots(t^2 - g0);
+    L := K;
+    if #rts eq 0 then
+        L, hKL := NumberFieldExtra(t^2 - g0);
+        X := ChangeRingCurve(X, hKL);
+        rts := Roots(t^2 - g0, L);
+    end if;
+    Q := [ n0, rts[1][1], 1 ];
     h0 := Evaluate(h, Q[1]);
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
-    XL := ChangeRingCurve(X, hKL);
-    return XL ! P;
+    return X ! P, hKL;
 end if;
 error "All cases in SmallBasePointHyp fell through";
 
@@ -99,8 +120,9 @@ end function;
 
 function SmallBasePointPlane(X : Bound := 2^10, NW := false)
 
+/* Choose rational point of small height if possible */
 K := BaseRing(X);
-Ps := RationalPoints(X);
+Ps := RationalPoints(X : Bound := Bound);
 if NW then
     Ps := [ P : P in Ps | not IsWeierstrassPlace(Place(P)) ];
 end if;
@@ -108,7 +130,7 @@ if #Ps ne 0 then
     Hts := [ Maximum([ Height(c) : c in Eltseq(P) ]) : P in Ps ];
     min, ind := Minimum(Hts);
     P := Ps[ind];
-    return X ! Eltseq(P);
+    return X ! Eltseq(P), CanonicalInclusionMap(K, K);
 end if;
 
 f := DefiningPolynomial(X);
@@ -127,22 +149,27 @@ if #Ps ne 0 then
             h := hom< R -> S | [ n0*t + x0, y0, t + z0 ]>;
         end if;
         Fac := Factorization(h(f));
+
+        /* Factorize and take corresponding extension */
         for tup in Fac do
             fac := tup[1];
-            L, hKL := ExtendNumberFieldExtra(fac);
-            rt := Roots(fac, L)[1][1];
+            L, rt, hKL := NumberFieldExtra(fac);
             if z0 ne 0 then
                 P := [ n0*rt + x0, rt + y0, z0 ];
             else
                 P := [ n0*rt + x0, y0, rt + z0 ];
             end if;
             XL := ChangeRingCurve(X, hKL);
+
             if NW then
                 if not IsWeierstrassPlace(Place(XL ! P)) then
-                    return P;
+                    return XL ! P, hKL;
                 end if;
+            else
+                return XL ! P, hKL;
             end if;
         end for;
+
         n0 +:= 1;
     end while;
 end if;
@@ -152,15 +179,18 @@ n0 := 0;
 while true do
     hRS := hom< R -> S | [ n0, t, 1 ]>;
     Fac := Factorization(hRS(f));
+
     for tup in Fac do
-        L, hKL := ImproveFieldExtra(NumberFieldExtra(tup[1]));
-        rt := Roots(hRS(f), L)[1][1];
+        L, rt, hKL := NumberFieldExtra(tup[1]);
         P := [ n0, rt, 1 ];
         XL := ChangeRingCurve(X, hKL);
+
         if NW then
             if not IsWeierstrassPlace(Place(XL ! P)) then
-                return XL ! P;
+                return XL ! P, hKL;
             end if;
+        else
+            return XL ! P, hKL;
         end if;
     end for;
     n0 +:= 1;
@@ -183,49 +213,72 @@ error "Not implemented for general curves yet";
 end intrinsic;
 
 
-intrinsic Correspondence(A::., P::SeqEnum, Q::SeqEnum) -> .
-{Given curves X and Y with non-Weierstrass points P and Q respectively, finds a
-correspondence with tangent representation A if it exists.}
+intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0) -> .
+{Given curves X and Y, finds a correspondence with tangent representation A if it exists. The matrix has A has to be defined over the same field as the curve Y, and that field of definition may be an extension of that of X. Base points P and Q can be specified: otherwise these are found automatically over some extension.}
 
-/* TODO: Removing X and Y seems silly: better to remove P and Q in fact */
-X := Curve(P); Y := Curve(Q);
-/* Change everything to common extension: */
-// TODO: First take extension for Q, then over that field extension for P, to
-// avoid interference, that is, field incompatibilities
-KA := Parent(A[1,1]); KP := Parent(P[1]); KQ := Parent(Q[1]);
-L, phis := CompositumExtra([* KA, KP, KQ *]);
-phiA, phiP, phiQ := Explode(phis);
+A := mor[1]; R := mor[2];
+F := BaseRing(X); L := BaseRing(Y);
 
-/* Change to common base */
-XL := ChangeRingCurve(X, phiP);
-YL := ChangeRingCurve(Y, phiQ);
-PL := [ phiP(c) : c in Eltseq(P) ]; PL := XL ! PL;
-QL := [ phiQ(c) : c in Eltseq(Q) ]; QL := YL ! QL;
-AL := Matrix(L, [ [ phiA(c) : c in Eltseq(row) ] : row in Rows(A) ]);
+/* Use or find point on X */
+if Type(P) ne RngIntElt then
+    hFK := CanonicalInclusionMap(F, F);
+else
+    P, hFK := SmallBasePoint(X);
+    X := Curve(P);
+end if;
+
+/* Use or find point on Y */
+if Type(P) ne RngIntElt then
+    hLM := CanonicalInclusionMap(L, L);
+else
+    P, hLM := SmallBasePoint(Y);
+    Y := Curve(P);
+    A := ConjugateMatrix(hLM, A);
+end if;
+
+/* Change to common base field */
+K := BaseRing(X); M := BaseRing(Y);
+N, hKN, hMN := CompositumExtra(K, M : Compat := false);
+X := ChangeRingCurve(X, hKN);
+Y := ChangeRingCurve(Y, hMN);
+A := ConjugateMatrix(hMN, A);
 
 /* Actual work */
-if (#Rows(AL) eq #Rows(Transpose(AL))) and IsScalar(AL) then
-    return true, "Scalar: OK for now";
-elif Genus(Y) eq 1 then
-    test, fs := CantorFromMatrixAmbientSplit(AL, PL, QL);
-    if test and (not CorrespondenceVerifyG1(AL, PL, QL)) then
-        error "Pullback incorrect";
+if (#Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
+    return true, "Multiplication by an integer";
+else
+    test, fs := CantorFromMatrixAmbientSplit(X, Y, A);
+    if Genus(Y) eq 1 then
+        if test and (not CorrespondenceVerifyG1(X, Y, A, fs)) then
+            error "Pullback incorrect";
+        end if;
     end if;
     return test, fs;
-else
-    return DivisorFromMatrixAmbientSplit(AL, PL, QL);
 end if;
 
 end intrinsic;
 
 
-intrinsic CorrespondenceVerifyG1(A::., fs::SeqEnum, P::Pt, Q::Pt : CheckDegree := false) -> BoolElt
+intrinsic CorrespondenceVerifyG1(X::Crv, Y::Crv, A::., fs::SeqEnum : CheckDegree := false) -> BoolElt
 {Returns whether the morphism defined by fs indeed corresponds to the tangent
 representation A.}
 
-X := Curve(P); Y := Curve(Q);
+gY := Y`g;
+if g eq 1 then
+    return CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := CheckDegree);
+else
+    error "No verification algorithm implemented yet in this case";
+end if;
+
+end intrinsic;
+
+
+function CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := false)
+// Returns whether the morphism defined by fs indeed corresponds to the tangent
+// representation A.
+
 F := BaseRing(Parent(fs[1]));
-/* Check that the answer is a projection: */
+/* Check that the answer is well-defined */
 R<x,y> := PolynomialRing(F, 2);
 K := FieldOfFractions(R);
 fX := R ! DefiningEquation(AffinePatch(X, 1)); fY := R ! DefiningEquation(AffinePatch(Y, 1));
@@ -243,7 +296,6 @@ if CheckDegree then
 end if;
 
 /* Check that the action on differentials is correct: */
-/* TODO: Make this compatible with the other functions */
 fX := R ! DefiningEquation(AffinePatch(X, 1));
 fY := R ! DefiningEquation(AffinePatch(Y, 1));
 dx := K ! 1;
@@ -259,4 +311,4 @@ elif X`is_planar then
 end if;
 return true;
 
-end intrinsic;
+end function;
