@@ -55,7 +55,6 @@ if IsExact(Parent(A)) then
     return (Integers() ! tr);
 else
     Error("Exact input needed"); return 0;
-    //return Round(tr);
 end if;
 
 end intrinsic;

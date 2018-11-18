@@ -53,8 +53,10 @@ for T in Ts do
     /* Reconstruct curves (some of them may give rise to an extension, but the
      * tangent representation is always the identity) */
     Y, h := ReconstructCurve(Qnew, K);
+    vprint CurveRec: "";
     vprint CurveRec: "Reconstructed curve:";
     vprint CurveRec: Y;
+    vprint CurveRec: "";
     Anew := ConjugateMatrix(h, A);
     Append(~facs, [* Y, [* Anew, Rnew *] *]);
 end for;

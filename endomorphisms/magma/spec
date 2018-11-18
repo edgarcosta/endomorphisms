@@ -8,12 +8,13 @@
   heuristic
   {
     CCExtra.m
-    Relative.m
-    Recognition.m
     Sagify.m
 
     Curves.m
     Periods.m
+
+    Relative.m
+    Recognition.m
 
     Linear.m
     Saturate.m

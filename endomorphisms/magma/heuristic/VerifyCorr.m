@@ -238,7 +238,7 @@ end if;
 
 /* Change to common base field */
 K := BaseRing(X); M := BaseRing(Y);
-N, hKN, hMN := CompositumExtra(K, M : Compat := false);
+N, hMN, hKN := CompositumExtra(M, K);
 X := ChangeRingCurve(X, hKN);
 Y := ChangeRingCurve(Y, hMN);
 A := ConjugateMatrix(hMN, A);

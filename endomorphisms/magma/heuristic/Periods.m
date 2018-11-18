@@ -47,7 +47,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
         try
             /* TODO: Add this when it becomes available */
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
-            return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
+            //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
             return 1/(1 - 1);
         catch err
             error "No functionality for plane curves available";
@@ -68,14 +68,15 @@ if assigned X`period_matrix then
 end if;
 
 Y := PlaneModel(X);
-eqsCC := EmbedCurveEquations(Y);
-eqsF := DefiningEquations(Y);
+eqsCC := EmbedCurveEquations(Y); eqsF := DefiningEquations(Y);
 X`period_matrix := PeriodMatrix(eqsCC, eqsF);
 return X`period_matrix;
 
 end intrinsic;
 
 
+/* TODO: Next functions should go since this realization is up to the user once
+ * there is a dedicated SE class */
 function IsSuperellipticEquation(eqs)
 // Returns whether the plane curve defined by eqs is of the form y^e z^* = f
 // (x, z). If so, return the inhomogenous form of f along with e.

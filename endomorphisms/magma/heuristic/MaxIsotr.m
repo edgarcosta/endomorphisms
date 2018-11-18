@@ -150,7 +150,7 @@ end if;
 end intrinsic;
 
 
-/* TODO: Generalize */
+/* TODO: Generalize (note that description below is not quite correct) */
 function IsogenousPPLatticesG2(E)
 // Given an alternating form E, finds the sublattices to ZZ^2d of smallest
 // possible index on which E induces a principal polarization. These are

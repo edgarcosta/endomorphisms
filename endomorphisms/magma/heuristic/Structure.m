@@ -73,8 +73,9 @@ end intrinsic;
 
 
 intrinsic EndomorphismStructure(EndoRep::SeqEnum) -> List
-{Given a representation EndoRep of an endomorphism ring, returns a description
-of the corresponding algebra, ring, and algebra tensored with RR.}
+{Given a representation EndoRep of an endomorphism ring, return the
+corresponding algebra, ring, and algebra tensored with RR, along with
+corresponding descriptions.}
 
 Rs := [ gen[2] : gen in EndoRep ]; g := #Rows(Rs[1]) div 2;
 
@@ -234,7 +235,7 @@ return GensC, [ Integers() ! ind, -1 ];
 end function;
 
 
-/* TODO: The following two functions are of various degrees of redundance */
+/* TODO: The following two functions are of various degrees of redundancy */
 function HasGenerator(EndoStruct : B := 1)
 // Determines whether a single generator for the endomorphism ring exists, and
 // returns it if it does.

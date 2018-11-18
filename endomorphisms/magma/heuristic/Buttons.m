@@ -28,7 +28,7 @@ if Geometric then
     return EndoAlg;
 end if;
 if not assigned X`base_endo_rep then
-    F, h := BaseFieldExtra(BaseRing(GeoEndoRep[1][1]));
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
     X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
@@ -46,7 +46,7 @@ if Geometric then
     return EndoDesc;
 end if;
 if not assigned X`base_endo_rep then
-    F, h := BaseFieldExtra(BaseRing(GeoEndoRep[1][1]));
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
     X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);

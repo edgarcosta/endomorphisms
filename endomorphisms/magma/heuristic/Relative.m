@@ -20,15 +20,15 @@ forward ExtendSplittingFieldExtraStepGen;
 
 
 intrinsic IsQQ(K::Fld) -> BoolElt
-{Returns whether or not the field K equals QQ.}
+{Returns whether or not the field K equals QQ (with or without extra attributes).}
 
 return Type(K) eq FldRat;
 
 end intrinsic;
 
 
-intrinsic BaseFieldExtra(K::Fld) -> Fld, .
-{Returns distinguished subfield of K and the map to it.}
+intrinsic InclusionOfBaseExtra(K::Fld) -> Fld, .
+{Returns distinguished subfield of K and the map from it. Third and fourth return value map to image.}
 
 F := K`base;
 if IsQQ(F) then
@@ -53,7 +53,7 @@ if not assigned K`base then
     return [ Rationals() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
 end if;
 /* Now fields with extra structure */
-_, _, F := BaseFieldExtra(K);
+_, _, F := InclusionOfBaseExtra(K);
 if IsQQ(F) then
     return [ Rationals() ! c : c in Eltseq(MinimalPolynomial(K.1)) ];
 else
@@ -77,7 +77,7 @@ end intrinsic;
 
 
 intrinsic InfinitePlacesExtra(K::Fld) -> SeqEnum
-{The infinite places of K, not taken up to complex conjugation, represented by the roots of the generator in the associated complex field.}
+{The infinite places of K, represented by the roots of the generator in the associated complex field. No identification of complex conjugate places takes place.}
 
 return [ K`CC ! tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexField(Precision(K`CC) + 20)) ];
 
@@ -85,7 +85,7 @@ end intrinsic;
 
 
 intrinsic EmbedExtra(r::., iota::.) -> .
-{Evaluates infinite place.}
+{Embeds the element r via the infinite place iota.}
 
 seq := Eltseq(r);
 return &+[ seq[i]*iota^(i - 1) : i in [1..#seq] ];
@@ -94,45 +94,15 @@ end intrinsic;
 
 
 intrinsic EmbedMatrixExtra(M::., iota::.) -> .
-{Evaluates infinite place.}
+{Embeds the matrix M via the infinite place iota.}
 
 return Matrix([ [ EmbedExtra(r, iota) : r in Eltseq(row) ] : row in Rows(M) ]);
 
 end intrinsic;
 
 
-intrinsic RationalsExtra(prec::RngIntElt) -> FldNum
-{Returns the number field defined by f along with an infinite place.}
-
-K := Rationals();
-K`base := K; K`base_gen := K ! 1;
-K`CC := ComplexFieldExtra(prec);
-K`iota := InfinitePlacesExtra(K)[1];
-return K;
-
-end intrinsic;
-
-
-intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
-{Returns the number field defined by f over the base of f, which is itself assumed to be a NumberFieldExtra. The field is simplified and a root is returned separately.}
-
-K := BaseRing(f);
-Lrel<r> := NumberField(f);
-L := AbsoluteField(Lrel);
-L`base := L; L`base_gen := L.1;
-L`CC := ComplexFieldExtra(prec);
-L`iota := InfinitePlacesExtra(L)[1];
-
-/* Final improvement step before returning root */
-L0, hLL0 := ImproveFieldExtra(L);
-return L0;
-
-end intrinsic;
-
-
 intrinsic EmbedPolynomialExtra(f::RngUPolElt) -> RngUPolElt
-{Returns the polynomial f considered as a complex polynomial to precision
-prec.}
+{Embeds the polynomial f via the infinite place of its base.}
 
 K := BaseRing(f);
 RCC := PolynomialRing(K`CC);
@@ -148,8 +118,7 @@ end intrinsic;
 
 
 intrinsic EmbedPolynomialExtra(f::RngMPolElt) -> RngMPolElt
-{Returns the polynomial f considered as a complex polynomial to precision
-prec.}
+{Embeds the polynomial f via the infinite place of its base.}
 
 K := BaseRing(Parent(f));
 RCC := PolynomialRing(K`CC, #GeneratorsSequence(Parent(f)));
@@ -165,19 +134,40 @@ end intrinsic;
 
 
 intrinsic EmbedPolynomialsExtra(fs::SeqEnum) -> SeqEnum
-{Returns the list of polynomials fs considered as complex polynomials to
-precision prec.}
+{Embeds the polynomials fs via the infinite place of their common base.}
 
 return [ EmbedPolynomialExtra(f) : f in fs ];
 
 end intrinsic;
 
 
-intrinsic DescendInfinitePlace(L::Fld, K::Fld, h::Map) -> Fld
-{Descends infinite place from codomain L to domain K of h.}
+intrinsic RationalsExtra(prec::RngIntElt) -> FldNum
+{Returns the rationals with itself as base and an infinite place with the given precision.}
 
-assert K eq Domain(h);
-assert L eq Codomain(h);
+K := Rationals();
+K`base := K; K`base_gen := K ! 1; K`CC := ComplexFieldExtra(prec); K`iota := InfinitePlacesExtra(K)[1];
+return K;
+
+end intrinsic;
+
+
+intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
+{Returns the number field defined by f with itself as base and an infinite place with the given precision.}
+
+K := BaseRing(f); Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
+L`base := L; L`base_gen := L.1; L`CC := ComplexFieldExtra(prec); L`iota := InfinitePlacesExtra(L)[1];
+
+/* Final improvement step before returning root */
+L0, hLL0 := ImproveFieldExtra(L);
+return L0;
+
+end intrinsic;
+
+
+intrinsic DescendInfinitePlace(L::Fld, K::Fld, h::Map) -> Fld
+{Descends infinite place from the codomain L of h to its domain K.}
+
+assert K eq Domain(h); assert L eq Codomain(h);
 assert Precision(K`CC) eq Precision(L`CC);
 CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaK in InfinitePlacesExtra(K) do
@@ -193,10 +183,9 @@ end intrinsic;
 
 
 intrinsic AscendInfinitePlace(K::Fld, L::Fld, h::Map) -> Fld
-{Ascends infinite place from domain K to codomain L of h.}
+{Ascends infinite place from the domain K of h to its codomain L.}
 
-assert K eq Domain(h);
-assert L eq Codomain(h);
+assert K eq Domain(h); assert L eq Codomain(h);
 assert Precision(K`CC) eq Precision(L`CC);
 CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaL in InfinitePlacesExtra(L) do
@@ -236,7 +225,7 @@ end intrinsic;
 
 
 intrinsic TransferAttributesExtra(K::Fld, L::Fld, h::Map)
-{Transfer the attributes from K to L using the homomorphism h.}
+{Transfer the attributes from K to L using the isomorphism h.}
 
 assert K eq Domain(h);
 assert L eq Codomain(h);
@@ -271,27 +260,30 @@ end intrinsic;
 
 
 intrinsic SubfieldExtra(L::Fld, seq::.) -> .
-{Gives subfield of L generated by seq.}
+{Gives the subfield of L generated by seq over its base, as a field plus an embedding plus the originals of the given sequence.}
 
 if IsQQ(L) then
     K := L;
     h := hom< K -> L | >;
     return K, h, seq;
-else
-    K := sub< L | seq >; hKL := CanonicalInclusionMap(K, L);
-    if IsQQ(K) then
-        DescendAttributesExtra(L, K, hKL);
-        return K, hKL, [ K ! c : c in seq ];
-    end if;
-    if K eq L then
-        return L, CanonicalInclusionMap(L, L), seq;
-    end if;
-    K0, hKK0 := Polredbestabs(K);
-    hKK0i := Inverse(hKK0);
-    hK0L := hom< K0 -> L | hKL(hKK0i(K0.1)) >;
-    DescendAttributesExtra(L, K0, hK0L);
-    return K0, hK0L, [ hKK0(K ! c) : c in seq ];
 end if;
+
+K := sub< L | seq cat [ L`base_gen ] >;
+hKL := CanonicalInclusionMap(K, L);
+if IsQQ(K) then
+    DescendAttributesExtra(L, K, hKL);
+    return K, hKL, [ K ! c : c in seq ];
+end if;
+if K eq L then
+    return L, CanonicalInclusionMap(L, L), seq;
+end if;
+
+/* Polishing */
+K0, hKK0 := Polredbestabs(K);
+hKK0i := Inverse(hKK0);
+hK0L := hom< K0 -> L | hKL(hKK0i(K0.1)) >;
+DescendAttributesExtra(L, K0, hK0L);
+return K0, hK0L, [ hKK0(K ! c) : c in seq ];
 
 end intrinsic;
 
@@ -307,10 +299,10 @@ end intrinsic;
 
 
 intrinsic FixedFieldExtra(L::Fld, gens::SeqEnum) -> Fld
-{Returns the fixed subfield K of L under the automorphisms in gens, along with the inclusion of K in L.}
+{Returns the fixed subfield K of L over its base field under the automorphisms in gens. The inclusion of K in L is returned as a second value.}
 
 if #gens eq 0 then
-    return L;
+    return L, CanonicalInclusionMap(L, L);
 end if;
 dL := Degree(L);
 Ms := [ Matrix([ Eltseq(gen(L.1^i) - L.1^i) : i in [0..(dL - 1)] ]) : gen in gens ];
@@ -322,7 +314,7 @@ end intrinsic;
 
 
 intrinsic FixedGroupExtra(L::Fld, K::Fld, h::.) -> .
-{More stable and precise version of FixedGroup: h is the inclusion of K into L.}
+{Returns the subgroup of the automorphism group of L over its base that fixes K elementwise.}
 
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
 if IsQQ(L) then
@@ -336,7 +328,7 @@ end intrinsic;
 
 
 intrinsic ConjugatePolynomial(h::Map, f::RngUPolElt) -> RngUPolElt
-{Returns the transformation of the univariate polynomial f by the map h.}
+{Returns the transformation of the polynomial f by the map h.}
 
 K := Domain(h); L := Codomain(h); S := PolynomialRing(L);
 return &+[ h(Coefficient(f, i))*S.1^i : i in [0..Degree(f)] ];
@@ -353,7 +345,7 @@ end intrinsic;
 
 
 intrinsic NumberFieldExtra(aCCs::SeqEnum[FldComElt], K::Fld) -> Fld, SeqEnum
-{Given complex number aCCs and a NumberFieldExtra K, finds the number field generated by the elements of aCCs and realizes said elements in that field.}
+{Given complex number aCCs and a number field K, finds the number field L over the base of K generated by the elements of aCCs and realizes said elements L. An inclusion map from K to L.}
 
 if #aCCs eq 0 then
     return K, [ ], CanonicalInclusionMap(K, K);
@@ -395,32 +387,26 @@ end intrinsic;
 function ExtendNumberFieldExtraStep(K, tupsa, anewCC : minpolQQ := 0)
 // Let K be a NumberFieldExtra with elements tupsa, and let anewCC be a complex
 // number. This function returns the field generated by K and anewCC, and
-// transports tupsa to that field.
+// transports tupsa to that field. Keeps track of morphisms.
 
 /* Determine minimal polynomial over K */
 gK, gQQ := MinimalPolynomialExtra(anewCC, K : minpolQQ := minpolQQ);
 /* Done in case of degree 1 */
 if Degree(gK) eq 1 then
     anew := -Coefficient(gK, 0)/Coefficient(gK, 1);
-    Append(~tupsa, <anew, anewCC>);
+    Append(~tupsa, < anew, anewCC >);
     return K, tupsa, CanonicalInclusionMap(K, K);
 end if;
 
 /* Information about the base needed later */
-F := K`base; genFCC0 := EmbedExtra(F.1, F`iota);
-CC := K`CC;
+F := K`base; genFCC0 := EmbedExtra(F.1, F`iota); CC := K`CC;
 
 /* Get absolute field and we need an iso that respects results so far */
-Lrel := NumberField(gK);
-Labs := AbsoluteField(Lrel);
-L, h := Polredbestabs(Labs);
-//L := Labs; h := hom< L -> L | L.1 >;
-anew := h(Labs ! Lrel.1);
-f := MinimalPolynomial(K.1);
+Lrel := NumberField(gK); Labs := AbsoluteField(Lrel); L, h := Polredbestabs(Labs);
+anew := h(Labs ! Lrel.1); f := MinimalPolynomial(K.1); rtsf := RootsPari(f, L);
 L`CC := CC; L`base := F;
 
 /* Choose compatible root */
-rtsf := RootsPari(f, L);
 for rtf in rtsf do
     if IsQQ(K) then
         h := hom< K -> L | >;
@@ -468,7 +454,7 @@ end function;
 
 
 intrinsic NumberFieldExtra(f::RngUPolElt) -> .
-{Let f be a polynomial over the NumberFieldExtra K. This function returns the field generated by g with the same base, a root, and an inclusion from K into the new field.}
+{Given complex number aCCs and a number field K, finds the splitting field L over the base of K generated by the elements of aCCs and realizes said elements L. An inclusion map from K to L.}
 
 K := BaseRing(f);
 Lrel<r> := NumberField(f);
@@ -535,7 +521,7 @@ end intrinsic;
 function ExtendSplittingFieldExtraStep(K, tupsa, anewCC)
 // Let K be a SplittingFieldExtra with elements tupsa, and let anewCC be a
 // complex number. This function returns the splitting field generated by K and
-// anewCC, and transports tupsa to that field.
+// anewCC, and transports tupsa to that field. Keeps track of morphisms.
 
 if IsQQ(K`base) then
     return ExtendSplittingFieldExtraStepQQ(K, tupsa, anewCC);
@@ -548,14 +534,14 @@ end function;
 function ExtendSplittingFieldExtraStepQQ(K, tupsa, anewCC : minpolQQ := 0)
 // Let K be a SplittingFieldExtra with elements tupsa, and let anewCC be a
 // complex number. This function returns the splitting field generated by K and
-// anewCC, and transports tupsa to that field.
+// anewCC, and transports tupsa to that field. Keeps track of morphisms.
 
 /* Determine minimal polynomial over K */
 gK, gQQ := MinimalPolynomialExtra(anewCC, K : minpolQQ := minpolQQ);
 /* Done in case of degree 1 */
 if Degree(gK) eq 1 then
     anew := -Coefficient(gK, 0)/Coefficient(gK, 1);
-    Append(~tupsa, <anew, anewCC>);
+    Append(~tupsa, < anew, anewCC >);
     return K, tupsa, CanonicalInclusionMap(K, K);
 end if;
 
@@ -564,12 +550,8 @@ F := K`base; genFCC0 := EmbedExtra(F.1, F`iota);
 CC := K`CC;
 
 /* Get absolute field and we need an iso that respects results so far */
-Lrel := Compositum(K, SplittingFieldPari(gQQ));
-Labs := AbsoluteField(Lrel);
-L, h := Polredbestabs(Labs);
-rtsg := RootsPari(gQQ, L);
-f := MinimalPolynomial(K.1);
-rtsf := RootsPari(f, L);
+Lrel := Compositum(K, SplittingFieldPari(gQQ)); Labs := AbsoluteField(Lrel); L, h := Polredbestabs(Labs);
+rtsg := RootsPari(gQQ, L); f := MinimalPolynomial(K.1); rtsf := RootsPari(f, L);
 L`CC := CC; L`base := F;
 
 /* Choose compatible root */
@@ -628,7 +610,7 @@ end function;
 function ExtendSplittingFieldExtraStepGen(K, tupsa, anewCC)
 // Let K be a SplittingFieldExtra with elements tupsa, and let anewCC be a
 // complex number. This function returns the splitting field generated by K and
-// anewCC, and transports tupsa to that field.
+// anewCC, and transports tupsa to that field. Keeps track of morphisms.
 
 gK, gQQ := MinimalPolynomialExtra(anewCC, K);
 CC := Parent(anewCC); aCCs := [ tup[1] : tup in Roots(gQQ, CC) ];
@@ -655,10 +637,9 @@ end function;
 
 
 intrinsic CoerceToSubfieldElement(a::., L::Fld, K::Fld, h::Map) -> .
-{Realizes a as an element of K.}
+{Coerces the element a to the subfield K of L via the map hKL.}
 
-assert K eq Domain(h);
-assert L eq Codomain(h);
+assert K eq Domain(h); assert L eq Codomain(h);
 if IsQQ(K) then
     return K ! a;
 else
@@ -669,10 +650,9 @@ end intrinsic;
 
 
 intrinsic CoerceToSubfieldPolynomial(f::., L::Fld, K::Fld, h::Map) -> .
-{Realizes f as a polynomial over K.}
+{Coerces the polynomial f to the subfield K of L via the map hKL.}
 
-assert K eq Domain(h);
-assert L eq Codomain(h);
+assert K eq Domain(h); assert L eq Codomain(h);
 if Type(f) eq RngUPolElt then
     coeffs := Coefficients(f);
     coeffs0 := [ CoerceToSubfieldElement(c, L, K, h) : c in coeffs ];
@@ -692,17 +672,15 @@ end intrinsic;
 
 
 intrinsic CoerceToSubfieldMatrix(M::., L::Fld, K::Fld, h::Map) -> .
-{Realizes M as a matrix over K.}
+{Coerces the matrix M to the subfield K of L via the map hKL.}
 
 return Matrix(K, [ [ CoerceToSubfieldElement(a, L, K, h) : a in Eltseq(row) ] : row in Rows(M) ]);
 
 end intrinsic;
 
 
-intrinsic CompositumExtra(K::Fld, L::Fld : Compat := true) -> Fld
-{Returns the compositum of the fields K and L over their common base field, by
-taking the splitting field of the polynomial defining L to extend K. We require
-L to be normal over the base.}
+intrinsic CompositumExtra(K::Fld, L::Fld : Compat := false) -> Fld
+{Returns the compositum of the fields K and L over their common base field, by taking the splitting field of the polynomial defining L to extend K.}
 
 if IsQQ(K) and IsQQ(L) then
     M := K;
@@ -721,8 +699,8 @@ elif IsQQ(L) then
     return M, hKM, hLM;
 end if;
 
-F, _, FinK, hFK := BaseFieldExtra(K);
-F, _, FinL, hFL := BaseFieldExtra(L);
+F, _, FinK, hFK := InclusionOfBaseExtra(K);
+F, _, FinL, hFL := InclusionOfBaseExtra(L);
 
 /* Find minimal polynomial of both fields over the base */
 fK := MinimalPolynomial(K.1, FinK);
@@ -730,7 +708,7 @@ fL := MinimalPolynomial(L.1, FinL);
 fLF := CoerceToSubfieldPolynomial(fL, FinL, F, hFL);
 fKF := CoerceToSubfieldPolynomial(fK, FinK, F, hFK);
 
-/* Take corresponding root and remember old one as well */
+/* Take corresponding root */
 fLK := ConjugatePolynomial(hFK, fLF);
 g := Factorization(fLK, K)[1][1];
 M, rL, hKM := NumberFieldExtra(g);
@@ -760,7 +738,7 @@ end intrinsic;
 
 
 intrinsic CompositumExtra(Ks::List) -> Fld, List
-{Returns the compositum of the fields in Ks over their common base ring.}
+{Returns the compositum of the fields in Ks over their common base field, together with inclusion maps.}
 
 if #Ks eq 1 then
     return Ks[1], [* CanonicalInclusionMap(Ks[1], Ks[1]) *];

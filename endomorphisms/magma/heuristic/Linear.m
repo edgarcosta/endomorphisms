@@ -11,7 +11,7 @@
 
 
 intrinsic NumericalLeftSolve(A::., B::.) -> .
-{Returns the solution X to the equation X * A = B.}
+{Returns the numerical solution X to the equation X * A = B.}
 
 //return B * A^(-1);
 R := BaseRing(A);
@@ -21,7 +21,7 @@ end intrinsic;
 
 
 intrinsic NumericalRightSolve(A::., B::.) -> .
-{Returns the solution X to the equation A * X = B.}
+{Returns the numerical solution X to the equation A * X = B.}
 
 return Transpose(NumericalLeftSolve(Transpose(A), Transpose(B)));
 
@@ -187,7 +187,7 @@ end intrinsic;
 
 
 intrinsic IsMultiple(v::., v0::.) -> .
-{Whether v is a multiple of v0 or not.}
+{Returns whether v is a multiple of v0 or not, along with a corresponding scalar if this is the case.}
 
 M := Matrix([ Eltseq(v) ]);
 M0 := Matrix([ Eltseq(v0) ]);

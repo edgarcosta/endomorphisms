@@ -61,15 +61,15 @@ intrinsic IsPolarization(E::., P::.) -> .
 
 CC := BaseRing(P);
 /* Test Hermitian property */
-Ei := ChangeRing(E, CC);
-prod1 := P * Ei * Transpose(P);
+ECC := ChangeRing(E, CC);
+prod1 := P * ECC * Transpose(P);
 if not Maximum([ Abs(c) : c in Eltseq(prod1) ]) lt BaseRing(P)`epscomp then
     return false, 0;
 end if;
 
 /* Test positivity */
 TPc := Matrix([ [ Conjugate(c) : c in Eltseq(r) ] : r in Rows(Transpose(P)) ]);
-prod2 := BaseRing(P).1 * P * Ei * TPc;
+prod2 := BaseRing(P).1 * P * ECC * TPc;
 res := [ Re(ev[1]) : ev in Eigenvalues(prod2) ];
 if &and([ re gt CC`epsinv : re in res ]) then
     return true, E;
@@ -82,7 +82,7 @@ end if;
 end intrinsic;
 
 
-intrinsic SomePrincipalPolarization(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
+intrinsic SomePrincipalPolarizations(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
 {Tries to return some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori */
 

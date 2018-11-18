@@ -21,7 +21,7 @@ forward IsTrueIdempotent;
 
 
 intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
-{Returns factors of the Jacobian and appropriate spanning set of idempotents over CC.}
+{Returns factors of the Jacobian and a spanning set of idempotents.}
 
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
@@ -53,40 +53,37 @@ end function;
 
 
 intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjOrInc := "Proj") -> .
-{Returns component and map corresponding to idempotent idem.}
+{Returns component and map corresponding to idempotent idem. If CoerceToBase is set to true, this is returned over the smallest possible field.}
 
 L := BaseRing(idem[1]);
 if ProjOrInc eq "Proj" then
-    R := idem[2]; //R := R*Denominator(R);
+    R := idem[2];
     ACC := TangentRepresentation(R, P, P);
     //Q, mor := ImgProj([* ACC, R *], P, P);
-    /* TODO: This line is needed because of a segfault issue */
+    /* TODO: This line is needed because of a segfault issue in later Magma versions */
     Q, mor := ImgIdemp([* ACC, R *], P);
 else
-    R := 1 - idem[2]; //R := R*Denominator(R);
+    R := 1 - idem[2];
     ACC := TangentRepresentation(R, P, P);
     Q, mor := Ker0([* ACC, R *], P, P);
 end if;
 BCC := mor[1]; S := mor[2];
 
-/* Recalculation */
+/* Recalculation to algebraize entries */
 test, B := AlgebraizeMatrix(BCC, L);
 assert test;
-if CoerceToBase then
-    K, hKL := SubfieldExtra(L, Eltseq(B));
-    incdata := [* L, K, hKL *];
-    B := CoerceToSubfieldMatrix(B, L, K, hKL);
-    return Q, [* B, S *], incdata;
-end if;
 K, hKL := SubfieldExtra(L, Eltseq(B));
 incdata := [* L, K, hKL *];
+if CoerceToBase then
+    B := CoerceToSubfieldMatrix(B, L, K, hKL);
+end if;
 return Q, [* B, S *], incdata;
 
 end intrinsic;
 
 
 intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, ProjOrInc := "Proj") -> .
-{Returns isotypical components Q = B^d of the Jacobian with maps.}
+{Returns isotypical components Q = B^d of the Jacobian with maps. If CoerceToBase is set to true, these are returned over the smallest possible field.}
 
 idems := IsotypicalIdempotents(P, EndoRep);
 comps := [ ];
@@ -141,7 +138,7 @@ end intrinsic;
 
 
 intrinsic SplittingIdempotentsAlgebra(EndoData::.) -> .
-{Returns further decomposition.}
+{Returns further decomposition of the algebra defined by EndoData.}
 
 /* Assert small dimension */
 g := #Rows(EndoData[1][1][1]);
@@ -290,7 +287,8 @@ idems, incdataroot := SplittingIdempotents(Q, mor, incdata);
 
 comps := [ ];
 for idem in idems do
-    /* No need to coerce since we are already over smallest possible field */
+    /* No need to coerce since we are already over smallest possible field; in
+     * fact the field might even drop too much */
     Qroot, morroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjOrInc := ProjOrInc);
     Append(~comps, [* Qroot, morroot, incdataroot *]);
 end for;

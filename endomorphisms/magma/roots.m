@@ -56,7 +56,7 @@ end intrinsic;
 
 
 intrinsic AutomorphismGroupPari(K::Fld) -> .
-{Similar to usual function, but outsources to Pari for better performance.}
+{Like the usual function, but outsources to Pari for better performance, and the second return value is usually 0 because we do not use it. Stores its results.}
 
 if assigned K`aut then
     Gp, Gf, Gphi := Explode(K`aut);
