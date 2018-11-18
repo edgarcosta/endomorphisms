@@ -215,7 +215,7 @@ elif d in { 32 } then
     dim := 1; goal := 4;
 elif d in { 16 } then
     disc := Abs(Discriminant(MaximalOrder(C)));
-    if disc eq 1 then
+    if disc eq 4294967296 then
         dim := 1; goal := 4;
     else
         dim := 2; goal := 2;
@@ -245,10 +245,10 @@ while true do
 
     CP := CartesianPower(D, d);
     for tup in CP do
-        c := C ! tup[1];
+        c := C ! [ x : x in tup ];
         v := Eltseq(c); v2 := Eltseq(c^2);
         test_mult, lambda := IsMultiple(v2, v);
-        if test_mult then
+        if test_mult and (lambda ne 0) then
             idem := (1/lambda)*c;
             if IsTrueIdempotent(EndoData, dim, idem) then
                 test_seen := MatrixInBasis(idem, idems);
@@ -270,7 +270,7 @@ function IsTrueIdempotent(EndoData, dim, idem)
 /* Only accept idempotents whose homology representation has rank dim */
 
 A, R := Explode(MatricesFromIdempotent(idem, EndoData));
-if Dimension(1 - R) eq 2*dim then
+if Rank(R) eq 2*dim then
     return true;
 end if;
 return false;

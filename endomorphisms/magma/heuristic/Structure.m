@@ -79,9 +79,9 @@ corresponding descriptions.}
 
 Rs := [ gen[2] : gen in EndoRep ]; g := #Rows(Rs[1]) div 2;
 
-vprint EndoFind : "";
-vprint EndoFind : "Generators of endomorphism algebra:", Rs;
-vprint EndoFind : "Calculating structure...";
+//vprint EndoFind : "";
+//vprint EndoFind : "Generators of endomorphism algebra:", Rs;
+//vprint EndoFind : "Calculating structure...";
 /* Creation of relevant algebras */
 g := #Rows(Rs[1]) div 2;
 /* Ambient matrix algebra, plus generators of the endomorphism ring */

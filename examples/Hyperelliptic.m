@@ -11,6 +11,7 @@ CCSmall := ComplexField(5);
 
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
+
 // Big Sato-Tate group, this calculation takes about 20 minutes:
 f := x^6 - 5*x^4 + 10*x^3 - 5*x^2 + 2*x - 1; h := R ! 0;
 // CM:
