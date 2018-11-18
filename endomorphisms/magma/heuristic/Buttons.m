@@ -71,7 +71,10 @@ A := HeuristicEndomorphismAlgebra(X)[1];
 if not Dimension(A) eq Genus(X) then
     return false;
 end if;
-return Center(A) eq A;
+if not Center(A) eq A then
+    return false;
+end if;
+return #CentralIdempotents(A) eq 1;
 
 end intrinsic;
 
@@ -83,10 +86,7 @@ A := HeuristicEndomorphismAlgebra(X)[1];
 if not Dimension(A) eq Genus(X) then
     return false;
 end if;
-if not Center(A) eq A then
-    return false;
-end if;
-return #CentralIdempotents(A) eq 1;
+return Center(A) eq A;
 
 end intrinsic;
 
