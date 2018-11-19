@@ -38,3 +38,14 @@ GeoEndoRepCC := GeometricEndomorphismRepresentationCC(P);
 GeoHomRepCC := GeometricHomomorphismRepresentationCC(P, Q);
 GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
 print GeoEndoRep;
+
+comps := SplitComponents(P, GeoEndoRep : AllMaps := false);
+Ys := [ ];
+for comp in comps do
+    Q, mor := Explode(comp);
+    recs := ReconstructionsFromComponent(P, Q, mor);
+    Ys cat:= recs;
+end for;
+print Ys;
+
+

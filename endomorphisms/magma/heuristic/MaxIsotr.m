@@ -159,6 +159,8 @@ function IsogenousPPLatticesG2(E)
 /* In general, we would isolate the blocks with given d and deal with those one at a time */
 
 E0, T0 := FrobeniusFormAlternatingAlt(E);
+d := GCD([ Integers() ! c : c in Eltseq(E0) ]);
+E0 := (1/d)*E0;
 n := Integers() ! Abs(E0[3,4]);
 
 Ts := [ ];

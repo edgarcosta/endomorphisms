@@ -98,12 +98,12 @@ P := PeriodMatrix(X);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 
 comps := SplitComponents(P, GeoEndoRep : AllMaps := AllMaps);
-Ys := [ ];
+recss := [ ];
 for comp in comps do
     Q, mor := Explode(comp);
     recs := ReconstructionsFromComponent(P, Q, mor);
-    Ys cat:= recs;
+    Append(~recss, recs);
 end for;
-return Ys;
+return recss;
 
 end intrinsic;

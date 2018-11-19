@@ -27,4 +27,4 @@ time test, fs := CantorFromMatrixAmbientSplit(X, P0, E, O0, T);
 R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;
-print CorrespondenceVerifyG1(T, fs, P0, O0 : CheckDegree := true);
+print CorrespondenceVerifyG1(X, E, T, fs : CheckDegree := true);

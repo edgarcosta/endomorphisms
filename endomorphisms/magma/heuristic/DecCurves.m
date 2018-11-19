@@ -10,6 +10,8 @@
  */
 
 
+/* TODO: Make geometric versions for use with period matrices only */
+
 function ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := "Proj")
 
 A, R := Explode(mor); K := BaseRing(A);
@@ -36,8 +38,9 @@ function ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := "Proj")
 gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
 EQ := InducedPolarization(StandardSymplecticMatrix(gP), R : ProjOrInc := ProjOrInc);
+E0, _ := FrobeniusFormAlternatingAlt(EQ);
 vprint CurveRec: "Frobenius form:";
-vprint CurveRec: FrobeniusFormAlternatingAlt(EQ);
+vprint CurveRec: E0;
 Ts := IsogenousPPLattices(EQ);
 
 facs := [ ];

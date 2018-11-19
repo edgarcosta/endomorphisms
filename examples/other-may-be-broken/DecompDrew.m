@@ -15,6 +15,7 @@ CC := F`CC;
 R<x> := PolynomialRing(F);
 f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2; h := R ! 0;
 //f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10; h := R ! 0;
+f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10; h := 0;
 
 X := HyperellipticCurve(f, h);
 X := ReducedMinimalWeierstrassModel(X);
@@ -27,7 +28,7 @@ print EndomorphismStructure(EndoRep);
 
 EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
-idems := NonCentralIdempotents(EndoData);
+idems := SplittingIdempotents(EndoData);
 print idems;
 
 Q := Ker0([* ChangeRing(idems[1][1], CC), idems[1][2] *], P, P);

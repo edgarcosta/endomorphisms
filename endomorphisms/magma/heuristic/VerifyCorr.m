@@ -264,7 +264,7 @@ intrinsic CorrespondenceVerifyG1(X::Crv, Y::Crv, A::., fs::SeqEnum : CheckDegree
 representation A.}
 
 gY := Y`g;
-if g eq 1 then
+if gY eq 1 then
     return CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := CheckDegree);
 else
     error "No verification algorithm implemented yet in this case";

@@ -33,4 +33,4 @@ R<x,y> := Parent(fs[1]);
 print "Cantor representation:";
 print fs;
 /* TODO: Sign error */
-print CorrespondenceVerifyG1(-T, fs, P0, O0 : CheckDegree := true);
+print CorrespondenceVerifyG1(X, E, -T, fs : CheckDegree := true);

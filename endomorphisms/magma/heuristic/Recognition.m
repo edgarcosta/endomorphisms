@@ -182,7 +182,7 @@ rts := RootsPari(minpol, K);
 for rt in rts do
     rtCC := EmbedExtra(rt, K`iota);
     if Abs(rtCC - CC ! a) le CC`epscomp then
-        vprint EndoFind : "Root:", rt;
+        //vprint EndoFind, 2 : "Root:", rt;
         return true, rt;
     end if;
 end for;
