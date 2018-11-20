@@ -1,9 +1,3 @@
-/*
-  An example in Magma.
-  Examples of verifications and projections can be found in the puiseux/
-  directory; this file shows how to access the heuristic part.
-*/
-
 SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
@@ -22,11 +16,13 @@ f := x^6 - 5*x^4 + 10*x^3 - 5*x^2 + 2*x - 1;
 // CM:
 f := x^6 - 8*x^4 - 8*x^3 + 8*x^2 + 12*x - 8;
 // Squares:
-f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2; h := R ! 0;
-f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10; h := R ! 0;
+f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2;
+f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10;
+f := (-7 + x)*(-5 + x)*(4 + x)*(8 + x)*(17 + x)*(19 + x)*(20 + x);
 X := HyperellipticCurve(f);
 
 
+/*
 F := RationalsExtra(prec);
 R<x,y> := PolynomialRing(F, 2);
 z := 1;
@@ -46,6 +42,7 @@ f1 := -y*z - 12*z^2 + x*w - 32*w^2;
 f2 := y^3 + 108*x^2*z + 36*y^2*z + 8208*x*z^2 - 6480*y*z^2 + 74304*z^3 + 96*y^2*w
 + 2304*y*z*w - 248832*z^2*w + 2928*y*w^2 - 75456*z*w^2 + 27584*w^3;
 X := Curve(P3, [f1, f2]);
+*/
 
 
 print "";

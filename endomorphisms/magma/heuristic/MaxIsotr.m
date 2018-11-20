@@ -19,6 +19,8 @@ if ProjOrInc eq "Proj" then
     Q := R*E*Transpose(R);
 else
     Q := Transpose(R)*E*R;
+    Q := Q^(-1);
+    Q := -Denominator(Q)*Q;
 end if;
 return Q;
 
