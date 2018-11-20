@@ -55,6 +55,8 @@ end function;
 intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjOrInc := "Proj") -> .
 {Returns component and map corresponding to idempotent idem. If CoerceToBase is set to true, this is returned over the smallest possible field.}
 
+vprint EndoFind : "";
+vprint EndoFind : "Determining component from idempotent, analytic step...";
 L := BaseRing(idem[1]);
 if ProjOrInc eq "Proj" then
     R := idem[2];
@@ -68,7 +70,10 @@ else
     Q, mor := Ker0([* ACC, R *], P, P);
 end if;
 BCC := mor[1]; S := mor[2];
+vprint EndoFind : "done determining component from idempotent analytically.";
 
+vprint EndoFind : "";
+vprint EndoFind : "Determining component from idempotent, algebraic step...";
 /* Recalculation to algebraize entries */
 test, B := AlgebraizeMatrix(BCC, L);
 assert test;
@@ -77,6 +82,8 @@ incdata := [* L, K, hKL *];
 if CoerceToBase then
     B := CoerceToSubfieldMatrix(B, L, K, hKL);
 end if;
+vprint EndoFind, 2 : "";
+vprint EndoFind : "done determining component from idempotent algebraically.";
 return Q, [* B, S *], incdata;
 
 end intrinsic;
@@ -85,12 +92,16 @@ end intrinsic;
 intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, ProjOrInc := "Proj") -> .
 {Returns isotypical components Q = B^d of the Jacobian with maps. If CoerceToBase is set to true, these are returned over the smallest possible field.}
 
+vprint EndoFind : "";
+vprint EndoFind : "Determining isotypical components...";
 idems := IsotypicalIdempotents(P, EndoRep);
 comps := [ ];
 for idem in idems do
     Q, mor, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjOrInc := ProjOrInc);
     Append(~comps, [* Q, mor, incdata *]);
 end for;
+vprint EndoFind, 2 : "";
+vprint EndoFind : "done determining isotypical components.";
 return comps;
 
 end intrinsic;
@@ -103,10 +114,14 @@ L, K, hKL := Explode(incdata);
 /* Recalculate endomorphism algebra over known field (as mentioned above, this is stupid) */
 GeoEndoRepCC := GeometricEndomorphismRepresentationCC(Q);
 GeoEndoRep := [ ];
+vprint EndoFind : "";
+vprint EndoFind : "Algebraizing matrices...";
 for tupCC in GeoEndoRepCC do
     test, A := AlgebraizeMatrix(tupCC[1], L); R := tupCC[2];
     Append(~GeoEndoRep, [* A, R *]);
 end for;
+vprint EndoFind, 2 : "";
+vprint EndoFind : "done algebraizing matrices.";
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
 idems_geo := SplittingIdempotentsAlgebra(GeoEndoData);
@@ -153,7 +168,7 @@ test2, idems := SplittingIdempotentsAlgebraStepTwo(EndoData);
 if test2 then
     return [ MatricesFromIdempotent(idem, EndoData) : idem in idems ];
 end if;
-print "All known cases in SplittingIdempotentsAlgebra fell through, returning unit element";
+print "All known cases in SplittingIdempotentsAlgebra fell through, returning unit element.";
 return [ MatricesFromIdempotent(EndoData[2][1] ! 1, EndoData) : idem in idems ];
 
 end intrinsic;
@@ -323,10 +338,12 @@ for comp_iso in comps_iso do
         else
             morcomp := [* A0*Aroot, R*Rroot *];
         end if;
+
         /* TODO: Remove this sanity check before the Append statement at some point */
         Atest := morcomp[1]; Rtest := morcomp[2];
         ACCtest := EmbedMatrixExtra(Atest, K`iota); CC := BaseRing(ACCtest);
         assert Maximum([ Abs(c) : c in Eltseq(ACCtest*P - Qroot*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
+
         Append(~comps, [* Qroot, morcomp, incdataroot *]);
     end for;
 end for;

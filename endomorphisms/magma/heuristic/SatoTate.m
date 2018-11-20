@@ -23,11 +23,15 @@ description of the geometric endomorphism algebra tensored with RR can be
 passed.}
 
 g := #Rows(EndoStructBase[1][1][1]);
+vprint EndoFind : "";
+vprint EndoFind : "Calculating Sato-Tate group...";
 if g eq 2 then
-    return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
+    ST := SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
 else
-    return "undef";
+    ST := "undef";
 end if;
+vprint EndoFind : "done calculating Sato-Tate group.";
+return ST;
 
 end intrinsic;
 
@@ -53,8 +57,6 @@ function SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := "")
 // description of the geometric endomorphism algebra tensored with RR can be
 // passed. Assumes that the genus equals 2.
 
-vprint EndoFind: "";
-vprint EndoFind: "Calculating Sato-Tate group...";
 gensH, Gphi := Explode(GalK);
 if #gensH eq 0 then
     Shorthand := SatoTateShorthandG2(EndoStructBase);
@@ -103,7 +105,6 @@ if Shorthand eq "" then
 end if;
 descRR := EndoStructBase[3][3];
 K := FixedFieldExtra(L, [ Gphi(gen) : gen in gensH ]);
-vprint EndoFind: "Real endomorphism algebra over base field:", descRR;
 
 /* Usually the shorthand and endomorphism structure of the base field determine
  * everything; in the rare cases where they do not we recalculate a bit. */

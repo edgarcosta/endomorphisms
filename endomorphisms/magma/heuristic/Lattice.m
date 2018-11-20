@@ -69,9 +69,9 @@ L_seq := FieldDescriptionExtra(L); L_desc := [* L_seq, L *];
 Append(~entry, L_desc);
 
 GalL := [* [ ], [ ] *];
-vprint EndoFind: "";
-vprint EndoFind: "Galois group:", [ ];
-vprint EndoFind: "Base field:", L;
+vprint EndoFind : "";
+vprint EndoFind : "Generators of Galois group in lattice:", [ ];
+vprint EndoFind : "Corresponding field:", L;
 EndoStruct := EndomorphismDataWithSatoTate(GeoEndoRep, GalL);
 Append(~entry, EndoStruct);
 
@@ -90,11 +90,11 @@ entry := [* *];
 
 L := BaseRing(GeoEndoRep[1][1]);
 gensH, Gphi := Explode(GalK);
-vprint EndoFind: "";
-vprint EndoFind: "Galois group:", gensH;
+vprint EndoFind : "";
+vprint EndoFind : "Generators of Galois group in lattice:", gensH;
 K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
 K_seq := FieldDescriptionExtra(K);
-vprint EndoFind: "Base field:", K;
+vprint EndoFind : "Corresponding field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
 

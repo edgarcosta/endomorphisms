@@ -362,9 +362,8 @@ for aCC in aCCs do
     if Lnew ne L then
         h := h*hnew;
         vprint EndoFind : "";
-        vprint EndoFind : "After extension:";
+        vprint EndoFind : "Number field extended. Current field:";
         vprint EndoFind : Lnew;
-        vprint EndoFind : "";
     end if;
     L := Lnew;
 end for;
@@ -496,9 +495,8 @@ for aCC in aCCs do
     if Knew ne K then
         h := h*hnew;
         vprint EndoFind : "";
-        vprint EndoFind : "After extension:";
+        vprint EndoFind : "Number field extended. Current field:";
         vprint EndoFind : Knew;
-        vprint EndoFind : "";
     end if;
     K := Knew;
 end for;

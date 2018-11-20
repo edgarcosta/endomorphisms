@@ -4,8 +4,8 @@
   directory; this file shows how to access the heuristic part.
 */
 
-SetVerbose("EndoFind", 0);
-SetVerbose("CurveRec", 0);
+SetVerbose("EndoFind", 2);
+SetVerbose("CurveRec", 2);
 
 prec := 500;
 // This one takes quite some time!
@@ -27,7 +27,6 @@ f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24
 X := HyperellipticCurve(f);
 
 
-/*
 F := RationalsExtra(prec);
 R<x,y> := PolynomialRing(F, 2);
 z := 1;
@@ -47,50 +46,51 @@ f1 := -y*z - 12*z^2 + x*w - 32*w^2;
 f2 := y^3 + 108*x^2*z + 36*y^2*z + 8208*x*z^2 - 6480*y*z^2 + 74304*z^3 + 96*y^2*w
 + 2304*y*z*w - 248832*z^2*w + 2928*y*w^2 - 75456*z*w^2 + 27584*w^3;
 X := Curve(P3, [f1, f2]);
-*/
 
 
 print "";
 print "Curve:";
 print X;
 
+L := HeuristicEndomorphismFieldOfDefinition(X);
 print "";
 print "Heuristic field of definition of the endomorphisms:";
-L := HeuristicEndomorphismFieldOfDefinition(X);
 print L;
 
+A := HeuristicEndomorphismAlgebra(X : Geometric := true);
 print "";
 print "Heuristic geometric endomorphism algebra:";
-A := HeuristicEndomorphismAlgebra(X : Geometric := true);
 print A;
-print "Description:";
+
 desc := HeuristicEndomorphismAlgebraDescription(X : Geometric := true);
+print "Description:";
 print desc;
 
+A := HeuristicEndomorphismAlgebra(X);
 print "";
 print "Heuristic endomorphism algebra over the base:";
-A := HeuristicEndomorphismAlgebra(X);
 print A;
-print "Description:";
+
 desc := HeuristicEndomorphismAlgebraDescription(X);
+print "Description:";
 print desc;
 
+Lat := HeuristicEndomorphismLattice(X);
 print "";
 print "Heuristic endomorphism lattice:";
-Lat := HeuristicEndomorphismLattice(X);
 print Lat;
 
+test_gl2_ribet := HeuristicIsGL2Ribet(X);
 print "";
 print "Heuristic GL_2-determination (after Ribet):";
-test_gl2_ribet := HeuristicIsGL2Ribet(X);
 print test_gl2_ribet;
 
+test_gl2_gen := HeuristicIsGL2Generalized(X);
 print "";
 print "Heuristic GL_2-determination (generalized notion):";
-test_gl2_gen := HeuristicIsGL2Generalized(X);
 print test_gl2_gen;
 
+facs := HeuristicJacobianFactors(X : AllMaps := false);
 print "";
 print "Heuristic Jacobian factors:";
-facs := HeuristicJacobianFactors(X : AllMaps := false);
 print facs;

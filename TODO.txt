@@ -1,3 +1,4 @@
+Drew case fast, more options for Prym, Marco
 Map to elliptic curves perfect: CM, signs, base point and transitions
 Integrate improvements into algorithm run, try to use D0 if possible
 Jacobian addition on Puiseux series via formal calculation

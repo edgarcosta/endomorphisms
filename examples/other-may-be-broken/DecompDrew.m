@@ -13,39 +13,52 @@ F := RationalsExtra(prec);
 CC := F`CC;
 
 R<x> := PolynomialRing(F);
-f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2; h := R ! 0;
-//f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10; h := R ! 0;
-f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10; h := 0;
+f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2;
+f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10;
+g := 4*x^6 + 8*x^5 + 11*x^4 + 7*x^3 - 7*x^2 - 23*x;
 
-X := HyperellipticCurve(f, h);
+X := HyperellipticCurve(f);
 X := ReducedMinimalWeierstrassModel(X);
-print "Curve:";
-print X;
+Y := HyperellipticCurve(g);
+Y := ReducedMinimalWeierstrassModel(Y);
 
 time P := PeriodMatrix(X);
-time EndoRep := GeometricEndomorphismRepresentation(P, F);
-print EndomorphismStructure(EndoRep);
+time Q := PeriodMatrix(Y);
+/*
+print GeometricHomomorphismRepresentation(P, Q, F);
+*/
 
-EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
-EndoData := [* EndoRep, EndoAlg, EndoDesc *];
-idems := SplittingIdempotents(EndoData);
+time GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
+GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
+
+print "";
+print "Geometric endomorphism algebra:";
+print GeoEndoAlg;
+
+GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
+comps := IsotypicalComponents(P, GeoEndoRep);
+
+print "Isotypical components:";
+print [ [* comp[2], comp[3] *] : comp in comps ];
+
+P, mor, incdata := Explode(comps[1]);
+idems := SplittingIdempotents(P, mor, incdata);
+
+print "Splitting idempotents:";
 print idems;
+
+exit;
 
 Q := Ker0([* ChangeRing(idems[1][1], CC), idems[1][2] *], P, P);
 E := PolarizationBasis(Q)[1];
 print FrobeniusFormAlternatingAlt(E);
 
-exit;
-
-Us := IsogenousPPLatticesG2(E);
+Us := IsogenousPPLattices(E);
 Ys := [* *];
 for U in Us do
     Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
-    //Qnew := Q*ChangeRing(Us[1]^(-1), BaseRing(Q));
     assert IsBigPeriodMatrix(Qnew);
-    Y := ReconstructCurveG2(Qnew, F);
+    Y := ReconstructCurve(Qnew, F);
+    print Y;
     Append(~Ys, Y);
 end for;
-print [* G2Invariants(Y) : Y in Ys *];
-print [* ReducedMinimalWeierstrassModel(Y) : Y in Ys *];
-

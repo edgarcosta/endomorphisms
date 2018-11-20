@@ -39,10 +39,11 @@ gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
 EQ := InducedPolarization(StandardSymplecticMatrix(gP), R : ProjOrInc := ProjOrInc);
 E0, _ := FrobeniusFormAlternatingAlt(EQ);
-vprint CurveRec: "Frobenius form:";
-vprint CurveRec: E0;
-Ts := IsogenousPPLattices(EQ);
 
+vprint CurveRec: "Frobenius form of induced polarization:";
+vprint CurveRec: E0;
+
+Ts := IsogenousPPLattices(EQ);
 facs := [ ];
 for T in Ts do
     if ProjOrInc eq "Proj" then
@@ -53,13 +54,13 @@ for T in Ts do
         Rnew := R*Transpose(T);
     end if;
     assert IsBigPeriodMatrix(Qnew);
-    /* Reconstruct curves (some of them may give rise to an extension, but the
-     * tangent representation is always the identity) */
     Y, h := ReconstructCurve(Qnew, K);
+
     vprint CurveRec: "";
-    vprint CurveRec: "Reconstructed curve:";
+    vprint CurveRec: "Reconstructed curve found!";
     vprint CurveRec: Y;
     vprint CurveRec: "";
+
     Anew := ConjugateMatrix(h, A);
     Append(~facs, [* Y, [* Anew, Rnew *] *]);
 end for;
@@ -72,10 +73,16 @@ intrinsic ReconstructionsFromComponent(P::., Q::., mor::. : ProjOrInc := "Proj")
 {Given a factor (Q, mor) of the Jacobian, finds corresponding curves along with morphisms to them.}
 
 gQ := #Rows(Q);
+vprint CurveRec : "";
+vprint CurveRec : "Reconstructing curves...";
 if gQ eq 1 then
-    return ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := ProjOrInc);
+    recs := ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := ProjOrInc);
+    vprint CurveRec : "done reconstructing curves.";
+    return recs;
 elif gQ eq 2 then
-    return ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := ProjOrInc);
+    recs := ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := ProjOrInc);
+    vprint CurveRec : "done reconstructing curves.";
+    return recs;
 else
     error "Finding factors not yet implemented for genus larger than 2";
 end if;

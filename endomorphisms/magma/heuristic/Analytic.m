@@ -112,8 +112,15 @@ gP := #Rows(P); gQ := #Rows(Q);
 JP := ComplexStructure(P); JQ := ComplexStructure(Q);
 
 /* Determination of approximate endomorphisms by LLL */
+vprint EndoFind : "";
+vprint EndoFind : "Determining homomorphism equations...";
 M := RationalHomomorphismEquations(JP, JQ);
+vprint EndoFind : "done determining homomorphism equations.";
+vprint EndoFind : "";
+vprint EndoFind : "Finding geometric homomorphisms...";
 Ker, test := IntegralLeftKernel(M : EndoRep := true);
+vprint EndoFind, 2 : "";
+vprint EndoFind : "done finding geometric homomorphisms.";
 if not test then
     return [ ];
 end if;
@@ -157,7 +164,10 @@ value.}
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+vprint EndoFind : "";
+vprint EndoFind : "Finding number field defined by homomorphisms...";
 K, seq, hFK := NumberFieldExtra(seqPart, F);
+vprint EndoFind : "done finding number field defined by homomorphisms:", K;
 
 assert #seq eq #seqPart;
 if #seq eq 0 then
@@ -191,7 +201,12 @@ gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 /* Use splitting field instead of number field since the resulting field is
  * normal */
+vprint EndoFind : "";
+vprint EndoFind : "Finding number field defined by homomorphisms...";
 K, seq, hFK := SplittingFieldExtra(seqPart, F);
+vprint EndoFind : "";
+vprint EndoFind : "done finding number field defined by homomorphisms:";
+vprint EndoFind : K;
 
 assert #seq eq #seqPart;
 if #seq eq 0 then
