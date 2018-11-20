@@ -4,8 +4,8 @@
   directory; this file shows how to access the heuristic part.
 */
 
-SetVerbose("EndoFind", 2);
-SetVerbose("CurveRec", 2);
+SetVerbose("EndoFind", 0);
+SetVerbose("CurveRec", 0);
 
 prec := 500;
 // This one takes quite some time!

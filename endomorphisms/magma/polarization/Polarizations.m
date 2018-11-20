@@ -35,7 +35,10 @@ Comm := Eltseq(JP_R * M * Transpose(JP_R) - M) cat Eltseq(M + Transpose(M));
 
 /* Splitting previous linear equations by formal variable */
 M :=  Matrix(RR, [ [ MonomialCoefficient(c, var) : c in Comm ] : var in vars ]);
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Calculating polarization basis...";
 Ker := IntegralLeftKernel(M);
+vprint EndoFind, 2 : "done calculating polarization basis.";
 
 /* Culling the correct polarizations using the conditions on E */
 RR := BaseRing(JP); Es := [];

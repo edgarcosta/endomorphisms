@@ -38,20 +38,24 @@ print GeoEndoAlg;
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
 comps := IsotypicalComponents(P, GeoEndoRep);
 
+print "";
 print "Isotypical components:";
 print [ [* comp[2], comp[3] *] : comp in comps ];
 
 P, mor, incdata := Explode(comps[1]);
 idems := SplittingIdempotents(P, mor, incdata);
 
+print "";
 print "Splitting idempotents:";
 print idems;
 
-exit;
-
 Q := Ker0([* ChangeRing(idems[1][1], CC), idems[1][2] *], P, P);
 E := PolarizationBasis(Q)[1];
-print FrobeniusFormAlternatingAlt(E);
+
+E0 := FrobeniusFormAlternatingAlt(E);
+print "";
+print "Frobenius form of polarization:";
+print E0;
 
 Us := IsogenousPPLattices(E);
 Ys := [* *];
@@ -59,6 +63,7 @@ for U in Us do
     Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
     assert IsBigPeriodMatrix(Qnew);
     Y := ReconstructCurve(Qnew, F);
+    print "";
     print Y;
     Append(~Ys, Y);
 end for;
