@@ -91,19 +91,61 @@ return Center(A) eq A;
 end intrinsic;
 
 
-intrinsic HeuristicJacobianFactors(X::Crv : AllMaps := false, ProjToIdem := true, ProjToPP := true) -> .
-{Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors. Setting AllMaps to false returns duplicates of the components together with all possible idempotents (instead of a single one). Setting ProjToIdem to false uses an inclusion instead of a projection when taking idempotents. Setting ProjToPP to false uses an inclusion instead of a projection when making a period matrix principally polarized. If ProjToIdem and ProjToPP are not equal, then right now the algorithm only returns a component, not a corresponding map from or to the Jacobian of X.}
+intrinsic HeuristicJacobianFactors(X::Crv : AllIdems := false, AllPPs := false, ProjToIdem := true, ProjToPP := true) -> .
+{Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors. Setting AllMaps to true returns multiple entries for a given components in the decomposition together with all possible maps (instead of a single one). Setting AllPPs to true returns multiple entries for a given idempotent, corresponding to the various choices of principal polarization. Setting ProjToIdem to false uses an inclusion instead of a projection when taking idempotents. Setting ProjToPP to false uses an inclusion instead of a projection when making a period matrix principally polarized. If ProjToIdem and ProjToPP are not equal, then right now the algorithm only returns a component, not a corresponding map from or to the Jacobian of X.}
 
 P := PeriodMatrix(X);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 
-comps := SplitComponents(P, GeoEndoRep : AllMaps := AllMaps, ProjToIdem := ProjToIdem);
-recss := [ ];
-for comp in comps do
-    Q, mor := Explode(comp);
-    recs := ReconstructionsFromComponent(P, Q, mor : ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-    Append(~recss, recs);
-end for;
-return recss;
+/* The upcoming is badly written boilerplate code, but for me it describes the
+ * case distinctions (list or lists of lists) fairly */
+if not AllIdems and not AllPPs then
+    comps := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
+    recs := [ ];
+    for comp in comps do
+        Q, mor := Explode(comp);
+        rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
+        Append(~recs, rec);
+    end for;
+    return recs;
+
+elif not AllIdems and AllPPs then
+    comps := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
+    recss := [ ];
+    for comp in comps do
+        Q, mor := Explode(comp);
+        recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
+        Append(~recss, recs);
+    end for;
+    return recss;
+
+elif AllIdems and not AllPPs then
+    comptups := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
+    recss := [ ];
+    for comptup in comptups do
+        recs := [ ];
+        for comp in comptup do
+            Q, mor := Explode(comp);
+            rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
+            Append(~recs, rec);
+        end for;
+        Append(~recss, recs);
+    end for;
+    return recss;
+
+elif AllIdems and AllPPs then
+    comptups := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
+    recsss := [ ];
+    for comptup in comptups do
+        recss := [ ];
+        for comp in comptup do
+            Q, mor := Explode(comp);
+            recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
+            Append(~recss, recs);
+        end for;
+        Append(~recsss, recss);
+    end for;
+    return recsss;
+end if;
 
 end intrinsic;

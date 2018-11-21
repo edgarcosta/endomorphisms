@@ -1,4 +1,5 @@
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 1);
+SetVerbose("CurveRec", 1);
 
 prec := 300;
 CCSmall := ComplexField(5);

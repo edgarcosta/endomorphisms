@@ -47,10 +47,10 @@ print R;
 EQ := InducedPolarization(StandardSymplecticMatrix(3), R);
 test, EQ := IsPolarization(EQ, Q);
 
-Q, proj := ComponentFromIdempotent(P, idem : ProjOrInc := "Inc");
+Q, proj := ComponentFromIdempotent(P, idem : ProjToIdem := true);
 A, R := Explode(proj);
 
-EQ := InducedPolarization(StandardSymplecticMatrix(3), R : ProjOrInc := "Inc");
+EQ := InducedPolarization(StandardSymplecticMatrix(3), R : ProjToIdem := true);
 test, EQ := IsPolarization(EQ, Q);
 
 print "Sanity check for induced polarization:";
@@ -76,11 +76,10 @@ for U in Us do
     print U*EQ*Transpose(U);
 end for;
 
-print "Checking isogenous lattices via cover...";
+print "Checking isogenous lattices via projection...";
 Us := IsogenousPPLattices(EQ);
 for U in Us do
     Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
-    Qnew := Q*ChangeRing(Transpose(U), BaseRing(Q));
     assert IsBigPeriodMatrix(Qnew);
 end for;
 print "done";

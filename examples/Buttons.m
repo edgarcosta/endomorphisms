@@ -87,7 +87,7 @@ print "";
 print "Heuristic GL_2-determination (generalized notion):";
 print test_gl2_gen;
 
-facs := HeuristicJacobianFactors(X : AllMaps := false, ProjToIdem := false, ProjToPP := false);
+facs := HeuristicJacobianFactors(X : AllIdems := false, AllPPs := false, ProjToIdem := false, ProjToPP := false);
 print "";
 print "Heuristic Jacobian factors:";
 print facs;

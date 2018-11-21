@@ -12,7 +12,7 @@
 
 /* TODO: Make geometric versions for use with period matrices only */
 
-function ReconstructionsFromComponentG1(P, Q, mor : ProjToIdem := true, ProjToPP := true)
+function ReconstructionFromComponentG1(P, Q, mor : AllPPs := false, ProjToIdem := true, ProjToPP := true)
 
 A, R := Explode(mor); K := BaseRing(A);
 Rnew := R;
@@ -30,26 +30,36 @@ if Im(Q[1,2]/Q[1,1]) lt 0 then
     end if;
 end if;
 assert IsBigPeriodMatrix(Q);
-E, h := ReconstructCurve(Q, K : Base := true);
+E, h := ReconstructCurve(Q, K);
 Anew := ConjugateMatrix(h, A);
+if not AllPPs then
+    return [* E, [* Anew, Rnew *] *];
+end if;
 return [ [* E, [* Anew, Rnew *] *] ];
 
 end function;
 
 
-function ReconstructionsFromComponentG2(P, Q, mor : ProjToPP := true, ProjToIdem := true)
+function ReconstructionFromComponentG2(P, Q, mor : AllPPs := false, ProjToPP := true, ProjToIdem := true)
 
 gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
 EQ := InducedPolarization(StandardSymplecticMatrix(gP), R : ProjToIdem := ProjToIdem);
 E0, _ := FrobeniusFormAlternatingAlt(EQ);
 
+vprint CurveRec: "";
 vprint CurveRec: "Frobenius form of induced polarization:";
 vprint CurveRec: E0;
 
 Ts := IsogenousPPLattices(EQ);
+if not AllPPs then
+    N := 1;
+else
+    N := #Ts;
+end if;
+
 facs := [ ];
-for T in Ts do
+for T in Ts[1..N] do
     CorrectMap := ProjToIdem eq ProjToPP;
     Qnew := Q*ChangeRing(T^(-1), BaseRing(Q));
     Rnew := R;
@@ -66,28 +76,31 @@ for T in Ts do
     vprint CurveRec: "";
     vprint CurveRec: "Reconstructed curve found!";
     vprint CurveRec: Y;
-    vprint CurveRec: "";
 
     Anew := ConjugateMatrix(h, A);
     Append(~facs, [* Y, [* Anew, Rnew *] *]);
 end for;
+
+if not AllPPs then
+    return facs[1];
+end if;
 return facs;
 
 end function;
 
 
-intrinsic ReconstructionsFromComponent(P::., Q::., mor::. : ProjToPP := true, ProjToIdem := true) -> .
+intrinsic ReconstructionFromComponent(P::., Q::., mor::. : AllPPs := false, ProjToPP := true, ProjToIdem := true) -> .
 {Given a factor (Q, mor) of the Jacobian, finds corresponding curves along with morphisms to them.}
 
 gQ := #Rows(Q);
 vprint CurveRec : "";
 vprint CurveRec : "Reconstructing curves...";
 if gQ eq 1 then
-    recs := ReconstructionsFromComponentG1(P, Q, mor : ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
+    recs := ReconstructionFromComponentG1(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
     vprint CurveRec : "done reconstructing curves.";
     return recs;
 elif gQ eq 2 then
-    recs := ReconstructionsFromComponentG2(P, Q, mor : ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
+    recs := ReconstructionFromComponentG2(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
     vprint CurveRec : "done reconstructing curves.";
     return recs;
 else

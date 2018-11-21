@@ -1,6 +1,7 @@
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 1);
+SetVerbose("CurveRec", 1);
 
-prec := 500;
+prec := 1000;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);
 CC := F`CC;
@@ -32,14 +33,3 @@ GeoEndoRepCC := GeometricEndomorphismRepresentationCC(P);
 GeoHomRepCC := GeometricHomomorphismRepresentationCC(P, Q);
 GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
 print GeoEndoRep;
-
-comps := SplitComponents(P, GeoEndoRep : AllMaps := false);
-Ys := [ ];
-for comp in comps do
-    Q, mor := Explode(comp);
-    recs := ReconstructionsFromComponent(P, Q, mor);
-    Ys cat:= recs;
-end for;
-print Ys;
-
-

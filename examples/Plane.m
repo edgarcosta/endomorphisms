@@ -1,4 +1,5 @@
-//SetVerbose("EndoFind", 1);
+SetVerbose("EndoFind", 1);
+SetVerbose("CurveRec", 1);
 
 prec := 300;
 CCSmall := ComplexField(5);
@@ -7,7 +8,7 @@ R<x,y> := PolynomialRing(F, 2);
 z := 1;
 
 f := y^3*z - x^4 - z^4;
-f := 1 + 7*x*y + 21*x^2*y^2 + 35*x^3*y^3 + 28*x^4*y^4 + 2*x^7 + 2*y^7;
+//f := 1 + 7*x*y + 21*x^2*y^2 + 35*x^3*y^3 + 28*x^4*y^4 + 2*x^7 + 2*y^7;
 
 X := PlaneCurve(f);
 print "Curve:";

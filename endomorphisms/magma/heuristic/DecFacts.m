@@ -312,7 +312,7 @@ return comps;
 end intrinsic;
 
 
-intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : ProjToIdem := true, AllMaps := false) -> .
+intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : AllIdems := false, ProjToIdem := true) -> .
 {Returns maximal possible splitting of the Jacobian P over the smallest field over which this occurs, plus corresponding projections.}
 
 L := BaseRing(GeoEndoRep[1][1]);
@@ -322,13 +322,16 @@ for comp_iso in comps_iso do
     Q, mor, incdata := Explode(comp_iso);
     A, R := Explode(mor);
     comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjToIdem := ProjToIdem);
-    if AllMaps then
-        N := #comp_roots;
-    else
+
+    if not AllIdems then
         N := 1;
+    else
+        N := #comp_roots;
     end if;
+
+    comptup := [ ];
     for i in [1..N] do
-        comp_root := comp_roots[i];
+        comp_root := comp_roots[1];
         Qroot, morroot, incdataroot := Explode(comp_root);
         L, K, hKL := Explode(incdataroot);
         A0 := CoerceToSubfieldMatrix(A, L, K, hKL);
@@ -348,8 +351,14 @@ for comp_iso in comps_iso do
             assert Maximum([ Abs(c) : c in Eltseq(ACCtest*Qroot - P*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
         end if;
 
-        Append(~comps, [* Qroot, morcomp, incdataroot *]);
+        Append(~comptup, [* Qroot, morcomp, incdataroot *]);
     end for;
+
+    if not AllIdems then
+        Append(~comps, comptup[1]);
+    else
+        Append(~comps, comptup);
+    end if;
 end for;
 return comps;
 

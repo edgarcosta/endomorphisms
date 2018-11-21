@@ -1,4 +1,4 @@
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 1);
 SetVerbose("CurveRec", 1);
 
 prec := 300;
@@ -28,11 +28,12 @@ R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![0, 0, 1, 0, 1], 
 R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![1, 1, 2, 1, 1], R![1, 1, 1, 1]); Append(~Xs, X);
 
 for X in Xs do
+    print "";
+    print "";
     print "Curve:";
     print X;
-    print "";
 
-    facs := HeuristicJacobianFactors(X : AllMaps := false);
+    facs := HeuristicJacobianFactors(X : AllIdems := false, AllPPs := false);
     print "";
     print "Heuristic Jacobian factors:";
     print facs;
