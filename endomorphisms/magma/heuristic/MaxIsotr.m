@@ -12,10 +12,10 @@
 forward IsogenousPPLatticesG2;
 
 
-intrinsic InducedPolarization(E::., R::. : ProjOrInc := "Proj") -> .
+intrinsic InducedPolarization(E::., R::. : ProjToIdem := true) -> .
 {Given a matrix E corresponding to a polarization, returns the pushforward (default) or pullback of E along R. The pullback is the pairing directly induced via the map represented by R, and the pushforward is its dual.}
 
-if ProjOrInc eq "Proj" then
+if ProjToIdem then
     Q := R*E*Transpose(R);
 else
     Q := Transpose(R)*E*R;
@@ -107,7 +107,7 @@ return submods;
 end function;
 
 
-intrinsic SymplecticSubmodules(n::RngIntElt, d::RngIntElt) -> .
+intrinsic SymplecticSubmodules(n::RngIntElt, d::RngIntElt : ProjToPP := true) -> .
 {All symplectic submodules of index n in rank 2*d, or alternatively the maximal
 symplectic submodules of (ZZ / n ZZ)^(2*d) with the canonical form.}
 
@@ -122,11 +122,14 @@ for pf in pfs do
     Latsnew := [ ];
     for Lat in Lats do
         for submod in submods do
-            //M := ChangeRing(Matrix(Basis(Lat)), Rationals());;
-            //Mnew := (1/pf) * Matrix(Rationals(), [ [ Rationals() ! Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]);
-            B := ChangeRing(Matrix(Basis(Lat)), Rationals());
-            M := pf * B;
-            Mnew := Matrix(Rationals(), [ [ Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]) * B;
+            if ProjToPP then
+                B := ChangeRing(Matrix(Basis(Lat)), Rationals());
+                M := pf * B;
+                Mnew := Matrix(Rationals(), [ [ Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]) * B;
+            else
+                M := ChangeRing(Matrix(Basis(Lat)), Rationals());;
+                Mnew := (1/pf) * Matrix(Rationals(), [ [ Rationals() ! Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]);
+            end if;
             Append(~Latsnew, Lattice(VerticalJoin(M, Mnew)));
         end for;
     end for;
@@ -137,14 +140,14 @@ return Lats;
 end intrinsic;
 
 
-intrinsic IsogenousPPLattices(E::.) -> .
+intrinsic IsogenousPPLattices(E::. : ProjToPP := true) -> .
 {Given an alternating form E, finds the sublattices to ZZ^2d of smallest possible index on which E induces a principal polarization. These are returned in matrix form, that is, as a span of a basis in the rows. This basis is symplectic in the usual sense.}
 
 g := #Rows(E) div 2;
 if g eq 1 then
     return [ E ];
 elif g eq 2 then
-    return IsogenousPPLatticesG2(E);
+    return IsogenousPPLatticesG2(E : ProjToPP := ProjToPP);
 else
     error "No functionality for principally polarized lattices in genus strictly larger than 2 yet";
 end if;
@@ -153,7 +156,7 @@ end intrinsic;
 
 
 /* TODO: Generalize (note that description below is not quite correct) */
-function IsogenousPPLatticesG2(E)
+function IsogenousPPLatticesG2(E : ProjToPP := true)
 // Given an alternating form E, finds the sublattices to ZZ^2d of smallest
 // possible index on which E induces a principal polarization. These are
 // returned in matrix form, that is, as a span of a basis in the rows. This
@@ -166,9 +169,13 @@ E0 := (1/d)*E0;
 n := Integers() ! Abs(E0[3,4]);
 
 Ts := [ ];
-for Lat in SymplecticSubmodules(n, 2) do
+for Lat in SymplecticSubmodules(n, 2 : ProjToPP := ProjToPP) do
     Ur := ChangeRing(Matrix(Basis(Lat)), Rationals());
-    U := DiagonalJoin(Ur, IdentityMatrix(Rationals(), 2));
+    if ProjToPP then
+        U := DiagonalJoin(Ur, IdentityMatrix(Rationals(), 2));
+    else
+        U := DiagonalJoin(IdentityMatrix(Rationals(), 2), Ur);
+    end if;
     Append(~Ts, U*ChangeRing(T0, Rationals()));
 end for;
 

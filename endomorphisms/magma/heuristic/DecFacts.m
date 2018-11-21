@@ -52,13 +52,13 @@ return [* idemA, idemR *];
 end function;
 
 
-intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjOrInc := "Proj") -> .
+intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjToIdem := true) -> .
 {Returns component and map corresponding to idempotent idem. If CoerceToBase is set to true, this is returned over the smallest possible field.}
 
 vprint EndoFind : "";
 vprint EndoFind : "Determining component from idempotent, analytic step...";
 L := BaseRing(idem[1]);
-if ProjOrInc eq "Proj" then
+if ProjToIdem then
     R := idem[2];
     ACC := TangentRepresentation(R, P, P);
     //Q, mor := ImgProj([* ACC, R *], P, P);
@@ -89,7 +89,7 @@ return Q, [* B, S *], incdata;
 end intrinsic;
 
 
-intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, ProjOrInc := "Proj") -> .
+intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, ProjToIdem := true) -> .
 {Returns isotypical components Q = B^d of the Jacobian with maps. If CoerceToBase is set to true, these are returned over the smallest possible field.}
 
 vprint EndoFind : "";
@@ -97,7 +97,7 @@ vprint EndoFind : "Determining isotypical components...";
 idems := IsotypicalIdempotents(P, EndoRep);
 comps := [ ];
 for idem in idems do
-    Q, mor, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjOrInc := ProjOrInc);
+    Q, mor, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjToIdem := ProjToIdem);
     Append(~comps, [* Q, mor, incdata *]);
 end for;
 vprint EndoFind, 2 : "";
@@ -293,7 +293,7 @@ return false;
 end function;
 
 
-intrinsic RootsOfIsotypicalComponent(Q::., mor::., incdata::. : ProjOrInc := "Proj") -> .
+intrinsic RootsOfIsotypicalComponent(Q::., mor::., incdata::. : ProjToIdem := true) -> .
 {Returns components along with maps over smallest possible field.}
 /* We emphatically do not want a single component and multiple maps for it,
  * because that causes us to miss factors that become isogenous only later */
@@ -304,7 +304,7 @@ comps := [ ];
 for idem in idems do
     /* No need to coerce since we are already over smallest possible field; in
      * fact the field might even drop too much */
-    Qroot, morroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjOrInc := ProjOrInc);
+    Qroot, morroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjToIdem := ProjToIdem);
     Append(~comps, [* Qroot, morroot, incdataroot *]);
 end for;
 return comps;
@@ -312,16 +312,16 @@ return comps;
 end intrinsic;
 
 
-intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : ProjOrInc := "Proj", AllMaps := false) -> .
+intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : ProjToIdem := true, AllMaps := false) -> .
 {Returns maximal possible splitting of the Jacobian P over the smallest field over which this occurs, plus corresponding projections.}
 
 L := BaseRing(GeoEndoRep[1][1]);
 comps := [ ];
-comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjOrInc := ProjOrInc);
+comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjToIdem := ProjToIdem);
 for comp_iso in comps_iso do
     Q, mor, incdata := Explode(comp_iso);
     A, R := Explode(mor);
-    comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjOrInc := ProjOrInc);
+    comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjToIdem := ProjToIdem);
     if AllMaps then
         N := #comp_roots;
     else
@@ -333,7 +333,7 @@ for comp_iso in comps_iso do
         L, K, hKL := Explode(incdataroot);
         A0 := CoerceToSubfieldMatrix(A, L, K, hKL);
         Aroot, Rroot := Explode(morroot);
-        if ProjOrInc eq "Proj" then
+        if ProjToIdem then
             morcomp := [* Aroot*A0, Rroot*R *];
         else
             morcomp := [* A0*Aroot, R*Rroot *];
@@ -342,7 +342,11 @@ for comp_iso in comps_iso do
         /* TODO: Remove this sanity check before the Append statement at some point */
         Atest := morcomp[1]; Rtest := morcomp[2];
         ACCtest := EmbedMatrixExtra(Atest, K`iota); CC := BaseRing(ACCtest);
-        assert Maximum([ Abs(c) : c in Eltseq(ACCtest*P - Qroot*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
+        if ProjToIdem then
+            assert Maximum([ Abs(c) : c in Eltseq(ACCtest*P - Qroot*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
+        else
+            assert Maximum([ Abs(c) : c in Eltseq(ACCtest*Qroot - P*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
+        end if;
 
         Append(~comps, [* Qroot, morcomp, incdataroot *]);
     end for;

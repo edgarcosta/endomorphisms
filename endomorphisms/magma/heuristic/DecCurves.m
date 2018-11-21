@@ -12,17 +12,21 @@
 
 /* TODO: Make geometric versions for use with period matrices only */
 
-function ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := "Proj")
+function ReconstructionsFromComponentG1(P, Q, mor : ProjToIdem := true, ProjToPP := true)
 
 A, R := Explode(mor); K := BaseRing(A);
 Rnew := R;
 if Im(Q[1,2]/Q[1,1]) lt 0 then
     Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
     T := Matrix(Rationals(), [[0, 1],[1, 0]]);
-    if ProjOrInc eq "Proj" then
-        Rnew := T*R;
-    else
-        Rnew := R*T;
+    CorrectMap := ProjToIdem eq ProjToPP;
+    Rnew := R;
+    if CorrectMap then
+        if ProjToPP then
+            Rnew := T*R;
+        else
+            Rnew := R*T;
+        end if;
     end if;
 end if;
 assert IsBigPeriodMatrix(Q);
@@ -33,11 +37,11 @@ return [ [* E, [* Anew, Rnew *] *] ];
 end function;
 
 
-function ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := "Proj")
+function ReconstructionsFromComponentG2(P, Q, mor : ProjToPP := true, ProjToIdem := true)
 
 gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
-EQ := InducedPolarization(StandardSymplecticMatrix(gP), R : ProjOrInc := ProjOrInc);
+EQ := InducedPolarization(StandardSymplecticMatrix(gP), R : ProjToIdem := ProjToIdem);
 E0, _ := FrobeniusFormAlternatingAlt(EQ);
 
 vprint CurveRec: "Frobenius form of induced polarization:";
@@ -46,12 +50,15 @@ vprint CurveRec: E0;
 Ts := IsogenousPPLattices(EQ);
 facs := [ ];
 for T in Ts do
-    if ProjOrInc eq "Proj" then
-        Qnew := Q*ChangeRing(T^(-1), BaseRing(Q));
-        Rnew := T*R;
-    else
-        Qnew := Q*ChangeRing(Transpose(T), BaseRing(Q));
-        Rnew := R*Transpose(T);
+    CorrectMap := ProjToIdem eq ProjToPP;
+    Qnew := Q*ChangeRing(T^(-1), BaseRing(Q));
+    Rnew := R;
+    if CorrectMap then
+        if ProjToPP then
+            Rnew := T*R;
+        else
+            Rnew := R*T^(-1);
+        end if;
     end if;
     assert IsBigPeriodMatrix(Qnew);
     Y, h := ReconstructCurve(Qnew, K);
@@ -69,18 +76,18 @@ return facs;
 end function;
 
 
-intrinsic ReconstructionsFromComponent(P::., Q::., mor::. : ProjOrInc := "Proj") -> .
+intrinsic ReconstructionsFromComponent(P::., Q::., mor::. : ProjToPP := true, ProjToIdem := true) -> .
 {Given a factor (Q, mor) of the Jacobian, finds corresponding curves along with morphisms to them.}
 
 gQ := #Rows(Q);
 vprint CurveRec : "";
 vprint CurveRec : "Reconstructing curves...";
 if gQ eq 1 then
-    recs := ReconstructionsFromComponentG1(P, Q, mor : ProjOrInc := ProjOrInc);
+    recs := ReconstructionsFromComponentG1(P, Q, mor : ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
     vprint CurveRec : "done reconstructing curves.";
     return recs;
 elif gQ eq 2 then
-    recs := ReconstructionsFromComponentG2(P, Q, mor : ProjOrInc := ProjOrInc);
+    recs := ReconstructionsFromComponentG2(P, Q, mor : ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
     vprint CurveRec : "done reconstructing curves.";
     return recs;
 else

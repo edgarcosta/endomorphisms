@@ -1,10 +1,10 @@
-Test inclusion, more options for Prym (ProjInIdemp, ProjInMakePP), Marco, square
 Map to elliptic curves perfect: CM, signs, base point and transitions
 Integrate improvements into algorithm run, try to use D0 if possible
 Jacobian addition on Puiseux series via formal calculation
 
 Later:
 Pari everywhere
+Correct map in inverse case (main problem is which map to take; naive suggestion is to use the inverse and multiply out denominators, but that is too large)
 Try to develop a bit further if the first branches coincide (the first time this can happen in genus 4)
 Divisor from Cantor? In principle this is all right: We pull back to X x Y^gY via the canonical map and then push to X x Y via idX x projection on the first coordinate. However, Magma cannot do this, since in it pushforwards are limited to maps between curves.
 
