@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
    name='endomorphisms',
-   version='0.3',
+   version='0.4',
    description='Computing endomorphism rings of Jacobians',
    author='Edgar Costa, Jeroen Hanselman, Davide Lombardo, Nicolas Mascot, Jeroen Sijsling, and John Voight',
    author_email='edgarcosta@math.dartmouth.edu, jeroen.sijsling@uni-ulm.de',

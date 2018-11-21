@@ -38,8 +38,6 @@ class EndomorphismData:
         self._geo_rep_list_ = magma.GeometricEndomorphismRepresentation(self._P_, self.F)
         self._geo_rep_dict_ = dict_rep(self._geo_rep_list_)
 
-    # TODO: Add geometric structure, general base fields
-
     def endomorphism_field(self):
         return magma.BaseRing(self._geo_rep_list_[1][1])
 
@@ -53,21 +51,11 @@ class EndomorphismData:
             self._lat_ = self.lattice()
         return Decomposition(self)
 
-    def rosati_involution(self, A):
-        return magma.RosatiInvolution(self._geo_rep_list_, A)
-
-    def degree_estimate(self, A):
-        return magma.DegreeEstimate(self._geo_rep_list_, A)
-
-    def dimension_algebra(self):
-        return len(self._geo_rep_list_)
-
-    def verify_algebra(self):
-        # TODO: Integrate over Davide and Edgar
-        self._test_alg_ = True
-        return self._test_alg_
-
 #  TODO: Get this to work and uncomment it
+#    def verify_algebra(self):
+#        self._test_alg_ = True
+#        return self._test_alg_
+#
 #    def verify_algebra_NS(self):
 #        assert self.g == 2, "for now the upper bounds are only implemented for genus = 2";
 #        # X: y^2 = g(x)
@@ -81,18 +69,10 @@ class EndomorphismData:
 #        b, _, _ =  bounds.NeronSeveriBound.verify_curve(g = g, factorsRR_geom = factorsRR_geom, RM_coeff = RM_coeff);
 #        return b;
 
+#  TODO: These methods need updating: use single Magma functions
     def verify_saturated(self):
         self._sat_test_, self._sat_cert_ =  magma.VerifySaturated(self._geo_rep_list_, self._P_, nvals = 2)
         return self._sat_test_
-
-    def set_base_point(self):
-        if not hasattr(self, "base_point"):
-            self.base_point = magma.SmallBasePoint(self.X, self._endo_fod_, NW = True)
-
-    def correspondence(self, A):
-        self.set_base_point()
-        test, corresp = magma.Correspondence(self.X, self.base_point, self.X, self.base_point, A, nvals = 2)
-        return test, corresp
 
     def verify_representation(self):
         self._rep_test_ = True
@@ -129,39 +109,10 @@ class Lattice:
         self._calculate_dictionary_()
         return self._dict_
 
-    def representations(self):
-        self._calculate_dictionary_()
-        list_to_fill = [ ]
-        for dict_pair in self._dict_['entries']:
-            dict_to_fill = dict()
-            dict_to_fill['field'] = dict_pair['field']['magma']
-            dict_to_fill['representation'] = magma([ gen['tangent'] for gen in dict_pair['structure']['representation'] ])
-            list_to_fill.append(dict_to_fill)
-        return list_to_fill
-
-    def algebras(self):
-        self._calculate_dictionary_()
-        list_to_fill = [ ]
-        for dict_pair in self._dict_['entries']:
-            dict_to_fill = dict()
-            dict_to_fill['field'] = dict_pair['field']['magma']
-            dict_to_fill['algebra'] = dict_pair['structure']['algebra']
-            list_to_fill.append(dict_to_fill)
-        return list_to_fill
-
-    def descriptions(self):
-        self._calculate_dictionary_()
-        list_to_fill = [ ]
-        for dict_pair in self._dict_['entries']:
-            dict_to_fill = dict()
-            dict_to_fill['field'] = dict_pair['field']['magma']
-            dict_to_fill['description'] = dict_pair['structure']['description']
-            list_to_fill.append(dict_to_fill)
-        return list_to_fill
-
     def pretty_print(self):
         return pretty_print_lattice_description(self._desc_, self.g)
 
+#  TODO: These methods need updating: use single Magma functions
 class Decomposition:
     def __init__(self, Endo):
         self.X = Endo.X
@@ -185,12 +136,6 @@ class Decomposition:
     def full(self):
         return self._facs_
 
-    def idempotents(self):
-        return [ fac['idem']['tangent'] for fac in self._facs_ ]
-
-    def projections(self):
-        return [ fac['proj']['tangent'] for fac in self._facs_ ]
-
     def _calculate_factors_(self):
         for fac in self._facs_:
             if not 'algebraic' in fac['factor'].keys():
@@ -203,42 +148,3 @@ class Decomposition:
     def _factors_desc_(self):
         self._calculate_factors_()
         return [ sagify_description(magma.FactorDescription(fac, self.F)) for fac in self.factors() ]
-
-    def set_base_point(self):
-        if not hasattr(self, "base_point"):
-            self.base_point = magma.SmallBasePoint(self.X, self.field, NW = True)
-
-    def set_base_point_factor(self, fac):
-        if not 'base_point' in fac['factor'].keys():
-            Y = fac['factor']['algebraic']
-            K = self.field
-            fac['factor']['base_point'] = magma.SmallBasePoint(Y, K, NW = True)
-
-    def correspondence(self, fac):
-        # TODO: Deal with bounds well instead of kicking it to Magma
-        if fac['factor']['algebraic'] == 0:
-            return True, 'to be implemented'
-        self.set_base_point()
-        self.set_base_point_factor(fac)
-        P = self.base_point
-        Y = fac['factor']['algebraic']
-        Q = fac['factor']['base_point']
-        A = fac['proj']['tangent']
-        test, cert = magma.Correspondence(self.X, P, Y, Q, A, nvals = 2)
-        return [test, cert]
-
-    def verify(self):
-        if not hasattr(self, "_facs_test_") or not self._facs_test_:
-            self._facs_test_ = True
-            for fac in self._facs_:
-                if not 'corresp' in fac['proj'].keys():
-                    test, corresp = self.correspondence(fac)
-                    if not test:
-                        self._facs_test_ = False
-                    else:
-                        fac['proj']['corresp'] = corresp
-        return self._facs_test_
-
-    def correspondences(self):
-        self.verify()
-        return [ fac['proj']['corresp'] for fac in self._facs_ if 'corresp' in fac['proj'].keys() ]

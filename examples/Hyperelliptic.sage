@@ -1,5 +1,5 @@
 """
- *  Plane examples (need extra code to be run)
+ *  Hyperelliptic examples
 """
 
 from endomorphisms import EndomorphismData, mHyperellipticCurve, mPlaneCurve
@@ -19,10 +19,7 @@ Endo = EndomorphismData(X)
 lat = Endo.lattice()
 print lat.pretty_print()
 
-print ""
-print lat._desc_
-print lat._sthash_
-
+# TODO: This needs an update
 #Dec = Endo.decomposition()
 #print ""
 #print Dec.factors()
