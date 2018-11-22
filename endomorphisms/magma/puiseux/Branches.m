@@ -45,9 +45,11 @@ end function;
 function PuiseuxLeadingExponent(M, echelon_exps)
 /*
  * Input:   A matrix M that represents an endomorphism,
- *          after normalizing to an upper triangular form.
+ *          after normalizing to an upper triangular form,
+ *          and the echelon exponents for the differentials of the
+ *          corresponding curve.
  * Output:  The ramification index of the corresponding Puiseux expansions and
- *          the corresponding entries of M
+ *          the corresponding entries of M.
  */
 
 rowsM := Rows(M);
@@ -72,11 +74,14 @@ end function;
 
 function InitializeImageBranch(M, echelon_exps)
 /*
- * Input:   A matrix M that represents an endomorphism
- *          after normalizing to an upper triangular form.
+ * Input:   A matrix M that represents an endomorphism,
+ *          after normalizing to an upper triangular form,
+ *          and the echelon exponents for the differentials of the
+ *          corresponding curve.
  * Output:  The leading coefficients of the corresponding Puiseux expansions
  *          and the polynomial that gives their field of definition.
  */
+/* TODO: This needs genericity assumptions */
 
 /* Recovering old invariants: */
 F := Parent(M[1,1]);
@@ -87,7 +92,7 @@ exp, vals := PuiseuxLeadingExponent(M, echelon_exps);
  * there is no need to desymmetrize */
 if gY eq 1 then
     r := Eltseq(Rows(M)[1]);
-    RF := PolynomialRing(F); xF := RF.1; PF := PowerSeriesRing(F, #r + 1); tF := PF.1;
+    RF := PolynomialRing(F); xF := RF.1; PF := PuiseuxSeriesRing(F, #r + 1); tF := PF.1;
     return [ &+[ (r[n] / n) * tF^n : n in [1..#r] ] + O(tF^(#r + 1)) ], xF - 1;
 end if;
 
@@ -110,14 +115,8 @@ K := SplittingField(h(G[#G]));
 /* Extending and evaluating: */
 SK := BaseExtend(S, K);
 P := Eltseq(Points(SK)[1]);
-/* Power series ring is used if possible for efficiency: */
-if exp eq 1 then
-    PK := PowerSeriesRing(K, 2);
-    wK := PK.1;
-else
-    PK := PuiseuxSeriesRing(K, 2);
-    wK := PK.1^exp;
-end if;
+PK := PuiseuxSeriesRing(K, 2);
+wK := PK.1^exp;
 return [ P[i] * wK + O(wK^2) : i in [1..gY] ], h(G[#G]);
 
 end function;
@@ -198,7 +197,7 @@ for i in [1..Y`g] do
     Qs[i][1] +:= tjs0[i];
 end for;
 /* Make sure precision buffer is always large enough to see first term */
-Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 2) ] : Qj in Qs ];
+Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, 2*X`g + 2) ] : Qj in Qs ];
 
 /* Fill out small terms */
 IterateLift := CreateLiftIteratorFunction(X, Y, M);
@@ -307,18 +306,16 @@ end intrinsic;
 intrinsic IterateIterator(Iterator::List) -> .
 {Applies Iterator to add maximal possible precision that does not get lost
 later on.}
-/* May want to include bound here too, but for now that is useless */
 
 P, Qs, IterateLift, MaxPrec := Explode(Iterator);
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
 L := [ c : c in &cat(Qs) | not IsWeaklyZero(c) ];
 prec := Minimum([ AbsolutePrecision(c) - 1/e : c in L ] cat [ MaxPrec ]);
-//prec := Minimum([ AbsolutePrecision(c) : c in L ] cat [ MaxPrec ]);
-//prec := (Precision(Parent(Qs[1][1])) - 1)/e;
+/* May want to include bound here too, but for now that is useless */
 P, Qs := IterateLift(P, Qs, Infinity());
+/* This coercion seems slightly inefficient, but we take it */
 PR := PuiseuxSeriesRing(BaseRing(Parent(P[1])), Integers() ! (2*((e*prec) - 1) + 1));
-P := [ PR ! c : c in P ];
-Qs := [ [ PR ! c : c in Q ] : Q in Qs ];
+P := [ PR ! c : c in P ]; Qs := [ [ PR ! c : c in Q ] : Q in Qs ];
 return [* P, Qs, IterateLift, MaxPrec *];
 
 end intrinsic;

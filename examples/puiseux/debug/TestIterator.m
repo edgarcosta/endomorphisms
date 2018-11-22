@@ -1,5 +1,5 @@
-import "../../endomorphisms/magma/puiseux/Initialize.m": InitializeCurve;
-import "../../endomorphisms/magma/puiseux/Branches.m": DevelopPoint, InitializeLift, CreateLiftIterator;
+import "../../../endomorphisms/magma/puiseux/Initialize.m": InitializeCurve;
+import "../../../endomorphisms/magma/puiseux/Branches.m": DevelopPoint, InitializeLift, CreateLiftIterator;
 
 prec := 1000;
 F := RationalsExtra(prec);

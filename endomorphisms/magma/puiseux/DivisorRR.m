@@ -10,6 +10,7 @@
  */
 
 
+/* May want to include bound here too, but for now that is useless */
 import "Branches.m": InitializeImageBranch, DevelopPoint;
 import "Conventions.m": ExtractHomomorphismsRing, VariableOrder;
 import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;

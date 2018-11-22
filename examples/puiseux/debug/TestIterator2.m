@@ -1,5 +1,5 @@
-import "../../endomorphisms/magma/puiseux/Initialize.m": InitializeCurve;
-import "../../endomorphisms/magma/puiseux/Branches.m": DevelopPoint, InitializeLift, CreateLiftIterator;
+import "../../../endomorphisms/magma/puiseux/Initialize.m": InitializeCurve;
+import "../../../endomorphisms/magma/puiseux/Branches.m": DevelopPoint, InitializeLift, CreateLiftIterator;
 
 prec := 1000;
 F := RationalsExtra(prec);
@@ -43,6 +43,6 @@ print "done.";
 while true do
     IteratorNew := IterateIterator(Iterator);
     QsNew := IteratorNew[2]; Qs := Iterator[2];
-    print QsNew[3][2] - Qs[3][2];
+    print QsNew[1][2] - Qs[1][2];
     Iterator := IteratorNew;
 end while;

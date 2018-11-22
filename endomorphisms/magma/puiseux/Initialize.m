@@ -77,7 +77,7 @@ function AlgebraicUniformizerIndex(X)
  * Output:  Index of the uniformizer.
  */
 
-if (X`g eq 1) or X`is_hyperelliptic then
+if X`is_hyperelliptic or (X`g eq 1) then
     fX := X`DEs[1]; RA := X`RA; P0 := X`P0;
     // Prefer coordinate on PP^1:
     /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
@@ -132,7 +132,7 @@ elif (g eq 1) or X`is_hyperelliptic then
         /* If coordinate on PP^1 did not work, then this is the expression in
          * the new uniformizer */
         s := MonomialCoefficient(f, u^2);
-        return [ s*v^(i-1) / Derivative(f, v) : i in [1..g] ];
+        return [ -s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
     end if;
 
 elif X`is_plane_quartic then
@@ -222,9 +222,6 @@ BP := [ Evaluate(b, P) : b in X`OurB ];
 M := Matrix([ [ Coefficient(BP[i], j - 1) : j in [1..(2*X`g + 1)] ] : i in [1..X`g] ]);
 E, T := EchelonForm(M); c := #Rows(Transpose(E));
 echelon_exps := [ Minimum([ i : i in [1..c] | Eltseq(row)[i] ne 0 ]) : row in Rows(E) ];
-//print E;
-//print T;
-//print echelon_exps;
 if NonWP and (not echelon_exps eq [1..X`g]) then
     error "Base point is Weierstrass";
 end if;
@@ -237,6 +234,7 @@ end function;
 function CantorEquations(X);
 /* Gives the equations in the description a (x) = 0, y = b (x)
  * May not use usual parameter if uniformizer differs */
+/* TODO: Actually, that last point is a bit suboptimal */
 
 g := X`g; f := X`DEs[1]; F := X`F;
 S := PolynomialRing(F, 2*g); T<t> := PolynomialRing(S);
@@ -267,7 +265,7 @@ end if;
 
 vprintf EndoCheck, 3 : "Curve:\n";
 vprint EndoCheck, 3 : X;
-X`is_hyperelliptic := IsHyperelliptic(X); X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
+X`is_hyperelliptic := Type(X) eq CrvHyp; X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
 X`g := Genus(X); X`is_plane_quartic := (X`is_planar) and (X`is_smooth) and (X`g eq 3);
 if not X`is_planar then
     error "Please give your curve in planar form";
@@ -276,6 +274,7 @@ end if;
 /* Find affine patch, then put uniformizer first: */
 X`U, X`DEs, X`P0, X`patch_index := OurAffinePatch(X, P0);
 X`A := Ambient(X`U); RA<u,v> := CoordinateRing(X`A); X`RA := RA; X`KA := FieldOfFractions(RA);
+
 X`unif_index := AlgebraicUniformizerIndex(X);
 if X`unif_index eq 2 then
     X`DEs := [ X`RA ! Evaluate(DE, [ (X`RA).2, (X`RA).1 ]) : DE in X`DEs ];

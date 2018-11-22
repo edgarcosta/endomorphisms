@@ -50,7 +50,6 @@
     Branches.m
     CantorAmbient.m
     DivisorAmbient.m
-    Bidegree.m
     RiemannRoch.m
     CantorRR.m
     DivisorRR.m

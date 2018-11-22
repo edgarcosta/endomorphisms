@@ -77,7 +77,7 @@ if IsEven(d) or not NW then
     rts := Roots(t^2 - g0);
     L := K;
     if #rts eq 0 then
-        L, hKL := NumberFieldExtra(t^2 - g0);
+        L, _, hKL := NumberFieldExtra(t^2 - g0);
         X := ChangeRingCurve(X, hKL);
         rts := Roots(t^2 - g0, L);
     end if;
@@ -104,7 +104,7 @@ if IsOdd(d) then
     rts := Roots(t^2 - g0);
     L := K;
     if #rts eq 0 then
-        L, hKL := NumberFieldExtra(t^2 - g0);
+        L, _, hKL := NumberFieldExtra(t^2 - g0);
         X := ChangeRingCurve(X, hKL);
         rts := Roots(t^2 - g0, L);
     end if;
@@ -228,11 +228,11 @@ else
 end if;
 
 /* Use or find point on Y */
-if Type(P) ne RngIntElt then
+if Type(Q) ne RngIntElt then
     hLM := CanonicalInclusionMap(L, L);
 else
-    P, hLM := SmallBasePoint(Y);
-    Y := Curve(P);
+    Q, hLM := SmallBasePoint(Y);
+    Y := Curve(Q);
     A := ConjugateMatrix(hLM, A);
 end if;
 
@@ -247,7 +247,7 @@ A := ConjugateMatrix(hMN, A);
 if (#Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
     return true, "Multiplication by an integer";
 else
-    test, fs := CantorFromMatrixAmbientSplit(X, Y, A);
+    test, fs := CantorFromMatrixAmbientSplit(X, P, Y, Q, A);
     if Genus(Y) eq 1 then
         if test and (not CorrespondenceVerifyG1(X, Y, A, fs)) then
             error "Pullback incorrect";
@@ -277,11 +277,12 @@ function CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := false)
 // Returns whether the morphism defined by fs indeed corresponds to the tangent
 // representation A.
 
-F := BaseRing(Parent(fs[1]));
 /* Check that the answer is well-defined */
+F := BaseRing(Parent(fs[1]));
 R<x,y> := PolynomialRing(F, 2);
 K := FieldOfFractions(R);
-fX := R ! DefiningEquation(AffinePatch(X, 1)); fY := R ! DefiningEquation(AffinePatch(Y, 1));
+fX := R ! DefiningEquation(AffinePatch(X, 1));
+fY := R ! DefiningEquation(AffinePatch(Y, 1));
 IX := ideal<R | fX>;
 if not R ! Numerator(K ! Evaluate(R ! fY, fs)) in IX then
     return false;
@@ -297,10 +298,10 @@ end if;
 
 /* Check that the action on differentials is correct: */
 fX := R ! DefiningEquation(AffinePatch(X, 1));
-fY := R ! DefiningEquation(AffinePatch(Y, 1));
+fY, hY := HyperellipticPolynomials(Y);
 dx := K ! 1;
 dy := K ! -Derivative(fX, 1) / Derivative(fX, 2);
-ev := ((K ! Derivative(fs[1], 1))*dx + (K ! Derivative(fs[1], 2))*dy) / (K ! (2*fs[2]));
+ev := ((K ! Derivative(fs[1], 1))*dx + (K ! Derivative(fs[1], 2))*dy) / (K ! (2*fs[2] + Evaluate(hY, fs[1])));
 if X`is_hyperelliptic then
     if not R ! Numerator(K ! (ev - &+[ A[1,i]*x^(i - 1) : i in [1..Genus(X)] ]/(Derivative(fX, 2)/MonomialCoefficient(fX, y^2)))) in IX then
         return false;

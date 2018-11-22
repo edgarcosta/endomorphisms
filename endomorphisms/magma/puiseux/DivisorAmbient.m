@@ -10,6 +10,7 @@
  */
 
 
+/* TODO: These algorithms will be redundant soon */
 import "Branches.m": InitializeImageBranch, DevelopPoint;
 import "Conventions.m": ExtractHomomorphismsRing, VariableOrder, ExtractPoints;
 import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
