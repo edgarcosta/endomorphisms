@@ -49,7 +49,8 @@ elif X`is_hyperelliptic or (X`g eq 1) then
     d := 2*(X`g) + 2;
     if patch_index eq 3 then
         /* Minus inserted for consistency in defining polynomial:
-         * Magma sees usual als p (x) - y^2 but this patch as x^2 - p (y) */
+         * Magma sees usual als p (x) - y^2 but this patch as x^2 - p (y).
+         * (Likely an irrelevant matter because we correct in the differentials.) */
         DEs := [ RA ! (RA.2^d * Evaluate(DE, [ 1/RA.2, RA.1/(RA.2^(d div 2)) ])) : DE in DEs ];
     end if;
     U := Curve(AffineSpace(RA), DEs);
@@ -132,7 +133,7 @@ elif (g eq 1) or X`is_hyperelliptic then
         /* If coordinate on PP^1 did not work, then this is the expression in
          * the new uniformizer */
         s := MonomialCoefficient(f, u^2);
-        return [ -s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
+        return [ -s*v^(i-1) / Derivative(f, v) : i in [1..g] ];
     end if;
 
 elif X`is_plane_quartic then

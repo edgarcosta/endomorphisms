@@ -75,7 +75,6 @@ if IsEven(d) or not NW then
     R<t> := PolynomialRing(K);
 
     rts := Roots(t^2 - g0);
-    L := K;
     if #rts eq 0 then
         L, _, hKL := NumberFieldExtra(t^2 - g0);
         X := ChangeRingCurve(X, hKL);
@@ -83,7 +82,7 @@ if IsEven(d) or not NW then
     end if;
     Q := [ 1, rts[1][1], 0 ];
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
-    return X ! P, hKL;
+    return X ! P, CanonicalInclusionMap(K, K);
 end if;
 
 /* Finite patch: */
@@ -102,7 +101,6 @@ if IsOdd(d) then
     R<t> := PolynomialRing(K);
 
     rts := Roots(t^2 - g0);
-    L := K;
     if #rts eq 0 then
         L, _, hKL := NumberFieldExtra(t^2 - g0);
         X := ChangeRingCurve(X, hKL);
@@ -111,7 +109,7 @@ if IsOdd(d) then
     Q := [ n0, rts[1][1], 1 ];
     h0 := Evaluate(h, Q[1]);
     P := [ Q[1], (Q[2] - h0)/2, Q[3] ];
-    return X ! P, hKL;
+    return X ! P, CanonicalInclusionMap(K, K);
 end if;
 error "All cases in SmallBasePointHyp fell through";
 

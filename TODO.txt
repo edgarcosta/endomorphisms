@@ -14,6 +14,7 @@ The first is to determine the ai and bi for the Qj and to translate, knowing the
 The second possibility is to first translate the infinitesimal development of Qj into that of the Rj. This requires addition of approximated points. Perhaps this is possible by first finding the generic addition law and then substituting. This may be worthwhile to avoid intermediate degrees in the rational functions ai and bi that are larger than they need to be.
 
 Later:
+Store period matrices of reconstructed curve
 Update Decomposition functionality in Sage
 Use Pari consistently
 Determine the "right" map when not consistently taking projections or inclusions; the naive suggestion is to use the inverse and multiply out denominators, but that seems too large
