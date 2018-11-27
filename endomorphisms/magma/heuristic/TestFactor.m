@@ -29,6 +29,7 @@ E := EllipticCurveFromjInvariant(j); E := WeierstrassModel(E);
 
 if Type(K) eq FldRat then
     E0 := MinimalModel(E);
+    E0 := HyperellipticCurve(E0);
     return E0;
 end if;
 cs := Coefficients(E); a := cs[4]; b := cs[5];
