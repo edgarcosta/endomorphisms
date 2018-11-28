@@ -152,14 +152,23 @@ end intrinsic;
 
 
 intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
-{Returns the number field defined by f with itself as base and an infinite place with the given precision.}
+{Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
 
-K := BaseRing(f); Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
+K := BaseRing(f);
+if Degree(f) eq 1 then
+    L := RationalsExtra(prec);
+    hKL := hom<K -> L | >;
+    r := Roots(f, L)[1][1];
+    return L, r, hKL;
+end if;
+
+Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
 L`base := L; L`base_gen := L.1; L`CC := ComplexFieldExtra(prec); L`iota := InfinitePlacesExtra(L)[1];
+hKL := hom< K -> L | >;
 
 /* Final improvement step before returning root */
 L0, hLL0 := ImproveFieldExtra(L);
-return L0;
+return L0, hLL0(L ! r), hKL * hLL0;
 
 end intrinsic;
 
