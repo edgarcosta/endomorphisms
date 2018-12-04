@@ -15,7 +15,7 @@ to your `~/.gprc` file. This is an optional improvement.
 
 You should also install [`pascalmolin/hperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file. This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
 
-Finally, in order to decompose Jacobians, you will need [`JRSijsling`](https://github.com/JRSijsling/curve_reconstruction).
+Finally, in order to decompose Jacobians, you will need [`curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction).
 
 Additional prerequisite for older Magma versions
 --
