@@ -1,5 +1,5 @@
-SetVerbose("EndoFind", 1);
-SetVerbose("CurveRec", 1);
+SetVerbose("EndoFind", 0);
+SetVerbose("CurveRec", 0);
 
 prec := 500;
 
@@ -39,6 +39,9 @@ f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2;
 f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10;
 //f := (-7 + x)*(-5 + x)*(4 + x)*(8 + x)*(17 + x)*(19 + x)*(20 + x);
 X := HyperellipticCurve(f);
+
+// Wanlin's curve
+R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![0, 0, 0, -2, 0, 0, 1], R![1]);
 
 /*
 // Plane curves
@@ -108,7 +111,17 @@ print "";
 print "Heuristic GL_2-determination (generalized notion):";
 print test_gl2_gen;
 
-facs := HeuristicJacobianFactors(X : AllIdems := false, AllPPs := false, ProjToIdem := false, ProjToPP := false);
+//facs := HeuristicJacobianFactors(X : AllIdems := false, AllPPs := false, ProjToIdem := false, ProjToPP := false)
+facs := HeuristicJacobianFactors(X : AllIdems := true, AllPPs := false, ProjToIdem := true, ProjToPP := true);
 print "";
 print "Heuristic Jacobian factors:";
 print facs;
+
+/* Only use this with the above keywords for HeuristicJacobianFactors for now */
+exps, test := IsogenyInformation(facs);
+print "";
+print "Isogeny exponents:";
+print exps;
+print "";
+print "Compatible with polarizations:";
+print test;
