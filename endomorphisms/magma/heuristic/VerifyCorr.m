@@ -213,7 +213,7 @@ error "Not implemented for general curves yet";
 end intrinsic;
 
 
-intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0) -> .
+intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree := false) -> .
 {Given curves X and Y, finds a correspondence with tangent representation A if it exists. The matrix has A has to be defined over the same field as the curve Y, and that field of definition may be an extension of that of X. Base points P and Q can be specified: otherwise these are found automatically over some extension.}
 
 A := mor[1]; R := mor[2];
@@ -247,15 +247,15 @@ A := ConjugateMatrix(hMN, A);
 
 /* Actual work */
 if (#Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
-    return true, "Multiplication by an integer";
+    return true, "Multiplication by an integer", [* X, Y, A *];
 else
     test, fs := CantorFromMatrixAmbientSplit(X, P, Y, Q, A);
     if Genus(Y) eq 1 then
-        if test and (not CorrespondenceVerifyG1(X, Y, A, fs)) then
+        if test and (not CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := CheckDegree)) then
             error "Pullback incorrect";
         end if;
     end if;
-    return test, fs;
+    return test, fs, [* X, Y, A *];
 end if;
 
 end intrinsic;
@@ -295,6 +295,7 @@ if CheckDegree then
     AX := AffinePatch(X, 1); AY := AffinePatch(Y, 1);
     KX := FunctionField(AX); KY := FunctionField(AY);
     m := map<AX -> AY | fs >;
+    print "";
     print "Degree:", Degree(ProjectiveClosure(m));
 end if;
 

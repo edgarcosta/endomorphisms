@@ -29,6 +29,7 @@ R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![-7, 0, 0, 0, 1],
 R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![0, 0, 1, 0, 1], R![1, 0, 0, 1]); Append(~Xs, X);
 R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![1, 1, 2, 1, 1], R![1, 1, 1, 1]); Append(~Xs, X);
 
+Xs := [ Xs[1] ];
 for X in Xs do
     print "";
     print "";
@@ -46,7 +47,7 @@ for X in Xs do
         print "Representation of morphism:";
         print mor;
 
-        test, fs := Correspondence(X, Y, mor);
+        test, fs := Correspondence(X, Y, mor : CheckDegree := true);
         R<x,y> := Parent(fs[1]);
         print "";
         print "Equations of morphism:";
