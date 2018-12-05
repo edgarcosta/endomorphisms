@@ -331,7 +331,7 @@ for comp_iso in comps_iso do
 
     comptup := [ ];
     for i in [1..N] do
-        comp_root := comp_roots[1];
+        comp_root := comp_roots[i];
         Qroot, morroot, incdataroot := Explode(comp_root);
         L, K, hKL := Explode(incdataroot);
         A0 := CoerceToSubfieldMatrix(A, L, K, hKL);
