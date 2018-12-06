@@ -151,22 +151,25 @@ end if;
 end intrinsic;
 
 
-intrinsic IsogenyInformation(facss::.) -> .
+intrinsic IsogenyInformationG2(facss::.) -> .
 {Returns homology exponents of isogeny induced by splitting, and tests if it is compatible with the various polarizations. For now, set AllIdems to true, AllPPs to false, ProjToIdem to true, and ProjToPP to true.}
 
 Rs := &cat[ [ fac[2][2] : fac in facs ] : facs in facss ];
-T := VerticalJoin(Rs);
-S := SmithForm(ChangeRing(T, Integers()));
-D := Diagonal(S);
-exps := [ d : d in D | not d eq 1 ];
-
 gYs := [ #Rows(R) div 2 : R in Rs ];
 gX := &+gYs;
 EYs := [ StandardSymplecticMatrix(gY) : gY in gYs ];
 EX := StandardSymplecticMatrix(gX);
 
+degs := [ Abs((R*EX*Transpose(R))[1,2]) : R in Rs ];
+
+T := VerticalJoin(Rs);
+S := SmithForm(ChangeRing(T, Integers()));
+D := Diagonal(S);
+exps := [ d : d in D | not d eq 1 ];
+
 EY := DiagonalJoin(EYs);
 test := IsMultiple(Transpose(T)*EY*T, EX);
-return exps, test;
+
+return degs, exps, test;
 
 end intrinsic;

@@ -118,7 +118,10 @@ print "Heuristic Jacobian factors:";
 print facs;
 
 /* Only use this with the above keywords for HeuristicJacobianFactors for now */
-exps, test := IsogenyInformation(facs);
+degs, exps, test := IsogenyInformationG2(facs);
+print "";
+print "Degrees:";
+print degs;
 print "";
 print "Isogeny exponents:";
 print exps;
