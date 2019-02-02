@@ -139,8 +139,8 @@ for i in [1..#vsb] do
     num := &+[ vsb[i][#B + j]*B[j] : j in [1..#B] ];
     Append(~bs, num/den);
 end for;
-vprint EndoCheck, 4 : "Function basis before simplification:";
-vprint EndoCheck, 4 : as cat bs;
+//vprint EndoCheck, 3 : "Function basis before simplification:";
+//vprint EndoCheck, 3 : as cat bs;
 return as cat bs;
 
 end function;
@@ -173,14 +173,9 @@ vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
 
 /* Take non-zero image branch */
 vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n*e);
-vprintf EndoCheck, 4 : "Base point:\n";
+P, Qs := InitializedIterator(X, Y, NormM, n*e);
 _<t> := Parent(P[1]);
 _<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a Cantor morphism to it */
@@ -218,11 +213,7 @@ InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 X`RRgens := RRGenerators(X);
 X`globgens, X`DEs_sub := GlobalGenerators(X);
 
-vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
-vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent matrix after change of basis: ";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
 tjs0, f := InitializeImageBranch(NormM);
 
@@ -249,38 +240,30 @@ InitializeCurve(X, P0); InitializeCurve(Y, Q0);
 X`RRgens := RRGenerators(X);
 X`globgens, X`DEs_sub := GlobalGenerators(X);
 
-vprintf EndoCheck, 3 : "Tangent matrix before change of basis: ";
-vprint EndoCheck, 3 : M;
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent matrix after change of basis: ";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
 tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
-gY := Y`g; F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
+gY := Y`g; F := X`F; OF := X`OF;
 /* TODO: Add decent margin here, + 1 already goes wrong occasionally */
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, gY + 2);
+P, Qs := InitializedIterator(X, Y, NormM, gY + 2);
 
-ps_rts := [ ]; prs := [ ]; vss_red := [* *];
+prs := [ ]; vss_red := [* *];
 I := ideal<X`OF | 1>;
 
 d := LowerBound;
 while true do
     /* Find new prime */
     repeat
-        p_rt := RandomSplitPrime(f, B);
-        p, rt := Explode(p_rt);
-    until not p in [ tup[1] : tup in ps_rts ];
-    Append(~ps_rts, p_rt);
-    vprintf EndoCheck : "Split prime over %o\n", p;
+        pr, h := RandomSplitPrime(f, B);
+    until not pr in prs;
+    Append(~prs, pr); I *:= pr;
+    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
 
     /* Add corresponding data */
-    pr := ideal<OF | [ p, rF - rt ]>;
-    Append(~prs, pr); I *:= pr;
-    X_red := ReduceCurveSplit(X, p, rt); Y_red := ReduceCurveSplit(Y, p, rt);
-    NormM_red := ReduceMatrixSplit(NormM, p, rt);
-    BI := Basis(I);
+    X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
+    NormM_red := ReduceMatrixSplit(NormM, h);
 
     while true do
         found, fs_red, vs_red := CantorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin);
@@ -301,7 +284,7 @@ while true do
     vs := [ ];
     for i in [1..#vss_red[1]] do
         v_reds := [* vs_red[i] : vs_red in vss_red *];
-        v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs, OF, I, BOF, BI, F) : j in [1..#v_reds[1]] ];
+        v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs) : j in [1..#v_reds[1]] ];
         Append(~vs, v);
     end for;
     vprintf EndoCheck : "done.\n";
@@ -338,20 +321,16 @@ if Y`g eq 1 then
     subsX := [ KA ! X`RA.1, KA ! X`RA.2 ];
     if X`is_hyperelliptic or (X`g eq 1) then
         if X`patch_index eq 3 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
             subsX := [ subsX[2] / subsX[1]^(g + 1), 1 / subsX[1] ];
         end if;
     elif X`is_planar then
         if X`patch_index eq 2 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
             subsX := [ subsX[1] / subsX[2], 1 / subsX[2] ];
         elif X`patch_index eq 3 then
-            vprint EndoCheck, 3 : "Modifying functions for patch index of X";
             subsX := [ subsX[2] / subsX[1], 1 / subsX[1] ];
         end if;
     end if;
     if X`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying functions for uniformizer index of X";
         subsX := [ subsX[2], subsX[1] ];
     end if;
     fs := [ Evaluate(X`KA ! f, subsX) : f in fs ];
@@ -362,11 +341,9 @@ end if;
 if Y`g eq 1 then
     fs := [ -fs[1], fs[2] ];
     if Y`unif_index eq 2 then
-        vprint EndoCheck, 3 : "Modifying functions for uniformizer index of Y";
         fs := [ fs[2], fs[1] ];
     end if;
     if Y`patch_index eq 3 then
-        vprint EndoCheck, 3 : "Modifying functions for patch index of Y";
         fs := [ 1 / fs[2], fs[1] / fs[2]^2 ];
     end if;
 end if;

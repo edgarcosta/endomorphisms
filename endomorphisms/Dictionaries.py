@@ -25,8 +25,6 @@ def index_dictionary():
     # Magma indices for base and field key
     dikt['seq'] = 1
     dikt['magma'] = 2
-    # Class number not used because of performance:
-    #dikt['h'] = 3
 
     # Magma indices for OverField
     dikt['representation'] = 1
@@ -36,7 +34,6 @@ def index_dictionary():
     # Magma indices for representation key
     dikt['tangent'] = 1
     dikt['homology'] = 2
-    dikt['approx'] = 3
 
     # Magma indices for algebra key
     dikt['alg_QQ'] = 1
@@ -53,8 +50,9 @@ def index_dictionary():
     # Sage indices for a factor_QQ
     dikt['albert_type'] = 0
     dikt['center'] = 1
-    dikt['dim_sqrt'] = 2
+    dikt['d'] = 2
     dikt['disc'] = 3
+    dikt['m'] = 4
 
     # Sage indices for desc_ZZ key
     dikt['index'] = 0
@@ -98,6 +96,9 @@ def dict_entries(entries):
         dikt['structure'] = dict_structure(tup[_index_dict_['structure']])
         dicts.append(dikt)
     return dicts
+
+def desc_sthash(sthash):
+    return sagify_description(sthash)
 
 def desc_entries(entries):
     _index_dict_ = index_dictionary()
@@ -153,7 +154,6 @@ def dict_gen(gen):
     dikt = dict()
     dikt['tangent'] = gen[_index_dict_['tangent']]
     dikt['homology'] = gen[_index_dict_['homology']]
-    dikt['approx'] = gen[_index_dict_['approx']]
     return dikt
 
 def dict_alg(rep):
@@ -179,8 +179,9 @@ def dict_factor_QQ(factor_QQ):
     dikt = dict()
     dikt['albert_type'] = factor_QQ[_index_dict_['albert_type']]
     dikt['center'] = factor_QQ[_index_dict_['center']]
-    dikt['dim_sqrt'] = factor_QQ[_index_dict_['dim_sqrt']]
+    dikt['d'] = factor_QQ[_index_dict_['d']]
     dikt['disc'] = factor_QQ[_index_dict_['disc']]
+    dikt['m'] = factor_QQ[_index_dict_['m']]
     return dikt
 
 def dict_desc_ZZ(desc_ZZ):

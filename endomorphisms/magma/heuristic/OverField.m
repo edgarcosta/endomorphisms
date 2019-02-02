@@ -9,41 +9,46 @@
  *  See LICENSE.txt for license details.
  */
 
+forward SubgroupGeneratorsUpToConjugacy;
 
-intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, GalK::List, F::Fld) -> SeqEnum
-{Given a geometric representation GeoEndoRep, a list of automorphisms GalK of
-their field of definition, and a field F, returns a basis of the endomorphisms
-defined over the subfield determined by GalK.}
 
-gensTan := [ gen[1] : gen in GeoEndoRep ];
-gensHom := [ gen[2] : gen in GeoEndoRep ];
-gensApp := [ gen[3] : gen in GeoEndoRep ];
+intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, GalK::List) -> SeqEnum
+{Given a geometric representation GeoEndoRep and a list of automorphisms GalK of
+their field of definition, returns a basis of the endomorphisms defined over
+the subfield determined by GalK.}
 
-/* Boundary cases */
-L := BaseRing(gensTan[1]);
-gensH, Gphi := Explode(GalK);
+As := [ gen[1] : gen in GeoEndoRep ];
+Rs := [ gen[2] : gen in GeoEndoRep ];
+L := BaseRing(As[1]); gensH, Gphi := Explode(GalK);
+
 /* Case where no extension is needed to find the geometric endomorphism ring */
-if not IsRelativeExtension(L, F) then
-    return GeoEndoRep;
+if Degree(L) eq 1 then
+    return GeoEndoRep, CanonicalInclusionMap(L, L);
 /* Case where we ask for the geometric endomorphism ring */
 elif #gensH eq 0 then
-    return GeoEndoRep;
+    return GeoEndoRep, CanonicalInclusionMap(L, L);
 else
     H := sub< Domain(Gphi) | gensH >;
     /* Case where we ask for the geometric endomorphism ring (again) */
     if #H eq 1 then
-        return GeoEndoRep;
+        return GeoEndoRep, CanonicalInclusionMap(L, L);
     end if;
 end if;
 
 /* The vector space representing the full endomorphism algebra */
-n := #gensTan;
+n := #As;
 Ker := VectorSpace(Rationals(), n);
 /* Successively filter by writing down the conditions for a matrix to be fixed
  * under a given generator */
 for genH in gensH do
     sigma := Gphi(genH);
-    Msigma := Matrix([ MatrixInBasis(ConjugateMatrix(sigma, genTan), gensTan) : genTan in gensTan ]);
+    rows := [ ];
+    for A in As do
+        test, row := MatrixInBasis(ConjugateMatrix(sigma, A), As);
+        assert test;
+        Append(~rows, row);
+    end for;
+    Msigma := Matrix(rows);
     Msigma -:= IdentityMatrix(Rationals(), n);
     Ker meet:= Kernel(Msigma);
 end for;
@@ -55,29 +60,28 @@ B := Basis(Lat);
 
 /* Constructing said basis */
 gens := [ ];
-K := GeneralFixedField(L, [ Gphi(genH) : genH in gensH ]);
+K, hKL := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
 for b in B do
-    genTan := &+[ b[i] * gensTan[i] : i in [1..n] ];
+    A := &+[ b[i] * As[i] : i in [1..n] ];
+    R := &+[ b[i] * Rs[i] : i in [1..n] ];
     /* Coercion to subfield */
-    genTan := Matrix(K, genTan);
-    genHom := &+[ b[i] * gensHom[i] : i in [1..n] ];
-    genApp := &+[ b[i] * gensApp[i] : i in [1..n] ];
-    Append(~gens, [* genTan, genHom, genApp *]);
+    A := CoerceToSubfieldMatrix(A, L, K, hKL);
+    Append(~gens, [* A, R *]);
 end for;
-return gens;
+return gens, hKL;
 
 end intrinsic;
 
 
-intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, K::Fld, F::Fld) -> SeqEnum
-{Given a geometric representation GeoEndoRep, a subfield K of their field of
-definition, and a field F, returns a basis of the endomorphisms defined over
-the subfield determined by GalK.}
+intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, K::Fld, h::Map) -> SeqEnum
+{Given a geometric representation GeoEndoRep and a subfield K of their field of
+definition, returns a basis of the endomorphisms defined over the subfield
+determined by GalK.}
 
 /* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
-return EndomorphismRepresentation(GeoEndoRep, GalK, F);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
+return EndomorphismRepresentation(GeoEndoRep, GalK);
 
 end intrinsic;
 
@@ -112,10 +116,9 @@ end if;
 end function;
 
 
-intrinsic SubgroupGeneratorsUpToConjugacy(L::Fld, K::Fld, F::Fld) -> List
-{Finds the subgroup generators up to conjugacy that correspond to the
-intersection of the extensions L and K of F. It is assumed that L is Galois
-and, for now, that F is the field of rationals.}
+function SubgroupGeneratorsUpToConjugacy(L, K, hKL)
+// Finds the subgroup generators up to conjugacy that correspond to the
+// subfield K of L.
 
 /* Case where L and K coincide */
 if L eq K then
@@ -124,23 +127,15 @@ end if;
 
 /* Case where either K or L is small */
 if (Degree(K) eq 1) or (Degree(L) eq 1) then
-    Gp, Gf, Gphi := AutomorphismGroup(L);
+    Gp, Gf, Gphi := AutomorphismGroupPari(L);
     return [* Generators(Gp), Gphi *];
 end if;
 
 /* General case: take group corresponding to largest subfield of L that fits
  * inside K */
-/* TODO: This is not very elegant, but the reason for this is that FixedGroup
- * fails for relative extensions */
-Gp, Gf, Gphi := AutomorphismGroup(L);
-Hs := Subgroups(Gp); Hs := [ H`subgroup : H in Hs ];
-Sort(~Hs, CompareGroups);
-for H in Hs do
-    M := FixedField(L, [ Gphi(h) : h in H ]);
-    test, f := IsSubfield(M, K);
-    if test then
-        return [* Generators(H), Gphi *];
-    end if;
-end for;
+Gp, Gf, Gphi := AutomorphismGroupPari(L);
+Helts := [ h : h in Gp | Gphi(h)(hKL(K.1)) eq hKL(K.1) ];
+H := sub< Gp | Helts >;
+return [* Generators(H), Gphi *];
 
-end intrinsic;
+end function;

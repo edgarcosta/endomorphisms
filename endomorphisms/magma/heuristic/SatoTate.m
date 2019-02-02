@@ -9,48 +9,56 @@
  *  See LICENSE.txt for license details.
  */
 
-intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
+import "OverField.m": SubgroupGeneratorsUpToConjugacy;
+forward SatoTateGroupG2QQ;
+forward SatoTateShorthand;
+forward SatoTateShorthandG2;
+
+
+intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
 {Given a description EndoStructBase of an endomorphism algebra, a
-representation GeoEndoRep of a geometric endomorphism algebra, a Galois group
-GalK, and a base field F, determines the corresponding Sato-Tate group. Via
-Shorthand, a description of the geometric endomorphism algebra tensored with RR
-can be passed.}
-
-g := #Rows(EndoStructBase[1][1][1]);
-if g eq 2 then
-    return SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
-else
-    // TODO: Add other cases when they appear.
-    return "undef";
-end if;
-
-end intrinsic;
-
-
-intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld, F::Fld : Shorthand := "") -> MonStgElt
-{Given a description EndoStructBase of an endomorphism algebra, a
-representation GeoEndoRep of a geometric endomorphism algebra, a field K, and a
-base field F, determines the corresponding Sato-Tate group. Via Shorthand, a
+representation GeoEndoRep of a geometric endomorphism algebra, and a Galois
+group GalK, determines the corresponding Sato-Tate group. Via Shorthand, a
 description of the geometric endomorphism algebra tensored with RR can be
 passed.}
 
-/* Apply previous function after finding a corresponding subgroup */
-L := BaseRing(EndoStructBase[1][1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K, F);
-return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK, F : Shorthand := Shorthand);
+g := #Rows(EndoStructBase[1][1][1]);
+vprint EndoFind : "";
+vprint EndoFind : "Calculating Sato-Tate group...";
+if g eq 2 then
+    ST := SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
+else
+    ST := "undef";
+end if;
+vprint EndoFind : "done calculating Sato-Tate group.";
+return ST;
 
 end intrinsic;
 
 
-intrinsic SatoTateGroupG2QQ(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List, F::Fld : Shorthand := "") -> MonStgElt
+intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, K::Fld, h::Map : Shorthand := "") -> MonStgElt
 {Given a description EndoStructBase of an endomorphism algebra, a
-representation GeoEndoRep of a geometric endomorphism algebra, a Galois group
-GalK, and a base field F, determines the corresponding Sato-Tate group. Via
-Shorthand, a description of the geometric endomorphism algebra tensored with RR
-can be passed. Assumes that the genus equals 2.}
+representation GeoEndoRep of a geometric endomorphism algebra, and a field K,
+determines the corresponding Sato-Tate group. Via Shorthand, a description of
+the geometric endomorphism algebra tensored with RR can be passed.}
 
-GensH, Gphi := Explode(GalK);
-if #GensH eq 0 then
+/* Apply previous function after finding a corresponding subgroup */
+L := BaseRing(EndoStructBase[1][1]);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
+return SatoTateGroup(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
+
+end intrinsic;
+
+
+function SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := "")
+// Given a description EndoStructBase of an endomorphism algebra, a
+// representation GeoEndoRep of a geometric endomorphism algebra, and a Galois
+// group GalK, determines the corresponding Sato-Tate group. Via Shorthand, a
+// description of the geometric endomorphism algebra tensored with RR can be
+// passed. Assumes that the genus equals 2.
+
+gensH, Gphi := Explode(GalK);
+if #gensH eq 0 then
     Shorthand := SatoTateShorthandG2(EndoStructBase);
     if Shorthand eq "A" then
         return "USp(4)";
@@ -66,7 +74,7 @@ if #GensH eq 0 then
         return "C_1";
     end if;
 end if;
-H := sub< Domain(Gphi) | GensH >;
+H := sub< Domain(Gphi) | gensH >;
 L := BaseRing(GeoEndoRep[1][1]);
 GalL := [* sub< Domain(Gphi) |  [ ] >, Gphi *];
 
@@ -92,11 +100,11 @@ end if;
 
 /* Determine the Shorthand if it was not passed */
 if Shorthand eq "" then
-    GeoEndoStructBase := EndomorphismStructureBase(GeoEndoRep, GalL, F);
+    GeoEndoStructBase := EndomorphismData(GeoEndoRep, GalL);
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
 end if;
 descRR := EndoStructBase[3][3];
-K := GeneralFixedField(L, [ Gphi(gen) : gen in GensH ]);
+K := FixedFieldExtra(L, [ Gphi(gen) : gen in gensH ]);
 
 /* Usually the shorthand and endomorphism structure of the base field determine
  * everything; in the rare cases where they do not we recalculate a bit. */
@@ -168,9 +176,9 @@ elif Shorthand eq "F" then
         elif IsIsomorphic(H, DihedralGroup(6)) then
             /* See Fité--Kedlaya--Rotger--Sutherland (4.3) for the next step */
             H_prime := Center(H);
-            GensH_prime := Generators(H_prime);
-            GalK_prime := [* GensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime, F);
+            gensH_prime := Generators(H_prime);
+            GalK_prime := [* gensH_prime, Gphi *];
+            EndoStruct_prime := EndomorphismData(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "D_{6,1}";
@@ -210,9 +218,9 @@ elif Shorthand eq "F" then
         elif IsIsomorphic(H, CyclicGroup(6)) then
             /* Here we take the unique subgroup of order 2 */
             H_prime := Subgroups(H : OrderEqual := 2)[1]`subgroup;
-            GensH_prime := Generators(H_prime);
-            GalK_prime := [* GensH_prime, Gphi *];
-            EndoStruct_prime := EndomorphismStructureBase(GeoEndoRep, GalK_prime, F);
+            gensH_prime := Generators(H_prime);
+            GalK_prime := [* gensH_prime, Gphi *];
+            EndoStruct_prime := EndomorphismData(GeoEndoRep, GalK_prime);
             descRR_prime := EndoStruct_prime[3][3];
             if descRR_prime eq ["M_2 (RR)"] then
                 return "C_{6,1}";
@@ -224,8 +232,12 @@ elif Shorthand eq "F" then
             /* In this case it suffices to check whether the polynomial that
              * defines the center of the geometric endomorphism ring in fact has
              * a root in the ground field */
-            f := DefiningPolynomial(L);
-            if HasRoot(f, K) then
+            struct := EndomorphismDataWithSatoTate(GeoEndoRep, [* [ ], Gphi *]);
+            A := struct[2][1];
+            A := AlgebraOverCenter(A);
+            M := BaseRing(A);
+            f := DefiningPolynomial(M);
+            if HasRootPari(f, K) then
                 return "D_2";
             else
                 return "J(C_2)";
@@ -268,27 +280,28 @@ elif Shorthand eq "F" then
 end if;
 error "All cases in SatoTateGroupG2QQ fell through";
 
-end intrinsic;
+end function;
 
 
-intrinsic SatoTateShorthand(GeoEndoStructBase::List) -> MonStgElt
-{Returns the letter describing the neutral connected component of the Sato-Tate
-group corresponding to GeoEndoStructBase.}
+function SatoTateShorthand(GeoEndoStructBase)
+// Returns the letter describing the neutral connected component of the
+// Sato-Tate group corresponding to GeoEndoStructBase.
 
 g := #Rows(GeoEndoStructBase[1][1][1]);
 if g eq 2 then
     return SatoTateShorthandG2(GeoEndoStructBase);
 else
-    // TODO: Add other cases when they appear.
+    /* Add other cases when they appear. */
     return "undef";
 end if;
 
-end intrinsic;
+end function;
 
 
-intrinsic SatoTateShorthandG2(GeoEndoStructBase::List) -> MonStgElt
-{Returns the letter describing the neutral connected component of the Sato-Tate
-group corresponding to GeoEndoStructBase. Assumes that the genus equals 2.}
+function SatoTateShorthandG2(GeoEndoStructBase)
+// Returns the letter describing the neutral connected component of the
+// Sato-Tate group corresponding to GeoEndoStructBase. Assumes that the genus
+// equals 2.
 
 descRR := GeoEndoStructBase[3][3];
 case descRR:
@@ -302,4 +315,4 @@ case descRR:
     else: error "Shorthand algorithm obtains contradiction with classification";
 end case;
 
-end intrinsic;
+end function;

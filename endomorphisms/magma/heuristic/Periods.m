@@ -9,11 +9,14 @@
  *  See LICENSE.txt for license details.
  */
 
+import "Curves.m": EmbedCurveEquations;
+forward IsSuperellipticEquation;
+forward SuperellipticCompatibility;
 
-/* Enable MolinNeurohr if you have access to the relevant code by Pascal Molin and
- * Christian Neurohr */
 
-intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum : MolinNeurohr := false) -> AlgMatElt
+/* TODO: This stupid intrinsic should go, but it is used in curve
+ * reconstruction, so I wait for the Magma update */
+intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum) -> ModMatFldElt
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
@@ -25,49 +28,62 @@ if #GeneratorsSequence(RCC) eq 1 then
     else
         gCC := Explode(eqsCC);
     end if;
-    if not MolinNeurohr then
-        // FIXME: there must be a better way to do this
-        // a very hacky way to fool the preparser and 
-        // avoid an undefined reference 'SE_Curve'
-        // eventhough, we would never call it
-        SE_Curve := function(x, y : z := 0)
-            return true;
-        end function;
-        //end of hack
-        JCC := AnalyticJacobian(gCC);
-        /* We divide by 2 because we integrate wrt x^i dx / 2y */
-        return ChangeRing(BigPeriodMatrix(JCC), CC) / 2;
-    else
-        X := SE_Curve(gCC, 2 : Prec := Precision(CC));
-        return ChangeRing(X`BigPeriodMatrix, CC) / 2;
-    end if;
-    /* Alternative version: */
-    //return ChangeRing(PeriodMatrix(gCC : Prec := Precision(CC)), CC) / 2;
+    /* We divide by 2 because we integrate with respect to the canonical
+     * differential x^i dx / 2y
+     * (MN use x^i dx) */
+    X := SE_Curve(gCC, 2 : Prec := Precision(CC));
+    return ChangeRing(X`BigPeriodMatrix, CC) / 2;
+
 elif #GeneratorsSequence(RCC) eq 3 then
-    if not MolinNeurohr then
-        error "No functionality for plane curves available";
-    end if;
-    test, fCC, e := IsSuperelliptic(eqsCC);
-    if test then
-        X := SE_Curve(fCC, 3 : Prec := Precision(CC));
+    test, fCC, e := IsSuperellipticEquation(eqsCC);
+    if false then
+        X := SE_Curve(fCC, e : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
         return SuperellipticCompatibility(P, e);
     else
+        /* Note: only polynomials over QQ for now */
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
-        return ChangeRing(PeriodMatrix(f : Prec := Precision(CC)), CC);
+        try
+            /* TODO: Add this when it becomes available */
+            //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
+            //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
+            return 1/(1 - 1);
+        catch err
+            error "No functionality for plane curves available";
+        end try;
     end if;
+
 else
     error "No functionality for general curves available";
 end if;
 end intrinsic;
 
 
-intrinsic IsSuperelliptic(eqs::SeqEnum) -> BoolElt, ., .
-{Returns whether the plane curve defined by eqs is of the form y^e z^* = f (x,
-z). If so, return the inhomogenous form of f along with e.}
-// TODO: Deal with this beyond genus 3 by making superelliptic curves a class
-// of their own.
+intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
+{Returns the period matrix of X.}
+
+vprint EndoFind : "";
+vprint EndoFind : "Calculating period matrix...";
+if assigned X`period_matrix then
+    vprint EndoFind : "using stored period matrix.";
+    return X`period_matrix;
+end if;
+
+Y := PlaneModel(X);
+eqsCC := EmbedCurveEquations(Y); eqsF := DefiningEquations(Y);
+X`period_matrix := PeriodMatrix(eqsCC, eqsF);
+vprint EndoFind : "done calculating period matrix.";
+return X`period_matrix;
+
+end intrinsic;
+
+
+/* TODO: Next functions should go since this realization is up to the user once
+ * there is a dedicated SE class */
+function IsSuperellipticEquation(eqs)
+// Returns whether the plane curve defined by eqs is of the form y^e z^* = f
+// (x, z). If so, return the inhomogenous form of f along with e.
 
 R<x,y,z> := Parent(eqs[1]);
 if #GeneratorsSequence(R) eq 1 then
@@ -82,20 +98,22 @@ if #monsy ne 1 then
     return false, 0, 1;
 end if;
 
-e := Exponents(monsy[1])[2]; C := MonomialCoefficient(F, monsy[1]);
+e := Exponents(monsy[1])[2];
 S<t> := PolynomialRing(BaseRing(R));
 f := &+[ MonomialCoefficient(F, mon) * t^(Exponents(mon)[1]) : mon in monsxz ];
+C := MonomialCoefficient(F, monsy[1]);
 f := -f/C;
 return true, f, e;
 
-end intrinsic;
+end function;
 
 
-intrinsic SuperellipticCompatibility(P::., e::RngIntElt) -> .
-{Transforms the differentials on a superelliptic curve to compensate for conventions.}
+function SuperellipticCompatibility(P, e)
+// Transforms the differentials on a superelliptic curve to compensate for
+// conventions.
 // TODO: Generalize this to apply beyond genus 3. This is a matter of fixing a
 // base of differentials. But actually superelliptic curves should be treated
-// as a class of their own.
+// as a class of their own. Not now: use base provided by Christian.
 
 rowsP := Rows(P);
 if #rowsP eq 3 then
@@ -103,4 +121,4 @@ if #rowsP eq 3 then
 end if;
 error "Need g = 3 for now";
 
-end intrinsic;
+end function;

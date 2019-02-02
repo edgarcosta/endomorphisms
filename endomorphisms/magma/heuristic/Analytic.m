@@ -10,7 +10,7 @@
  */
 
 
-intrinsic ComplexStructure(P::.) -> .
+intrinsic ComplexStructure(P::ModMatFldElt) -> AlgMatElt
 {Returns the complex structure that corresponds to the period matrix P. It is
 the RR-linear transformation on homology that corresponds to multiplication
 with i.}
@@ -22,9 +22,9 @@ return NumericalRightSolve(PSplit, iPSplit);
 end intrinsic;
 
 
-intrinsic RationalHomomorphismEquations(JP::., JQ::.) -> .
-{Given two complex structures JP and JQ, returns the equations on homology
-satisfied by a homomorphism between the two corresponding abelian varieties.}
+function RationalHomomorphismEquations(JP, JQ)
+// Given two complex structures JP and JQ, returns the equations on homology
+// satisfied by a homomorphism between the two corresponding abelian varieties.
 
 /* Basic invariants */
 RR := BaseRing(JP);
@@ -40,29 +40,29 @@ Comm := Eltseq(M * ChangeRing(JP, R) - ChangeRing(JQ, R) * M);
 /* Splitting previous linear equations by formal variable */
 return Matrix(RR, [ [MonomialCoefficient(c, var) : c in Comm] : var in vars ]);
 
-end intrinsic;
+end function;
 
 
-intrinsic TangentRepresentation(R::., P::., Q::.) -> .
+intrinsic TangentRepresentation(R::., P::ModMatFldElt, Q::ModMatFldElt) -> .
 {Given a homology representation R of a homomorphism and two period matrices P
 and Q, returns an analytic representation A of that same homomorphism, so that
 A P = Q R.}
 
 CC := BaseRing(P);
-P0, s0 := InvertibleSubmatrix(P : IsPeriodMatrix := true);
+P0, s0 := InvertibleSubmatrix(P);
 QR := Q * ChangeRing(R, CC);
 QR0 := Submatrix(QR, [ 1..#Rows(QR) ], s0);
-/* Invert and return; transposes intervene because of right action */
 A := NumericalLeftSolve(P0, QR0);
-if Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) gt CC`epscomp then
-    error "Error in determining tangent representation";
+test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return A;
 
 end intrinsic;
 
 
-intrinsic TangentRepresentation(R::., P::.) -> .
+intrinsic TangentRepresentation(R::., P::ModMatFldElt) -> .
 {Given a homology representation R of an endomorphism and a period matrix P,
 returns an analytic representation of that same endomorphism, so that A P = Q
 R.}
@@ -72,7 +72,7 @@ return TangentRepresentation(R, P, P);
 end intrinsic;
 
 
-intrinsic HomologyRepresentation(A::., P::., Q::.) -> .
+intrinsic HomologyRepresentation(A::., P::ModMatFldElt, Q::ModMatFldElt) -> .
 {Given a complex tangent representation A of a homomorphism and two period
 matrices P and Q, returns a homology representation R of that same
 homomorphism, so that A P = Q R.}
@@ -81,16 +81,17 @@ CC := BaseRing(P);
 SplitAP := VerticalSplitMatrix(A * P);
 SplitQ := VerticalSplitMatrix(Q);
 RRR := NumericalRightSolve(SplitQ, SplitAP);
-R := Matrix(Integers(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
-if Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) gt CC`epscomp then
-    error "Error in determining homology representation";
+R := Matrix(Rationals(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
+test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
+if test gt CC`epscomp then
+    error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return R;
 
 end intrinsic;
 
 
-intrinsic HomologyRepresentation(A::., P::.) -> .
+intrinsic HomologyRepresentation(A::., P::ModMatFldElt) -> .
 {Given a complex tangent representation A of an endomorphism and a period
 matrix P, returns a homology representation R of that same endomorphism, so
 that A P = P R.}
@@ -100,7 +101,7 @@ return HomologyRepresentation(A, P, P);
 end intrinsic;
 
 
-intrinsic GeometricHomomorphismRepresentationPartial(P::., Q::.) -> SeqEnum
+intrinsic GeometricHomomorphismRepresentationCC(P::ModMatFldElt, Q::ModMatFldElt) -> SeqEnum
 {Given period matrices P and Q, this function determines a ZZ-basis of
 homomorphisms between the corresponding abelian varieties. These are returned
 as pairs of a complex tangent representation A and a homology representation R
@@ -111,8 +112,15 @@ gP := #Rows(P); gQ := #Rows(Q);
 JP := ComplexStructure(P); JQ := ComplexStructure(Q);
 
 /* Determination of approximate endomorphisms by LLL */
+vprint EndoFind : "";
+vprint EndoFind : "Determining homomorphism equations...";
 M := RationalHomomorphismEquations(JP, JQ);
-Ker, test := IntegralLeftKernel(M);
+vprint EndoFind : "done determining homomorphism equations.";
+vprint EndoFind : "";
+vprint EndoFind : "Finding geometric homomorphisms...";
+Ker, test := IntegralLeftKernel(M : EndoRep := true);
+vprint EndoFind, 2 : "";
+vprint EndoFind : "done finding geometric homomorphisms.";
 if not test then
     return [ ];
 end if;
@@ -125,9 +133,6 @@ for r in Rows(Ker) do
     Comm := ChangeRing(R, RR) * JP - JQ * ChangeRing(R, RR);
     if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
         A := TangentRepresentation(R, P, Q);
-        if Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) gt CC`epscomp then
-            error "Error in determining homomorphism representations";
-        end if;
         Append(~gens, [* A, R *]);
     end if;
 end for;
@@ -136,69 +141,103 @@ return gens;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentationPartial(P::.) -> .
+intrinsic GeometricEndomorphismRepresentationCC(P::ModMatFldElt) -> .
 {Given a period matrix P, this function determines a ZZ-basis of endomorphisms
 of the corresponding abelian variety. These are returned as pairs of a complex
 tangent representation A and a homology representation R for which A P = P R.}
 
-return GeometricHomomorphismRepresentationPartial(P, P);
+return GeometricHomomorphismRepresentationCC(P, P);
 
 end intrinsic;
 
 
-intrinsic GeometricHomomorphismRepresentation(P::., Q::., F::Fld : UpperBound := Infinity()) -> SeqEnum
+intrinsic GeometricHomomorphismRepresentation(P::ModMatFldElt, Q::ModMatFldElt, F::Fld) -> SeqEnum
 {Given period matrices P and Q, as well as a field F, this function determines
 a ZZ-basis of homomorphisms between the corresponding abelian varieties. These
-are returned as triples of an algebraized tangent representation A, a homology
-representation R and a complex tangent representation ACC. We have ACC P = Q R,
-and via the infinite place of F the matrix A is mapped to ACC.}
+are returned as triples of an algebraized tangent representation A over a
+number field K, a homology representation R and a complex tangent
+representation ACC. We have ACC P = Q R, and via the infinite place of K the
+matrix A is mapped to ACC. The inclusion of F into K is the second return
+value.}
 
-gensPart := GeometricHomomorphismRepresentationPartial(P, Q);
-gensPol, test := RelativeMinimalPolynomials(gensPart, F : UpperBound := UpperBound);
-if not test then
-    error "No suitable minimal polynomial found";
+/* Determine matrices over CC */
+gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+/* Determine minimal polynomials needed */
+seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+vprint EndoFind : "";
+vprint EndoFind : "Finding number field defined by homomorphisms...";
+K, seq, hFK := NumberFieldExtra(seqPart, F);
+vprint EndoFind : "done finding number field defined by homomorphisms:", K;
+
+assert #seq eq #seqPart;
+if #seq eq 0 then
+    return [ ], hFK;
 end if;
-L := RelativeSplittingFieldExtra(gensPol);
-gens := [ ];
-for gen in gensPart do
-    genApp, genHom := Explode(gen);
-    genTan, test := AlgebraizeMatrixInRelativeField(genApp, L);
-    if not test then
-        error "No suitable algebraic element found";
-    end if;
-    Append(~gens, [* genTan, genHom, genApp *]);
+
+r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
+As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
+gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
+for i in [1..#gens] do
+    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1], K`iota) - gensPart[i][1]) ]);
+    assert abs lt BaseRing(P)`epscomp;
 end for;
-return gens;
+return gens, hFK;
 
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::., F::Fld : UpperBound := Infinity()) -> SeqEnum
-{Given a period matrix P and a field F, this function determines a ZZ-basis of
-endomorphisms of the corresponding abelian variety. These are returned as
-triples of an algebraized tangent representation A, a homology representation R
-and a complex tangent representation ACC. We have ACC P = P R, and via the
-infinite place of F the matrix A is mapped to ACC.}
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld) -> SeqEnum
+{Given period matrices P and a field F, this function determines a ZZ-basis of
+the corresponding abelian variety. These are returned as triples of an
+algebraized tangent representation A over a number field K, a homology
+representation R and a complex tangent representation ACC. We have ACC P = P R,
+and via the infinite place of K the matrix A is mapped to ACC. The inclusion of
+F into K is the second return value.}
 
-return GeometricHomomorphismRepresentation(P, P, F : UpperBound := UpperBound);
+Q := P;
+/* Determine matrices over CC */
+gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+/* Determine minimal polynomials needed */
+seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+/* Use splitting field instead of number field since the resulting field is
+ * normal */
+vprint EndoFind : "";
+vprint EndoFind : "Finding number field defined by homomorphisms...";
+K, seq, hFK := SplittingFieldExtra(seqPart, F);
+vprint EndoFind : "";
+vprint EndoFind : "done finding number field defined by homomorphisms:";
+vprint EndoFind : K;
+
+assert #seq eq #seqPart;
+if #seq eq 0 then
+    return [ ], hFK;
+end if;
+
+r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
+As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
+gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
+for i in [1..#gens] do
+    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1], K`iota) - gensPart[i][1]) ]);
+    assert abs lt BaseRing(P)`epscomp;
+end for;
+return gens, hFK;
 
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentationRecognition(gensPart::SeqEnum, L::Fld) -> .
-{Given the output of GeometricEndomorphismRepresentationPartial and a field L
-with an infinite places, writes the tangent representation of the former as
-matrices over the latter. Use when delegating to Sage.}
+intrinsic GeometricEndomorphismRepresentation(X::Crv) -> SeqEnum
+{Given a curve X over a field F, this function determines a ZZ-basis of the
+corresponding abelian variety. These are returned as triples of an algebraized
+tangent representation A over a number field K, a homology representation R and
+a complex tangent representation ACC. We have ACC P = P R for the period matrix
+P of X, and via the infinite place of K the matrix A is mapped to ACC. The
+inclusion of F into K is the second return value.}
 
-gens := [ ];
-for gen in gensPart do
-    genApp, genHom := Explode(gen);
-    genTan, test := AlgebraizeMatrixInRelativeField(genApp, L);
-    if not test then
-        error "No suitable algebraic element found";
-    end if;
-    Append(~gens, [* genTan, genHom, genApp *]);
-end for;
-return gens;
+if assigned X`geo_endo_rep then
+    return X`geo_endo_rep;
+end if;
+
+X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
+return X`geo_endo_rep;
 
 end intrinsic;

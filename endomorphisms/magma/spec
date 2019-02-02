@@ -1,32 +1,39 @@
 {
+  polredabs.m
+  roots.m
   bounds
   {
     MagmaInterface.m
   }
   heuristic
   {
-    Precision.m
-    Relative.m
-    Recognition.m
-    Optimize.m
+    CCExtra.m
+    Sagify.m
 
     Curves.m
     Periods.m
 
+    Relative.m
+    Recognition.m
+
     Linear.m
+    Saturate.m
     Analytic.m
+
+    SatoTate.m
+    SatoTateHash.m
 
     OverField.m
     Structure.m
-    SatoTate.m
     Lattice.m
-    Sagify.m
 
-    VerifySat.m
-    VerifyCorr.m
-    DecProjs.m
-    DecFactors.m
+    MaxIsotr.m
+    DecFacts.m
+    DecCurves.m
     TestFactor.m
+
+    VerifyCorr.m
+    Buttons.m
   }
   polarization
   {
@@ -39,13 +46,12 @@
   {
     Conventions.m
     Initialize.m
-    RiemannRoch.m
     FractionalCRT.m
     Branches.m
     CantorAmbient.m
     DivisorAmbient.m
+    RiemannRoch.m
     CantorRR.m
     DivisorRR.m
-    Bidegree.m
   }
 }

@@ -29,7 +29,7 @@ forward GlobalProductBasis;
 
 function DegreeBound(X, d)
 
-/* Heuristic version; this should suffices since we only care about a divisor
+/* Heuristic version; this should suffice since we only care about a divisor
  * containing the base point and extra fibral contributions are all right */
 return d + X`g + 1;
 /* Base-point free version: */

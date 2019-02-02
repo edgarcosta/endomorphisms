@@ -10,6 +10,7 @@
  */
 
 
+/* TODO: These algorithms will be redundant soon */
 import "Branches.m": InitializeImageBranch, DevelopPoint;
 import "Conventions.m": ExtractHomomorphismsRing, VariableOrder, ExtractPoints;
 import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
@@ -67,7 +68,7 @@ return divs;
 end function;
 
 
-function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := false)
+function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs)
 /*
  * Input:   Two curves X and Y,
  *          a basis of divisor equations fs,
@@ -77,7 +78,7 @@ function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := false)
  */
 
 /* Recovering a linear system */
-e := Maximum([ Maximum([ Denominator(Valuation(c - Coefficient(c, 0))) : c in Q ]) : Q in Qs ]);
+e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
 prec := Precision(Parent(P[1]));
 M := [ ];
 for f in fs do
@@ -85,6 +86,7 @@ for f in fs do
     for Q in Qs do
         seq := ExtractPoints(X, Y, P, Q);
         ev := Evaluate(f, seq);
+        /* Small buffer: we might just as well take 1 instead of X`g */
         r cat:= [ Coefficient(ev, i/e) : i in [0..prec - X`g] ];
     end for;
     Append(~M, r);
@@ -94,24 +96,29 @@ B := Basis(Kernel(Matrix(M)));
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
-hX, hY := ExtractHomomorphismsRing(X, Y);
+hX, hY, hxs, hxsinv, hys, hysinv := ExtractHomomorphismsRing(X, Y);
 Rprod := Codomain(hX);
 eqs := [ Rprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
 
-if DivPP1 then
-    Rprod := Codomain(hX);
-    GB := GroebnerBasis(ideal< Rprod | eqs >);
-    Append(~eqs, GB[#GB]);
+if X`is_hyperelliptic and Y`is_hyperelliptic then
+    Iprod := ideal< Rprod | eqs >;
+    varord := VariableOrder();
+    Bxs := Basis(EliminationIdeal(Iprod, { varord[1], varord[3] }));
+    //Bys := Basis(EliminationIdeal(Iprod, { varord[1], varord[4] }));
+    if (#Bxs ne 0) then
+        gcdx := hxsinv(GCD([ hxs(b) : b in Bxs ]));
+        //gcdy := hysinv(GCD([ hys(b) : b in Bys ]));
+        eqs cat:= [ gcdx ];
+        //eqs := [ gcdx ] cat Reverse(eqs)[1..2] cat [ eqs[1] ];
+    else
+        eqs := [ Rprod ! 0 ];
+    end if;
 end if;
 
 /* Corresponding scheme */
-A := AffineSpace(Rprod);
-S := Scheme(A, eqs);
+A := AffineSpace(Rprod); S := Scheme(A, eqs);
 return [ S ];
-
-/* TODO: These steps may be a time sink and should be redundant, so we avoid
- *       them. They get eliminated as the degree increases anyway. */
 return [ ReducedSubscheme(I) : I in IrreducibleComponents(S) ];
 
 end function;
@@ -162,24 +169,20 @@ return false;
 end function;
 
 
-intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), DivPP1 := false) -> BoolElt, .
+intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
-vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 
 d := LowerBound;
+Iterator := InitializedIterator(X, Y, NormM, 2*Y`g + 1);
 while true do
-    found, S := DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := DivPP1, have_to_check := true);
+    found, S, Iterator := DivisorFromMatrixByDegree(X, Y, Iterator, d : Margin := Margin);
     if found then
         return true, S;
     end if;
-    /* If that does not work, give up and try one degree higher */
     d +:= 1;
     if d gt UpperBound then
         return false, [];
@@ -189,47 +192,40 @@ end while;
 end intrinsic;
 
 
-intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^4, LowerBound := 1, UpperBound := Infinity(), DivPP1 := false, B := 300) -> BoolElt, .
+intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
-InitializeCurve(X, P0); InitializeCurve(Y, Q0);
+InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
 NormM := ChangeTangentAction(X, Y, M);
-vprintf EndoCheck, 3 : "Tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
 NormM := Y`T * NormM * (X`T)^(-1);
-vprintf EndoCheck, 3 : "Normalized tangent representation:\n";
-vprint EndoCheck, 3 : NormM;
-tjs0, f := InitializeImageBranch(NormM);
 
 /* Some global elements needed below */
-F := X`F; rF := X`rF; OF := X`OF; BOF := X`BOF;
+F := X`F; OF := X`OF;
 Rprod := PolynomialRing(X`F, 4, "lex");
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, X`g);
+/* Bit more global margin just to be sure */
+Iterator, f := InitializedIterator(X, Y, NormM, 2*Y`g + 1);
+P := Iterator[1]; Qs := Iterator[2];
 
-ps_rts := [ ]; prs := [ ]; DEss_red := [* *];
+prs := [ ]; DEss_red := [* *];
 I := ideal<X`OF | 1>;
-have_to_check := true;
 
 d := LowerBound;
 while true do
     /* Find new prime */
     repeat
-        p_rt := RandomSplitPrime(f, B);
-        p, rt := Explode(p_rt);
-    until not p in [ tup[1] : tup in ps_rts ];
-    Append(~ps_rts, p_rt);
-    vprintf EndoCheck : "Split prime over %o\n", p;
+        pr, h := RandomSplitPrime(f, B);
+    until not pr in prs;
+    Append(~prs, pr); I *:= pr;
+    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
 
     /* Add corresponding data */
-    pr := ideal<X`OF | [ p, rF - rt ]>;
-    Append(~prs, pr); I *:= pr;
-    X_red := ReduceCurveSplit(X, p, rt); Y_red := ReduceCurveSplit(Y, p, rt);
-    NormM_red := ReduceMatrixSplit(NormM, p, rt);
-    BI := Basis(I);
+    X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
+    NormM_red := ReduceMatrixSplit(NormM, h);
 
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, 2*Y`g + 1);
     while true do
-        found, S_red := DivisorFromMatrixByDegree(X_red, Y_red, NormM_red, d : Margin := Margin, DivPP1 := DivPP1, have_to_check := have_to_check);
+        found, S_red, Iterator_red := DivisorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that
          * d is initialized in the outer loop, so that we keep the degree that
          * works. */
@@ -241,7 +237,6 @@ while true do
             return false, [];
         end if;
     end while;
-    have_to_check := false;
     Append(~DEss_red, DefiningEquations(S_red));
 
     vprintf EndoCheck : "Fractional CRT... ";
@@ -255,7 +250,7 @@ while true do
                 Rprod_red := Parent(DEss_red[j][1]);
                 Append(~rs, MonomialCoefficient(DEss_red[j][i], Monomial(Rprod_red, exp)));
             end for;
-            DE +:= FractionalCRTSplit(rs, prs, OF, I, BOF, BI, F) * Monomial(Rprod, exp);
+            DE +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(Rprod, exp);
         end for;
         Append(~DEs, DE);
     end for;
@@ -282,31 +277,30 @@ end while;
 end intrinsic;
 
 
-function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4, DivPP1 := false, have_to_check := true)
+function DivisorFromMatrixByDegree(X, Y, Iterator, d : Margin := 2^5)
 
 vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
 fs := CandidateDivisors(X, Y, d);
-//fsNew := CandidateDivisorsNew(X, Y, d);
 n := #fs + Margin;
-//n := 450;
 vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
 
-/* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding... ";
-P, Qs := ApproximationsFromTangentAction(X, Y, NormM, n);
-vprintf EndoCheck, 4 : "Base point:\n";
-_<t> := Parent(P[1]);
-_<r> := BaseRing(Parent(P[1]));
-vprint EndoCheck, 4 : P;
-vprintf EndoCheck, 4 : "Resulting branches:\n";
-vprint EndoCheck, 4 : Qs;
-vprint EndoCheck, 4 : BaseRing(Parent(P[1]));
+vprintf EndoCheck, 2 : "Expanding branches... ";
+while true do
+    P, Qs, _, _ := Explode(Iterator);
+    prec := Precision(Parent(Qs[1][1]));
+    /* TODO: Multiply by ramification index like this? */
+    //prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ]);
+    if prec ge n then
+        break;
+    end if;
+    Iterator := IterateIterator(Iterator);
+end while;
+P, Qs, _, _ := Explode(Iterator);
 vprintf EndoCheck, 2 : "done.\n";
 
 /* Fit a divisor to it */
 vprintf EndoCheck, 2 : "Solving linear system... ";
-ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : DivPP1 := DivPP1);
-//ICsNew := IrreducibleComponentsFromBranchesNew(X, Y, fsNew, P, Qs : DivPP1 := DivPP1);
+ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs);
 vprintf EndoCheck, 2 : "done.\n";
 
 for S in ICs do
@@ -321,10 +315,10 @@ for S in ICs do
         vprintf EndoCheck, 2 : "done.\n";
         if test2 then
             vprintf EndoCheck, 2 : "Divisor found!\n";
-            return true, S;
+            return true, S, Iterator;
         end if;
     end if;
 end for;
-return false, [ ];
+return false, [ ], Iterator;
 
 end function;

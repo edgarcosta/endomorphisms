@@ -11,18 +11,18 @@
 
 
 intrinsic NumericalLeftSolve(A::., B::.) -> .
-{Returns the solution X to the equation X * A = B.}
+{Returns the numerical solution X to the equation X * A = B.}
 
-// TODO: NumericalKernel should be used.
-return B * A^(-1);
+//return B * A^(-1);
+R := BaseRing(A);
+return NumericalSolution(A, B : Epsilon := R`epscomp);
 
 end intrinsic;
 
 
 intrinsic NumericalRightSolve(A::., B::.) -> .
-{Returns the solution X to the equation A * X = B.}
+{Returns the numerical solution X to the equation A * X = B.}
 
-// TODO: NumericalKernel should be used.
 return Transpose(NumericalLeftSolve(Transpose(A), Transpose(B)));
 
 end intrinsic;
@@ -31,8 +31,9 @@ end intrinsic;
 intrinsic SubmatrixOfRank(M::., rk::RngIntElt : ColumnsOrRows := "Columns") -> .
 {Returns a submatrix of M of rank rk, together with the corresponding list of
 rows or columns. Returns an error if such a matrix does not seem to exist.
-ColumnsOrRows specifies whether columns of rows are used.}
-/* TODO: Use an LU decomposition instead */
+ColumnsOrRows specifies which of the two are culled down.}
+/* TODO: Use an LU decomposition instead. However, no numerical version of that
+ * seems to work for now. */
 
 /* Reducing to the case of columns */
 if ColumnsOrRows eq "Columns" then
@@ -41,9 +42,8 @@ if ColumnsOrRows eq "Columns" then
 end if;
 
 /* Elementary invariants */
-CC := BaseRing(M);
-r := #Rows(M); c := #Rows(Transpose(M));
-RM := Rows(M);
+CC := BaseRing(M); RM := Rows(M);
+r := #RM; c := #Rows(Transpose(M));
 
 /* Prefer obvious choice if possible */
 s0 := [ 1..rk ];
@@ -65,8 +65,9 @@ end intrinsic;
 
 
 intrinsic InvertibleSubmatrix(M::. : IsPeriodMatrix := false) -> .
-{Returns an invertible submatrix of M. We assume for now that M is a period
-matrix with respect to a symplectic basis, which speeds up the calculation.}
+{Returns an invertible submatrix of M. We can indicate that M is a period
+matrix with respect to a symplectic basis, which trivially speeds up the
+calculation by extracting the first m columns.}
 
 r := #Rows(M); c := #Rows(Transpose(M)); m := Min(r, c);
 /* Speedup for period matrices with respect to a symplectic basis */
@@ -83,7 +84,7 @@ end intrinsic;
 
 
 intrinsic HorizontalSplitMatrix(M::.) -> .
-{Returns the horizontal join of the real and imaginary part of M.}
+{Returns the horizontal join of the real and imaginary part of M, so (Re | Im).}
 
 CC := BaseRing(M); RR := RealField(CC);
 MSplitRe := Matrix(RR, [ [ Real(c) : c in Eltseq(r)] : r in Rows(M) ]);
@@ -94,7 +95,7 @@ end intrinsic;
 
 
 intrinsic VerticalSplitMatrix(M::.) -> .
-{Returns the vertical join of the real and imaginary part of M.}
+{Returns the vertical join of the real and imaginary part of M, so Re over Im.}
 
 CC := BaseRing(M); RR := RealField(CC);
 MSplitRe := Matrix(RR, [ [ Real(c) : c in Eltseq(r)] : r in Rows(M) ]);
@@ -104,8 +105,9 @@ return VerticalJoin([ MSplitRe, MSplitIm ]);
 end intrinsic;
 
 
-intrinsic CombineMatrix(MSplit::., CC::FldCom) -> .
-{Returns the combination of MSplit back into a full period matrix over CC.}
+intrinsic CombineVerticallySplitMatrix(MSplit::., CC::FldCom) -> .
+{Returns the combination of the vertically split matrix MSplit back into a full
+period matrix over CC. So Re over Im becomes Re + i*Im.}
 
 r := #Rows(MSplit); c := #Rows(Transpose(MSplit));
 MRe := Matrix(CC, Submatrix(MSplit, [1..(r div 2)],   [1..c]));
@@ -115,20 +117,42 @@ return MRe + CC.1*MIm;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::.) -> .
+intrinsic IntegralLeftKernel(M::. : OneRow := false, EndoRep := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
 RR := BaseRing(M);
 MI := IdentityMatrix(RR, #Rows(M));
-MJ := HorizontalJoin(MI, (1 / RR`epsLLL) * M);
+if EndoRep then
+    eps := Minimum([ Abs(c) : c in Eltseq(M) | not Abs(c) lt RR`epscomp ]);
+    MJ := HorizontalJoin(MI, (10^12 / eps) * M);
+else
+    //MJ := HorizontalJoin(MI, 10^(Precision(RR) - 30) * M);
+    MJ := HorizontalJoin(MI, Round(1/RR`epsLLL) * M);
+end if;
+MJ := Matrix(Integers(), [ [ Round(c) : c in Eltseq(row) ] : row in Rows(MJ) ]);
+
 L, K := LLL(MJ);
-rowsK := Rows(K); rowsK0 := [ ];
+rowsK := Rows(K);
+if OneRow then
+    rowsK := [ rowsK[1] ];
+end if;
+
+CCSmall := ComplexField(5);
+rowsK0 := [ ];
 for row in rowsK do
-    prod := Matrix(RR, [ Eltseq(row) ])*M;
-    test := &and[ Abs(c) lt RR`epscomp : c in Eltseq(prod) ];
-    test := true;
-    if test then
-        Append(~rowsK0, row);
+    ht := Max([ Abs(c) : c in Eltseq(row) ]);
+    vprint EndoFind, 2 : "Height of row:", Round(Log(ht));
+    test1 := ht lt RR`height_bound;
+    //test1 := true;
+    if test1 then
+        prod := Matrix(RR, [ Eltseq(row) ])*M;
+        abs := Max([ Abs(c) : c in Eltseq(prod) ]);
+        test2 := abs lt RR`epscomp;
+        //test2 := abs lt 10^50*RR`epscomp;
+        vprint EndoFind, 2 : "Precision reached:", CCSmall ! abs;
+        if test2 then
+            Append(~rowsK0, row);
+        end if;
     end if;
 end for;
 if #rowsK0 eq 0 then
@@ -149,63 +173,28 @@ return Transpose(K), test;
 end intrinsic;
 
 
-intrinsic ConjugateMatrix(sigma::Map, M::.) -> .
-{Returns the transformation of the matrix M by the field automorphism sigma.}
-
-return Matrix([ [ sigma(elt) : elt in Eltseq(row) ] : row in Rows(M) ]);
-
-end intrinsic;
-
-
 intrinsic MatrixInBasis(M::., Bs::SeqEnum) -> .
-{Returns a vector that describes M as a rational combination of the elements in
-Bs. Assume that base field of M is at most a double extension of the field of
-rationals.}
+{Returns a vector that describes M as a rational combination of the elements in Bs.}
 
+if #Bs eq 0 then
+    return false, 0;
+end if;
 MBs := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(b) ] : b in Eltseq(B) ] : B in Bs ]);
 MM := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(m) ] : m in Eltseq(M) ] ]);
-return Matrix(Solution(MBs, MM));
+return IsConsistent(MBs, MM);
 
 end intrinsic;
 
 
-intrinsic SaturateLattice(L::., M::. : ColumnsOrRows := "Columns") -> .
-{Given a basis of a lattice L and a generating set of a lattice M in which L is
-of finite index, returns a basis of M along with matrices that give expressions
-of the provided generating sets in this basis. The flag ColumnsOrRows specifies
-whether column of row vectors are interpreted as generating the lattice.}
+intrinsic IsMultiple(v::., v0::.) -> .
+{Returns whether v is a multiple of v0 or not, along with a corresponding scalar if this is the case.}
 
-/* In the end we have L = T B, M = U B in case of Rows and L = B T, M = B U in
- * case of Columns. */
-
-if ColumnsOrRows eq "Columns" then
-    B, T, U := SaturateLattice(Transpose(L), Transpose(M) : ColumnsOrRows := "Rows");
-    return Transpose(B), Transpose(T), Transpose(U);
-end if;
-
-CC := BaseRing(L);
-subL, s0 := InvertibleSubmatrix(L);
-subM := Submatrix(M, [1..#Rows(M)], s0);
-S := NumericalLeftSolve(subL, subM);
-S, test := FractionalApproximationMatrix(S);
+M := Matrix([ Eltseq(v) ]);
+M0 := Matrix([ Eltseq(v0) ]);
+test, tup := MatrixInBasis(M, [ M0 ]);
 if not test then
-    error "No suitable fractional approximation found";
+    return false, 0;
 end if;
-/* At this point we have S L = M, where S has rational entries */
-
-/* Now we write S = R S0, where R is integral and where S0 has an integral
- * inverse */
-S0 := ChangeRing(Matrix(Basis(Lattice(S))), Rationals());
-S0i := S0^(-1); R := S * S0i;
-/* The result is that the following B, T, U can be used */
-B := ChangeRing(S0, CC) * L; T := S0i; U := R;
-
-/* Final sanity check */
-test1 := Minimum([ Abs(c) : c in Eltseq(L - ChangeRing(T, CC)*B) ]) lt CC`epscomp;
-test2 := Minimum([ Abs(c) : c in Eltseq(M - ChangeRing(U, CC)*B) ]) lt CC`epscomp;
-if not (test1 and test2) then
-    error "Error in determining saturated lattice";
-end if;
-return B, T, U;
+return test, Eltseq(tup)[1];
 
 end intrinsic;

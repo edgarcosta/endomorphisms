@@ -1,0 +1,28 @@
+Sketch of new version of verification:
+We use Cantor coordinates only.
+As before, we change the affine patches U and V of X and Y such that the given base points P0 and Q0 are in U and V, respectively. We also ask that the first coordinate of U (not necessarily x) be a uniformizer at P0.
+Via Branches.m, the point (P0, Q0) can be developed to high precision into infinitesimal pairs (P, Qj) for the purposes of the next steps. As usual, we first do this over finite fields.
+We know the bidegree of the divisor on X x Y. In Y it is g, as is also clear from our use of the Cantor representation. The degree N in X can be found with the methods of Khuri-Makdisi.
+We can take a small morphisms down from X and Y to PP^1, of degree dX and dY say, and consider the developed point pairs (P, Qj) on PP^1. These interpolate to a divisor of bidegree (dX*N, dY*g). This means that we know exactly what to look for! We get a single relation between xP and xQ that is a polynomial of the aforementioned bidegree. Finding this polynomial should be seen as the heaviest step.
+From this polynomial, we can determine the first part x2^g + a1 x2^(g - 1) + ... + ag of the Cantor representation. To find the ai, develop them; this is possible because x2 can be developed in x1 via the known relation, and we know which roots to take from the initial development of the (P, Qj). Further development is much faster once we know the polynomial in x1 and x2.
+The last step can also be tried without the polynomial. Perhaps this is more logical. It would be good to know something about the degree of the ai for this. The previous method needs no bound, as we can very quickly iterate and keep trying.
+It then remains to find the bi. This can be done by using the Cantor equations, our knowledge of the ai, and the knowledge of the start of the development of the bi.
+We then verify the ai and bi modulo the chosen prime.
+After this, we have to globalize the ai and bi, knowing them at many primes. This can be done piecewise. Alternatively, we only determine the ai and solve for the bi as above. Not sure yet what is better.
+For many curves, it is better not to use the representation Qj - gY P0, but Rj - D0 for some distinguished divisor of degree D0. There are two ways to exploit this, and they should be applied at all primes before globalizing.
+The first is to determine the ai and bi for the Qj and to translate, knowing the addition law on the Jacobian. In fact I do not know this yet for general curves. Still, in the hyperelliptic case this is all right.
+The second possibility is to first translate the infinitesimal development of Qj into that of the Rj. This requires addition of approximated points. Perhaps this is possible by first finding the generic addition law and then substituting. This may be worthwhile to avoid intermediate degrees in the rational functions ai and bi that are larger than they need to be.
+
+Later:
+Store period matrices of reconstructed curve
+Update Decomposition functionality in Sage
+Use Pari consistently
+Determine the "right" map when not consistently taking projections or inclusions; the naive suggestion is to use the inverse and multiply out denominators, but that seems too large
+Try to develop a bit further if the first branches coincide (the first time this can happen is in genus 4)
+Divisor from Cantor? In principle this is all right: We pull back to X x Y^gY via the canonical map and then push to X x Y via idX x projection on the first coordinate. However, Magma cannot do this, since in it pushforwards are limited to maps between curves.
+
+Projects:
+Decomposition of endomorphism algebra
+General symplectic subgroup determination and isogenies
+Make theta derivatives fast
+Implement Guardia in genus 3
