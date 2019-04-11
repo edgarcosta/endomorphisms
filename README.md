@@ -13,9 +13,9 @@ parisize = "4096M"
 ```
 to your `~/.gprc` file. This is an optional improvement.
 
-You should also install [`pascalmolin/hperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file. This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
+You should also install [`pascalmolin/hperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file, using `AttachSpec` in the same way as in the section on the Magma installation below (but with a different target spec file). This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
 
-Finally, in order to decompose Jacobians, you will need [`curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction).
+Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
 
 Additional prerequisite for older Magma versions
 --
@@ -37,6 +37,10 @@ The subdirectory `endomorphisms/magma/` includes code that can be run purely wit
 ```
 AttachSpec("endomorphisms/magma/spec");
 ```
+To make this independent of the directory in which you find yourself, you may prefer to indicate the relative path, like
+```
+AttachSpec("\~/Programs/endomorphisms/magma/spec");
+```
 
 SageMath installation
 --
@@ -50,6 +54,13 @@ then go to the newly created directory and type
 sage -pip install --user --upgrade .
 ```
 After that, a new package called `endomorphisms` will be available for import in SageMath. Once the package is updated on GitHub, pulling the new changes and running the same command will update your installation.
+
+While delegating commands to Magma, the same prerequisites are needed as those mentioned above. For this reason, please create the file `~/.sage/init.sage` if it does not yet exist or add the following line to it:
+```
+magma.load('~/.magmarc')
+```
+This ensures that all relevant packages are loaded when outsourcing to Magma.
+
 
 Usage
 --
