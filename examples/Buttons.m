@@ -40,9 +40,6 @@ f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24
 //f := (-7 + x)*(-5 + x)*(4 + x)*(8 + x)*(17 + x)*(19 + x)*(20 + x);
 X := HyperellipticCurve(f);
 
-// Wanlin's curve
-R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![0, 0, 0, -2, 0, 0, 1], R![1]);
-
 /*
 // Plane curves
 F := RationalsExtra(prec);
@@ -78,21 +75,21 @@ print "";
 print "Heuristic field of definition of the endomorphisms:";
 print L;
 
-A := HeuristicEndomorphismAlgebra(X : Geometric := true);
+A, desc := HeuristicEndomorphismAlgebra(X : Geometric := true);
 print "";
 print "Heuristic geometric endomorphism algebra:";
 print A;
 
-desc := HeuristicEndomorphismAlgebraDescription(X : Geometric := true);
+print "";
 print "Description:";
 print desc;
 
-A := HeuristicEndomorphismAlgebra(X);
+A, desc := HeuristicEndomorphismAlgebra(X);
 print "";
 print "Heuristic endomorphism algebra over the base:";
 print A;
 
-desc := HeuristicEndomorphismAlgebraDescription(X);
+print "";
 print "Description:";
 print desc;
 

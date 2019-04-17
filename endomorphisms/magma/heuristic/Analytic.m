@@ -225,6 +225,19 @@ return gens, hFK;
 end intrinsic;
 
 
+intrinsic GeometricEndomorphismRepresentationCC(X::Crv) -> SeqEnum
+{Given a curve X over a field F, this function determines a ZZ-basis of the
+corresponding abelian variety. These are returned as triples of an algebraized
+tangent representation A over a number field K, a homology representation R and
+a complex tangent representation ACC. We have ACC P = P R for the period matrix
+P of X, and via the infinite place of K the matrix A is mapped to ACC. The
+inclusion of F into K is the second return value.}
+
+return GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
+
+end intrinsic;
+
+
 intrinsic GeometricEndomorphismRepresentation(X::Crv) -> SeqEnum
 {Given a curve X over a field F, this function determines a ZZ-basis of the
 corresponding abelian variety. These are returned as triples of an algebraized
