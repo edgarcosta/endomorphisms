@@ -16,7 +16,7 @@ forward SuperellipticCompatibility;
 
 /* TODO: This stupid intrinsic should go, but it is used in curve
  * reconstruction, so I wait for the Magma update */
-intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum) -> ModMatFldElt
+intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum) -> ModMatFldElt, .
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
@@ -32,22 +32,22 @@ if #GeneratorsSequence(RCC) eq 1 then
      * differential x^i dx / 2y
      * (MN use x^i dx) */
     X := SE_Curve(gCC, 2 : Prec := Precision(CC));
-    return ChangeRing(X`BigPeriodMatrix, CC) / 2;
+    return ChangeRing(X`BigPeriodMatrix, CC) / 2, X;
 
 elif #GeneratorsSequence(RCC) eq 3 then
     test, fCC, e := IsSuperellipticEquation(eqsCC);
     if false then
         X := SE_Curve(fCC, e : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
-        return SuperellipticCompatibility(P, e);
+        return SuperellipticCompatibility(P, e), X;
     else
         /* Note: only polynomials over QQ for now */
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
         try
             /* TODO: Add this when it becomes available */
-            //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC);
-            //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC);
+            //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC), 0;
+            return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC), 0;
             return 1/(1 - 1);
         catch err
             error "No functionality for plane curves available";
@@ -72,7 +72,7 @@ end if;
 
 Y := PlaneModel(X);
 eqsCC := EmbedCurveEquations(Y); eqsF := DefiningEquations(Y);
-X`period_matrix := PeriodMatrix(eqsCC, eqsF);
+X`period_matrix, X`se_model := PeriodMatrix(eqsCC, eqsF);
 vprint EndoFind : "done calculating period matrix.";
 return X`period_matrix;
 

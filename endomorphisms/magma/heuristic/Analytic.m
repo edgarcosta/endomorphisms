@@ -9,6 +9,8 @@
  *  See LICENSE.txt for license details.
  */
 
+import "Recognition.m": MinimalPolynomialLLL;
+
 
 intrinsic ComplexStructure(P::ModMatFldElt) -> AlgMatElt
 {Returns the complex structure that corresponds to the period matrix P. It is
@@ -164,6 +166,13 @@ value.}
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+
+/*
+for a in seqPart do
+    print MinimalPolynomialLLL(a, F);
+end for;
+*/
+
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by homomorphisms...";
 K, seq, hFK := NumberFieldExtra(seqPart, F);
@@ -199,6 +208,14 @@ Q := P;
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+
+/*
+print [ gen[2] : gen in gensPart ];
+for a in seqPart do
+    print MinimalPolynomialLLL(a, F);
+end for;
+*/
+
 /* Use splitting field instead of number field since the resulting field is
  * normal */
 vprint EndoFind : "";

@@ -34,6 +34,8 @@
 
     VerifyCorr.m
     Buttons.m
+
+    Isos.m
   }
   polarization
   {

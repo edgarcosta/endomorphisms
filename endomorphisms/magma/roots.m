@@ -44,6 +44,7 @@ end intrinsic;
 intrinsic SplittingFieldPari(f::RngUPolElt) -> .
 {Splitting field of f calculated using Pari.}
 
+return SplittingField(f);
 assert BaseRing(f) eq Rationals();
 cmd := Sprintf(
 "{f = Pol(Vecrev(%o),'x); K = nfinit(f); nfsplitting(K)",
