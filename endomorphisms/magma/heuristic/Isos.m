@@ -18,7 +18,6 @@ g := #Rows(P); CC := BaseRing(P);
 E := StandardSymplecticMatrix(g);
 As := [ gen[1] : gen in gens ];
 Rs := [ gen[2] : gen in gens ];
-print #Rs;
 
 S := PolynomialRing(Rationals(), #Rs);
 R := &+[ S.i*Rs[i] : i in [1..#Rs] ];

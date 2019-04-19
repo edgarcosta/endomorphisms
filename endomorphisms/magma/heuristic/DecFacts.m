@@ -262,7 +262,7 @@ while true do
     for tup in CP do
         c := C ! [ x : x in tup ];
         v := Eltseq(c); v2 := Eltseq(c^2);
-        test_mult, lambda := IsMultiple(v2, v);
+        test_mult, lambda := IsRationalMultiple(v2, v);
         if test_mult and (lambda ne 0) then
             idem := (1/lambda)*c;
             if IsTrueIdempotent(EndoData, dim, idem) then

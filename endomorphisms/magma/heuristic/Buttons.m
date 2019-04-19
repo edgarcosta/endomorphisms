@@ -169,7 +169,7 @@ D := Diagonal(S);
 exps := [ d : d in D | not d eq 1 ];
 
 EY := DiagonalJoin(EYs);
-test := IsMultiple(Transpose(T)*EY*T, EX);
+test := IsRationalMultiple(Transpose(T)*EY*T, EX);
 
 return degs, exps, test;
 

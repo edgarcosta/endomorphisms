@@ -44,6 +44,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
         /* Note: only polynomials over QQ for now */
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
+
         try
             /* TODO: Add this when it becomes available */
             //return ChangeRing(BigPeriodMatrix(RiemannSurface(f : Prec := Precision(CC))), CC), 0;

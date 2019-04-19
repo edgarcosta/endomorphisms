@@ -1,5 +1,5 @@
-SetVerbose("EndoFind", 0);
-SetVerbose("CurveRec", 0);
+SetVerbose("EndoFind", 3);
+SetVerbose("CurveRec", 2);
 
 prec := 500;
 
@@ -43,8 +43,7 @@ X := HyperellipticCurve(f);
 /*
 // Plane curves
 F := RationalsExtra(prec);
-R<x,y> := PolynomialRing(F, 2);
-z := 1;
+R<x,y,z> := PolynomialRing(F, 3);
 
 f := y^3*z - x^4 - z^4;
 f := 1 + 7*x*y + 21*x^2*y^2 + 35*x^3*y^3 + 28*x^4*y^4 + 2*x^7 + 2*y^7;
@@ -108,6 +107,7 @@ print "";
 print "Heuristic GL_2-determination (generalized notion):";
 print test_gl2_gen;
 
+/* TODO: Do not return original if only single idempotent */
 //facs := HeuristicJacobianFactors(X : AllIdems := false, AllPPs := false, ProjToIdem := false, ProjToPP := false)
 facs := HeuristicJacobianFactors(X : AllIdems := true, AllPPs := false, ProjToIdem := true, ProjToPP := true);
 print "";
