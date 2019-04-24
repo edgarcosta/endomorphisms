@@ -15,6 +15,8 @@ to your `~/.gprc` file. This is an optional improvement.
 
 You should also install [`pascalmolin/hperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file, using `AttachSpec` in the same way as in the section on the Magma installation below (but with a different target spec file). This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
 
+Upcoming installations with Magma will include code by Christian Neurohr that will enable the computation of period matrices of plane curves; you will be able to include these algorithms in `endomorphisms/magma/heuristic/Periods.m` by uncommenting the line marked by the comment `Add Neurohr's code when it becomes available`.
+
 Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
 
 Additional prerequisite for older Magma versions
@@ -33,13 +35,10 @@ c := [Coefficient(cpol,1), Coefficient(cpol, 0)];
 Magma installation 
 --
 
-The subdirectory `endomorphisms/magma/` includes code that can be run purely within Magma. You can load all the Magma specific files by attaching the ``endomorphisms/magma/spec`` file with ``AttachSpec``. For example, if you start your session of Magma inside the git directory, you can do this by typing
+The subdirectory `endomorphisms/magma/` includes code that can be run purely within Magma.
+You can enable the functionality of this code in Magma by attaching the `endomorphisms/endomorphisms/magma/spec` file with `AttachSpec`. To make this independent of the directory in which you find yourself, and to active this on startup by default, you may want to indicate the relative path in your `~/.magmarc` file, by adding the line
 ```
-AttachSpec("endomorphisms/magma/spec");
-```
-To make this independent of the directory in which you find yourself, you may prefer to indicate the relative path, like
-```
-AttachSpec("~/Programs/endomorphisms/magma/spec");
+AttachSpec("~/Programs/endomorphisms/endomorphisms/magma/spec");
 ```
 
 SageMath installation
@@ -61,13 +60,43 @@ magma.load('~/.magmarc')
 ```
 This ensures that all relevant packages are loaded when outsourcing to Magma.
 
-
 Usage
 --
 
 Examples, both in Magma and in SageMath, are given in the directory `examples/`. The creation of database files, as well as interaction with the LMFDB, is described in the directory `database/`.
 
+Verbose comments are enabled by
+```
+SetVerbose("EndoFind", m);
+SetVerbose("EndoCheck", n);
+```
+where `m` and `n` are either `1`, `2`, or `3`. A higher value gives more comments.
+
 More detailed information
 --
 
 A description of the data structures used in the SageMath wrapper can be found in the files `Dicts.md` and `Descs.md` in the directory `documentation/`.
+
+Credits
+--
+
+The fast calculation of period matrices of hyperelliptic curves in [`pascalmolin/hperiods`](https://github.com/pascalmolin/hcperiods) is based on:
+
+Pascal Molin and Christian Neurohr  
+*Computing period matrices and the Abel-Jacobi map of superelliptic curves*  
+Mathematics of Computation, 88 (316) (2017)
+
+The (upcoming!) calculation of period matrices of plane quartic curves will use the following work:
+
+Christian Neurohr  
+*Efficient integration on Riemann surfaces & applications*  
+Ph.D. thesis, Carl-von-Ossietzky-Universität Oldenburg (2018)
+
+Citing this code
+--
+
+Please cite the following preprint if this code has been helpful in your research:
+
+Edgar Costa, Nicolas Mascot, Jeroen Sijsling, and John Voight  
+*Rigorous computation of the endomorphism ring of a Jacobian*  
+Preprint at [arXiv:1705.09248](https://arxiv.org/abs/1705.09248)
