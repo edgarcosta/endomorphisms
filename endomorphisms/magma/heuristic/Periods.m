@@ -36,10 +36,11 @@ if #GeneratorsSequence(RCC) eq 1 then
 
 elif #GeneratorsSequence(RCC) eq 3 then
     test, fCC, e := IsSuperellipticEquation(eqsCC);
-    if false then
+    if test then
         X := SE_Curve(fCC, e : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
-        return SuperellipticCompatibility(P, e), X;
+        P := SuperellipticCompatibility(P, e);
+        return ChangeRing(P, CC), X;
     else
         /* Note: only polynomials over QQ for now */
         F := Explode(eqsK);
