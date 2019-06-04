@@ -95,7 +95,7 @@ F := Explode(eqs);
 mons := Monomials(F);
 monsy := [ mon : mon in mons | Exponents(mon)[2] ne 0 ];
 monsxz := [ mon : mon in mons | Exponents(mon)[2] eq 0 ];
-if #monsy ne 1 then
+if #monsy ne 1 or not &and[ Exponents(mon)[1] eq 0 : mon in monsy ] then
     return false, 0, 1;
 end if;
 
