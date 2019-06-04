@@ -229,7 +229,7 @@ if #Ds eq 1 then
         end if;
     end if;
 end if;
-return GensC, [ Integers() ! ind, -1 ];
+return GensC, [ Integers() ! ind, -1, DOC ];
 
 end function;
 
