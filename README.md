@@ -86,7 +86,7 @@ Pascal Molin and Christian Neurohr
 *Computing period matrices and the Abel-Jacobi map of superelliptic curves*  
 Mathematics of Computation, 88 (316) (2017)
 
-The (upcoming!) calculation of period matrices of plane quartic curves will use the following work:
+The calculation of period matrices of plane quartic curves uses the following work:
 
 Christian Neurohr  
 *Efficient integration on Riemann surfaces & applications*  
