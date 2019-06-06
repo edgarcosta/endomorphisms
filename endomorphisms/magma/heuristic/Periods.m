@@ -47,9 +47,9 @@ elif #GeneratorsSequence(RCC) eq 3 then
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
 
         try
-            /* TODO: Add Neurohr's code when it becomes available */
-            //return ChangeRing(RS_BigPeriodMatrix(f : Prec := Precision(CC)), CC), 0;
-            return 1/(1 - 1);
+            S := RiemannSurface(f : Precision := Precision(CC));
+            P := ChangeRing(BigPeriodMatrix(S), CC);
+            return P, S;
         catch err
             error "No functionality for plane curves available";
         end try;
