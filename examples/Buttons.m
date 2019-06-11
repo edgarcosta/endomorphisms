@@ -1,7 +1,7 @@
 SetVerbose("EndoFind", 1);
 //SetVerbose("CurveRec", 2);
 
-prec := 500;
+prec := 200;
 
 // This one takes quite some time!
 R<t> := PolynomialRing(Rationals());
@@ -42,7 +42,6 @@ f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24
 X := HyperellipticCurve(f);
 */
 
-/*
 // Plane curves
 F := RationalsExtra(prec);
 R<x,y,z> := PolynomialRing(F, 3);
@@ -54,7 +53,6 @@ f := x^3*z + x^2*y^2 - 3*x*y^2*z - 4*x*z^3 - 2*y^4 + y^3*z - 4*y^2*z^2 - 3*z^4;
 f := x^3*z + 2*x^2*y^2 + x^2*y*z + 3*x^2*z^2 - 4*x*y^3 - x*y^2*z + 5*x*y*z^2 + x*z^3 + 2*y^4 + 6*y^3*z + 6*y^2*z^2 + 2*y*z^3;
 f := 2*x^4 + 3*x^3*y + 4*x^3*z + 6*x^2*y^2 + 4*x^2*y*z + 7*x^2*z^2 + 4*x*y^3 + 4*x*y^2*z + 7*x*y*z^2 + 4*x*z^3 + 3*y^4 + 2*y^3*z + 3*y^2*z^2 + 5*y*z^3 + 2*z^4;
 X := PlaneCurve(f);
-*/
 
 /*
 F := RationalsExtra(prec);
