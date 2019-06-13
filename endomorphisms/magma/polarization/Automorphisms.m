@@ -36,11 +36,12 @@ tups := ShortVectors(L, 2*g : Proof := true);
 auts := [ ];
 for tup in tups do
     seq := Eltseq(tup[1]);
-    Append(~auts, &+[ seq[i]*Rs[i] : i in [1..n] ]);
+    R := &+[ seq[i]*Rs[i] : i in [1..n] ];
+    Append(~auts, R); Append(~auts, -R);
 end for;
 G := MatrixGroup< 2*g, Integers() | auts >;
 min := G ! (-G ! 1);
 Q := quo< G | min >;
-return Q, auts;
+return auts, Q;
 
 end intrinsic;
