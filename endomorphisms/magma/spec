@@ -43,6 +43,7 @@
     Duals.m
     Polarizations.m
     Rosati.m
+    Automorphisms.m
   }
   puiseux
   {
