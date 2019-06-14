@@ -10,16 +10,22 @@ from sage.all import Set, NumberField
 
 def endomorphisms_upper_bound(frob_list, eta_char0 = None):
     r"""
+
     INPUT:
 
     - ``frob_list`` -- a list of Frobenius polynomials of A
     - ``eta_char0`` -- a putative value for eta(A)
 
     OUTPUT:
+
     - a boolean = did we manage to provide a putative upper bound on the centers?
+
     - a message, explaining what we have achieved to do.
+
     - None or a putative value for eta(A) (if this matches the input value, then we proved that this value is correct)
+
     - None or the number of factors assuming that eta(A) computed above is correct
+
     - None or a list of tuples
             [ (e_j n_j, n_j * dim A_j, L_j, RR_j ) for j in range(1, t + 1)],
       where we are assuming that the eta(A) and t above are correct and therefore we have
@@ -27,7 +33,23 @@ def endomorphisms_upper_bound(frob_list, eta_char0 = None):
       where e_j ^2 is the dimension of End(A_j ^{al}) over its center and
       its center is a subfield of L_j.
       Assuming that L_j is indeed the center, then RR_j = End( A_j ^{n_j} ) \otimes RR.
+
     - Assuming eta(A) and t are correct, an upper bound for dim_Q End(A)
+
+    EXAMPLE:
+
+        sage: from endomorphisms import endomorphisms_upper_bound
+        sage: ZZT.<T> = ZZ[]
+        sage: F3 = 1 - T^2 + 9*T^4;
+        sage: F7 = 1 + 4*T^2 + 49*T^4;
+        sage: F13 = 1 - 8*T^2 + 169*T^4;
+        sage: endomorphisms_upper_bound([[3, F3], [7, F7], [13, F13]])
+        (True,
+         'We have putatively computed eta and t. Under this assumption, we bounded the corresponding centers.',
+         4,
+         1,
+         [(2, 2, [T, [T]], ['M_2(RR)'])],
+         4)
 
     """
     g = int(frob_list[0][1].degree()/2);
