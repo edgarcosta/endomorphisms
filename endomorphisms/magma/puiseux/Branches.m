@@ -262,6 +262,9 @@ e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
     G_ev := Matrix(PR, [ [ Integral(&+[ M[i,j] * BP[j] : j in [1..gX] ]) : i in [1..gY] ] ]);
 
     /* Calculate Hensel correction: */
+    if not IsInvertible(DF_ev) then
+        error "Jacobian of Hensel lift is not invertible, so Puiseux lift fails";
+    end if;
     H := -(F_ev - G_ev) * DF_ev^(-1);
 
     /* Calculate Qs to higher precision: */
