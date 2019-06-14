@@ -1,10 +1,8 @@
 /***
  *  Automorphisms
  *
- *  Copyright (C) 2016-2017
+ *  Copyright (C) 2016-2019
  *            Nils Bruin       (nbruin@sfu.ca)
- *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
@@ -37,11 +35,14 @@ auts := [ ];
 for tup in tups do
     seq := Eltseq(tup[1]);
     R := &+[ seq[i]*Rs[i] : i in [1..n] ];
-    Append(~auts, R); Append(~auts, -R);
+    if -E*Transpose(R)*E*R eq IdentityMatrix(Integers(), 2*g) then
+        Append(~auts, R); Append(~auts, -R);
+    end if;
 end for;
+
 G := MatrixGroup< 2*g, Integers() | auts >;
 min := G ! (-G ! 1);
 Q := quo< G | min >;
-return auts, Q;
+return Q, auts;
 
 end intrinsic;
