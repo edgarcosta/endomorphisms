@@ -31,6 +31,8 @@ if Im(Q[1,2]/Q[1,1]) lt 0 then
 end if;
 assert IsBigPeriodMatrix(Q);
 E, h := ReconstructCurve(Q, K);
+E`period_matrix := Q;
+
 Anew := ConjugateMatrix(h, A);
 if not AllPPs then
     return [* E, [* Anew, Rnew *] *];
@@ -72,6 +74,7 @@ for T in Ts[1..N] do
     end if;
     assert IsBigPeriodMatrix(Qnew);
     Y, h := ReconstructCurve(Qnew, K);
+    Y`period_matrix := Qnew;
 
     vprint CurveRec: "";
     vprint CurveRec: "Reconstructed curve found!";

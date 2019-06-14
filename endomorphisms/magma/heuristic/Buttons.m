@@ -10,6 +10,16 @@
  */
 
 
+intrinsic HeuristicEndomorphismAlgebraCC(X::Crv) -> .
+{Returns the endomorphism algebra of X. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description.}
+
+GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
+EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
+return EndoAlg, EndoDesc;
+
+end intrinsic;
+
+
 intrinsic HeuristicEndomorphismFieldOfDefinition(X::Crv) -> .
 {Returns the field of definition of the endomorphisms of X.}
 
@@ -20,19 +30,19 @@ end intrinsic;
 
 
 intrinsic HeuristicEndomorphismAlgebra(X::Crv : Geometric := false) -> .
-{Returns the endomorphism algebra of X. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR.}
+{Returns the endomorphism algebra of X. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description.}
 
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 if Geometric then
     EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoAlg;
+    return EndoAlg, EndoDesc;
 end if;
 if not assigned X`base_endo_rep then
     F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
     X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return EndoAlg;
+return EndoAlg, EndoDesc;
 
 end intrinsic;
 
@@ -40,16 +50,7 @@ end intrinsic;
 intrinsic HeuristicEndomorphismAlgebraDescription(X::Crv : Geometric := false) -> .
 {Returns a string description of the endomorphism algebra of X.}
 
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
-if Geometric then
-    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoDesc;
-end if;
-if not assigned X`base_endo_rep then
-    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
-    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
-end if;
-EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
+EndoAlg, EndoDesc := HeuristicEndomorphismAlgebraDescription(X);
 return EndoDesc;
 
 end intrinsic;
@@ -168,7 +169,7 @@ D := Diagonal(S);
 exps := [ d : d in D | not d eq 1 ];
 
 EY := DiagonalJoin(EYs);
-test := IsMultiple(Transpose(T)*EY*T, EX);
+test := IsRationalMultiple(Transpose(T)*EY*T, EX);
 
 return degs, exps, test;
 

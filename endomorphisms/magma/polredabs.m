@@ -33,6 +33,9 @@ end intrinsic;
 intrinsic Polredbestabs(f::RngUPolElt) -> RngUPolElt, SeqEnum, BoolElt
   {A smallest generating polynomial of the number field, using pari.  First polredbest, then polredabs.}
 
+  K := NumberField(f);
+  return f, Eltseq(K.1), true;
+
   fbest, fbest_root := Polredabs(f : Best := true);
   fredabs, fredabs_root, bl := Polredabs(fbest);
 

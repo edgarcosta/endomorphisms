@@ -178,11 +178,44 @@ return Matrix(rows_alg), test;
 end intrinsic;
 
 
-intrinsic AlgebraizeElement(a::FldComElt, K::Fld : minpol := 0) -> .
+// Can be used, but this masks problems with precision loss
+function RationalReconstruction(r);
+    r1 := Real(r);
+    r2 := Imaginary(r);
+    p := Precision(r2);
+    if r2 ne Parent(r2) ! 0 then
+        e := Log(AbsoluteValue(r2));
+    else
+        e := -p;
+    end if;
+    if -e lt p/2 then
+        return false, 0;
+    end if;
+    best := 0;
+    i := p div 10;
+    b := BestApproximation(r1, 10^i);
+    while b ne best and i le p do
+        i +:= 5;
+        best := b;
+        b := BestApproximation(r1, 10^i);
+    end while;
+    if b ne best then
+        return false, 0;
+    else
+        return true, b;
+    end if;
+end function;
+
+
+intrinsic AlgebraizeElement(a::FldComElt, K::Fld : UseRatRec := true, minpol := 0) -> .
 {Returns an approximation of the complex number a as an element of K.}
 
 CC := K`CC;
 assert Precision(Parent(a)) ge Precision(CC);
+
+if UseRatRec and Type(K) eq FldRat then
+    return RationalReconstruction(a);
+end if;
 
 if Type(minpol) eq RngIntElt then
     minpol := MinimalPolynomialLLL(a, RationalsExtra(Precision(CC)));
@@ -204,14 +237,30 @@ return false, 0;
 end intrinsic;
 
 
-intrinsic AlgebraizeMatrix(M::., K::Fld) -> .
+intrinsic AlgebraizeElements(LCC::SeqEnum, K::Fld : UseRatRec := true) -> .
+{Returns an approximation of the elements of the list L over K.}
+
+L := [ ];
+for aCC in LCC do
+    test, a := AlgebraizeElement(aCC, K : UseRatRec := UseRatRec);
+    if not test then
+        return false, 0;
+    end if;
+    Append(~L, a);
+end for;
+return true, L;
+
+end intrinsic;
+
+
+intrinsic AlgebraizeMatrix(M::., K::Fld : UseRatRec := true) -> .
 {Returns an approximation of the complex matrix M over K.}
 
 rows := [ ];
 for rowCC in Rows(M) do
     row := [ ];
     for cCC in Eltseq(rowCC) do
-        test, c := AlgebraizeElement(cCC, K);
+        test, c := AlgebraizeElement(cCC, K : UseRatRec := UseRatRec);
         if not test then
             return false, 0;
         end if;

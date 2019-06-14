@@ -1,7 +1,7 @@
-SetVerbose("EndoFind", 0);
-SetVerbose("CurveRec", 0);
+SetVerbose("EndoFind", 1);
+//SetVerbose("CurveRec", 2);
 
-prec := 500;
+prec := 200;
 
 // This one takes quite some time!
 R<t> := PolynomialRing(Rationals());
@@ -34,20 +34,17 @@ f := x^6 - 5*x^4 + 10*x^3 - 5*x^2 + 2*x - 1;
 f := x^6 - 8*x^4 - 8*x^3 + 8*x^2 + 12*x - 8;
 X := HyperellipticCurve(f);
 
-// Squares
+/*
+// Squares: only enable if you have curve_reconstruction
 f := 2*x^10 + 6*x^9 + 6*x^8 + 12*x^7 + 7*x^6 + 7*x^4 - 12*x^3 + 6*x^2 - 6*x + 2;
 f := 10*x^10 + 24*x^9 + 23*x^8 + 48*x^7 + 35*x^6 + 35*x^4 - 48*x^3 + 23*x^2 - 24*x + 10;
 //f := (-7 + x)*(-5 + x)*(4 + x)*(8 + x)*(17 + x)*(19 + x)*(20 + x);
 X := HyperellipticCurve(f);
+*/
 
-// Wanlin's curve
-R<x> := PolynomialRing(Rationals()); X := HyperellipticCurve(R![0, 0, 0, -2, 0, 0, 1], R![1]);
-
-/*
 // Plane curves
 F := RationalsExtra(prec);
-R<x,y> := PolynomialRing(F, 2);
-z := 1;
+R<x,y,z> := PolynomialRing(F, 3);
 
 f := y^3*z - x^4 - z^4;
 f := 1 + 7*x*y + 21*x^2*y^2 + 35*x^3*y^3 + 28*x^4*y^4 + 2*x^7 + 2*y^7;
@@ -56,7 +53,6 @@ f := x^3*z + x^2*y^2 - 3*x*y^2*z - 4*x*z^3 - 2*y^4 + y^3*z - 4*y^2*z^2 - 3*z^4;
 f := x^3*z + 2*x^2*y^2 + x^2*y*z + 3*x^2*z^2 - 4*x*y^3 - x*y^2*z + 5*x*y*z^2 + x*z^3 + 2*y^4 + 6*y^3*z + 6*y^2*z^2 + 2*y*z^3;
 f := 2*x^4 + 3*x^3*y + 4*x^3*z + 6*x^2*y^2 + 4*x^2*y*z + 7*x^2*z^2 + 4*x*y^3 + 4*x*y^2*z + 7*x*y*z^2 + 4*x*z^3 + 3*y^4 + 2*y^3*z + 3*y^2*z^2 + 5*y*z^3 + 2*z^4;
 X := PlaneCurve(f);
-*/
 
 /*
 F := RationalsExtra(prec);
@@ -78,21 +74,21 @@ print "";
 print "Heuristic field of definition of the endomorphisms:";
 print L;
 
-A := HeuristicEndomorphismAlgebra(X : Geometric := true);
+A, desc := HeuristicEndomorphismAlgebra(X : Geometric := true);
 print "";
 print "Heuristic geometric endomorphism algebra:";
 print A;
 
-desc := HeuristicEndomorphismAlgebraDescription(X : Geometric := true);
+print "";
 print "Description:";
 print desc;
 
-A := HeuristicEndomorphismAlgebra(X);
+A, desc := HeuristicEndomorphismAlgebra(X);
 print "";
 print "Heuristic endomorphism algebra over the base:";
 print A;
 
-desc := HeuristicEndomorphismAlgebraDescription(X);
+print "";
 print "Description:";
 print desc;
 
@@ -111,13 +107,15 @@ print "";
 print "Heuristic GL_2-determination (generalized notion):";
 print test_gl2_gen;
 
-//facs := HeuristicJacobianFactors(X : AllIdems := false, AllPPs := false, ProjToIdem := false, ProjToPP := false)
+/* TODO: Do not return original if only single idempotent */
+/* Only enable the following lines if you have curve_reconstruction installed */
+/*
+facs := HeuristicJacobianFactors(X : AllIdems := false, AllPPs := false, ProjToIdem := false, ProjToPP := false)
 facs := HeuristicJacobianFactors(X : AllIdems := true, AllPPs := false, ProjToIdem := true, ProjToPP := true);
 print "";
 print "Heuristic Jacobian factors:";
 print facs;
 
-/* Only use this with the above keywords for HeuristicJacobianFactors for now */
 degs, exps, test := IsogenyInformationG2(facs);
 print "";
 print "Degrees:";
@@ -128,3 +126,4 @@ print exps;
 print "";
 print "Compatible with polarizations:";
 print test;
+*/

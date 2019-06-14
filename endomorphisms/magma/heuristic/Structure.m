@@ -222,14 +222,14 @@ if #Ds eq 1 then
             f := f1 * f3;
             OO := QuaternionOrder([ f(gen) : gen in GensC ]);
             if IsEichler(OO) then
-                return GensC, [ Integers() ! ind, 1 ];
+                return GensC, [ Integers() ! ind, 1, DOC ];
             else
-                return GensC, [ Integers() ! ind, 0 ];
+                return GensC, [ Integers() ! ind, 0, DOC ];
             end if;
         end if;
     end if;
 end if;
-return GensC, [ Integers() ! ind, -1 ];
+return GensC, [ Integers() ! ind, -1, DOC ];
 
 end function;
 
