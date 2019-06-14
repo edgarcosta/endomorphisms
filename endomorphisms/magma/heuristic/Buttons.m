@@ -50,7 +50,7 @@ end intrinsic;
 intrinsic HeuristicEndomorphismAlgebraDescription(X::Crv : Geometric := false) -> .
 {Returns a string description of the endomorphism algebra of X.}
 
-EndoAlg, EndoDesc := HeuristicEndomorphismAlgebraDescription(X);
+EndoAlg, EndoDesc := HeuristicEndomorphismAlgebra(X);
 return EndoDesc;
 
 end intrinsic;
