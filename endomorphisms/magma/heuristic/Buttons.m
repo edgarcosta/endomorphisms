@@ -30,7 +30,7 @@ end intrinsic;
 
 
 intrinsic HeuristicEndomorphismAlgebra(X::Crv : Geometric := false) -> .
-{Returns the endomorphism algebra of X. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description.}
+{Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description.}
 
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 if Geometric then
@@ -48,9 +48,9 @@ end intrinsic;
 
 
 intrinsic HeuristicEndomorphismAlgebraDescription(X::Crv : Geometric := false) -> .
-{Returns a string description of the endomorphism algebra of X.}
+{Returns a string description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true.}
 
-EndoAlg, EndoDesc := HeuristicEndomorphismAlgebra(X);
+EndoAlg, EndoDesc := HeuristicEndomorphismAlgebra(X : Geometric := Geometric);
 return EndoDesc;
 
 end intrinsic;
