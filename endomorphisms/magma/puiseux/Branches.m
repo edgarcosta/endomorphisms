@@ -44,8 +44,7 @@ end function;
 
 function PuiseuxLeadingExponent(M, echelon_exps)
 /*
- * Input:   A matrix M that represents an endomorphism,
- *          after normalizing to an upper triangular form,
+ * Input:   after normalizing to an upper triangular form,
  *          and the echelon exponents for the differentials of the
  *          corresponding curve.
  * Output:  The ramification index of the corresponding Puiseux expansions and
@@ -54,17 +53,21 @@ function PuiseuxLeadingExponent(M, echelon_exps)
 
 rowsM := Rows(M);
 gY := #rowsM; gX := #Eltseq(rowsM[1]);
-exps := [ ]; vals := [ ];
+exps := [ ];
 for i in [1..gY] do
-    j0 := Minimum([ j : j in [1..gX] | Eltseq(rowsM[i])[j] ne 0 ]);
+    row := Eltseq(rowsM[i]);
+    j0 := Minimum([ j : j in [1..gX] | row[j] ne 0 ]);
     exp := echelon_exps[j0]*(j0/i);
     Append(~exps, exp);
-    Append(~vals, (1/exp) * rowsM[i][j0]);
 end for;
 exp0 := Minimum(exps);
+vals := [ ]; ncols := #Rows(Transpose(M));
 for i in [1..gY] do
-    if exps[i] ne exp0 then
-        vals[i] := 0;
+    j := echelon_exps[i]*exp0;
+    if j in [1..ncols] then
+        Append(~vals, (1/exp0)*M[i, Integers()!j]);
+    else
+        Append(~vals, 0);
     end if;
 end for;
 return exp0, vals;
@@ -202,7 +205,7 @@ Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, 2*X`g + 2) ] : Qj in Qs ];
 /* Fill out small terms */
 IterateLift := CreateLiftIteratorFunction(X, Y, M);
 while true do
-    Pnew, Qsnew := IterateLift(P, Qs, Y`g);
+    Pnew, Qsnew := IterateLift(P, Qs, Y`g + 1);
     if Pnew eq P and Qsnew eq Qs then
         P := Pnew; Qs := Qsnew; break;
     end if;
@@ -251,20 +254,31 @@ e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
     h := -Evaluate(fX, P)/Evaluate(dfX, P);
     P[2] +:= h;
 
+    /*
+    print "Before lift:";
+    print Qs;
+    print P;
+    print "After lift:";
+    print Qs;
+    print P;
+    */
+
     /* Calculate LHS: */
     dtjs := [ Derivative(Qj[1]) : Qj in Qs ];
     BQs := Matrix([ [ Evaluate(BY[i], Qs[j]) : j in [1..gY] ] : i in [1..gY] ]);
     F_ev := Matrix([ [ Integral(&+[ BQs[i,j] * dtjs[j] : j in [1..gY] ]) : i in [1..gY] ] ]);
     DF_ev := Transpose(BQs);
+    //print "Determinant:";
+    //print Determinant(DF_ev);
+    if not IsInvertible(DF_ev) then
+        error "Jacobian of Hensel lift is not invertible, so Puiseux lift fails";
+    end if;
 
     /* Calculate RHS: */
     BP := [ Evaluate(BX[j], P) : j in [1..gX] ];
     G_ev := Matrix(PR, [ [ Integral(&+[ M[i,j] * BP[j] : j in [1..gX] ]) : i in [1..gY] ] ]);
 
     /* Calculate Hensel correction: */
-    if not IsInvertible(DF_ev) then
-        error "Jacobian of Hensel lift is not invertible, so Puiseux lift fails";
-    end if;
     H := -(F_ev - G_ev) * DF_ev^(-1);
 
     /* Calculate Qs to higher precision: */
