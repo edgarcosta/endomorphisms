@@ -85,6 +85,28 @@ end if;
 end intrinsic;
 
 
+intrinsic SomePrincipalPolarization(P::ModMatFldElt : B := 2) -> SeqEnum
+{Tries to return some principal polarization for P.}
+
+D := [ -B..B ];
+Es := PolarizationBasis(P); CC := BaseRing(P);
+n := #Es; CP := CartesianPower(D, n);
+
+Es0 := [ ];
+while true do
+    tup := Random(CP);
+    E := &+[ tup[i]*Es[i] : i in [1..n] ];
+    if Abs(Determinant(E)) eq 1 then
+        test, E := IsPolarization(E, P);
+        if test then
+            return E;
+        end if;
+    end if;
+end while;
+
+end intrinsic;
+
+
 intrinsic SomePrincipalPolarizations(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
 {Tries to return some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori */
