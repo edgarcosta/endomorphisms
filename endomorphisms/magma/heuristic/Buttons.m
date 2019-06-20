@@ -92,10 +92,10 @@ return Center(A) eq A;
 end intrinsic;
 
 
-intrinsic HeuristicJacobianFactors(X::Crv : AllIdems := false, AllPPs := false, ProjToIdem := true, ProjToPP := true) -> .
+intrinsic HeuristicJacobianFactors(X::Crv : AllIdems := true, AllPPs := false, ProjToIdem := true, ProjToPP := true) -> .
 {Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors. Setting AllMaps to true returns multiple entries for a given components in the decomposition together with all possible maps (instead of a single one). Setting AllPPs to true returns multiple entries for a given idempotent, corresponding to the various choices of principal polarization. Setting ProjToIdem to false uses an inclusion instead of a projection when taking idempotents. Setting ProjToPP to false uses an inclusion instead of a projection when making a period matrix principally polarized. If ProjToIdem and ProjToPP are not equal, then right now the algorithm only returns a component, not a corresponding map from or to the Jacobian of X.}
 
-P := PeriodMatrix(X);
+P := PeriodMatrix(X); gP := #Rows(P);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 
 /* The upcoming is badly written boilerplate code, but for me it describes the
@@ -105,6 +105,9 @@ if not AllIdems and not AllPPs then
     recs := [ ];
     for comp in comps do
         Q, mor := Explode(comp);
+        if #Rows(Q) eq #Rows(P) then
+            return [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ];
+        end if;
         rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
         Append(~recs, rec);
     end for;
@@ -115,6 +118,9 @@ elif not AllIdems and AllPPs then
     recss := [ ];
     for comp in comps do
         Q, mor := Explode(comp);
+        if #Rows(Q) eq #Rows(P) then
+            return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ] ];
+        end if;
         recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
         Append(~recss, recs);
     end for;
@@ -127,6 +133,9 @@ elif AllIdems and not AllPPs then
         recs := [ ];
         for comp in comptup do
             Q, mor := Explode(comp);
+            if #Rows(Q) eq #Rows(P) then
+                return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ] ];
+            end if;
             rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
             Append(~recs, rec);
         end for;
@@ -141,6 +150,9 @@ elif AllIdems and AllPPs then
         recss := [ ];
         for comp in comptup do
             Q, mor := Explode(comp);
+            if #Rows(Q) eq #Rows(P) then
+                return [ [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ] ] ];
+            end if;
             recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
             Append(~recss, recs);
         end for;
@@ -152,16 +164,18 @@ end if;
 end intrinsic;
 
 
-intrinsic IsogenyInformationG2(facss::.) -> .
-{Returns homology exponents of isogeny induced by splitting, and tests if it is compatible with the various polarizations. For now, set AllIdems to true, AllPPs to false, ProjToIdem to true, and ProjToPP to true.}
+intrinsic IsogenyInformation(X::Crv : facinfo := 0) -> .
+{Returns homology exponents of isogeny induced by splitting, and tests if it is compatible with the various polarizations. The information in facinfo has to be calculated with AllIdems set to true.}
 
-Rs := &cat[ [ fac[2][2] : fac in facs ] : facs in facss ];
+if Type(facinfo) eq RngIntElt then
+    facinfo := HeuristicJacobianFactors(X);
+end if;
+
+Rs := &cat[ [ fac[2][2] : fac in facs ] : facs in facinfo ];
 gYs := [ #Rows(R) div 2 : R in Rs ];
 gX := &+gYs;
 EYs := [ StandardSymplecticMatrix(gY) : gY in gYs ];
 EX := StandardSymplecticMatrix(gX);
-
-degs := [ Abs((R*EX*Transpose(R))[1,2]) : R in Rs ];
 
 T := VerticalJoin(Rs);
 S := SmithForm(ChangeRing(T, Integers()));
@@ -171,6 +185,11 @@ exps := [ d : d in D | not d eq 1 ];
 EY := DiagonalJoin(EYs);
 test := IsRationalMultiple(Transpose(T)*EY*T, EX);
 
-return degs, exps, test;
+if not test then
+    degs := [ ];
+else
+    degs := [ Abs((R*EX*Transpose(R))[1, 1 + (#Rows(R) div 2)]) : R in Rs ];
+end if;
+return exps, test, degs;
 
 end intrinsic;

@@ -82,7 +82,6 @@ incdata := [* L, K, hKL *];
 if CoerceToBase then
     B := CoerceToSubfieldMatrix(B, L, K, hKL);
 end if;
-vprint EndoFind, 2 : "";
 vprint EndoFind : "done determining component from idempotent algebraically.";
 return Q, [* B, S *], incdata;
 
@@ -100,7 +99,6 @@ for idem in idems do
     Q, mor, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjToIdem := ProjToIdem);
     Append(~comps, [* Q, mor, incdata *]);
 end for;
-vprint EndoFind, 2 : "";
 vprint EndoFind : "done determining isotypical components.";
 return comps;
 
@@ -110,22 +108,29 @@ end intrinsic;
 intrinsic SplittingIdempotents(Q::., mor::., incdata::.) -> .
 {Returns further idempotents over the smallest field where the isotypical component splits as far as possible.}
 
+vprint EndoFind : "";
+vprint EndoFind : "Finding further splitting...";
 L, K, hKL := Explode(incdata);
 /* Recalculate endomorphism algebra over known field (as mentioned above, this is stupid) */
 GeoEndoRepCC := GeometricEndomorphismRepresentationCC(Q);
 GeoEndoRep := [ ];
-vprint EndoFind : "";
-vprint EndoFind : "Algebraizing matrices...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Algebraizing matrices...";
 for tupCC in GeoEndoRepCC do
     test, A := AlgebraizeMatrix(tupCC[1], L); R := tupCC[2];
     Append(~GeoEndoRep, [* A, R *]);
 end for;
+vprint EndoFind, 2 : "done algebraizing matrices.";
+
 vprint EndoFind, 2 : "";
-vprint EndoFind : "done algebraizing matrices.";
+vprint EndoFind, 2 : "Finding geometric endomorphisms...";
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
 idems_geo := SplittingIdempotentsAlgebra(GeoEndoData);
+vprint EndoFind, 2 : "done finding endomorphisms.";
 
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Running through lattice...";
 /* Find automorphism group (over QQ for now) */
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
 H := FixedGroupExtra(L, K, hKL);
@@ -147,6 +152,9 @@ for J in Reverse(Js) do
         return idems, [* L, M, hML *];
     end if;
 end for;
+vprint EndoFind, 2 : "done running through lattice.";
+vprint EndoFind : "";
+vprint EndoFind : "done finding further splitting.";
 return idems_geo, [* L, L, CanonicalInclusionMap(L, L) *];
 
 end intrinsic;

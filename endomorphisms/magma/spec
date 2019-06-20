@@ -34,8 +34,6 @@
 
     VerifyCorr.m
     Buttons.m
-
-    Isos.m
   }
   polarization
   {
@@ -43,7 +41,7 @@
     Duals.m
     Polarizations.m
     Rosati.m
-    Automorphisms.m
+    Isomorphisms.m
   }
   puiseux
   {

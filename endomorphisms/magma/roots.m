@@ -7,7 +7,7 @@ g := DefiningPolynomial(K);
 cmd := Sprintf(
 "{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(z->vector(poldegree(g),i, polcoeff(z,i-1)),lift(nfroots(g,f))))}",
 Coefficients(f), Coefficients(g));
-s := Pipe("gp -q", cmd);
+s := Pipe("gp -q -D timer=0", cmd);
 rts := [ K ! rt : rt in eval(s) ];
 return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
 
@@ -31,7 +31,7 @@ g := DefiningPolynomial(K);
 cmd := Sprintf(
 "{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); apply(h->apply(c->vector(poldegree(g),i,polcoeff(c,i-1)),lift(Vecrev(h))),nffactor(K,f)[,1]~)",
 Coefficients(f), Coefficients(g));
-s := Pipe("gp -q", cmd);
+s := Pipe("gp -q -D timer=0", cmd);
 
 R := PolynomialRing(K);
 seqs := eval(s);
@@ -49,7 +49,7 @@ assert BaseRing(f) eq Rationals();
 cmd := Sprintf(
 "{f = Pol(Vecrev(%o),'x); K = nfinit(f); nfsplitting(K)",
 Coefficients(f), Coefficients(f));
-s := Pipe("gp -q", cmd);
+s := Pipe("gp -q -D timer=0", cmd);
 R<x> := PolynomialRing(BaseRing(f));
 return Polredbestabs(NumberField(eval(s)));
 

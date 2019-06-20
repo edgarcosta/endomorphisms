@@ -15,7 +15,7 @@ intrinsic Polredabs(f::RngUPolElt : Best := false) -> RngUPolElt, SeqEnum, BoolE
     cmd := Sprintf(
        "{u = %o(Pol(Vecrev(%o)),1); print(Vecrev(Vec(u[1])),Vecrev(Vec(lift(u[2]))))}",
        cmdp, Coefficients(f));
-    s := Pipe("gp -q", cmd);
+    s := Pipe("gp -q -D timer=0", cmd);
     c := Index(s,"][");
     spol := s[1..c];
     sroot := s[c+1..#s-1];
