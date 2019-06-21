@@ -47,7 +47,7 @@ intrinsic SplittingFieldPari(f::RngUPolElt) -> .
 //return SplittingField(f);
 assert BaseRing(f) eq Rationals();
 cmd := Sprintf(
-"{f = Pol(Vecrev(%o),'x); K = nfinit(f); nfsplitting(K)",
+"{f = Pol(Vecrev(%o),'x); nfsplitting(f)",
 Coefficients(f), Coefficients(f));
 s := Pipe("gp -q -D timer=0", cmd);
 R<x> := PolynomialRing(BaseRing(f));
