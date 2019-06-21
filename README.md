@@ -15,7 +15,7 @@ to your `~/.gprc` file. This is an optional improvement.
 
 You should also install [`pascalmolin/hperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file, using `AttachSpec` in the same way as in the section on the Magma installation below (but with a different target spec file). This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
 
-Upcoming installations with Magma will include code by Christian Neurohr that will enable the computation of period matrices of plane curves. For now, this code is available via the dependency [`christianneurohr/RiemannSurfaces`](https://github.com/christianneurohr/RiemannSurfaces).
+Upcoming installations with Magma will include code by Christian Neurohr that will enable the computation of period matrices of plane curves. For now, this code is available via the dependency [`JRSijsling/RiemannSurfaces`](https://github.com/JRSijsling/RiemannSurfaces), a fork containing small modifications of the magnificent original version at [`christianneurohr/RiemannSurfaces`](https://github.com/christianneurohr/RiemannSurfaces).
 
 Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
 
