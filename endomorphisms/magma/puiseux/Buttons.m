@@ -9,6 +9,7 @@
  *  See LICENSE.txt for license details.
  */
 
+/*
 // In principle, it would be better to do this without specifying P0, but 
 // for a first go it's probably better to have the user provide this.
 // 
@@ -48,3 +49,4 @@ Al is either "Divisor" or "Cantor".}
   
   return EndoAlg, EndoDesc, certs;
 end intrinsic;
+*/
