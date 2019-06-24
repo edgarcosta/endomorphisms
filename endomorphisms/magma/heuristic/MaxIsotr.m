@@ -45,6 +45,7 @@ end intrinsic;
 function SymplecticSubmodulesPrime(p, d)
 // This is really stupid: right cosets are better. However, do not see how to
 // do that now and can get by without.
+/* TODO: Magma causes problems here: apply direct method */
 
 assert d mod 2 eq 0;
 FF := FiniteField(p);
@@ -66,9 +67,9 @@ end function;
 function SymplecticSubmodulesPrimePower(pf, d)
 // Based on a suggestion of John Voight
 
-assert d mod 2 eq 0;
+assert d mod 2 eq 0; g := d div 2;
 test, p, f := IsPrimePower(pf);
-if f eq 1 then
+if f eq 1 and d eq 2 then
     return SymplecticSubmodulesPrime(p, d);
 end if;
 
@@ -76,31 +77,39 @@ R := quo< Integers() | pf >;
 M := RSpace(R, d);
 
 bases := CartesianPower(M, d);
-submods := [ ];
-for tup in bases do
-    basis := [ e : e in tup ];
-    /* Check that elements generate */
-    if sub< M | basis > eq M then
-        factors := [ ];
-        /* In the end we have to consider d/2 pairs */
-        for i in [1..(d div 2)] do
-            factor := [ ];
-            /* The pairs per (i, i + 1) */
-            for e in [0..(f div 2)] do
-                Append(~factor, [ (p^e)*basis[2*i - 1], p^(f - e)*basis[2*i] ]);
-            end for;
-            Append(~factors, factor);
-        end for;
-        /* Now take cartesian product and keep new spaces */
-        CP := CartesianProduct(factors);
-        for tup in CP do
-            newbasis := &cat[ pair : pair in tup ];
-            N := sub< M | newbasis >;
-            if not N in submods then
-                Append(~submods, N);
-            end if;
-        end for;
+bases := [ [ e : e in basis ] : basis in bases ];
+bases := [ basis : basis in bases | sub< M | basis > eq M ];
+bases_new := [ ]; E := DiagonalJoin([ Matrix(R, [[0,-1],[1,0]]) : i in [1..g] ]);
+for basis in bases do
+    A := Matrix(R, [ Eltseq(b) : b in basis ]);
+    if A*E*Transpose(A) eq E then
+        Append(~bases_new, basis);
     end if;
+end for;
+bases := bases_new;
+
+submods := [ ];
+for basis in bases do
+    /* Check that elements generate */
+    factors := [ ];
+    /* In the end we have to consider d/2 pairs */
+    for i in [1..(d div 2)] do
+        factor := [ ];
+        /* The pairs per (i, i + 1) */
+        for e in [0..(f div 2)] do
+            Append(~factor, [ (p^e)*basis[2*i - 1], p^(f - e)*basis[2*i] ]);
+        end for;
+        Append(~factors, factor);
+    end for;
+    /* Now take cartesian product and keep new spaces */
+    CP := CartesianProduct(factors);
+    for tup in CP do
+        newbasis := &cat[ pair : pair in tup ];
+        N := sub< M | newbasis >;
+        if not N in submods then
+            Append(~submods, N);
+        end if;
+    end for;
 end for;
 return submods;
 
