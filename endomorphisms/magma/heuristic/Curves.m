@@ -9,7 +9,7 @@
  *  See LICENSE.txt for license details.
  */
 
-declare attributes Crv : plane_model, period_matrix, geo_endo_rep, base_endo_rep, se_model;
+declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point;
 
 
 intrinsic PlaneCurve(F::RngMPolElt) -> Crv

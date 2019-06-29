@@ -264,8 +264,6 @@ if X`initialized then
     return;
 end if;
 
-vprintf EndoCheck, 3 : "Curve:\n";
-vprint EndoCheck, 3 : X;
 X`is_hyperelliptic := Type(X) eq CrvHyp; X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
 X`g := Genus(X); X`is_plane_quartic := (X`is_planar) and (X`is_smooth) and (X`g eq 3);
 if not X`is_planar then
@@ -285,13 +283,14 @@ end if;
 X`A := Ambient(X`U); RA<u,v> := CoordinateRing(X`A); X`RA := RA; X`KA := FieldOfFractions(RA);
 X`RU := CoordinateRing(X`U); X`KU := FunctionField(X`U); X`F := BaseRing(X`RU);
 
-vprintf EndoCheck, 3 : "Index of affine patch: ";
+vprint EndoCheck, 3 : "";
+vprint EndoCheck, 3 : "Index of affine patch:";
 vprint EndoCheck, 3 : X`patch_index;
-vprintf EndoCheck, 3 : "Index of uniformizer: ";
+vprint EndoCheck, 3 : "Index of uniformizer:";
 vprint EndoCheck, 3 : X`unif_index;
-vprintf EndoCheck, 3 : "Affine patch:\n";
+vprint EndoCheck, 3 : "Affine patch:";
 vprint EndoCheck, 3 : X`U;
-vprintf EndoCheck, 3 : "Point:\n";
+vprint EndoCheck, 3 : "Base point:";
 vprint EndoCheck, 3 : X`P0;
 
 /* Construct equation order */
@@ -304,14 +303,16 @@ end if;
 X`OurB := OurBasisOfDifferentials(X);
 X`NormB, X`T, X`echelon_exps := NormalizedBasisOfDifferentials(X : NonWP := NonWP);
 _<u,v> := Parent(X`OurB[1]);
-vprintf EndoCheck, 3 : "Standard basis of differentials:\n";
+vprint EndoCheck, 3 : "";
+vprint EndoCheck, 3 : "Standard basis of differentials:";
 vprint EndoCheck, 3 : X`OurB;
-vprintf EndoCheck, 3 : "Normalized basis of differentials:\n";
+vprint EndoCheck, 3 : "Normalized basis of differentials:";
 vprint EndoCheck, 3 : X`NormB;
 
 X`cantor_eqs := CantorEquations(X);
-vprintf EndoCheck, 3 : "Cantor equations:\n";
-vprint EndoCheck, 3 : X`cantor_eqs;
+vprint EndoCheck, 2 : "";
+vprint EndoCheck, 2 : "Cantor equations:";
+vprint EndoCheck, 2 : X`cantor_eqs;
 
 X`initialized := true;
 

@@ -23,14 +23,14 @@ description of the geometric endomorphism algebra tensored with RR can be
 passed.}
 
 g := #Rows(EndoStructBase[1][1][1]);
-vprint EndoFind : "";
-vprint EndoFind : "Calculating Sato-Tate group...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Calculating Sato-Tate group...";
 if g eq 2 then
     ST := SatoTateGroupG2QQ(EndoStructBase, GeoEndoRep, GalK : Shorthand := Shorthand);
 else
     ST := "undef";
 end if;
-vprint EndoFind : "done calculating Sato-Tate group.";
+vprint EndoFind, 2 : "done calculating Sato-Tate group.";
 return ST;
 
 end intrinsic;

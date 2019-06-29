@@ -36,7 +36,8 @@ for X in Xs do
     print "Curve:";
     print X;
 
-    facs := HeuristicJacobianFactors(X);
+    facss := HeuristicJacobianFactors(X);
+    facs := &cat(facss);
     for fac in facs do
         print "";
         print "Heuristic Jacobian factor:";

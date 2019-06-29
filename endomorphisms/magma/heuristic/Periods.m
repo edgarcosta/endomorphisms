@@ -69,7 +69,7 @@ end if;
 
 Y := PlaneModel(X);
 eqsCC := EmbedCurveEquations(Y); eqsF := DefiningEquations(Y);
-X`period_matrix, X`se_model := PeriodMatrix(eqsCC, eqsF);
+X`period_matrix, X`riesrf := PeriodMatrix(eqsCC, eqsF);
 vprint EndoFind : "done calculating period matrix.";
 return X`period_matrix;
 

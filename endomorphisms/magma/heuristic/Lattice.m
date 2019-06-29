@@ -32,6 +32,8 @@ end function;
 intrinsic EndomorphismLattice(GeoEndoRep::SeqEnum) -> List
 {Returns the lattice of endomorphisms by (conjugacy class of) subfield.}
 
+vprint EndoFind : "";
+vprint EndoFind : "Determining endomorphism lattice...";
 L := BaseRing(GeoEndoRep[1][1]);
 F := L`base; F_seq := FieldDescriptionExtra(F);
 base := [* F_seq, F *];
@@ -40,6 +42,7 @@ if Degree(L) eq 1 then
     entry, stpart, Shorthand := EndomorphismLatticeGeometricStep(GeoEndoRep);
     entries := [ entry ]; stparts := [ stpart ]; realstrs := [ entry[2][2][3] ];
     Gp := Sym(1); Hs := [ Gp ];
+    vprint EndoFind : "done determining endomorphism lattice.";
     return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]);
 end if;
 
@@ -54,6 +57,7 @@ for H in Hs[2..#Hs] do
     entry, stpart := EndomorphismLatticeGeneralStep(GeoEndoRep, GalK, Shorthand);
     Append(~entries, entry); Append(~stparts, stpart); Append(~realstrs, entry[2][2][3]);
 end for;
+vprint EndoFind : "done determining endomorphism lattice.";
 return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]);
 
 end intrinsic;
@@ -69,9 +73,9 @@ L_seq := FieldDescriptionExtra(L); L_desc := [* L_seq, L *];
 Append(~entry, L_desc);
 
 GalL := [* [ ], [ ] *];
-vprint EndoFind : "";
-vprint EndoFind : "Generators of Galois group in lattice:", [ ];
-vprint EndoFind : "Corresponding field:", L;
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Generators of Galois group in lattice:", [ ];
+vprint EndoFind, 2 : "Corresponding field:", L;
 EndoStruct := EndomorphismDataWithSatoTate(GeoEndoRep, GalL);
 Append(~entry, EndoStruct);
 
@@ -90,11 +94,11 @@ entry := [* *];
 
 L := BaseRing(GeoEndoRep[1][1]);
 gensH, Gphi := Explode(GalK);
-vprint EndoFind : "";
-vprint EndoFind : "Generators of Galois group in lattice:", gensH;
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Generators of Galois group in lattice:", gensH;
 K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
 K_seq := FieldDescriptionExtra(K);
-vprint EndoFind : "Corresponding field:", K;
+vprint EndoFind, 2 : "Corresponding field:", K;
 K_desc := [* K_seq, K *];
 Append(~entry, K_desc);
 

@@ -67,7 +67,7 @@ for i in [1..gY] do
     if j in [1..ncols] then
         Append(~vals, (1/exp0)*M[i, Integers()!j]);
     else
-        Append(~vals, 0);
+        Append(~vals, BaseRing(Parent(M)) ! 0);
     end if;
 end for;
 return exp0, vals;
@@ -255,12 +255,12 @@ e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
     P[2] +:= h;
 
     /*
-    print "Before lift:";
-    print Qs;
-    print P;
-    print "After lift:";
-    print Qs;
-    print P;
+    vprint EndoCheck, 3: "Before lift:";
+    vprint EndoCheck, 3: Qs;
+    vprint EndoCheck, 3: P;
+    vprint EndoCheck, 3: "After lift:";
+    vprint EndoCheck, 3: Qs;
+    vprint EndoCheck, 3: P;
     */
 
     /* Calculate LHS: */
@@ -268,8 +268,11 @@ e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
     BQs := Matrix([ [ Evaluate(BY[i], Qs[j]) : j in [1..gY] ] : i in [1..gY] ]);
     F_ev := Matrix([ [ Integral(&+[ BQs[i,j] * dtjs[j] : j in [1..gY] ]) : i in [1..gY] ] ]);
     DF_ev := Transpose(BQs);
-    //print "Determinant:";
-    //print Determinant(DF_ev);
+
+    /*
+    vprint EndoCheck, 3: "Determinant:";
+    vprint EndoCheck, 3: Determinant(DF_ev);
+    */
     if not IsInvertible(DF_ev) then
         error "Jacobian of Hensel lift is not invertible, so Puiseux lift fails";
     end if;

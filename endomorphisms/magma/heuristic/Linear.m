@@ -141,7 +141,8 @@ CCSmall := ComplexField(5);
 rowsK0 := [ ];
 for row in rowsK do
     ht := Max([ Abs(c) : c in Eltseq(row) ]);
-    vprint EndoFind, 2 : "Height of row:", Round(Log(ht));
+    vprint EndoFind, 3 : "";
+    vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
     test1 := ht lt RR`height_bound;
     //test1 := true;
     if test1 then
@@ -149,7 +150,7 @@ for row in rowsK do
         abs := Max([ Abs(c) : c in Eltseq(prod) ]);
         test2 := abs lt RR`epscomp;
         //test2 := abs lt 10^50*RR`epscomp;
-        vprint EndoFind, 2 : "Precision reached:", CCSmall ! abs;
+        vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
         if test2 then
             Append(~rowsK0, row);
         end if;

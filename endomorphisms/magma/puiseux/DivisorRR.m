@@ -51,12 +51,14 @@ max := Minimum([ AbsolutePrecision(ev) : ev in &cat(evss) ]);
 max -:= 10;
 M := Matrix([ &cat[ [ X`F ! Coefficient(evs[i], j/e) : j in [(e*min)..(e*max - 1)] ] : evs in evss ] : i in [1..#evss[1]] ]);
 
+/*
 print "Denominator:", e;
 print "Min:", min;
 print "Max:", max;
 print "Number of rows:", #Rows(M);
 print "Number of columns:", #Rows(Transpose(M));
 print "Dim Ker:", Dimension(Kernel(M));
+*/
 
 return [ Eltseq(b) : b in Basis(Kernel(M)) ];
 
@@ -83,6 +85,7 @@ end function;
 function CheckMultiplicityAtPoint(X, Y, d, vs : Margin := 2^8)
 // Checks for multiplicity of vertical intersection
 
+vprint EndoCheck, 3 : "";
 vprint EndoCheck, 3 : "CheckMultiplicityAtPoint...";
 precP := DegreeBound(X, d) + Margin; precQ := DegreeBound(Y, Y`g) + Margin;
 P := DevelopPoint(X, X`P0, precP); Q := DevelopPoint(Y, Y`P0, precQ);
@@ -273,37 +276,38 @@ end function;
 
 function DivisorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^8)
 
-vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+vprint EndoCheck, 2 : "Trying degree", d;
 /* Cardinality of basis of functions plus margin: */
 n := (DegreeBound(X, d) + 1 - X`g)*(DegreeBound(Y, Y`g) + 1 - Y`g) + Margin;
-vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
+vprint EndoCheck, 2 : "Number of terms in expansion:", n;
 
 /* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding... ";
+vprint EndoCheck, 2 : "Expanding...";
 P, Qs := InitializedIterator(X, Y, NormM, n);
 _<t> := Parent(P[1]);
 _<r> := BaseRing(Parent(P[1]));
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 
 /* Fit a divisor to it */
-vprintf EndoCheck, 2 : "Solving linear system... ";
+vprint EndoCheck, 2 : "Solving linear system...";
 vs := InfinitesimalEquationVectors(X, Y, d, P, Qs);
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 if #vs eq 0 then
     return false, [ ], [ ];
 end if;
 
-vprintf EndoCheck, 2 : "Checking:\n";
-vprintf EndoCheck, 2 : "Multiplicity...";
+vprint EndoCheck, 2 : "Checking:";
+vprint EndoCheck, 2 : "Multiplicity...";
 test_mult := CheckMultiplicity(X, Y, d, vs);
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 if test_mult then
-    vprintf EndoCheck, 2 : "Dimension... ";
+    vprint EndoCheck, 2 : "Dimension...";
     test_dim, D := CheckDimension(X, Y, d, vs);
 
-    vprintf EndoCheck, 2 : "done.\n";
+    vprint EndoCheck, 2 : "done.";
     if test_dim then
-        vprintf EndoCheck, 2 : "Divisor found!\n";
+        vprint EndoCheck, 2 : "";
+        vprint EndoCheck, 2 : "Divisor found!";
         return true, D, vs;
     end if;
 end if;
@@ -367,7 +371,7 @@ while true do
         pr, h := RandomSplitPrime(f, B);
     until not pr in prs;
     Append(~prs, pr); I *:= pr;
-    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
+    vprint EndoCheck : "Split prime over", #Codomain(h);
 
     /* Add corresponding data */
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
@@ -388,31 +392,31 @@ while true do
     end while;
     Append(~vss_red, vs_red);
 
-    vprintf EndoCheck : "Fractional CRT... ";
+    vprint EndoCheck : "Fractional CRT...";
     vs := [ ];
     for i in [1..#vss_red[1]] do
         v_reds := [* vs_red[i] : vs_red in vss_red *];
         v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs) : j in [1..#v_reds[1]] ];
         Append(~vs, v);
     end for;
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
-    vprintf EndoCheck : "Checking:\n";
-    vprintf EndoCheck : "Vanishing... ";
+    vprint EndoCheck : "Checking:";
+    vprint EndoCheck : "Vanishing...";
     /* Note that P and Qs are calculated at the beginning of this function */
     test_van := CheckVanishing(X, Y, d, vs, P, Qs);
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
     if test_van then
-        vprintf EndoCheck : "Multiplicity... ";
+        vprint EndoCheck : "Multiplicity...";
         test_mult := CheckMultiplicity(X, Y, d, vs);
-        vprintf EndoCheck : "done.\n";
+        vprint EndoCheck : "done.";
         if test_mult then
-            vprintf EndoCheck, 2 : "Dimension... ";
+            vprint EndoCheck, 2 : "Dimension...";
             test_dim, D := CheckDimension(X, Y, d, vs);
-            vprintf EndoCheck, 2 : "done.\n";
+            vprint EndoCheck, 2 : "done.";
             if test_dim then
-                vprintf EndoCheck, 2 : "Divisor found!\n";
+                vprint EndoCheck, 2 : "Divisor found!";
                 return true, D, vs;
             end if;
         end if;

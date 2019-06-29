@@ -55,8 +55,8 @@ end function;
 intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjToIdem := true) -> .
 {Returns component and map corresponding to idempotent idem. If CoerceToBase is set to true, this is returned over the smallest possible field.}
 
-vprint EndoFind : "";
-vprint EndoFind : "Determining component from idempotent, analytic step...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Determining component from idempotent, analytic step...";
 L := BaseRing(idem[1]);
 if ProjToIdem then
     R := idem[2];
@@ -70,10 +70,10 @@ else
     Q, mor := Ker0([* ACC, R *], P, P);
 end if;
 BCC := mor[1]; S := mor[2];
-vprint EndoFind : "done determining component from idempotent analytically.";
+vprint EndoFind, 2 : "done determining component from idempotent analytically.";
 
-vprint EndoFind : "";
-vprint EndoFind : "Determining component from idempotent, algebraic step...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Determining component from idempotent, algebraic step...";
 /* Recalculation to algebraize entries */
 test, B := AlgebraizeMatrix(BCC, L);
 assert test;
@@ -82,7 +82,7 @@ incdata := [* L, K, hKL *];
 if CoerceToBase then
     B := CoerceToSubfieldMatrix(B, L, K, hKL);
 end if;
-vprint EndoFind : "done determining component from idempotent algebraically.";
+vprint EndoFind, 2 : "done determining component from idempotent algebraically.";
 return Q, [* B, S *], incdata;
 
 end intrinsic;
@@ -91,15 +91,15 @@ end intrinsic;
 intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, ProjToIdem := true) -> .
 {Returns isotypical components Q = B^d of the Jacobian with maps. If CoerceToBase is set to true, these are returned over the smallest possible field.}
 
-vprint EndoFind : "";
-vprint EndoFind : "Determining isotypical components...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Determining isotypical components...";
 idems := IsotypicalIdempotents(P, EndoRep);
 comps := [ ];
 for idem in idems do
     Q, mor, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjToIdem := ProjToIdem);
     Append(~comps, [* Q, mor, incdata *]);
 end for;
-vprint EndoFind : "done determining isotypical components.";
+vprint EndoFind, 2 : "done determining isotypical components.";
 return comps;
 
 end intrinsic;
@@ -108,29 +108,29 @@ end intrinsic;
 intrinsic SplittingIdempotents(Q::., mor::., incdata::.) -> .
 {Returns further idempotents over the smallest field where the isotypical component splits as far as possible.}
 
-vprint EndoFind : "";
-vprint EndoFind : "Finding further splitting...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Finding further splitting...";
 L, K, hKL := Explode(incdata);
 /* Recalculate endomorphism algebra over known field (as mentioned above, this is stupid) */
 GeoEndoRepCC := GeometricEndomorphismRepresentationCC(Q);
 GeoEndoRep := [ ];
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Algebraizing matrices...";
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Algebraizing matrices...";
 for tupCC in GeoEndoRepCC do
     test, A := AlgebraizeMatrix(tupCC[1], L); R := tupCC[2];
     Append(~GeoEndoRep, [* A, R *]);
 end for;
-vprint EndoFind, 2 : "done algebraizing matrices.";
+vprint EndoFind, 3 : "done algebraizing matrices.";
 
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Finding geometric endomorphisms...";
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Finding geometric endomorphisms...";
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
 idems_geo := SplittingIdempotentsAlgebra(GeoEndoData);
-vprint EndoFind, 2 : "done finding endomorphisms.";
+vprint EndoFind, 3 : "done finding endomorphisms.";
 
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Running through lattice...";
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Running through lattice...";
 /* Find automorphism group (over QQ for now) */
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
 H := FixedGroupExtra(L, K, hKL);
@@ -152,9 +152,8 @@ for J in Reverse(Js) do
         return idems, [* L, M, hML *];
     end if;
 end for;
-vprint EndoFind, 2 : "done running through lattice.";
-vprint EndoFind : "";
-vprint EndoFind : "done finding further splitting.";
+vprint EndoFind, 3 : "done running through lattice.";
+vprint EndoFind, 2 : "done finding further splitting.";
 return idems_geo, [* L, L, CanonicalInclusionMap(L, L) *];
 
 end intrinsic;
@@ -325,8 +324,13 @@ intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : AllIdems := false, ProjToI
 
 L := BaseRing(GeoEndoRep[1][1]);
 comps := [ ];
+vprint EndoFind : "";
+vprint EndoFind : "Determining isotypical components...";
 comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjToIdem := ProjToIdem);
+vprint EndoFind : "done determining isotypical components.";
 for comp_iso in comps_iso do
+    vprint EndoFind : "";
+    vprint EndoFind : "Determining isomorphic component...";
     Q, mor, incdata := Explode(comp_iso);
     A, R := Explode(mor);
     comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjToIdem := ProjToIdem);
@@ -367,6 +371,8 @@ for comp_iso in comps_iso do
     else
         Append(~comps, comptup);
     end if;
+    vprint EndoFind : "";
+    vprint EndoFind : "done determining isomorphic component.";
 end for;
 return comps;
 

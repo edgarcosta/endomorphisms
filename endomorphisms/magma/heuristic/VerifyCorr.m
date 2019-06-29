@@ -203,51 +203,72 @@ intrinsic SmallBasePoint(X::Crv : Bound := 2^10, NW := false) -> SeqEnum
 {Given a curve X, returns a point on X over a small extension of its base
 field, which we can ask to be a non-Weierstrass point.}
 
-if Type(X) eq CrvHyp then
-    return SmallBasePointHyp(X : Bound := Bound, NW := NW);
-elif Type(X) eq CrvPln then
-    return SmallBasePointPlane(X : Bound := Bound, NW := NW);
+if assigned X`base_point then
+    return X`base_point;
 end if;
-error "Not implemented for general curves yet";
+
+if Type(X) eq CrvHyp then
+    P, hFK := SmallBasePointHyp(X : Bound := Bound, NW := NW);
+elif Type(X) eq CrvPln then
+    P, hFK := SmallBasePointPlane(X : Bound := Bound, NW := NW);
+else
+    error "Not implemented for general curves yet";
+end if;
+
+X`base_point := [* P, hFK *];
+return X`base_point;
 
 end intrinsic;
 
 
 intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree := false) -> .
-{Given curves X and Y, finds a correspondence with tangent representation A if it exists. The matrix has A has to be defined over the same field as the curve Y, and that field of definition may be an extension of that of X. Base points P and Q can be specified: otherwise these are found automatically over some extension.}
+{Given curves X and Y, finds a correspondence with tangent representation A if it exists. Base points P and Q can be specified: otherwise these are found automatically over some extension.}
 
-A := mor[1]; R := mor[2];
-F := BaseRing(X); L := BaseRing(Y);
+A := mor[1]; R := mor[2]; F := BaseRing(X);
+KY := BaseRing(Y);         _, hFKY := InclusionOfBaseExtra(KY);
+KA := BaseRing(Parent(A)); _, hFKA := InclusionOfBaseExtra(KA);
 
 /* Use or find point on X */
 if Type(P) ne RngIntElt then
-    hFK := CanonicalInclusionMap(F, F);
+    hFKP := CanonicalInclusionMap(F, F);
 else
-    P, hFK := SmallBasePoint(X);
-    X := Curve(P);
+    P, hFKP := Explode(SmallBasePoint(X));
+    KP := BaseRing(Curve(P));
 end if;
 
 /* Use or find point on Y */
 if Type(Q) ne RngIntElt then
-    hLM := CanonicalInclusionMap(L, L);
+    hKYKQ := CanonicalInclusionMap(KY, KY);
 else
-    Q, hLM := SmallBasePoint(Y);
-    Y := Curve(Q);
-    A := ConjugateMatrix(hLM, A);
+    Q, hKYKQ := Explode(SmallBasePoint(Y));
+    KQ := BaseRing(Curve(Q));
 end if;
+hFKQ := hFKY*hKYKQ;
 
 /* Change to common base field */
-K := BaseRing(X); M := BaseRing(Y);
-N, hMN, hKN := CompositumExtra(M, K);
-X := ChangeRingCurve(X, hKN);
-P := X ! [ hKN(c) : c in Eltseq(P) ];
-Y := ChangeRingCurve(Y, hMN);
-Q := Y ! [ hMN(c) : c in Eltseq(Q) ];
-A := ConjugateMatrix(hMN, A);
+KAP, hKAKAP, hKPKAP := CompositumExtra(KA, KP);
+KAPQ, hKAPKAPQ, hKQKAPQ := CompositumExtra(KAP, KQ);
+hFKAPQ := hFKQ*hKQKAPQ;
+hKPKAPQ := hKPKAP*hKAPKAPQ;
+hKYKAPQ := hKYKQ*hKQKAPQ;
+hKAKAPQ := hKAKAP*hKAPKAPQ;
+
+XKAPQ := ChangeRingCurve(X, hFKAPQ);
+PKAPQ := XKAPQ ! [ hKPKAPQ(c) : c in Eltseq(P) ];
+YKAPQ := ChangeRingCurve(Y, hKYKAPQ);
+QKAPQ := YKAPQ ! [ hKQKAPQ(c) : c in Eltseq(Q) ];
+AKAPQ := ConjugateMatrix(hKAKAPQ, A);
 
 /* Actual work */
+X := XKAPQ; P := PKAPQ; Y := YKAPQ; Q := QKAPQ; A := AKAPQ;
+vprint EndoCheck : "";
+vprint EndoCheck : "Chosen base point on X:";
+vprint EndoCheck : P;
+vprint EndoCheck : "Chosen base point on Y:";
+vprint EndoCheck : Q;
+
 if (#Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
-    return true, "Multiplication by an integer", [* X, Y, A *];
+    return true, "Multiplication by an integer";
 else
     test, fs := CantorFromMatrixAmbientSplit(X, P, Y, Q, A);
     if Genus(Y) eq 1 then
@@ -255,7 +276,7 @@ else
             error "Pullback incorrect";
         end if;
     end if;
-    return test, fs, [* X, Y, A *];
+    return test, fs;
 end if;
 
 end intrinsic;
@@ -295,8 +316,9 @@ if CheckDegree then
     AX := AffinePatch(X, 1); AY := AffinePatch(Y, 1);
     KX := FunctionField(AX); KY := FunctionField(AY);
     m := map<AX -> AY | fs >;
-    print "";
-    print "Degree:", Degree(ProjectiveClosure(m));
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Degree:";
+    vprint EndoCheck : Degree(ProjectiveClosure(m));
 end if;
 
 /* Check that the action on differentials is correct: */
@@ -311,7 +333,9 @@ if X`is_hyperelliptic then
     end if;
 elif X`is_planar then
     mults := [ x, y, 1 ];
-    print "Correct pullback?", R ! Numerator(K ! (ev - &+[ A[1,i]*mults[i] : i in [1..Genus(X)] ]/Derivative(fX, 2))) in IX;
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Correct pullback?";
+    vprint EndoCheck : R ! Numerator(K ! (ev - &+[ A[1,i]*mults[i] : i in [1..Genus(X)] ]/Derivative(fX, 2))) in IX;
 end if;
 return true;
 

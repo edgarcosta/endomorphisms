@@ -165,38 +165,40 @@ end function;
 function CantorFromMatrixByDegree(X, Y, NormM, d : Margin := 2^4)
 /* Step mod p of the above */
 
-vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+vprint EndoCheck, 2 : "";
+vprint EndoCheck, 2 : "Trying degree", d;
 // TODO: This number n can be tweaked
 n := 2*d + Margin;
 e := PuiseuxRamificationIndex(NormM);
-vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
+vprint EndoCheck, 2 : "Number of digits in expansion:", n*e;
 
 /* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding... ";
+vprint EndoCheck, 2 : "Expanding...";
 P, Qs := InitializedIterator(X, Y, NormM, n*e);
 _<t> := Parent(P[1]);
 _<r> := BaseRing(Parent(P[1]));
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 
 /* Fit a Cantor morphism to it */
-vprintf EndoCheck, 2 : "Solving linear system... ";
+vprint EndoCheck, 2 : "Solving linear system...";
 test, vs := VectorsFromApproximations(X, Y, P, Qs, d);
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 
 if test then
     // TODO: In some circumstances this step is optional, we could skip it with
     // a flag
-    vprintf EndoCheck, 2 : "Checking:\n";
-    vprintf EndoCheck, 2 : "Step 1... ";
+    vprint EndoCheck, 2 : "Checking:";
+    vprint EndoCheck, 2 : "Step 1...";
     test1 := CheckApproximation(X, Y, vs, d, P, Qs);
-    vprintf EndoCheck, 2 : "done.\n";
+    vprint EndoCheck, 2 : "done.";
     if test1 then
-        vprintf EndoCheck, 2 : "Step 2... ";
+        vprint EndoCheck, 2 : "Step 2...";
         fs := FunctionsFromVectors(X, Y, vs, d);
         test2 := CheckCantor(X, Y, fs);
-        vprintf EndoCheck, 2 : "done.\n";
+        vprint EndoCheck, 2 : "done.";
         if test2 then
-            vprintf EndoCheck, 2 : "Functions found!\n";
+            vprint EndoCheck, 2 : "";
+            vprint EndoCheck, 2 : "Functions found!";
             return true, fs, vs;
         end if;
     end if;
@@ -259,7 +261,7 @@ while true do
         pr, h := RandomSplitPrime(f, B);
     until not pr in prs;
     Append(~prs, pr); I *:= pr;
-    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
+    vprint EndoCheck : "Split prime over", #Codomain(h);
 
     /* Add corresponding data */
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
@@ -280,27 +282,29 @@ while true do
     end while;
     Append(~vss_red, vs_red);
 
-    vprintf EndoCheck : "Fractional CRT... ";
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Fractional CRT... ";
     vs := [ ];
     for i in [1..#vss_red[1]] do
         v_reds := [* vs_red[i] : vs_red in vss_red *];
         v := [ FractionalCRTSplit([* v_red[j] : v_red in v_reds *], prs) : j in [1..#v_reds[1]] ];
         Append(~vs, v);
     end for;
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
-    vprintf EndoCheck : "Checking:\n";
-    vprintf EndoCheck : "Step 1... ";
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Checking:";
+    vprint EndoCheck : "Step 1...";
     test1 := CheckApproximation(X, Y, vs, d, P, Qs);
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
     if test1 then
-        vprintf EndoCheck : "Step 2... ";
+        vprint EndoCheck : "Step 2...";
         fs := FunctionsFromVectors(X, Y, vs, d);
         test2 := CheckCantor(X, Y, fs);
-        vprintf EndoCheck : "done.\n";
+        vprint EndoCheck : "done.";
         if test2 then
-            vprintf EndoCheck : "Functions found!\n";
+            vprint EndoCheck : "Functions found!";
             return true, ChangeFunctions(X, Y, fs);
         end if;
     end if;

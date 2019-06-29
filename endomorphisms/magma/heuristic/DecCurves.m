@@ -96,15 +96,11 @@ intrinsic ReconstructionFromComponent(P::., Q::., mor::. : AllPPs := false, Proj
 {Given a factor (Q, mor) of the Jacobian, finds corresponding curves along with morphisms to them.}
 
 gQ := #Rows(Q);
-vprint CurveRec : "";
-vprint CurveRec : "Reconstructing curves...";
 if gQ eq 1 then
     recs := ReconstructionFromComponentG1(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-    vprint CurveRec : "done reconstructing curves.";
     return recs;
 elif gQ eq 2 then
     recs := ReconstructionFromComponentG2(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-    vprint CurveRec : "done reconstructing curves.";
     return recs;
 else
     error "Finding factors not yet implemented for genus larger than 2";

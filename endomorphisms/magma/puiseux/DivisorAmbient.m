@@ -217,7 +217,8 @@ while true do
         pr, h := RandomSplitPrime(f, B);
     until not pr in prs;
     Append(~prs, pr); I *:= pr;
-    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Split prime over", #Codomain(h);
 
     /* Add corresponding data */
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
@@ -239,7 +240,8 @@ while true do
     end while;
     Append(~DEss_red, DefiningEquations(S_red));
 
-    vprintf EndoCheck : "Fractional CRT... ";
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Fractional CRT...";
     DEs := [ ];
     for i:=1 to #DEss_red[1] do
         DE := Rprod ! 0;
@@ -254,21 +256,23 @@ while true do
         end for;
         Append(~DEs, DE);
     end for;
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
-    vprintf EndoCheck : "Checking:\n";
-    vprintf EndoCheck : "Step 1... ";
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Checking:";
+    vprint EndoCheck : "Step 1... ";
     /* Note that P and Qs are calculated at the beginning of this function */
     test1 := CheckEquations(X, Y, P, Qs, DEs);
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
     if test1 then
-        vprintf EndoCheck : "Step 2... ";
+        vprint EndoCheck : "Step 2...";
         S := Scheme(AffineSpace(Rprod), DEs);
         test2 := CheckIrreducibleComponent(X, Y, S);
-        vprintf EndoCheck : "done.\n";
+        vprint EndoCheck : "done.";
         if test2 then
-            vprintf EndoCheck : "Divisor found!\n";
+            vprint EndoCheck : "";
+            vprint EndoCheck : "Divisor found!";
             return true, S;
         end if;
     end if;
@@ -279,12 +283,13 @@ end intrinsic;
 
 function DivisorFromMatrixByDegree(X, Y, Iterator, d : Margin := 2^5)
 
-vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+vprint EndoCheck, 2 : "";
+vprint EndoCheck, 2 : "Trying degree", d;
 fs := CandidateDivisors(X, Y, d);
 n := #fs + Margin;
-vprintf EndoCheck, 2 : "Number of terms in expansion: %o.\n", n;
+vprint EndoCheck, 2 : "Number of terms in expansion:", n;
 
-vprintf EndoCheck, 2 : "Expanding branches... ";
+vprint EndoCheck, 2 : "Expanding branches...";
 while true do
     P, Qs, _, _ := Explode(Iterator);
     prec := Precision(Parent(Qs[1][1]));
@@ -296,25 +301,25 @@ while true do
     Iterator := IterateIterator(Iterator);
 end while;
 P, Qs, _, _ := Explode(Iterator);
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 
 /* Fit a divisor to it */
-vprintf EndoCheck, 2 : "Solving linear system... ";
+vprint EndoCheck, 2 : "Solving linear system...";
 ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs);
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 
 for S in ICs do
     DEs := DefiningEquations(S);
-    vprintf EndoCheck, 2 : "Checking:\n";
-    vprintf EndoCheck, 2 : "Step 1... ";
+    vprint EndoCheck, 2 : "Checking:";
+    vprint EndoCheck, 2 : "Step 1...";
     test1 := CheckEquations(X, Y, P, Qs, DEs);
-    vprintf EndoCheck, 2 : "done.\n";
+    vprint EndoCheck, 2 : "done.";
     if test1 then
-        vprintf EndoCheck, 2 : "Step 2... ";
+        vprint EndoCheck, 2 : "Step 2...";
         test2 := CheckIrreducibleComponent(X, Y, S);
-        vprintf EndoCheck, 2 : "done.\n";
+        vprint EndoCheck, 2 : "done.";
         if test2 then
-            vprintf EndoCheck, 2 : "Divisor found!\n";
+            vprint EndoCheck, 2 : "Divisor found!";
             return true, S, Iterator;
         end if;
     end if;

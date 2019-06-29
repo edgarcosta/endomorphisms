@@ -183,18 +183,22 @@ InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
 NormM := ChangeTangentAction(X, Y, M);
 NormM := Y`T * NormM * (X`T)^(-1);
 
-vprintf EndoCheck, 3 : "Differential bases on factors:";
+vprint EndoCheck, 3 : "";
+vprint EndoCheck, 3 : "Differential bases on factors:";
 vprint EndoCheck, 3: X`NormB;
 vprint EndoCheck, 3: Y`NormB;
+vprint EndoCheck, 2 : "Normalized endomorphism representation:";
+vprint EndoCheck, 2: NormM;
 
 /* Some global elements needed below */
 F := X`F; OF := X`OF; RX := X`RA; KX := X`KA;
 /* Bit more global margin just to be sure */
 
-vprintf EndoCheck, 3 : "Initializing iterator...";
+vprint EndoCheck, 2 : "";
+vprint EndoCheck, 2 : "Initializing iterator...";
 Iterator, f := InitializedIterator(X, Y, NormM, 2*Y`g + 2);
 P := Iterator[1]; Qs := Iterator[2];
-vprintf EndoCheck, 3 : "done.";
+vprint EndoCheck, 2 : "done.";
 
 prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
@@ -206,7 +210,8 @@ while true do
         pr, h := RandomSplitPrime(f, B);
     until not pr in prs;
     Append(~prs, pr); I *:= pr;
-    vprintf EndoCheck : "Split prime over %o\n", #Codomain(h);
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Split prime over", #Codomain(h);
 
     /* Add corresponding data */
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
@@ -228,7 +233,8 @@ while true do
     end while;
     Append(~fss_red, fs_red);
 
-    vprintf EndoCheck : "Fractional CRT... ";
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Fractional CRT... ";
     fs := [ ];
     for i:=1 to #fss_red[1] do
         num := RX ! 0;
@@ -245,19 +251,21 @@ while true do
         end for;
         Append(~fs, KX ! (num / den));
     end for;
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
-    vprintf EndoCheck : "Checking:\n";
-    vprintf EndoCheck : "Step 1... ";
+    vprint EndoCheck : "";
+    vprint EndoCheck : "Checking:";
+    vprint EndoCheck : "Step 1... ";
     test1 := CheckApproximation(X, Y, P, Qs, fs);
-    vprintf EndoCheck : "done.\n";
+    vprint EndoCheck : "done.";
 
     if test1 then
-        vprintf EndoCheck : "Step 2... ";
+        vprint EndoCheck : "Step 2... ";
         test2 := CheckCantor(X, Y, fs);
-        vprintf EndoCheck : "done.\n";
+        vprint EndoCheck : "done.";
         if test2 then
-            vprintf EndoCheck : "Functions found!\n";
+            vprint EndoCheck : "";
+            vprint EndoCheck : "Functions found!";
             return true, ChangeFunctions(X, Y, fs);
         end if;
     end if;
@@ -268,41 +276,43 @@ end intrinsic;
 
 function CantorFromMatrixByDegree(X, Y, Iterator, d : Margin := 2^5)
 
-vprintf EndoCheck, 2 : "Trying degree %o...\n", d;
+vprint EndoCheck, 2 : "";
+vprint EndoCheck, 2 : "Trying degree:", d;
 dens, nums := CandidateFunctions(X, d);
 n := #dens + #nums + Margin;
 e := ExponentDenominator(Iterator[2][1][1]);
-vprintf EndoCheck, 2 : "Number of digits in expansion: %o.\n", n*e;
+vprint EndoCheck, 2 : "Number of digits in expansion:", n*e;
 
 /* Take non-zero image branch */
-vprintf EndoCheck, 2 : "Expanding branches... ";
+vprint EndoCheck, 2 : "Expanding branches...";
 while true do
     P, Qs, _, _ := Explode(Iterator);
-    prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ]);
+    prec := Precision(Parent(Qs[1][1]));
     if prec ge n then
         break;
     end if;
     Iterator := IterateIterator(Iterator);
 end while;
 P, Qs, _, _ := Explode(Iterator);
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 
 /* Fit a Cantor morphism to it */
-vprintf EndoCheck, 2 : "Solving linear system... ";
+vprint EndoCheck, 2 : "Solving linear system... ";
 test, fs := FunctionsFromApproximations(X, Y, P, Qs, d);
-vprintf EndoCheck, 2 : "done.\n";
+vprint EndoCheck, 2 : "done.";
 
 if test then
-    vprintf EndoCheck, 2 : "Checking:\n";
-    vprintf EndoCheck, 2 : "Step 1... ";
+    vprint EndoCheck, 2 : "Checking:";
+    vprint EndoCheck, 2 : "Step 1... ";
     test1 := CheckApproximation(X, Y, P, Qs, fs);
-    vprintf EndoCheck, 2 : "done.\n";
+    vprint EndoCheck, 2 : "done.";
     if test1 then
-        vprintf EndoCheck, 2 : "Step 2... ";
+        vprint EndoCheck, 2 : "Step 2...";
         test2 := CheckCantor(X, Y, fs);
-        vprintf EndoCheck, 2 : "done.\n";
+        vprint EndoCheck, 2 : "done.";
         if test2 then
-            vprintf EndoCheck, 2 : "Functions found!\n";
+            vprint EndoCheck, 2 : "";
+            vprint EndoCheck, 2 : "Functions found!";
             return true, fs, Iterator;
         end if;
     end if;
@@ -369,7 +379,7 @@ if X`is_hyperelliptic then
         num *:= den_conj; den *:= den_conj;
         num := AbsoluteToRelative(num, R, T); den := AbsoluteToRelative(den, R, T);
         num := RelativeToAbsolute(num mod DET, R, T); den := RelativeToAbsolute(den mod DET, R, T);
-        Append(~fs_red, num / den);
+        Append(~fs_red, FieldOfFractions(R) ! (num / den));
     end for;
     return fs_red;
 end if;

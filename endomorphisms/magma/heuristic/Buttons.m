@@ -15,7 +15,7 @@ intrinsic HeuristicEndomorphismAlgebraCC(X::Crv) -> .
 
 GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
 EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-return EndoAlg, EndoDesc;
+return EndoAlg, EndoDesc, GeoEndoRep;
 
 end intrinsic;
 
@@ -35,14 +35,14 @@ intrinsic HeuristicEndomorphismAlgebra(X::Crv : Geometric := false) -> .
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 if Geometric then
     EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoAlg, EndoDesc;
+    return EndoAlg, EndoDesc, X`geo_endo_rep;
 end if;
 if not assigned X`base_endo_rep then
     F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
     X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return EndoAlg, EndoDesc;
+return EndoAlg, EndoDesc, X`base_endo_rep;
 
 end intrinsic;
 
@@ -193,3 +193,27 @@ end if;
 return exps, test, degs;
 
 end intrinsic;
+
+
+intrinsic VerifyEndomorphismsLowerBound(X::Crv : Geometric := false) -> .
+{Checks lower bound for endomorphisms.}
+
+EndoAlg, EndoDesc, GeoEndoRep := HeuristicEndomorphismAlgebraCC(X);
+if not VerifySaturated(GeoEndoRep, X`period_matrix) then
+    return false, "Not saturated";
+end if;
+EndoAlg, EndoDesc, EndoRep := HeuristicEndomorphismAlgebra(X : Geometric := Geometric);
+
+fss := [* *];
+for rep in EndoRep do
+    test, fs := Correspondence(X, X, rep);
+    if not test then
+        return false, rep;
+    end if;
+    Append(~fss, fs);
+end for;
+
+return true, fss;
+
+end intrinsic;
+

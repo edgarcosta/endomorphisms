@@ -46,8 +46,8 @@ degf := 0;
 powera := CC ! 1;
 MLine cat:= [ powergen * powera : powergen in powersgen ];
 
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Determining minimal polynomial over QQ using LLL...";
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Determining minimal polynomial over QQ using LLL...";
 /* Successively adding other entries to find relations */
 while degf lt UpperBound do
     degf +:= 1;
@@ -64,9 +64,9 @@ while degf lt UpperBound do
             row := Rows(Ker)[1];
             f := &+[ &+[ row[i*degK + j + 1]*K.1^j : j in [0..(degK - 1)] ] * x^i : i in [0..degf] ];
             if TestCloseToRoot(f, a) then
-                vprint EndoFind, 2 : "";
-                vprint EndoFind, 2 : f;
-                vprint EndoFind, 2 : "done determining minimal polynomial over QQ using LLL.";
+                vprint EndoFind, 3 : "";
+                vprint EndoFind, 3 : f;
+                vprint EndoFind, 3 : "done determining minimal polynomial over QQ using LLL.";
                 return f;
             end if;
         end if;
@@ -90,16 +90,16 @@ powersgenF := [ CC ! EmbedExtra(F.1^i, F`iota) : i in [0..(degF - 1)] ];
 MLine := &cat[ [ powergenF * powergenK : powergenF in powersgenF ] : powergenK in powersgenK ] cat [-a];
 M := Transpose(Matrix(CC, [ MLine ]));
 
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Algebraizing element...";
-vprint EndoFind, 2 : "";
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Algebraizing element...";
+vprint EndoFind, 3 : "";
 /* Split and take an IntegralLeftKernel */
 MSplit := HorizontalSplitMatrix(M);
 Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
 /* NOTE: We only consider the first element for now */
 if test_ker then
     for row in [ Rows(Ker)[1] ] do
-        vprint EndoFind, 2 : "Trying row:", row;
+        vprint EndoFind, 3 : "Trying row:", row;
         test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
         if test_height then
             den := row[#Eltseq(row)];
@@ -107,15 +107,15 @@ if test_ker then
                 sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
                 if (RR ! Abs(sCC - a)) lt RR`epscomp then
                     s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
-                    vprint EndoFind, 2 : s;
-                    vprint EndoFind, 2 : "done algebraizing element.";
+                    vprint EndoFind, 3 : s;
+                    vprint EndoFind, 3 : "done algebraizing element.";
                     return true, s;
                 end if;
             end if;
         end if;
     end for;
 end if;
-vprint EndoFind, 2 : "No element found.";
+vprint EndoFind, 3 : "No element found.";
 return false, 0;
 
 end function;
@@ -220,11 +220,11 @@ end if;
 if Type(minpol) eq RngIntElt then
     minpol := MinimalPolynomialLLL(a, RationalsExtra(Precision(CC)));
 end if;
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Finding roots in field with Pari...";
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Finding roots in field with Pari...";
 rts := RootsPari(minpol, K);
-vprint EndoFind, 2 : rts;
-vprint EndoFind, 2 : "done finding roots in field with Pari.";
+vprint EndoFind, 3 : rts;
+vprint EndoFind, 3 : "done finding roots in field with Pari.";
 
 for rt in rts do
     rtCC := EmbedExtra(rt, K`iota);

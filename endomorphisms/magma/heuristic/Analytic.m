@@ -115,13 +115,9 @@ JP := ComplexStructure(P); JQ := ComplexStructure(Q);
 
 /* Determination of approximate endomorphisms by LLL */
 vprint EndoFind : "";
-vprint EndoFind : "Determining homomorphism equations...";
-M := RationalHomomorphismEquations(JP, JQ);
-vprint EndoFind : "done determining homomorphism equations.";
-vprint EndoFind : "";
 vprint EndoFind : "Finding geometric homomorphisms...";
+M := RationalHomomorphismEquations(JP, JQ);
 Ker, test := IntegralLeftKernel(M : EndoRep := true);
-vprint EndoFind, 2 : "";
 vprint EndoFind : "done finding geometric homomorphisms.";
 if not test then
     return [ ];
@@ -221,7 +217,6 @@ end for;
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by homomorphisms...";
 K, seq, hFK := SplittingFieldExtra(seqPart, F);
-vprint EndoFind : "";
 vprint EndoFind : "done finding number field defined by homomorphisms:";
 vprint EndoFind : K;
 

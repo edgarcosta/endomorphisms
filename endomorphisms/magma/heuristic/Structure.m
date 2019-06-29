@@ -20,10 +20,10 @@ intrinsic EndomorphismData(GeoEndoRep::SeqEnum, GalK::List) -> List
 GalK, returns the endomorphism structure over the subfield corresponding to
 GalK.}
 
-vprint EndoFind : "";
-vprint EndoFind : "Calculating representation over subfield...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Calculating representation over subfield...";
 EndoRep, hKL := EndomorphismRepresentation(GeoEndoRep, GalK);
-vprint EndoFind : "done calculating representation over subfield.";
+vprint EndoFind, 2 : "done calculating representation over subfield.";
 EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
 return EndoData, hKL;
@@ -79,8 +79,8 @@ corresponding descriptions.}
 
 Rs := [ gen[2] : gen in EndoRep ]; g := #Rows(Rs[1]) div 2;
 
-vprint EndoFind : "";
-vprint EndoFind : "Calculating endomorphism structure...";
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Calculating endomorphism structure...";
 /* Creation of relevant algebras */
 g := #Rows(Rs[1]) div 2;
 /* Ambient matrix algebra, plus generators of the endomorphism ring */
@@ -98,7 +98,7 @@ EndoAlgZZ, EndoDescZZ := EndomorphismAlgebraZZ(C, GensC);
 Append(~EndoAlg, EndoAlgZZ); Append(~EndoDesc, EndoDescZZ);
 EndoAlgRR, EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ);
 Append(~EndoAlg, EndoAlgRR); Append(~EndoDesc, EndoDescRR);
-vprint EndoFind : "done calculating endomorphism structure.";
+vprint EndoFind, 2 : "done calculating endomorphism structure.";
 return EndoAlg, EndoDesc;
 
 end intrinsic;
