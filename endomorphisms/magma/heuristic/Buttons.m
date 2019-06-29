@@ -34,6 +34,30 @@ return EndoAlg, EndoDesc;
 end intrinsic;
 
 
+intrinsic HeuristicEndomorphismRing(X::Crv : Geometric := false, CC := false) -> .
+{Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description. If CC is set to true, then no algebraization occurs.}
+
+if CC then
+    assert Geometric;
+    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
+else
+    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+end if;
+
+if Geometric then
+    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
+    return Order(Integers(), EndoAlg[2]);
+end if;
+if not assigned X`base_endo_rep then
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
+    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
+end if;
+EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
+return Order(Integers(), EndoAlg[2]);
+
+end intrinsic;
+
+
 intrinsic HeuristicEndomorphismRepresentation(X::Crv : Geometric := false, CC := false) -> .
 {Returns the endomorphism representation of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs.}
 

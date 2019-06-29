@@ -72,6 +72,11 @@ print "";
 print "Heuristic endomorphism algebra:";
 print A;
 
+OO := HeuristicEndomorphismRing(X);
+print "";
+print "Heuristic endomorphism ring:";
+print OO;
+
 rep := HeuristicEndomorphismRepresentation(X);
 print "";
 print "Heuristic endomorphism representation:";
