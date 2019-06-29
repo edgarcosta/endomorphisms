@@ -30,7 +30,7 @@ class EndomorphismData:
         return repr_endomorphism_data(self)
 
     def lattice(self):
-        if not hasattr(self, "_lat_"):
+        if not hasattr(self, "_lat_list_"):
             self._lat_list_ = magma.HeuristicEndomorphismLattice(self.X)
             self._lat_desc_ = desc_lattice(self._lat_list_)
             self._lat_dict_ = dict_lattice(self._lat_list_)
@@ -61,7 +61,7 @@ class EndomorphismData:
 
     def verify_lower_bound(self):
         if not hasattr(self, "_test_lower_"):
-            self._test_lower_, self._test_lower_cert_ = magma.VerifyEndomorphismsLowerBound(self.X, Geometric = True, nvals = 2)
+            self._test_lower_, self._test_lower_cert_ = magma.CertifiedEndomorphismAlgebra(self.X, Geometric = True, nvals = 2)
         return self._test_lower_
 
     def verify(self):

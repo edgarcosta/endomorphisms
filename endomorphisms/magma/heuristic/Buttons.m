@@ -10,12 +10,48 @@
  */
 
 
-intrinsic HeuristicEndomorphismAlgebraCC(X::Crv) -> .
-{Returns the endomorphism algebra of X. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description.}
+intrinsic HeuristicEndomorphismAlgebra(X::Crv : Geometric := false, CC := false) -> .
+{Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description. If CC is set to true, then no algebraization occurs.}
 
-GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
-EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-return EndoAlg, EndoDesc, GeoEndoRep;
+if CC then
+    assert Geometric;
+    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
+else
+    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+end if;
+
+if Geometric then
+    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
+    return EndoAlg, EndoDesc;
+end if;
+if not assigned X`base_endo_rep then
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
+    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
+end if;
+EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
+return EndoAlg, EndoDesc;
+
+end intrinsic;
+
+
+intrinsic HeuristicEndomorphismRepresentation(X::Crv : Geometric := false, CC := false) -> .
+{Returns the endomorphism representation of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs.}
+
+if CC then
+    assert Geometric;
+    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
+else
+    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+end if;
+
+if Geometric then
+    return GeoEndoRep;
+end if;
+if not assigned X`base_endo_rep then
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
+    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
+end if;
+return X`base_endo_rep;
 
 end intrinsic;
 
@@ -29,33 +65,6 @@ return BaseRing(GeoEndoRep[1][1]);
 end intrinsic;
 
 
-intrinsic HeuristicEndomorphismAlgebra(X::Crv : Geometric := false) -> .
-{Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description.}
-
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
-if Geometric then
-    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoAlg, EndoDesc, X`geo_endo_rep;
-end if;
-if not assigned X`base_endo_rep then
-    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
-    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
-end if;
-EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return EndoAlg, EndoDesc, X`base_endo_rep;
-
-end intrinsic;
-
-
-intrinsic HeuristicEndomorphismAlgebraDescription(X::Crv : Geometric := false) -> .
-{Returns a string description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true.}
-
-EndoAlg, EndoDesc := HeuristicEndomorphismAlgebra(X : Geometric := Geometric);
-return EndoDesc;
-
-end intrinsic;
-
-
 intrinsic HeuristicEndomorphismLattice(X::Crv) -> .
 {Returns the endomorphism lattice of X.}
 
@@ -65,29 +74,26 @@ return EndomorphismLattice(GeoEndoRep);
 end intrinsic;
 
 
-intrinsic HeuristicIsGL2Ribet(X::Crv) -> .
-{Returns whether or not X is of GL_2-type in the sense of Ribet.}
+intrinsic HeuristicIsGL2(X::Crv : Definition := "Generalized") -> .
+{Returns whether or not X is of GL_2-type in the generalized sense (by default) or in the sense of Ribet (if Definition is set to "Ribet").}
 
-A := HeuristicEndomorphismAlgebra(X)[1];
-if not Dimension(A) eq Genus(X) then
-    return false;
+assert Definition in [ "Generalized", "Ribet" ];
+if Definition eq "Generalized" then
+    A := HeuristicEndomorphismAlgebra(X)[1];
+    if not Dimension(A) eq Genus(X) then
+        return false;
+    end if;
+    return Center(A) eq A;
+elif Definition eq "Ribet" then
+    A := HeuristicEndomorphismAlgebra(X)[1];
+    if not Dimension(A) eq Genus(X) then
+        return false;
+    end if;
+    if not Center(A) eq A then
+        return false;
+    end if;
+    return #CentralIdempotents(A) eq 1;
 end if;
-if not Center(A) eq A then
-    return false;
-end if;
-return #CentralIdempotents(A) eq 1;
-
-end intrinsic;
-
-
-intrinsic HeuristicIsGL2Generalized(X::Crv) -> .
-{Returns whether or not X is of GL_2-type in the generalized sense of Booker--Sijsling--Sutherland--Voight--Yasaki.}
-
-A := HeuristicEndomorphismAlgebra(X)[1];
-if not Dimension(A) eq Genus(X) then
-    return false;
-end if;
-return Center(A) eq A;
 
 end intrinsic;
 
@@ -172,6 +178,9 @@ if Type(facinfo) eq RngIntElt then
 end if;
 
 Rs := &cat[ [ fac[2][2] : fac in facs ] : facs in facinfo ];
+print "OINK";
+print facinfo;
+print Rs;
 gYs := [ #Rows(R) div 2 : R in Rs ];
 gX := &+gYs;
 EYs := [ StandardSymplecticMatrix(gY) : gY in gYs ];
@@ -180,40 +189,55 @@ EX := StandardSymplecticMatrix(gX);
 T := VerticalJoin(Rs);
 S := SmithForm(ChangeRing(T, Integers()));
 D := Diagonal(S);
-exps := [ d : d in D | not d eq 1 ];
+exps := [ d : d in D ];
 
 EY := DiagonalJoin(EYs);
 test := IsRationalMultiple(Transpose(T)*EY*T, EX);
+degs := [ Abs((R*EX*Transpose(R))[1, 1 + (#Rows(R) div 2)]) : R in Rs ];
 
-if not test then
-    degs := [ ];
-else
-    degs := [ Abs((R*EX*Transpose(R))[1, 1 + (#Rows(R) div 2)]) : R in Rs ];
-end if;
 return exps, test, degs;
 
 end intrinsic;
 
 
-intrinsic VerifyEndomorphismsLowerBound(X::Crv : Geometric := false) -> .
-{Checks lower bound for endomorphisms.}
+intrinsic CertifiedEndomorphismAlgebra(X::Crv : P0 := 0, Geometric := false, Al := "Cantor", Cheat := false) -> .
+{Returns the (certified) endomorphism algebra of X using the base point P0 (if given), by default over the base and over QQbar if Geometric is set to true. The output is the same as for HeuristicEndomorphismAlgebra with the last argument the certificates. Al is either "Cantor" or "Divisor".}
 
-EndoAlg, EndoDesc, GeoEndoRep := HeuristicEndomorphismAlgebraCC(X);
-if not VerifySaturated(GeoEndoRep, X`period_matrix) then
+F := BaseRing(X);
+if IsHyperelliptic(X) and Cheat then
+    f, h := HyperellipticPolynomials(X);
+    g := 4*f + h^2;
+    g /:= LeadingCoefficient(g);
+    if IsEven(Degree(g)) then
+        X := HyperellipticCurve(g);
+    else
+        R<x> := Parent(g);
+        e := Degree(g) div 2;
+        n := 0;
+        repeat
+            geven := Numerator(Evaluate(g, 1/(x - n)));
+            geven /:= LeadingCoefficient(geven);
+            n +:= 1;
+        until Degree(geven) mod 2 eq 0;
+        X := HyperellipticCurve(geven);
+    end if;
+end if;
+print X;
+
+GeoEndoRepCC := HeuristicEndomorphismRepresentation(X : Geometric := true, CC := true);
+if not VerifySaturated(GeoEndoRepCC, X`period_matrix) then
     return false, "Not saturated";
 end if;
-EndoAlg, EndoDesc, EndoRep := HeuristicEndomorphismAlgebra(X : Geometric := Geometric);
+EndoRep := HeuristicEndomorphismRepresentation(X : Geometric := Geometric);
 
 fss := [* *];
 for rep in EndoRep do
-    test, fs := Correspondence(X, X, rep);
+    test, fs := Correspondence(X, X, rep : P := P0, Q := P0, Al := Al);
     if not test then
         return false, rep;
     end if;
-    Append(~fss, fs);
+    Append(~fss, rep cat [* fs *]);
 end for;
-
 return true, fss;
 
 end intrinsic;
-

@@ -221,7 +221,7 @@ return X`base_point;
 end intrinsic;
 
 
-intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree := false) -> .
+intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree := false, Al := "Cantor") -> .
 {Given curves X and Y, finds a correspondence with tangent representation A if it exists. Base points P and Q can be specified: otherwise these are found automatically over some extension.}
 
 A := mor[1]; R := mor[2]; F := BaseRing(X);
@@ -230,6 +230,7 @@ KA := BaseRing(Parent(A)); _, hFKA := InclusionOfBaseExtra(KA);
 
 /* Use or find point on X */
 if Type(P) ne RngIntElt then
+    assert not IsWeierstrassPlace(Place(X ! P));
     hFKP := CanonicalInclusionMap(F, F);
 else
     P, hFKP := Explode(SmallBasePoint(X));
@@ -238,6 +239,7 @@ end if;
 
 /* Use or find point on Y */
 if Type(Q) ne RngIntElt then
+    assert not IsWeierstrassPlace(Place(Y ! Q));
     hKYKQ := CanonicalInclusionMap(KY, KY);
 else
     Q, hKYKQ := Explode(SmallBasePoint(Y));
@@ -267,16 +269,22 @@ vprint EndoCheck : P;
 vprint EndoCheck : "Chosen base point on Y:";
 vprint EndoCheck : Q;
 
+assert Al in [ "Cantor", "Divisor" ];
 if (#Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
     return true, "Multiplication by an integer";
 else
-    test, fs := CantorFromMatrixAmbientSplit(X, P, Y, Q, A);
-    if Genus(Y) eq 1 then
-        if test and (not CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := CheckDegree)) then
-            error "Pullback incorrect";
+    if Al eq "Cantor" then
+        test, fs := CantorFromMatrixAmbientSplit(X, P, Y, Q, A);
+        if Genus(Y) eq 1 then
+            if test and (not CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := CheckDegree)) then
+                error "Pullback incorrect";
+            end if;
         end if;
+        return test, fs;
+    elif Al eq "Divisor" then
+        test, D := DivisorFromMatrixAmbientSplit(X, P, Y, Q, A);
+        return test, D;
     end if;
-    return test, fs;
 end if;
 
 end intrinsic;

@@ -1,4 +1,4 @@
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 2);
 SetVerbose("CurveRec", 0);
 
 prec := 500;
@@ -21,8 +21,8 @@ X := HyperellipticCurve(f);
 R<t> := PolynomialRing(Rationals());
 F<r> := BaseNumberFieldExtra(t^2 - t + 1, prec);
 R<x> := PolynomialRing(F);
-f := R ! [ -30*r + 42, -156*r + 312, -66*r + 186, -1456*r + 1040, -90*r + 126, 156*r - 312, -22*r + 62 ];
 f := x^6 + r;
+f := R ! [ -30*r + 42, -156*r + 312, -66*r + 186, -1456*r + 1040, -90*r + 126, 156*r - 312, -22*r + 62 ];
 X := HyperellipticCurve(f);
 
 // More examples over QQ
@@ -67,44 +67,32 @@ print "";
 print "Curve:";
 print X;
 
+A, desc := HeuristicEndomorphismAlgebra(X);
+print "";
+print "Heuristic endomorphism algebra:";
+print A;
+
+rep := HeuristicEndomorphismRepresentation(X);
+print "";
+print "Heuristic endomorphism representation:";
+print rep;
+
 L := HeuristicEndomorphismFieldOfDefinition(X);
 print "";
 print "Heuristic field of definition of the endomorphisms:";
 print L;
-
-A, desc := HeuristicEndomorphismAlgebra(X : Geometric := true);
-print "";
-print "Heuristic geometric endomorphism algebra:";
-print A;
-
-print "";
-print "Description:";
-print desc;
-
-A, desc := HeuristicEndomorphismAlgebra(X);
-print "";
-print "Heuristic endomorphism algebra over the base:";
-print A;
-
-print "";
-print "Description:";
-print desc;
 
 Lat := HeuristicEndomorphismLattice(X);
 print "";
 print "Heuristic endomorphism lattice:";
 print Lat;
 
-test_gl2_ribet := HeuristicIsGL2Ribet(X);
+test_gl2 := HeuristicIsGL2(X);
 print "";
-print "Heuristic GL_2-determination (after Ribet):";
-print test_gl2_ribet;
+print "Heuristic GL_2-determination:";
+print test_gl2;
 
-test_gl2_gen := HeuristicIsGL2Generalized(X);
-print "";
-print "Heuristic GL_2-determination (generalized notion):";
-print test_gl2_gen;
-
+/*
 facinfo := HeuristicJacobianFactors(X);
 print "";
 print "Heuristic Jacobian factors:";
@@ -120,4 +108,5 @@ print test;
 print "";
 print "Degrees (if applicable):";
 print degs;
+*/
 

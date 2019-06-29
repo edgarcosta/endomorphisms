@@ -20,5 +20,5 @@ f *:= -1;
 X := HyperellipticCurve(f);
 
 print "Verifying endomorphisms...";
-test, fss := VerifyEndomorphismsLowerBound(X : Geometric := true);
+test, fss := CertifiedEndomorphismAlgebra(X : Geometric := true, Cheat := true);
 print test;
