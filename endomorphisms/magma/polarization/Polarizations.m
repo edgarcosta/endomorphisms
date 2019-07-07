@@ -38,7 +38,6 @@ M :=  Matrix(RR, [ [ MonomialCoefficient(c, var) : c in Comm ] : var in vars ]);
 vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Calculating polarization basis...";
 Ker := IntegralLeftKernel(M);
-vprint EndoFind, 2 : "done calculating polarization basis.";
 
 /* Culling the correct polarizations using the conditions on E */
 RR := BaseRing(JP); Es := [];
@@ -54,6 +53,7 @@ for r in Rows(Ker) do
         end if;
     end if;
 end for;
+vprint EndoFind, 2 : "done calculating polarization basis.";
 return Es;
 
 end intrinsic;
@@ -88,18 +88,27 @@ end intrinsic;
 intrinsic SomePrincipalPolarization(P::ModMatFldElt : B := 2) -> SeqEnum
 {Tries to return some principal polarization for P.}
 
-D := [ -B..B ];
-Es := PolarizationBasis(P); CC := BaseRing(P);
-n := #Es; CP := CartesianPower(D, n);
+Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
 
-Es0 := [ ];
+counter := 0;
 while true do
+    counter +:= 1;
+    test_power, exp := IsPower(counter, 2);
+    if test_power and exp ge 10 then
+        B +:= 1;
+    end if;
+    if test_power and exp eq 15 then
+        return false, 0;
+    end if;
+    D := [ -B..B ];
+
+    CP := CartesianPower(D, n);
     tup := Random(CP);
     E := &+[ tup[i]*Es[i] : i in [1..n] ];
     if Abs(Determinant(E)) eq 1 then
         test, E := IsPolarization(E, P);
         if test then
-            return E;
+            return test, E;
         end if;
     end if;
 end while;
