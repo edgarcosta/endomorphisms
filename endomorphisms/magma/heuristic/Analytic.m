@@ -237,7 +237,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentationCC(X::Crv) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentationCC(X::.) -> SeqEnum
 {Given a curve X over a field F, this function determines a ZZ-basis of the
 corresponding abelian variety. These are returned as triples of an algebraized
 tangent representation A over a number field K, a homology representation R and
@@ -245,12 +245,13 @@ a complex tangent representation ACC. We have ACC P = P R for the period matrix
 P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
+assert Type(X) in [ Crv, SECurve ];
 return GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
 
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(X::Crv) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(X::.) -> SeqEnum
 {Given a curve X over a field F, this function determines a ZZ-basis of the
 corresponding abelian variety. These are returned as triples of an algebraized
 tangent representation A over a number field K, a homology representation R and
@@ -258,11 +259,17 @@ a complex tangent representation ACC. We have ACC P = P R for the period matrix
 P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
+assert Type(X) in [ Crv, SECurve ];
 if assigned X`geo_endo_rep then
     return X`geo_endo_rep;
 end if;
 
-X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
-return X`geo_endo_rep;
+if Type(X) eq Crv then
+    X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
+    return X`geo_endo_rep;
+elif Type(X) eq SECurve then
+    X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(Parent(X`DefiningPolynomial)));
+    return X`geo_endo_rep;
+end if;
 
 end intrinsic;

@@ -57,6 +57,12 @@ end if;
 end intrinsic;
 
 
+intrinsic PeriodMatrix(X::SECurve) -> ModMatFldElt
+{Returns the period matrix of X.}
+F := BaseRing(Parent(X`DefiningPolynomial)); CC := F`CC;
+return ChangeRing(X`BigPeriodMatrix, CC), X;
+end intrinsic;
+
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
 

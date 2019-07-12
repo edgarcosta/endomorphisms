@@ -10,6 +10,7 @@
  */
 
 declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point;
+declare attributes SECurve : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point;
 
 
 intrinsic PlaneCurve(F::RngMPolElt) -> Crv
