@@ -245,7 +245,7 @@ a complex tangent representation ACC. We have ACC P = P R for the period matrix
 P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 return GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
 
 end intrinsic;
@@ -259,12 +259,12 @@ a complex tangent representation ACC. We have ACC P = P R for the period matrix
 P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 if assigned X`geo_endo_rep then
     return X`geo_endo_rep;
 end if;
 
-if Type(X) eq Crv then
+if ISA(Type(X),Crv) then
     X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
     return X`geo_endo_rep;
 elif Type(X) eq SECurve then

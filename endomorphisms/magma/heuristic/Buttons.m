@@ -13,7 +13,7 @@
 intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -> .
 {Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description. If CC is set to true, then no algebraization occurs.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 if CC then
     assert Geometric;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
@@ -38,7 +38,7 @@ end intrinsic;
 intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
 {Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description. If CC is set to true, then no algebraization occurs.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 if CC then
     assert Geometric;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
@@ -63,7 +63,7 @@ end intrinsic;
 intrinsic HeuristicEndomorphismRepresentation(X::. : Geometric := false, CC := false) -> .
 {Returns the endomorphism representation of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 if CC then
     assert Geometric;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
@@ -86,7 +86,7 @@ end intrinsic;
 intrinsic HeuristicEndomorphismFieldOfDefinition(X::.) -> .
 {Returns the field of definition of the endomorphisms of X.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 return BaseRing(GeoEndoRep[1][1]);
 
@@ -96,7 +96,7 @@ end intrinsic;
 intrinsic HeuristicEndomorphismLattice(X::.) -> .
 {Returns the endomorphism lattice of X.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 return EndomorphismLattice(GeoEndoRep);
 
@@ -106,9 +106,9 @@ end intrinsic;
 intrinsic HeuristicIsGL2(X::. : Definition := "Generalized") -> .
 {Returns whether or not X is of GL_2-type in the generalized sense (by default) or in the sense of Ribet (if Definition is set to "Ribet").}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 assert Definition in [ "Generalized", "Ribet" ];
-if Type(X) eq Crv then
+if ISA(Type(X), Crv) then
     g := Genus(X);
 elif Type(X) eq SECurve then
     g := X`Genus;
@@ -136,7 +136,7 @@ end intrinsic;
 intrinsic HeuristicJacobianFactors(X::. : AllIdems := true, AllPPs := false, ProjToIdem := true, ProjToPP := true) -> .
 {Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors. Setting AllMaps to true returns multiple entries for a given components in the decomposition together with all possible maps (instead of a single one). Setting AllPPs to true returns multiple entries for a given idempotent, corresponding to the various choices of principal polarization. Setting ProjToIdem to false uses an inclusion instead of a projection when taking idempotents. Setting ProjToPP to false uses an inclusion instead of a projection when making a period matrix principally polarized. If ProjToIdem and ProjToPP are not equal, then right now the algorithm only returns a component, not a corresponding map from or to the Jacobian of X.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 P := PeriodMatrix(X); gP := #Rows(P);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 
@@ -209,7 +209,7 @@ end intrinsic;
 intrinsic IsogenyInformation(X::. : facinfo := 0) -> .
 {Returns homology exponents of isogeny induced by splitting, and tests if it is compatible with the various polarizations. The information in facinfo has to be calculated with AllIdems set to true.}
 
-assert Type(X) in [ Crv, SECurve ];
+assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 if Type(facinfo) eq RngIntElt then
     facinfo := HeuristicJacobianFactors(X);
 end if;
