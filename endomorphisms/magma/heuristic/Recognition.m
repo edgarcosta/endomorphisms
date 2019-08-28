@@ -50,6 +50,10 @@ vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Determining minimal polynomial over QQ using LLL...";
 /* Successively adding other entries to find relations */
 while degf lt UpperBound do
+    if degf ge 6 then
+        exit;
+    end if;
+
     degf +:= 1;
     powera *:= a;
     MLine cat:= [ powergen * powera : powergen in powersgen ];
@@ -59,6 +63,10 @@ while degf lt UpperBound do
         /* Split and take an IntegralLeftKernel */
         MSplit := HorizontalSplitMatrix(M);
         Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
+        print a;
+        print Ker;
+        print "asd";
+
         /* We only consider the first row */
         if test_ker then
             row := Rows(Ker)[1];
@@ -278,8 +286,7 @@ intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity
 
 /* Use minimal polynomial over QQ */
 CC := Parent(aCC); RCC := PolynomialRing(CC);
-/* Note that these declarations have severe side effects that force us to work
- * with a fixed precision */
+/* TODO: Note that these declarations have severe side effects that force us to work with fixed precision */
 QQ := Rationals();
 QQ`base := Rationals(); QQ`base_gen := QQ`base ! 1;
 QQ`CC := K`CC; QQ`iota := QQ`CC ! 1;
@@ -289,7 +296,7 @@ else
     f := minpolQQ;
 end if;
 
-/* If this applies, then it is fast, so we consider this case first */
+/* First try faster algorithm for linear factors */
 rts := RootsPari(f, K);
 for rt in rts do
     rtCC := CC ! EmbedExtra(rt, K`iota);
@@ -299,6 +306,7 @@ for rt in rts do
     end if;
 end for;
 
+/* Then try more general algorithm */
 gs := FactorizationPari(f, K);
 for g in gs do
     gCC := EmbedPolynomialExtra(g);

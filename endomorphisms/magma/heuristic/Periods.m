@@ -31,13 +31,13 @@ if #GeneratorsSequence(RCC) eq 1 then
     /* We divide by 2 because we integrate with respect to the canonical
      * differential x^i dx / 2y
      * (MN use x^i dx) */
-    X := SE_Curve(gCC, 2 : Prec := Precision(CC));
+    X := SE_Curve(gCC, 2 : Prec := Precision(CC) + 10);
     return ChangeRing(X`BigPeriodMatrix, CC) / 2, X;
 
 elif #GeneratorsSequence(RCC) eq 3 then
     test, fCC, e := IsSuperellipticEquation(eqsCC);
     if test then
-        X := SE_Curve(fCC, e : Prec := Precision(CC));
+        X := SE_Curve(fCC, e : Prec := Precision(CC) + 10);
         P := X`BigPeriodMatrix;
         P := SuperellipticCompatibility(P, e);
         return ChangeRing(P, CC), X;
@@ -46,7 +46,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
 
-        S := RiemannSurface(f : Precision := Precision(CC));
+        S := RiemannSurface(f : Precision := Precision(CC) + 10);
         P := ChangeRing(BigPeriodMatrix(S), CC);
         return P, S;
     end if;

@@ -379,9 +379,6 @@ end for;
 
 /* Sanity check before returning */
 F := L`base; CC := L`CC;
-//genFCC0 := CC ! EmbedExtra(F.1, F`iota);
-//genFCC1 := CC ! EmbedExtra(L`base_gen, L`iota);
-//assert Abs(genFCC1 - genFCC0) lt CC`epscomp;
 genKCC0 := CC ! EmbedExtra(K.1, K`iota);
 genKCC1 := CC ! EmbedExtra(h(K.1), L`iota);
 assert Abs(genKCC1 - genKCC0) lt CC`epscomp;
@@ -429,12 +426,6 @@ for rtf in rtsf do
 
     for iotaL in InfinitePlacesExtra(L) do
         test := true;
-
-        ///* First test: generator of F */
-        //genFCC1 := EmbedExtra(L`base_gen, iotaL);
-        //if not Abs(genFCC1 - genFCC0) lt CC`epscomp then
-        //    test := false;
-        //end if;
 
         /* First test: generator of K */
         genKCC1 := EmbedExtra(h(K.1), iotaL);
@@ -528,9 +519,6 @@ end for;
 
 /* Sanity check before returning */
 F := L`base; CC := L`CC;
-//genFCC0 := CC ! EmbedExtra(F.1, F`iota);
-//genFCC1 := CC ! EmbedExtra(K`base_gen, K`iota);
-//assert Abs(genFCC1 - genFCC0) lt CC`epscomp;
 genKCC0 := CC ! EmbedExtra(K.1, K`iota);
 genKCC1 := CC ! EmbedExtra(h(K.1), L`iota);
 assert Abs(genKCC1 - genKCC0) lt CC`epscomp;
@@ -592,13 +580,7 @@ for rtf in rtsf do
     for iotaL in InfinitePlacesExtra(L) do
         test := true;
 
-        ///* First test: generator of F */
-        //genFCC1 := EmbedExtra(L`base_gen, iotaL);
-        //if not Abs(genFCC1 - genFCC0) lt CC`epscomp then
-        //    test := false;
-        //end if;
-
-        /* First test: generator of F */
+        /* First test: generator of K */
         genKCC1 := EmbedExtra(h(K.1), iotaL);
         if not Abs(genKCC1 - genKCC0) lt CC`epscomp then
             test := false;

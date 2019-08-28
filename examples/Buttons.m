@@ -1,7 +1,7 @@
-SetVerbose("EndoFind", 2);
+SetVerbose("EndoFind", 3);
 SetVerbose("CurveRec", 0);
 
-prec := 500;
+prec := 150;
 
 // This one takes quite some time!
 R<t> := PolynomialRing(Rationals());
@@ -72,6 +72,7 @@ print "";
 print "Heuristic endomorphism algebra:";
 print A;
 
+/*
 OO := HeuristicEndomorphismRing(X);
 print "";
 print "Heuristic endomorphism ring:";
@@ -96,6 +97,7 @@ test_gl2 := HeuristicIsGL2(X);
 print "";
 print "Heuristic GL_2-determination:";
 print test_gl2;
+*/
 
 /*
 facinfo := HeuristicJacobianFactors(X);

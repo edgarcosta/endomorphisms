@@ -117,19 +117,20 @@ return MRe + CC.1*MIm;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::. : OneRow := false, EndoRep := false) -> .
+intrinsic IntegralLeftKernel(M::. : OneRow := false, CalcEndoRep := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
 RR := BaseRing(M);
-MI := IdentityMatrix(RR, #Rows(M));
-if EndoRep then
-    eps := Minimum([ Abs(c) : c in Eltseq(M) | not Abs(c) lt RR`epscomp ]);
-    MJ := HorizontalJoin(MI, (10^12 / eps) * M);
+eps := Minimum([ Abs(c) : c in Eltseq(M) | not Abs(c) lt RR`epscomp ]);
+//eps := 1;
+if CalcEndoRep then
+    B := 10^12 / eps;
 else
-    //MJ := HorizontalJoin(MI, 10^(Precision(RR) - 30) * M);
-    MJ := HorizontalJoin(MI, Round(1/RR`epsLLL) * M);
+    B := 10^(Precision(RR) + 10) / eps;
 end if;
-MJ := Matrix(Integers(), [ [ Round(c) : c in Eltseq(row) ] : row in Rows(MJ) ]);
+MJ := Matrix(Integers(), [ [ Round(B * c) : c in Eltseq(row) ] : row in Rows(M) ]);
+MI := IdentityMatrix(Integers(), #Rows(MJ));
+MJ := HorizontalJoin(MI, MJ);
 
 L, K := LLL(MJ);
 rowsK := Rows(K);
@@ -140,18 +141,22 @@ end if;
 CCSmall := ComplexField(5);
 rowsK0 := [ ];
 for row in rowsK do
+    print "";
+    print row;
     ht := Max([ Abs(c) : c in Eltseq(row) ]);
-    vprint EndoFind, 3 : "";
-    vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
     test1 := ht lt RR`height_bound;
     //test1 := true;
+
     if test1 then
         prod := Matrix(RR, [ Eltseq(row) ])*M;
         abs := Max([ Abs(c) : c in Eltseq(prod) ]);
         test2 := abs lt RR`epscomp;
         //test2 := abs lt 10^50*RR`epscomp;
-        vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
+
         if test2 then
+            vprint EndoFind, 3 : "";
+            vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
+            vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
             Append(~rowsK0, row);
         end if;
     end if;
