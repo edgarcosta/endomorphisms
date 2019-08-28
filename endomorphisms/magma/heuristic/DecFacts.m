@@ -17,7 +17,8 @@ forward SplittingIdempotentsAlgebraStepTwo;
 forward FindIdempotentsStupid;
 forward IsTrueIdempotent;
 
-/* TODO: Too much information is recalculated: this should be reproved by true abelian functionality if possible */
+// TODO: Behavior of CoerceToBase is very obscure
+// TODO: Too much information is recalculated: this should be reproved by true abelian functionality if possible
 
 
 intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
@@ -161,6 +162,7 @@ end intrinsic;
 
 intrinsic SplittingIdempotentsAlgebra(EndoData::.) -> .
 {Returns further decomposition of the algebra defined by EndoData.}
+// TODO: Need genus at most 4 for now
 
 /* Assert small dimension */
 g := #Rows(EndoData[1][1][1]);
@@ -182,6 +184,7 @@ end intrinsic;
 
 
 function SplittingIdempotentsAlgebraStepOne(EndoData)
+// TODO: Need genus at most 4 for now
 
 C := EndoData[2][1];
 idems := [ ];
@@ -198,6 +201,7 @@ end function;
 
 
 function SplittingIdempotentsAlgebraStepOneSubstep(C)
+// TODO: Need genus at most 4 for now
 
 E1, f1 := AlgebraOverCenter(C);
 /* TODO: Optionally, we could improve and change ring here, but that has
@@ -227,6 +231,7 @@ end function;
 
 
 function SplittingIdempotentsAlgebraStepTwo(EndoData);
+// TODO: Need genus at most 4 for now
 /* Catches M3 over QQ or CM, M4 over ZZ or CM, M2 over quaternion algebra */
 
 C := EndoData[2][1]; d := Dimension(C);
@@ -309,6 +314,7 @@ idems, incdataroot := SplittingIdempotents(Q, mor, incdata);
 
 comps := [ ];
 for idem in idems do
+    // TODO: I do not understand this old remark
     /* No need to coerce since we are already over smallest possible field; in
      * fact the field might even drop too much */
     Qroot, morroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjToIdem := ProjToIdem);
@@ -326,6 +332,7 @@ L := BaseRing(GeoEndoRep[1][1]);
 comps := [ ];
 vprint EndoFind : "";
 vprint EndoFind : "Determining isotypical components...";
+// We do not coerce here as this may go too far down
 comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjToIdem := ProjToIdem);
 vprint EndoFind : "done determining isotypical components.";
 for comp_iso in comps_iso do
