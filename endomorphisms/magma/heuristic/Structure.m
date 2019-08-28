@@ -11,8 +11,10 @@
 
 import "OverField.m": SubgroupGeneratorsUpToConjugacy;
 forward EndomorphismAlgebraQQ;
+forward MatrixFromIdempotent;
 forward EndomorphismAlgebraRR;
 forward EndomorphismAlgebraZZ;
+forward DecompositionDescription;
 
 
 intrinsic EndomorphismData(GeoEndoRep::SeqEnum, GalK::List) -> List
@@ -92,60 +94,69 @@ B := sub<A | GensA>; GensB := [ B ! gen : gen in GensA ];
 C := AssociativeAlgebra(B); GensC := [ C ! gen : gen in GensB ];
 
 EndoAlg := [* *]; EndoDesc := [* *];
-EndoAlgQQ, EndoDescQQ := EndomorphismAlgebraQQ(C);
+EndoAlgQQ, EndoDescQQ := EndomorphismAlgebraQQ(C, GensC, EndoRep);
 Append(~EndoAlg, EndoAlgQQ); Append(~EndoDesc, EndoDescQQ);
 EndoAlgZZ, EndoDescZZ := EndomorphismAlgebraZZ(C, GensC);
 Append(~EndoAlg, EndoAlgZZ); Append(~EndoDesc, EndoDescZZ);
 EndoAlgRR, EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ);
 Append(~EndoAlg, EndoAlgRR); Append(~EndoDesc, EndoDescRR);
+DecDesc := DecompositionDescription(C, EndoDescQQ);
+Append(~EndoAlg, DecDesc); Append(~EndoDesc, DecDesc);
 vprint EndoFind, 2 : "done calculating endomorphism structure.";
 return EndoAlg, EndoDesc;
 
 end intrinsic;
 
 
-function EndomorphismAlgebraQQ(C)
+function EndomorphismAlgebraQQ(C, GensC, EndoRep)
 // Given an associative algebra C, returns a description of it.
 /* TODO: Depends on genus <= 3 */
+// Entry: Albert type, field description, reduced dimension of central simple
+// algebra, discriminant of that algebra, dimension, power
+// [ Type, FDesc, d, disc, dim, m ]
 
 /* Central decomposition */
 Ds := DirectSumDecomposition(C);
+idems := CentralIdempotents(C);
+
 EndoDescQQ := [* *];
-for D in Ds do
+for i in [1..#Ds] do
+    D := Ds[i]; idem := idems[i];
     DescFactorQQ := [* *];
     E1 := AlgebraOverCenter(D);
     F := BaseRing(E1);
     E2 := ChangeRing(E1, F);
     FDesc := FieldDescriptionExtra(Polredbestabs(F));
+    dimm := Rank(MatrixFromIdempotent(C, GensC, idem, EndoRep)) div 2;
 
     _, dm := IsSquare(Dimension(E2));
     if IsTotallyReal(F) then
         if dm eq 1 then
-            DescFactorQQ := [* "I", FDesc, 1, 1, 1 *];
+            DescFactorQQ := [* "I", FDesc, 1, 1, dimm, 1 *];
 
         elif dm eq 2 then
             test, Q := IsQuaternionAlgebra(E2);
             DQFin := Discriminant(Q); NDQ := Integers() ! Norm(DQFin);
             if NDQ eq 1 then
-                DescFactorQQ := [* "I", FDesc, 1, 1, 2 *];
+                DescFactorQQ := [* "I", FDesc, 1, 1, dimm div 2, 2 *];
             elif not IsDefinite(Q) then
-                DescFactorQQ := [* "II", FDesc, 2, NDQ, 1 *];
+                DescFactorQQ := [* "II", FDesc, 2, NDQ, dimm, 1 *];
             else
-                DescFactorQQ := [* "III", FDesc, 2, NDQ, 1 *];
+                DescFactorQQ := [* "III", FDesc, 2, NDQ, dimm, 1 *];
             end if;
 
         elif dm eq 3 then
-            DescFactorQQ := [* "I", FDesc, 1, 1, dm *];
+            DescFactorQQ := [* "I", FDesc, 1, 1, dimm div dm, dm *];
 
         else
-            DescFactorQQ := [* "Some Albert type", FDesc, -1, -1, -1 *];
+            DescFactorQQ := [* "Some Albert type", FDesc, -1, -1, -1, -1 *];
         end if;
 
     else
         if dm le 3 then
-            DescFactorQQ := [* "IV", FDesc, 1, 1, dm *];
+            DescFactorQQ := [* "IV", FDesc, 1, 1, dimm div dm, dm *];
         else
-            DescFactorQQ := [* "IV", FDesc, -1, -1, -1 *];
+            DescFactorQQ := [* "IV", FDesc, -1, -1, -1, -1 *];
         end if;
     end if;
 
@@ -153,6 +164,23 @@ for D in Ds do
 end for;
 
 return C, EndoDescQQ;
+
+end function;
+
+
+function MatrixFromIdempotent(C, GensC, idem, EndoRep)
+// Returns homology representation corresponding to idemC
+
+As := [ gen[1] : gen in EndoRep ]; Rs := [ gen[2] : gen in EndoRep ];
+
+idemC := [ Rationals() ! c : c in Eltseq(idem) ];
+GensC := [ [ Rationals() ! c : c in Eltseq(gen) ] : gen in GensC ];
+test, idem := MatrixInBasis(idemC, GensC);
+assert test;
+
+idem := Eltseq(idem);
+idemR := &+[ idem[i] * Rs[i] : i in [1..#Rs] ];
+return idemR;
 
 end function;
 
@@ -166,7 +194,7 @@ for DescFactorQQ in EndoDescQQ do
     AlbertType := DescFactorQQ[1];
     e := #DescFactorQQ[2] - 1;
     d := DescFactorQQ[3];
-    m := DescFactorQQ[5];
+    m := DescFactorQQ[6];
 
     if AlbertType eq "I" then
         if m eq 1 then
@@ -239,6 +267,20 @@ if #Ds eq 1 then
     end if;
 end if;
 return GensC, [ Integers() ! ind, -1, DOC ];
+
+end function;
+
+
+function DecompositionDescription(C, EndoDescQQ)
+// Describes the decomposition of the Jacobian over the given field.
+
+DecDesc := [ ];
+for DescFactorQQ in EndoDescQQ do
+    dim := DescFactorQQ[5];
+    m := DescFactorQQ[6];
+    Append(~DecDesc, [ dim, m ]);
+end for;
+return DecDesc;
 
 end function;
 
