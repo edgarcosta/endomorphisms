@@ -118,12 +118,12 @@ for D in Ds do
     E2 := ChangeRing(E1, F);
     FDesc := FieldDescriptionExtra(Polredbestabs(F));
 
-    _, d := IsSquare(Dimension(E2));
+    _, dm := IsSquare(Dimension(E2));
     if IsTotallyReal(F) then
-        if d eq 1 then
+        if dm eq 1 then
             DescFactorQQ := [* "I", FDesc, 1, 1, 1 *];
 
-        elif d eq 2 then
+        elif dm eq 2 then
             test, Q := IsQuaternionAlgebra(E2);
             DQFin := Discriminant(Q); NDQ := Integers() ! Norm(DQFin);
             if NDQ eq 1 then
@@ -134,16 +134,16 @@ for D in Ds do
                 DescFactorQQ := [* "III", FDesc, 2, NDQ, 1 *];
             end if;
 
-        elif d eq 3 then
-            DescFactorQQ := [* "I", FDesc, 1, 1, d *];
+        elif dm eq 3 then
+            DescFactorQQ := [* "I", FDesc, 1, 1, dm *];
 
         else
             DescFactorQQ := [* "Some Albert type", FDesc, -1, -1, -1 *];
         end if;
 
     else
-        if d le 3 then
-            DescFactorQQ := [* "IV", FDesc, 1, 1, d *];
+        if dm le 3 then
+            DescFactorQQ := [* "IV", FDesc, 1, 1, dm *];
         else
             DescFactorQQ := [* "IV", FDesc, -1, -1, -1 *];
         end if;
@@ -160,7 +160,6 @@ end function;
 function EndomorphismAlgebraRR(C, EndoDescQQ)
 // Given an associative algebra C and its description over QQ, returns a
 // description of the algebra tensored with RR.
-/* TODO: Depends on genus <= 3 */
 
 EndoDescRR := [ ];
 for DescFactorQQ in EndoDescQQ do
@@ -176,19 +175,29 @@ for DescFactorQQ in EndoDescQQ do
             str := Sprintf("M_%o (RR)", m);
         end if;
         EndoDescRR cat:= [ str : i in [1..e] ];
+
     elif AlbertType eq "II" then
-        EndoDescRR cat:= [ "M_2 (RR)" : i in [1..e] ];
+        str := Sprintf("M_%o (RR)", 2*m);
+        EndoDescRR cat:= [ str : i in [1..e] ];
+
     elif AlbertType eq "III" then
-        EndoDescRR cat:= [ "HH" : i in [1..e] ];
-    elif AlbertType eq "Some Albert type" then
-        EndoDescRR cat:= [ "Some RR-algebra" : i in [1..e] ];
+        if m eq 1 then
+            str := "HH";
+        else
+            str := Sprintf("M_%o (HH)", m);
+        end if;
+        EndoDescRR cat:= [ str : i in [1..e] ];
+
     elif AlbertType eq "IV" then
         if m eq 1 then
             str := "CC";
         else
-            str := Sprintf("M_%o (CC)", m);
+            str := Sprintf("M_%o (CC)", d*m);
         end if;
         EndoDescRR cat:= [ str : i in [1..(e div 2)] ];
+
+    elif AlbertType eq "Some Albert type" then
+        EndoDescRR cat:= [ "Some RR-algebra" : i in [1..e] ];
     end if;
 end for;
 Sort(~EndoDescRR);
@@ -222,14 +231,14 @@ if #Ds eq 1 then
             f := f1 * f3;
             OO := QuaternionOrder([ f(gen) : gen in GensC ]);
             if IsEichler(OO) then
-                return GensC, [ Integers() ! ind, 1, DOC ];
+                return GensC, [ Integers() ! ind, 1 ];
             else
-                return GensC, [ Integers() ! ind, 0, DOC ];
+                return GensC, [ Integers() ! ind, 0 ];
             end if;
         end if;
     end if;
 end if;
-return GensC, [ Integers() ! ind, -1, DOC ];
+return GensC, [ Integers() ! ind, -1 ];
 
 end function;
 
