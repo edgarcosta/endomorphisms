@@ -17,6 +17,8 @@ declare attributes FldRe  : epscomp, epsLLL, epsinv, height_bound;
 
 declare verbose EndoFind, 3;
 
+/* TODO: Some attributes have severe side effects, mainly because there is only one rational field in Magma */
+
 
 intrinsic ComplexFieldExtra(prec::RngIntElt) -> FldCom
 {Returns a complex field of the given precision with the extra attributes

@@ -76,7 +76,7 @@ vprint EndoFind, 2 : "done determining component from idempotent analytically.";
 vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Determining component from idempotent, algebraic step...";
 /* Recalculation to algebraize entries */
-test, B := AlgebraizeMatrix(BCC, L);
+test, B := AlgebraizeMatrixExtra(BCC, L);
 assert test;
 K, hKL := SubfieldExtra(L, Eltseq(B));
 incdata := [* L, K, hKL *];
@@ -118,7 +118,7 @@ GeoEndoRep := [ ];
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Algebraizing matrices...";
 for tupCC in GeoEndoRepCC do
-    test, A := AlgebraizeMatrix(tupCC[1], L); R := tupCC[2];
+    test, A := AlgebraizeMatrixExtra(tupCC[1], L); R := tupCC[2];
     Append(~GeoEndoRep, [* A, R *]);
 end for;
 vprint EndoFind, 3 : "done algebraizing matrices.";
@@ -363,7 +363,7 @@ for comp_iso in comps_iso do
 
         /* TODO: Remove this sanity check before the Append statement at some point */
         Atest := morcomp[1]; Rtest := morcomp[2];
-        ACCtest := EmbedMatrixExtra(Atest, K`iota); CC := BaseRing(ACCtest);
+        ACCtest := EmbedMatrixExtra(Atest); CC := BaseRing(ACCtest);
         if ProjToIdem then
             assert Maximum([ Abs(c) : c in Eltseq(ACCtest*P - Qroot*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
         else

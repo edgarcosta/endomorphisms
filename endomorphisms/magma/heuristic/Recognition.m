@@ -14,14 +14,35 @@ forward MinimalPolynomialLLL;
 forward AlgebraizeElementLLL;
 
 
-function TestCloseToRoot(f, a)
+function ScalingFactor(aCC)
+/* Simple rational factor such that aCC / fac has absolute value
+ * between 1 and 3/2 */
+
+return 1;
+absa := Abs(aCC);
+if absa gt 1 then
+    d := Floor(absa);
+else
+    d := 1 / Floor(1 / absa);
+end if;
+bCC := aCC / d; absb := Abs(bCC);
+d *:= (Floor(4*absb) / 4);
+return d;
+
+end function;
+
+
+function TestCloseToRootDumb(f, aCC)
 /* Tests whether complex number a is close to a root of polynomial f over
  * NumberFieldExtra */
 
-CC := Parent(a); RCC := PolynomialRing(CC);
-fCC := RCC ! EmbedPolynomialExtra(f); rts := [ tup[1] : tup in Roots(fCC) ];
-for rt in rts do
-    if Abs(a - rt) le CC`epscomp then
+R := Parent(f); faca := ScalingFactor(aCC);
+aCC /:= faca; f := Evaluate(f, faca*R.1); f /:= LeadingCoefficient(f);
+
+CC := Parent(aCC); RCC := PolynomialRing(CC);
+fCC := RCC ! EmbedPolynomialExtra(f); rtsCC := [ tup[1] : tup in Roots(fCC) ];
+for rtCC in rtsCC do
+    if Abs(aCC - rtCC) le CC`epscomp then
         return true;
     end if;
 end for;
@@ -30,48 +51,77 @@ return false;
 end function;
 
 
-function MinimalPolynomialLLL(a, K : LowerBound := 1, UpperBound := Infinity(), StepSize := 1)
-// Returns a relative minimal polynomial of the complex number a with respect
-// to the stored infinite place of K.
+function TestCloseToRoot(f, aCC)
+/* Tests whether complex number aCC is close to a root of polynomial f over
+ * NumberFieldExtra */
 
-degK := Degree(K); R<x> := PolynomialRing(K); CC := K`CC;
+fCC := EmbedPolynomialExtra(f); CC := BaseRing(Parent(fCC));
+rtsCC := [ tup[1] : tup in Roots(fCC) ];
+for rtCC in rtsCC do
+    abs := Abs(rtCC - aCC);
+    //vprint EndoFind, 3 : "";
+    //vprint EndoFind, 3 : "Distance to root:";
+    //print f; print abs;
+    if abs le CC`epscomp then
+        return true;
+    end if;
+end for;
+return false;
 
-/* The next line is slightly inefficient, but it is not a bottleneck. It takes
- * the images in CC of a power basis of K over QQ. */
-powersgen := [ CC ! EmbedExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
+end function;
+
+
+function MinimalPolynomialLLL(aCC, K : LowerBound := 1, UpperBound := Infinity(), StepSize := 1)
+/* Returns a relative minimal polynomial of the complex number aCC with respect
+ * to the stored infinite place of K. */
+
+CCSmall := ComplexField(5);
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Determining minimal polynomial over QQ using LLL for:";
+vprint EndoFind, 3 : CCSmall ! aCC;
+
+degK := Degree(K); R := PolynomialRing(K); CC := K`CC;
+if Abs(CC ! aCC) le CC`epscomp then
+    f := R.1;
+    vprint EndoFind, 3 : "";
+    vprint EndoFind, 3 : f;
+    vprint EndoFind, 3 : "done determining minimal polynomial over QQ using LLL.";
+    return f;
+end if;
+faca := ScalingFactor(aCC); aCCsc := aCC / faca;
+
+/* Take the images in CC of a power basis of K over QQ */
+genK := K.1; genKCC := EmbedExtra(genK);
+facK := ScalingFactor(genKCC); genK /:= facK; genKCC /:= facK;
+powersgenKCC := [ CC ! EmbedExtra(genK^i) : i in [0..(degK - 1)] ];
 
 /* Create first entry corresponding to constant term */
-MLine := [ ];
-degf := 0;
-powera := CC ! 1;
-MLine cat:= [ powergen * powera : powergen in powersgen ];
+MLine := [ ]; poweraCCsc := CC ! 1; degf := 0;
+MLine cat:= [ powergenKCC * poweraCCsc : powergenKCC in powersgenKCC ];
 
-vprint EndoFind, 3 : "";
-vprint EndoFind, 3 : "Determining minimal polynomial over QQ using LLL...";
 /* Successively adding other entries to find relations */
 while degf lt UpperBound do
+    /*
     if degf ge 6 then
         exit;
     end if;
+    */
 
-    degf +:= 1;
-    powera *:= a;
-    MLine cat:= [ powergen * powera : powergen in powersgen ];
+    degf +:= 1; poweraCCsc *:= aCCsc;
+    MLine cat:= [ powergenKCC * poweraCCsc : powergenKCC in powersgenKCC ];
     M := Transpose(Matrix(CC, [ MLine ]));
 
     if (degf ge LowerBound) and (degf mod StepSize eq 0) then
         /* Split and take an IntegralLeftKernel */
         MSplit := HorizontalSplitMatrix(M);
-        Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
-        print a;
-        print Ker;
-        print "asd";
+        Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
 
-        /* We only consider the first row */
         if test_ker then
             row := Rows(Ker)[1];
-            f := &+[ &+[ row[i*degK + j + 1]*K.1^j : j in [0..(degK - 1)] ] * x^i : i in [0..degf] ];
-            if TestCloseToRoot(f, a) then
+            f := &+[ &+[ row[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
+            f := Evaluate(f, R.1 / faca); f /:= LeadingCoefficient(f);
+
+            if TestCloseToRoot(f, aCC) then
                 vprint EndoFind, 3 : "";
                 vprint EndoFind, 3 : f;
                 vprint EndoFind, 3 : "done determining minimal polynomial over QQ using LLL.";
@@ -85,17 +135,19 @@ return "Failed to find minimal polynomial using LLL";
 end function;
 
 
-function AlgebraizeElementLLL(a, K)
-// Returns an approximation of the complex number a as an element of K.
+function AlgebraizeElementLLL(aCC, K)
+/* Returns an approximation of the complex number aCC as an element of K. */
 
-degK := Degree(K); R<x> := PolynomialRing(K);
-F := BaseField(K); degF := Degree(F);
-CC := Parent(a); RR := RealField(CC); prec := Precision(CC);
+CC := K`CC; RR := RealField(CC); prec := Precision(CC);
+assert Precision(Parent(aCC)) le prec; aCC := CC ! aCC;
+// TODO: Optionally, one could also optimize aCC, but that may not be necessary
+// or wise in general.
 
-genK := CC ! EmbedExtra(K.1, K`iota); genF := CC ! EmbedExtra(F.1, F`iota);
-powersgenK := [ CC ! EmbedExtra(K.1^i, K`iota) : i in [0..(degK - 1)] ];
-powersgenF := [ CC ! EmbedExtra(F.1^i, F`iota) : i in [0..(degF - 1)] ];
-MLine := &cat[ [ powergenF * powergenK : powergenF in powersgenF ] : powergenK in powersgenK ] cat [-a];
+genK := K.1; genKCC := CC ! EmbedExtra(genK);
+facK := ScalingFactor(genKCC); genK /:= facK; genKCC /:= facK;
+
+degK := Degree(K);
+MLine := &cat[ EmbedExtra(genK^i) : i in [0..(degK - 1)] ] cat [ -aCC ];
 M := Transpose(Matrix(CC, [ MLine ]));
 
 vprint EndoFind, 3 : "";
@@ -103,25 +155,20 @@ vprint EndoFind, 3 : "Algebraizing element...";
 vprint EndoFind, 3 : "";
 /* Split and take an IntegralLeftKernel */
 MSplit := HorizontalSplitMatrix(M);
-Ker, test_ker := IntegralLeftKernel(MSplit : OneRow := true);
-/* NOTE: We only consider the first element for now */
+Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
+
 if test_ker then
-    for row in [ Rows(Ker)[1] ] do
-        vprint EndoFind, 3 : "Trying row:", row;
-        test_height := &and[ Abs(c) le CC`height_bound : c in Eltseq(row) ];
-        if test_height then
-            den := row[#Eltseq(row)];
-            if den ne 0 then
-                sCC := &+[ &+[ row[i*degF + j + 1]*genF^j : j in [0..(degF - 1)] ] * genK^i : i in [0..(degK - 1)] ] / den;
-                if (RR ! Abs(sCC - a)) lt RR`epscomp then
-                    s := &+[ &+[ row[i*degF + j + 1]*F.1^j : j in [0..(degF - 1)] ] * K.1^i : i in [0..(degK - 1)] ] / den;
-                    vprint EndoFind, 3 : s;
-                    vprint EndoFind, 3 : "done algebraizing element.";
-                    return true, s;
-                end if;
-            end if;
+    row := Rows(Ker)[1];
+    vprint EndoFind, 3 : "Trying row:", row;
+    den := row[#Eltseq(row)];
+    if den ne 0 then
+        a := &+[ row[i + 1]*genK^i : i in [0..(degK - 1)] ] / den;
+        if Abs(EmbedExtra(a) - aCC) le CC`epscomp then
+            vprint EndoFind, 3 : a;
+            vprint EndoFind, 3 : "done algebraizing element.";
+            return true, a;
         end if;
-    end for;
+    end if;
 end if;
 vprint EndoFind, 3 : "No element found.";
 return false, 0;
@@ -129,17 +176,17 @@ return false, 0;
 end function;
 
 
-intrinsic FractionalApproximation(a::FldComElt) -> FldRatElt
-{Returns a fractional approximation of the complex number a.}
+intrinsic FractionalApproximation(aCC::FldComElt) -> FldRatElt
+{Returns a fractional approximation of the complex number aCC.}
 
-CC := Parent(a); RR := RealField(CC);
-M := Matrix(RR, [ [ 1 ], [ -Real(a) ] ]);
-Ker, test_ker := IntegralLeftKernel(M : OneRow := true);
+CC := Parent(aCC); RR := RealField(CC);
+M := Matrix(RR, [ [ 1 ], [ -Real(aCC) ] ]);
+Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then
     return Rationals() ! 0, false;
 end if;
 q := Ker[1,1] / Ker[1,2];
-if (RR ! Abs(q - a)) lt RR`epscomp then
+if (RR ! Abs(q - aCC)) le RR`epscomp then
     return q, true;
 else
     return Rationals() ! 0, false;
@@ -148,17 +195,17 @@ end if;
 end intrinsic;
 
 
-intrinsic FractionalApproximation(a::FldReElt) -> FldRatElt
-{Returns a fractional approximation of the real number a.}
+intrinsic FractionalApproximation(aRR::FldReElt) -> FldRatElt
+{Returns a fractional approximation of the real number aRR.}
 
-RR := Parent(a);
-M := Matrix(RR, [ [ 1 ], [ -a ] ]);
-K, test_ker := IntegralLeftKernel(M : OneRow := true);
+RR := Parent(aRR);
+M := Matrix(RR, [ [ 1 ], [ -aRR ] ]);
+K, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then
     return Rationals() ! 0, false;
 end if;
 q := K[1,1] / K[1,2];
-if (RR ! Abs(q - a)) lt RR`epscomp then
+if (RR ! Abs(q - aRR)) le RR`epscomp then
     return q, true;
 else
     return Rationals() ! 0, false;
@@ -167,12 +214,12 @@ end if;
 end intrinsic;
 
 
-intrinsic FractionalApproximationMatrix(A::.) -> .
-{Returns a fractional approximation of the matrix A.}
+intrinsic FractionalApproximationMatrix(ACC::.) -> .
+{Returns a fractional approximation of the matrix ACC.}
 
 test := true;
 rows_alg := [ ];
-for row in Rows(A) do
+for row in Rows(ACC) do
     row_alg := [ ];
     for c in Eltseq(row) do
         q, test_q := FractionalApproximation(c);
@@ -186,7 +233,8 @@ return Matrix(rows_alg), test;
 end intrinsic;
 
 
-// Can be used, but this masks problems with precision loss
+// TODO: This function can be used and is very useful, but it masks problems
+// with precision loss
 function RationalReconstruction(r);
     r1 := Real(r);
     r2 := Imaginary(r);
@@ -215,18 +263,18 @@ function RationalReconstruction(r);
 end function;
 
 
-intrinsic AlgebraizeElement(a::FldComElt, K::Fld : UseRatRec := true, minpol := 0) -> .
-{Returns an approximation of the complex number a as an element of K.}
+intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseRatRec := true, minpol := 0) -> .
+{Returns an approximation of the complex number aCC as an element of K.}
 
 CC := K`CC;
-assert Precision(Parent(a)) ge Precision(CC);
+assert Precision(Parent(aCC)) ge Precision(CC);
 
 if UseRatRec and Type(K) eq FldRat then
-    return RationalReconstruction(a);
+    return RationalReconstruction(aCC);
 end if;
 
 if Type(minpol) eq RngIntElt then
-    minpol := MinimalPolynomialLLL(a, RationalsExtra(Precision(CC)));
+    minpol := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CC)));
 end if;
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Finding roots in field with Pari...";
@@ -235,8 +283,8 @@ vprint EndoFind, 3 : rts;
 vprint EndoFind, 3 : "done finding roots in field with Pari.";
 
 for rt in rts do
-    rtCC := EmbedExtra(rt, K`iota);
-    if Abs(rtCC - CC ! a) le CC`epscomp then
+    rtCC := EmbedExtra(rt);
+    if Abs(rtCC - CC ! aCC) le CC`epscomp then
         return true, rt;
     end if;
 end for;
@@ -245,12 +293,12 @@ return false, 0;
 end intrinsic;
 
 
-intrinsic AlgebraizeElements(LCC::SeqEnum, K::Fld : UseRatRec := true) -> .
-{Returns an approximation of the elements of the list L over K.}
+intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseRatRec := true) -> .
+{Returns an approximation of the elements of the list LCC over K.}
 
 L := [ ];
 for aCC in LCC do
-    test, a := AlgebraizeElement(aCC, K : UseRatRec := UseRatRec);
+    test, a := AlgebraizeElementExtra(aCC, K : UseRatRec := UseRatRec);
     if not test then
         return false, 0;
     end if;
@@ -261,14 +309,14 @@ return true, L;
 end intrinsic;
 
 
-intrinsic AlgebraizeMatrix(M::., K::Fld : UseRatRec := true) -> .
-{Returns an approximation of the complex matrix M over K.}
+intrinsic AlgebraizeMatrixExtra(MCC::., K::Fld : UseRatRec := true) -> .
+{Returns an approximation of the complex matrix MCC over K.}
 
 rows := [ ];
-for rowCC in Rows(M) do
+for rowCC in Rows(MCC) do
     row := [ ];
     for cCC in Eltseq(rowCC) do
-        test, c := AlgebraizeElement(cCC, K : UseRatRec := UseRatRec);
+        test, c := AlgebraizeElementExtra(cCC, K : UseRatRec := UseRatRec);
         if not test then
             return false, 0;
         end if;
@@ -286,7 +334,6 @@ intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity
 
 /* Use minimal polynomial over QQ */
 CC := Parent(aCC); RCC := PolynomialRing(CC);
-/* TODO: Note that these declarations have severe side effects that force us to work with fixed precision */
 QQ := Rationals();
 QQ`base := Rationals(); QQ`base_gen := QQ`base ! 1;
 QQ`CC := K`CC; QQ`iota := QQ`CC ! 1;
@@ -296,26 +343,32 @@ else
     f := minpolQQ;
 end if;
 
+/*
+if Degree(f) eq 6 then
+    print "";
+    print aCC;
+    print ScalingFactor(aCC);
+    print f;
+    exit;
+end if;
+*/
+
 /* First try faster algorithm for linear factors */
 rts := RootsPari(f, K);
-for rt in rts do
-    rtCC := CC ! EmbedExtra(rt, K`iota);
-    if Abs(rtCC - aCC) le CC`epscomp then
-        R := PolynomialRing(K);
-        return R.1 - rt, f;
+R := PolynomialRing(K);
+gs := [ R.1 - rt : rt in rts ];
+for g in gs do
+    if TestCloseToRoot(g, aCC) then
+        return g, f;
     end if;
 end for;
 
 /* Then try more general algorithm */
 gs := FactorizationPari(f, K);
 for g in gs do
-    gCC := EmbedPolynomialExtra(g);
-    for tuprt in Roots(gCC) do
-        rtCC := tuprt[1];
-        if Abs(rtCC - aCC) le CC`epscomp then
-            return g, f;
-        end if;
-    end for;
+    if TestCloseToRoot(g, aCC) then
+        return g, f;
+    end if;
 end for;
 error "Failed to find relative minimal polynomial";
 

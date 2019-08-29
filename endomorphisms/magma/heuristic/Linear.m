@@ -14,8 +14,8 @@ intrinsic NumericalLeftSolve(A::., B::.) -> .
 {Returns the numerical solution X to the equation X * A = B.}
 
 //return B * A^(-1);
-R := BaseRing(A);
-return NumericalSolution(A, B : Epsilon := R`epscomp);
+CC := BaseRing(A);
+return NumericalSolution(A, B : Epsilon := CC`epscomp);
 
 end intrinsic;
 
@@ -117,43 +117,56 @@ return MRe + CC.1*MIm;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::. : OneRow := false, CalcEndoRep := false) -> .
+intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
-RR := BaseRing(M);
-eps := Minimum([ Abs(c) : c in Eltseq(M) | not Abs(c) lt RR`epscomp ]);
-//eps := 1;
-if CalcEndoRep then
-    B := 10^12 / eps;
+RR := BaseRing(M); prec := Precision(RR);
+precnew := Minimum(Round(9*prec/10), prec - 15);
+if CalcAlg then
+    B := 10^precnew;
 else
-    B := 10^(Precision(RR) + 10) / eps;
+    eps := Maximum([ Abs(c) : c in Eltseq(M) ]);
+    if Abs(eps) lt RR`epscomp then
+        eps := 1;
+    end if;
+    B := 10^(precnew div 2) / eps;
 end if;
+
 MJ := Matrix(Integers(), [ [ Round(B * c) : c in Eltseq(row) ] : row in Rows(M) ]);
-MI := IdentityMatrix(Integers(), #Rows(MJ));
-MJ := HorizontalJoin(MI, MJ);
+MI := IdentityMatrix(Integers(), #Rows(MJ)); MJ := HorizontalJoin(MI, MJ);
+L, K := LLL(MJ); rowsK := Rows(K);
 
-L, K := LLL(MJ);
-rowsK := Rows(K);
-if OneRow then
-    rowsK := [ rowsK[1] ];
+// First the non-typical case where we are after a minimal polynomial
+if CalcAlg then
+    row1 := rowsK[1]; ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
+    //print "row1:"; print row1;
+    test1 := ht1 lt RR`height_bound;
+    // But we also accept a large jump! That has to be right.
+    if not test1 and (#rowsK gt 1) then
+        row2 := rowsK[2]; ht2 := Max([ Height(c) : c in Eltseq(row2) ]);
+        test1 := ht1^2 lt ht2;
+        //print "row2:"; print row2;
+    end if;
+
+    if test1 then
+        return Matrix([ row1 ]), true;
+    end if;
+    return Matrix([ [ 0 : row in Rows(M) ] ]), false;
 end if;
 
-CCSmall := ComplexField(5);
+// Now the generic case
 rowsK0 := [ ];
 for row in rowsK do
-    print "";
-    print row;
-    ht := Max([ Abs(c) : c in Eltseq(row) ]);
+    ht := Max([ Height(c) : c in Eltseq(row) ]);
     test1 := ht lt RR`height_bound;
-    //test1 := true;
 
     if test1 then
         prod := Matrix(RR, [ Eltseq(row) ])*M;
         abs := Max([ Abs(c) : c in Eltseq(prod) ]);
         test2 := abs lt RR`epscomp;
-        //test2 := abs lt 10^50*RR`epscomp;
 
         if test2 then
+            CCSmall := ComplexField(5);
             vprint EndoFind, 3 : "";
             vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
             vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
@@ -161,6 +174,7 @@ for row in rowsK do
         end if;
     end if;
 end for;
+
 if #rowsK0 eq 0 then
     return Matrix([ [ 0 : row in Rows(M) ] ]), false;
 else
@@ -214,6 +228,11 @@ if not Monomials(f) eq Monomials(f0) then
 end if;
 coeffs := Coefficients(f); coeffs0 := Coefficients(f0);
 M := Matrix([ coeffs ]); M0 := Matrix([ coeffs0 ]);
-return IsConsistent(M, M0);
+test, A := IsConsistent(M0, M);
+if not test then
+    return false, 0;
+else
+    return true, A[1,1];
+end if;
 
 end intrinsic;
