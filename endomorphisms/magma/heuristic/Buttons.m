@@ -15,7 +15,7 @@ intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -
 
 assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 if CC then
-    assert Geometric;
+    Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
 else
     GeoEndoRep := GeometricEndomorphismRepresentation(X);
@@ -40,7 +40,7 @@ intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
 
 assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 if CC then
-    assert Geometric;
+    Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
 else
     GeoEndoRep := GeometricEndomorphismRepresentation(X);
@@ -65,7 +65,7 @@ intrinsic HeuristicEndomorphismRepresentation(X::. : Geometric := false, CC := f
 
 assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 if CC then
-    assert Geometric;
+    Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
 else
     GeoEndoRep := GeometricEndomorphismRepresentation(X);
@@ -95,6 +95,16 @@ end intrinsic;
 
 intrinsic HeuristicEndomorphismLattice(X::.) -> .
 {Returns the endomorphism lattice of X.}
+
+assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
+GeoEndoRep := GeometricEndomorphismRepresentation(X);
+return EndomorphismLattice(GeoEndoRep);
+
+end intrinsic;
+
+
+intrinsic HeuristicEndomorphismDescription(X::.) -> .
+{Returns a description of the endomorphism lattice of X.}
 
 assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);

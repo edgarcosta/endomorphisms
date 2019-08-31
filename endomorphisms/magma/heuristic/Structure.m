@@ -45,33 +45,33 @@ return EndomorphismData(GeoEndoRep, GalK);
 end intrinsic;
 
 
-intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> List
-{Given a representation of the geometric endomorphism ring and Galois group
-GalK, returns the endomorphism structure over the subfield corresponding to
-GalK. Also calculates Sato-Tate group from Shorthand.}
+//intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> List
+//{Given a representation of the geometric endomorphism ring and Galois group
+//GalK, returns the endomorphism structure over the subfield corresponding to
+//GalK. Also calculates Sato-Tate group from Shorthand.}
+//
+///* Adds Sato-Tate */
+//EndoData := EndomorphismData(GeoEndoRep, GalK);
+//EndoRep, EndoAlg, EndoDesc := Explode(EndoData);
+//SatoTate := SatoTateGroup(EndoData, GeoEndoRep, GalK : Shorthand := Shorthand);
+//Append(~EndoAlg, SatoTate); Append(~EndoDesc, SatoTate);
+//EndoDataWithST := [* EndoRep, EndoAlg, EndoDesc *];
+//return EndoDataWithST;
+//
+//end intrinsic;
 
-/* Adds Sato-Tate */
-EndoData := EndomorphismData(GeoEndoRep, GalK);
-EndoRep, EndoAlg, EndoDesc := Explode(EndoData);
-SatoTate := SatoTateGroup(EndoData, GeoEndoRep, GalK : Shorthand := Shorthand);
-Append(~EndoAlg, SatoTate); Append(~EndoDesc, SatoTate);
-EndoDataWithST := [* EndoRep, EndoAlg, EndoDesc *];
-return EndoDataWithST;
 
-end intrinsic;
-
-
-intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, K::Fld, h::Map : Shorthand := "") -> List
-{Given a representation of the geometric endomorphism ring and a field K,
-returns the endomorphism structure over K. Also calculates Sato-Tate group from
-Shorthand.}
-
-/* Apply previous function after finding a corresponding subgroup */
-L := BaseRing(GeoEndoRep[1][1]);
-GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
-return EndomorphismDataWithSatoTate(GeoEndoRep, GalK : Shorthand := Shorthand);
-
-end intrinsic;
+//intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, K::Fld, h::Map : Shorthand := "") -> List
+//{Given a representation of the geometric endomorphism ring and a field K,
+//returns the endomorphism structure over K. Also calculates Sato-Tate group from
+//Shorthand.}
+//
+///* Apply previous function after finding a corresponding subgroup */
+//L := BaseRing(GeoEndoRep[1][1]);
+//GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
+//return EndomorphismDataWithSatoTate(GeoEndoRep, GalK : Shorthand := Shorthand);
+//
+//end intrinsic;
 
 
 intrinsic EndomorphismStructure(EndoRep::SeqEnum) -> List
@@ -93,15 +93,13 @@ B := sub<A | GensA>; GensB := [ B ! gen : gen in GensA ];
 /* As an associative algebra */
 C := AssociativeAlgebra(B); GensC := [ C ! gen : gen in GensB ];
 
-EndoAlg := [* *]; EndoDesc := [* *];
+EndoAlg := [* *]; EndoDesc := < >;
 EndoAlgQQ, EndoDescQQ := EndomorphismAlgebraQQ(C, GensC, EndoRep);
 Append(~EndoAlg, EndoAlgQQ); Append(~EndoDesc, EndoDescQQ);
 EndoAlgZZ, EndoDescZZ := EndomorphismAlgebraZZ(C, GensC);
 Append(~EndoAlg, EndoAlgZZ); Append(~EndoDesc, EndoDescZZ);
-EndoAlgRR, EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ);
-Append(~EndoAlg, EndoAlgRR); Append(~EndoDesc, EndoDescRR);
-DecDesc := DecompositionDescription(C, EndoDescQQ);
-Append(~EndoAlg, DecDesc); Append(~EndoDesc, DecDesc);
+EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ); Append(~EndoDesc, EndoDescRR);
+pic := #RosatiFixedModule(EndoRep); Append(~EndoDesc, pic);
 vprint EndoFind, 2 : "done calculating endomorphism structure.";
 return EndoAlg, EndoDesc;
 
@@ -111,59 +109,57 @@ end intrinsic;
 function EndomorphismAlgebraQQ(C, GensC, EndoRep)
 // Given an associative algebra C, returns a description of it.
 /* TODO: Depends on genus <= 3 */
-// Entry: Albert type, field description, reduced dimension of central simple
-// algebra, discriminant of that algebra, dimension, power
-// [ Type, FDesc, d, disc, dim, m ]
+// Entry: [ power, dim (D | QQ), field desc, disc (D), dim (factor) ]
 
 /* Central decomposition */
 Ds := DirectSumDecomposition(C);
 idems := CentralIdempotents(C);
 
-EndoDescQQ := [* *];
+EndoDescQQ := [ ];
 for i in [1..#Ds] do
     D := Ds[i]; idem := idems[i];
-    DescFactorQQ := [* *];
-    E1 := AlgebraOverCenter(D);
-    F := BaseRing(E1);
-    E2 := ChangeRing(E1, F);
-    FDesc := FieldDescriptionExtra(Polredbestabs(F));
-    dimm := Rank(MatrixFromIdempotent(C, GensC, idem, EndoRep)) div 2;
+    E1 := AlgebraOverCenter(D); F := BaseRing(E1); E2 := ChangeRing(E1, F);
+    FDesc := FieldDescriptionExtra(Polredbestabs(F)); dimF := #FDesc - 1;
 
-    _, dm := IsSquare(Dimension(E2));
+    /* Some relative dimensions */
+    mdimfac := Rank(MatrixFromIdempotent(C, GensC, idem, EndoRep)) div 2;
+    m2reldimalg := Dimension(E2);
+
     if IsTotallyReal(F) then
-        if dm eq 1 then
-            DescFactorQQ := [* "I", FDesc, 1, 1, dimm, 1 *];
+        if m2reldimalg eq 1 then
+            m := 1; disc := 1;
+            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
+            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
 
-        elif dm eq 2 then
+        elif m2reldimalg eq 4 then
             test, Q := IsQuaternionAlgebra(E2);
-            DQFin := Discriminant(Q); NDQ := Integers() ! Norm(DQFin);
-            if NDQ eq 1 then
-                DescFactorQQ := [* "I", FDesc, 1, 1, dimm div 2, 2 *];
-            elif not IsDefinite(Q) then
-                DescFactorQQ := [* "II", FDesc, 2, NDQ, dimm, 1 *];
-            else
-                DescFactorQQ := [* "III", FDesc, 2, NDQ, dimm, 1 *];
-            end if;
+            DQFin := Discriminant(Q); disc := Integers() ! Norm(DQFin);
+            if disc eq 1 then m := 2; else m := 1; end if;
+            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
+            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
 
-        elif dm eq 3 then
-            DescFactorQQ := [* "I", FDesc, 1, 1, dimm div dm, dm *];
+        elif m2reldimalg eq 9 then
+            m := 3; disc := 1;
+            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
+            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
 
         else
-            DescFactorQQ := [* "Some Albert type", FDesc, -1, -1, -1, -1 *];
+            DescFactorQQ := < -1, -1, FDesc, -1, -1 >;
         end if;
 
     else
-        if dm le 3 then
-            DescFactorQQ := [* "IV", FDesc, 1, 1, dimm div dm, dm *];
+        if m2reldimalg le 9 then
+            test, m := IsSquare(m2reldimalg); disc := 1;
+            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
+            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
         else
-            DescFactorQQ := [* "IV", FDesc, -1, -1, -1, -1 *];
+            DescFactorQQ := < -1, -1, FDesc, -1, -1 >;
         end if;
     end if;
 
     Append(~EndoDescQQ, DescFactorQQ);
 end for;
-
-return C, EndoDescQQ;
+return C, Sort(EndoDescQQ);
 
 end function;
 
@@ -191,45 +187,45 @@ function EndomorphismAlgebraRR(C, EndoDescQQ)
 
 EndoDescRR := [ ];
 for DescFactorQQ in EndoDescQQ do
-    AlbertType := DescFactorQQ[1];
-    e := #DescFactorQQ[2] - 1;
-    d := DescFactorQQ[3];
-    m := DescFactorQQ[6];
+    m, dimalg, FDesc, disc, dimfac := Explode(DescFactorQQ);
+    R := PolynomialRing(Rationals()); F := NumberField(R ! FDesc); e := Degree(F);
+    reldimalg := dimalg div e;
+    reldimdivalg := reldimalg div m^2;
 
-    if AlbertType eq "I" then
-        if m eq 1 then
-            str := "RR";
-        else
-            str := Sprintf("M_%o (RR)", m);
-        end if;
-        EndoDescRR cat:= [ str : i in [1..e] ];
-
-    elif AlbertType eq "II" then
-        str := Sprintf("M_%o (RR)", 2*m);
-        EndoDescRR cat:= [ str : i in [1..e] ];
-
-    elif AlbertType eq "III" then
-        if m eq 1 then
-            str := "HH";
-        else
-            str := Sprintf("M_%o (HH)", m);
-        end if;
-        EndoDescRR cat:= [ str : i in [1..e] ];
-
-    elif AlbertType eq "IV" then
-        if m eq 1 then
-            str := "CC";
-        else
-            str := Sprintf("M_%o (CC)", d*m);
-        end if;
-        EndoDescRR cat:= [ str : i in [1..(e div 2)] ];
-
-    elif AlbertType eq "Some Albert type" then
-        EndoDescRR cat:= [ "Some RR-algebra" : i in [1..e] ];
+    if DescFactorQQ[1] eq -1 then
+        EndoDescRR cat:= [ <-1, -1> : i in [1..e] ];
+        continue;
     end if;
+
+    if IsTotallyReal(F) then
+        // Case I: Matrix ring over F itself
+        if reldimdivalg eq 1 then
+            EndoDescRR cat:= [ <m, 1> : i in [1..e] ];
+            continue;
+        end if;
+
+        // Case II/III: Matrix ring over definite/indefinite quaternion algebra over F
+        if reldimdivalg eq 4 then
+            if Sign(disc) eq 1 then
+                EndoDescRR cat:= [ <2*m, 1> : i in [1..e] ];
+                continue;
+            else
+                EndoDescRR cat:= [ <m, 4> : i in [1..e] ];
+                continue;
+            end if;
+        end if;
+
+        test, d := IsSquare(reldimdivalg);
+        EndoDescRR cat:= [ <d*m, 1> : i in [1..e] ];
+        continue;
+    end if;
+
+    // Case IV: Matrix ring over division algebra over CM field F
+    test, d := IsSquare(reldimdivalg);
+    EndoDescRR cat:= [ <d*m, 2> : i in [1..(e div 2)] ];
+    continue;
 end for;
-Sort(~EndoDescRR);
-return EndoDescRR, EndoDescRR;
+return Sort(EndoDescRR);
 
 end function;
 
@@ -248,8 +244,6 @@ Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
     F := BaseRing(E1);
-    /* TODO: Optionally, we could improve and change ring here, but that has
-     * undocumented behavior and does not accept field morphisms, so not for now */
     E2 := E1;
     test, d := IsSquare(Dimension(E2));
 
@@ -259,28 +253,14 @@ if #Ds eq 1 then
             f := f1 * f3;
             OO := QuaternionOrder([ f(gen) : gen in GensC ]);
             if IsEichler(OO) then
-                return GensC, [ Integers() ! ind, 1, DOC ];
+                return GensC, < Integers() ! ind, 1, DOC >;
             else
-                return GensC, [ Integers() ! ind, 0, DOC ];
+                return GensC, < Integers() ! ind, 0, DOC >;
             end if;
         end if;
     end if;
 end if;
-return GensC, [ Integers() ! ind, -1, DOC ];
-
-end function;
-
-
-function DecompositionDescription(C, EndoDescQQ)
-// Describes the decomposition of the Jacobian over the given field.
-
-DecDesc := [ ];
-for DescFactorQQ in EndoDescQQ do
-    dim := DescFactorQQ[5];
-    m := DescFactorQQ[6];
-    Append(~DecDesc, [ dim, m ]);
-end for;
-return DecDesc;
+return GensC, < Integers() ! ind, -1, DOC >;
 
 end function;
 

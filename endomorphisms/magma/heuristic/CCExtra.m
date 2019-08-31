@@ -12,8 +12,8 @@
 
 /* We add parameters for comparison, LLL, and seeing whether a square matrix is
  * invertible. */
-declare attributes FldCom : epscomp, epsLLL, epsinv, height_bound;
-declare attributes FldRe  : epscomp, epsLLL, epsinv, height_bound;
+declare attributes FldCom : epscomp, epsinv, height_bound;
+declare attributes FldRe  : epscomp, epsinv, height_bound;
 
 declare verbose EndoFind, 3;
 
@@ -26,8 +26,8 @@ epscomp, epsLLL, epsinv and height_bound.}
 
 CC := ComplexField(prec);
 RR := RealField(CC);
-CC`epscomp := RR ! (10^(-8 * (prec div 10))); CC`epsLLL  := RR ! (5^(-prec)); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(prec div 2));
-RR`epscomp := CC`epscomp; RR`epsLLL := CC`epsLLL; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound;
+CC`epscomp := RR ! (10^(-8 * (prec div 10))); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(prec div 2));
+RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound;
 return CC;
 
 end intrinsic;
@@ -39,16 +39,6 @@ intrinsic SetEpsComp(CC::FldCom, epscomp::.)
 RR := RealField(CC);
 CC`epscomp := RR ! epscomp;
 RR`epscomp := RR ! epscomp;
-
-end intrinsic;
-
-
-intrinsic SetEpsLLL(CC::FldCom, epsLLL::.)
-{Modifies the attributes epsLLL of CC. Used when determing left kernels via LLL.}
-
-RR := RealField(CC);
-CC`epsLLL := RR ! epsLLL;
-RR`epsLLL := RR ! epsLLL;
 
 end intrinsic;
 

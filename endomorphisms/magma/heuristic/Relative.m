@@ -183,7 +183,7 @@ assert K eq Domain(h); assert L eq Codomain(h);
 assert Precision(K`CC) eq Precision(L`CC);
 CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaK in InfinitePlacesExtra(K) do
-    genKCC := CC ! EmbedExtra(genK);
+    genKCC := CC ! EmbedExtra(genK : iota := iotaK);
     genLCC := CC ! EmbedExtra(genL);
     if Abs(genKCC - genLCC) lt CC`epscomp then
         return iotaK;
