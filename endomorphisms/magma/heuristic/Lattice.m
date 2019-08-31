@@ -58,6 +58,7 @@ for H in Hs[2..#Hs] do
     Append(~entries, entry); Append(~stparts, stpart); Append(~realstrs, entry[2][2][3]);
 end for;
 vprint EndoFind : "done determining endomorphism lattice.";
+return [* base, entries *];
 return [* base, entries *], CanonizeSatoTateHash([* Gp, Hs, stparts, realstrs *]);
 
 end intrinsic;

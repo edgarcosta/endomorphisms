@@ -2,15 +2,16 @@
  *  Properties of curves
  *
  *  Copyright (C) 2016-2017
- *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
- *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
+ *            Edgar Costa       (edgarcosta@math.dartmouth.edu)
+ *            Davide Lombardo   (davide.lombardo@math.u-psud.fr)
+ *            Jeroen Sijsling   (jeroen.sijsling@uni-ulm.de)
+ *            Andrew Sutherland (drew@math.mit.edu)
  *
  *  See LICENSE.txt for license details.
  */
 
-declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point;
-declare attributes SECurve : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point;
+declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point, ghpols;
+declare attributes SECurve : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point, ghpols;
 
 
 intrinsic PlaneCurve(F::RngMPolElt) -> Crv
@@ -31,14 +32,16 @@ end intrinsic;
 
 intrinsic CurveType(X::Crv) -> MonStgElt
 {Returns a string that describes the type of curve that X belongs to, which is
-one of "hyperelliptic", "plane" and "general".}
+one of "hyp", "genhyp", "plane" and "gen".}
 
 if Type(X) eq CrvHyp then
-    return "hyperelliptic";
+    return "hyp";
+elif assigned X`gh_pols eq CrvPln then
+    return "genhyp";
 elif Type(X) eq CrvPln then
     return "plane";
 else
-    return "general";
+    return "gen";
 end if;
 
 end intrinsic;
@@ -201,4 +204,20 @@ end for;
 X`plane_model := PlaneCurve(F0);
 return X`plane_model;
 
+end intrinsic;
+
+
+intrinsic GeneralizedHyperellipticCurve(q::RngMPolElt,f::RngMPolElt) -> Crv
+{ Given conic q(z,y,z) and homogeneous poynomial f(x,y,z) of degree >= 3, returns curve [q(x,y,z)=0,w^2=f(z,y,x)] in [2,1,1,1] weighted projective space. }
+    require Parent(q) eq Parent(f): "Polynomials must lie in the same polynomial ring.";
+    require Rank(Parent(q)) eq 3: "Ternary homogeneous polynomials expected.";
+    R := Parent(q); F := BaseRing(R);
+    require VariableWeights(R) eq [1,1,1]: "Polynomials must lie in an unweighted polynomial ring of rank 2 or 3.";
+    require IsHomogeneous(q) and Degree(q) eq 2: "First input should be a conic.";
+    require IsHomogeneous(f) and IsEven(Degree(f)) and Degree(f) ge 4: "Second input should be bivariate or homogeneous trivariate polynomial whose homogenization is of even degree at least 4.";
+
+    P<w,x,y,z> := ProjectiveSpace(F,[2,1,1,1]);
+    X := Curve(P,[Evaluate(q,[x,y,z]),w^2-Evaluate(f,[x,y,z])]);
+    X`ghpols := [ q, f ];
+    return X;
 end intrinsic;

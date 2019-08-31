@@ -63,6 +63,10 @@ F := BaseRing(Parent(X`DefiningPolynomial)); CC := F`CC;
 return ChangeRing(X`BigPeriodMatrix, CC), X;
 end intrinsic;
 
+
+/* TODO: Also implement this right for generalized hyperelliptic curves for
+ * isogeny purposes (right now this is not needed because of the conjugation
+ * involved) */
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
 

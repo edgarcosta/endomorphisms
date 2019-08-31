@@ -10,6 +10,7 @@
  */
 
 import "Recognition.m": MinimalPolynomialLLL;
+forward GeometricEndomorphismRepresentationGH;
 
 
 intrinsic ComplexStructure(P::ModMatFldElt) -> AlgMatElt
@@ -259,6 +260,12 @@ if assigned X`geo_endo_rep then
     return X`geo_endo_rep;
 end if;
 
+// TODO: Ad hoc way to deal with generalized hyperelliptic curves
+if assigned X`ghpols then
+    q, f := Explode(X`ghpols);
+    X`geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f);
+end if;
+
 if ISA(Type(X),Crv) then
     X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
     return X`geo_endo_rep;
@@ -268,3 +275,86 @@ elif Type(X) eq SECurve then
 end if;
 
 end intrinsic;
+
+
+function GeometricEndomorphismRepresentationGH(q, f)
+/* Compability to calculate with geometrically hyperelliptic curves */
+
+S := Parent(q); F := BaseRing(S); K := F;
+S3 := S; K3 := FieldOfFractions(S3); PP2 := ProjectiveSpace(S3);
+S2 := PolynomialRing(F, 2); K2 := FieldOfFractions(S2); PP1 := ProjectiveSpace(S2);
+R := PolynomialRing(F); h21 := hom< S2 -> R | [ R.1, 1 ] >;
+
+/* Find point on conic and parametrize */
+Q := Conic(PP2, q);
+test, P := HasRationalPoint(Q);
+if not test then
+    p := Evaluate(q, [ R.1, 0, 1 ]); K := NumberFieldExtra(p);
+    S := PolynomialRing(K, 3); h := hom< Parent(q) -> S | [ S.1, S.2, S.3 ] >;
+    q := h(q); f := h(f);
+
+    S3 := S; KS3 := FieldOfFractions(S3); PP2 := ProjectiveSpace(S3);
+    S2 := PolynomialRing(K, 2); KS2 := FieldOfFractions(S2); PP1 := ProjectiveSpace(S2);
+    R := PolynomialRing(K); h21 := hom< S2 -> R | [ R.1, 1 ] >;
+
+    Q := Conic(PP2, q); test, P := HasRationalPoint(Q);
+end if;
+phi := Parametrization(Q, P);
+DE := DefiningEquations(phi);
+h := hom< Parent(DE[1]) -> S2 | [ S2.1, S2.2 ] >;
+DE := [ h(c) : c in DE ];
+
+/* Create hyperelliptic curve */
+/* TODO: This could give incompatibilities! */
+g := Evaluate(f, DE);
+PP2W := ProjectiveSpace(K, [Degree(f),1,1]);
+S3W := CoordinateRing(PP2W);
+h23 := hom< S2 -> S3W | [ S3.2, S3.3 ] >;
+Y := Curve(PP2W, [ S3W.1^2 - h23(g) ]);
+
+/* Create original curve */
+PP3 := ProjectiveSpace(K, [2,1,1,1]);
+S4 := CoordinateRing(PP3);
+h34 := hom< S3 -> S4 | [ S4.2, S4.3, S4.4 ] >;
+eqs := [ h34(q), S4.1^2 - h34(f) ];
+X := Curve(PP3, eqs);
+
+/* Isomorphism between the and corresponding pullback */
+m := map< Y -> X | [ S3W.1, h23(DE[1]), h23(DE[2]), h23(DE[3]) ] >;
+BX := BasisOfHolomorphicDifferentials(X);
+BXPB := [ Pullback(m, omega) : omega in BX ];
+BY := BasisOfHolomorphicDifferentials(Y);
+
+/* Read off matrix on differentials */
+genus := Degree(f) - 1;
+rows := [ ];
+for omega in BXPB do
+    num := Numerator(omega/BY[#BY]);
+    Rnum := Parent(num);
+    row := [ MonomialCoefficient(num, Rnum.2^i) : i in [0..(genus - 1)] ];
+    Append(~rows, row);
+end for;
+T := Matrix(rows); TCC := EmbedMatrixExtra(T);
+
+/*
+At this point, the period matrix for X is that of Y (taken wrt x^i dx / y), multiplied with T. So PX = T PY. Therefore if A PY = PY R, then
+    A T^(-1) T PY = PY R
+    T A T^(-1) T PY = T PY R
+    T A T^(-1) PX = PX R
+and T A T^(-1) is the new tangent representation.
+*/
+
+/* Hyperelliptic curve and its period matrix */
+Y := HyperellipticCurve(h21(g)); PY := PeriodMatrix(Y);
+PX := ChangeRing(TCC, BaseRing(Parent(PY))) * PY;
+
+/* Find endomorphisms and take corresponding subfield */
+GeoEndoRep := GeometricEndomorphismRepresentation(Y);
+GeoEndoRep := [ [* T*tup[1]*T^(-1), tup[2] *] : tup in GeoEndoRep ];
+LK := BaseRing(GeoEndoRep[1][1]);
+seq := &cat[ Eltseq(tup[1]) : tup in GeoEndoRep ];
+L, _, seq := SubfieldExtra(LK, seq);
+GeoEndoRep := [ [* Matrix(genus, genus, seq[((i - 1)*genus^2 + 1)..(i*genus^2)]), GeoEndoRep[i][2] *] : i in [1..#GeoEndoRep] ];
+return GeoEndoRep, PX;
+
+end function;
