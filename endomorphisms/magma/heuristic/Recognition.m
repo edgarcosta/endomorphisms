@@ -15,10 +15,29 @@ forward AlgebraizeElementLLL;
 
 
 function ScalingFactor(aCC)
-/* Simple rational factor such that aCC / fac has absolute value
- * between 1 and 3/2 */
+/* Simple rational factor such that aCC / fac has small absolute value */
 
 return 1;
+
+absa := Abs(aCC); fac := 1;
+while absa gt 2 do
+    fac *:= 2; absa /:= 2;
+end while;
+while absa lt 1/2 do
+    fac *:= 1/2; absa /:= 1/2;
+end while;
+return fac;
+
+absa := Abs(aCC);
+if absa gt 1 then
+    d := Floor(absa);
+else
+    d := 1 / Floor(1 / absa);
+end if;
+bCC := aCC / d; absb := Abs(bCC);
+d *:= (Floor(4*absb) / 4);
+return d;
+
 absa := Abs(aCC);
 if absa gt 1 then
     d := Floor(absa);
@@ -59,10 +78,13 @@ fCC := EmbedPolynomialExtra(f); CC := BaseRing(Parent(fCC));
 rtsCC := [ tup[1] : tup in Roots(fCC) ];
 for rtCC in rtsCC do
     abs := Abs(rtCC - aCC);
-    //vprint EndoFind, 3 : "";
-    //vprint EndoFind, 3 : "Distance to root:";
-    //print f; print abs;
     if abs le CC`epscomp then
+        vprint EndoFind, 3 : "";
+        vprint EndoFind, 3 : "Distance to root:";
+        vprint EndoFind, 3 : RealField(5) ! abs;
+        if abs gt 10^(-93) then
+            exit;
+        end if;
         return true;
     end if;
 end for;
@@ -140,8 +162,7 @@ function AlgebraizeElementLLL(aCC, K)
 
 CC := K`CC; RR := RealField(CC); prec := Precision(CC);
 assert Precision(Parent(aCC)) le prec; aCC := CC ! aCC;
-// TODO: Optionally, one could also optimize aCC, but that may not be necessary
-// or wise in general.
+// TODO: Optionally, one could also optimize aCC, but that may not be necessary or wise in general.
 
 genK := K.1; genKCC := CC ! EmbedExtra(genK);
 facK := ScalingFactor(genKCC); genK /:= facK; genKCC /:= facK;
@@ -233,8 +254,7 @@ return Matrix(rows_alg), test;
 end intrinsic;
 
 
-// TODO: This function can be used and is very useful, but it masks problems
-// with precision loss
+// TODO: This function can be used and is very useful, but it masks problems with precision loss
 function RationalReconstruction(r);
     r1 := Real(r);
     r2 := Imaginary(r);

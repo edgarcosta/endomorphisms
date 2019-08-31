@@ -79,7 +79,7 @@ end intrinsic;
 intrinsic InfinitePlacesExtra(K::Fld) -> SeqEnum
 {The infinite places of K, represented by the roots of the generator in the associated complex field. No identification of complex conjugate places takes place.}
 
-return [ K`CC ! tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexField(Precision(K`CC) + 20)) ];
+return [ tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexField(Precision(K`CC) + 100)) ];
 
 end intrinsic;
 

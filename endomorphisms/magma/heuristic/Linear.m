@@ -121,7 +121,7 @@ intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
 RR := BaseRing(M); prec := Precision(RR);
-precnew := Minimum(Round(9*prec/10), prec - 15);
+precnew := Minimum(Round(8*prec/10), prec - 15);
 if CalcAlg then
     B := 10^precnew;
 else
@@ -139,13 +139,11 @@ L, K := LLL(MJ); rowsK := Rows(K);
 // First the non-typical case where we are after a minimal polynomial
 if CalcAlg then
     row1 := rowsK[1]; ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
-    //print "row1:"; print row1;
     test1 := ht1 lt RR`height_bound;
     // But we also accept a large jump! That has to be right.
     if not test1 and (#rowsK gt 1) then
         row2 := rowsK[2]; ht2 := Max([ Height(c) : c in Eltseq(row2) ]);
         test1 := ht1^2 lt ht2;
-        //print "row2:"; print row2;
     end if;
 
     if test1 then
