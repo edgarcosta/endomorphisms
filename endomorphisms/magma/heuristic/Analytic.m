@@ -242,6 +242,11 @@ P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
 assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
+if assigned X`ghpols then
+    q, f := Explode(X`ghpols);
+    geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f : CC := true);
+    return geo_endo_rep;
+end if;
 return GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
 
 end intrinsic;
@@ -264,6 +269,7 @@ end if;
 if assigned X`ghpols then
     q, f := Explode(X`ghpols);
     X`geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f);
+    return X`geo_endo_rep;
 end if;
 
 if ISA(Type(X),Crv) then
@@ -277,7 +283,7 @@ end if;
 end intrinsic;
 
 
-function GeometricEndomorphismRepresentationGH(q, f)
+function GeometricEndomorphismRepresentationGH(q, f : CC := false)
 /* Compability to calculate with geometrically hyperelliptic curves */
 
 S := Parent(q); F := BaseRing(S); K := F;
@@ -347,6 +353,10 @@ and T A T^(-1) is the new tangent representation.
 /* Hyperelliptic curve and its period matrix */
 Y := HyperellipticCurve(h21(g)); PY := PeriodMatrix(Y);
 PX := ChangeRing(TCC, BaseRing(Parent(PY))) * PY;
+if CC then
+    return GeometricEndomorphismRepresentationCC(PX), PX;
+end if;
+return GeometricEndomorphismRepresentation(PX, F), PX;
 
 /* Find endomorphisms and take corresponding subfield */
 GeoEndoRep := GeometricEndomorphismRepresentation(Y);
