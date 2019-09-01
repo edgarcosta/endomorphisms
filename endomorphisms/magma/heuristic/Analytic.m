@@ -305,7 +305,7 @@ h := hom< Parent(DE[1]) -> S2 | [ S2.1, S2.2 ] >;
 DE := [ h(c) : c in DE ];
 
 /* Create hyperelliptic curve */
-/* TODO: This could give incompatibilities! */
+// TODO: This could give incompatibilities! Not yet though.
 g := Evaluate(f, DE);
 PP2W := ProjectiveSpace(K, [Degree(f),1,1]);
 S3W := CoordinateRing(PP2W);

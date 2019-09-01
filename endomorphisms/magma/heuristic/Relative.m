@@ -79,7 +79,7 @@ end intrinsic;
 intrinsic InfinitePlacesExtra(K::Fld) -> SeqEnum
 {The infinite places of K, represented by the roots of the generator in the associated complex field. No identification of complex conjugate places takes place.}
 
-return [ tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexField(Precision(K`CC) + 100)) ];
+return [ tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexFieldExtra(Precision(K`CC) + 100)) ];
 
 end intrinsic;
 
@@ -87,10 +87,11 @@ end intrinsic;
 intrinsic EmbedExtra(r::. : iota := 0) -> .
 {Embeds the element r via the infinite place iota.}
 
+F := Parent(r);
 if Type(iota) eq RngIntElt then
-    iota := Parent(r)`iota;
+    iota := F`iota;
 end if;
-seq := Eltseq(r);
+seq := Eltseq(r); CC := F`CC;
 return &+[ seq[i]*iota^(i - 1) : i in [1..#seq] ];
 
 end intrinsic;
@@ -108,7 +109,7 @@ intrinsic EmbedPolynomialExtra(f::RngUPolElt) -> RngUPolElt
 {Embeds the polynomial f via the infinite place of its base.}
 
 K := BaseRing(f);
-RCC := PolynomialRing(K`CC);
+RCC := PolynomialRing(Parent(K`iota));
 if IsZero(f) then
     return RCC ! 0;
 else
@@ -124,7 +125,7 @@ intrinsic EmbedPolynomialExtra(f::RngMPolElt) -> RngMPolElt
 {Embeds the polynomial f via the infinite place of its base.}
 
 K := BaseRing(Parent(f));
-RCC := PolynomialRing(K`CC, #GeneratorsSequence(Parent(f)));
+RCC := PolynomialRing(Parent(K`iota), #GeneratorsSequence(Parent(f)));
 if IsZero(f) then
     return RCC ! 0;
 else
@@ -183,8 +184,8 @@ assert K eq Domain(h); assert L eq Codomain(h);
 assert Precision(K`CC) eq Precision(L`CC);
 CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaK in InfinitePlacesExtra(K) do
-    genKCC := CC ! EmbedExtra(genK : iota := iotaK);
-    genLCC := CC ! EmbedExtra(genL);
+    genKCC := EmbedExtra(genK : iota := iotaK);
+    genLCC := EmbedExtra(genL);
     if Abs(genKCC - genLCC) lt CC`epscomp then
         return iotaK;
     end if;
@@ -201,8 +202,8 @@ assert K eq Domain(h); assert L eq Codomain(h);
 assert Precision(K`CC) eq Precision(L`CC);
 CC := K`CC; genK := K.1; genL := h(K.1);
 for iotaL in InfinitePlacesExtra(L) do
-    genKCC := CC ! EmbedExtra(genK);
-    genLCC := CC ! EmbedExtra(genL : iota := iotaL);
+    genKCC := EmbedExtra(genK);
+    genLCC := EmbedExtra(genL : iota := iotaL);
     if Abs(genKCC - genLCC) lt CC`epscomp then
         return iotaL;
     end if;
@@ -382,12 +383,12 @@ end for;
 
 /* Sanity check before returning */
 F := L`base; CC := L`CC;
-genKCC0 := CC ! EmbedExtra(K.1);
-genKCC1 := CC ! EmbedExtra(h(K.1));
+genKCC0 := EmbedExtra(K.1);
+genKCC1 := EmbedExtra(h(K.1));
 assert Abs(genKCC1 - genKCC0) lt CC`epscomp;
 for tupa in tupsa do
-    aCC0 := CC ! tupa[2];
-    aCC1 := CC ! EmbedExtra(tupa[1]);
+    aCC0 := tupa[2];
+    aCC1 := EmbedExtra(tupa[1]);
     assert Abs(aCC1 - aCC0) lt CC`epscomp;
 end for;
 return L, [ tupa[1] : tupa in tupsa ], h;
@@ -440,7 +441,7 @@ for rtf in rtsf do
         for tupa in tupsa do
             a := tupa[1]; aCC0 := tupa[2];
             aCC1 := EmbedExtra(h(a) : iota := iotaL);
-            if not Abs(aCC1 - CC ! aCC0) lt CC`epscomp then
+            if not Abs(aCC1 - aCC0) lt CC`epscomp then
                 test := false;
                 break;
             end if;
@@ -448,7 +449,7 @@ for rtf in rtsf do
 
         /* Third test: new a */
         anewCC1 := EmbedExtra(anew : iota := iotaL);
-        if not Abs(anewCC1 - CC ! anewCC) lt CC`epscomp then
+        if not Abs(anewCC1 - anewCC) lt CC`epscomp then
             test := false;
         end if;
 
@@ -522,12 +523,12 @@ end for;
 
 /* Sanity check before returning */
 F := L`base; CC := L`CC;
-genKCC0 := CC ! EmbedExtra(K.1);
-genKCC1 := CC ! EmbedExtra(h(K.1));
+genKCC0 := EmbedExtra(K.1);
+genKCC1 := EmbedExtra(h(K.1));
 assert Abs(genKCC1 - genKCC0) lt CC`epscomp;
 for tupa in tupsa do
-    aCC0 := CC ! tupa[2];
-    aCC1 := CC ! EmbedExtra(tupa[1]);
+    aCC0 := tupa[2];
+    aCC1 := EmbedExtra(tupa[1]);
     assert Abs(aCC1 - aCC0) lt CC`epscomp;
 end for;
 return L, [ tupa[1] : tupa in tupsa ], h;
@@ -593,7 +594,7 @@ for rtf in rtsf do
         for tupa in tupsa do
             a := tupa[1]; aCC0 := tupa[2];
             aCC1 := EmbedExtra(h(a) : iota := iotaL);
-            if not Abs(aCC1 - CC ! aCC0) lt CC`epscomp then
+            if not Abs(aCC1 - aCC0) lt CC`epscomp then
                 test := false;
                 break;
             end if;
@@ -604,7 +605,7 @@ for rtf in rtsf do
             test := false;
             for rtg in rtsg do
                 anewCC1 := EmbedExtra(rtg : iota := iotaL);
-                if Abs(anewCC1 - CC ! anewCC) lt CC`epscomp then
+                if Abs(anewCC1 - anewCC) lt CC`epscomp then
                     test := true;
                     anew := rtg;
                 end if;
@@ -737,11 +738,11 @@ end if;
 
 /* Take place compatible with both previous ones */
 CC := K`CC; genK := hKM(K.1); genL := hLM(L.1);
-genKCC0 := CC ! EmbedExtra(K.1);
-genLCC0 := CC ! EmbedExtra(L.1);
+genKCC0 := EmbedExtra(K.1);
+genLCC0 := EmbedExtra(L.1);
 for iotaM in InfinitePlacesExtra(M) do
-    genKCC := CC ! EmbedExtra(genK : iota := iotaM);
-    genLCC := CC ! EmbedExtra(genL : iota := iotaM);
+    genKCC := EmbedExtra(genK : iota := iotaM);
+    genLCC := EmbedExtra(genL : iota := iotaM);
     if Abs(genKCC - genKCC0) lt CC`epscomp then
         if Abs(genLCC - genLCC0) lt CC`epscomp then
             M`iota := iotaM;

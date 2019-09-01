@@ -82,9 +82,6 @@ for rtCC in rtsCC do
         vprint EndoFind, 3 : "";
         vprint EndoFind, 3 : "Distance to root:";
         vprint EndoFind, 3 : RealField(5) ! abs;
-        if abs gt 10^(-93) then
-            exit;
-        end if;
         return true;
     end if;
 end for;
@@ -103,7 +100,7 @@ vprint EndoFind, 3 : "Determining minimal polynomial over QQ using LLL for:";
 vprint EndoFind, 3 : CCSmall ! aCC;
 
 degK := Degree(K); R := PolynomialRing(K); CC := K`CC;
-if Abs(CC ! aCC) le CC`epscomp then
+if Abs(aCC) le CC`epscomp then
     f := R.1;
     vprint EndoFind, 3 : "";
     vprint EndoFind, 3 : f;
@@ -115,20 +112,14 @@ faca := ScalingFactor(aCC); aCCsc := aCC / faca;
 /* Take the images in CC of a power basis of K over QQ */
 genK := K.1; genKCC := EmbedExtra(genK);
 facK := ScalingFactor(genKCC); genK /:= facK; genKCC /:= facK;
-powersgenKCC := [ CC ! EmbedExtra(genK^i) : i in [0..(degK - 1)] ];
+powersgenKCC := [ EmbedExtra(genK^i) : i in [0..(degK - 1)] ];
 
 /* Create first entry corresponding to constant term */
-MLine := [ ]; poweraCCsc := CC ! 1; degf := 0;
+MLine := [ ]; poweraCCsc := 1; degf := 0;
 MLine cat:= [ powergenKCC * poweraCCsc : powergenKCC in powersgenKCC ];
 
 /* Successively adding other entries to find relations */
 while degf lt UpperBound do
-    /*
-    if degf ge 6 then
-        exit;
-    end if;
-    */
-
     degf +:= 1; poweraCCsc *:= aCCsc;
     MLine cat:= [ powergenKCC * poweraCCsc : powergenKCC in powersgenKCC ];
     M := Transpose(Matrix(CC, [ MLine ]));
@@ -161,10 +152,10 @@ function AlgebraizeElementLLL(aCC, K)
 /* Returns an approximation of the complex number aCC as an element of K. */
 
 CC := K`CC; RR := RealField(CC); prec := Precision(CC);
-assert Precision(Parent(aCC)) le prec; aCC := CC ! aCC;
+assert Precision(Parent(aCC)) le prec; aCC := aCC;
 // TODO: Optionally, one could also optimize aCC, but that may not be necessary or wise in general.
 
-genK := K.1; genKCC := CC ! EmbedExtra(genK);
+genK := K.1; genKCC := EmbedExtra(genK);
 facK := ScalingFactor(genKCC); genK /:= facK; genKCC /:= facK;
 
 degK := Degree(K);
@@ -304,7 +295,7 @@ vprint EndoFind, 3 : "done finding roots in field with Pari.";
 
 for rt in rts do
     rtCC := EmbedExtra(rt);
-    if Abs(rtCC - CC ! aCC) le CC`epscomp then
+    if Abs(rtCC - aCC) le CC`epscomp then
         return true, rt;
     end if;
 end for;
@@ -356,22 +347,12 @@ intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity
 CC := Parent(aCC); RCC := PolynomialRing(CC);
 QQ := Rationals();
 QQ`base := Rationals(); QQ`base_gen := QQ`base ! 1;
-QQ`CC := K`CC; QQ`iota := QQ`CC ! 1;
+QQ`CC := K`CC; QQ`iota := ComplexFieldExtra(Precision(QQ`CC) + 100) ! 1;
 if Type(minpolQQ) eq RngIntElt then
     f := MinimalPolynomialLLL(aCC, QQ : UpperBound := UpperBound);
 else
     f := minpolQQ;
 end if;
-
-/*
-if Degree(f) eq 6 then
-    print "";
-    print aCC;
-    print ScalingFactor(aCC);
-    print f;
-    exit;
-end if;
-*/
 
 /* First try faster algorithm for linear factors */
 rts := RootsPari(f, K);
