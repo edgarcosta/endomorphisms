@@ -93,13 +93,13 @@ B := sub<A | GensA>; GensB := [ B ! gen : gen in GensA ];
 /* As an associative algebra */
 C := AssociativeAlgebra(B); GensC := [ C ! gen : gen in GensB ];
 
-EndoAlg := [* *]; EndoDesc := < >;
 EndoAlgQQ, EndoDescQQ := EndomorphismAlgebraQQ(C, GensC, EndoRep);
-Append(~EndoAlg, EndoAlgQQ); Append(~EndoDesc, EndoDescQQ);
 EndoAlgZZ, EndoDescZZ := EndomorphismAlgebraZZ(C, GensC);
-Append(~EndoAlg, EndoAlgZZ); Append(~EndoDesc, EndoDescZZ);
-EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ); Append(~EndoDesc, EndoDescRR);
-pic := #RosatiFixedModule(EndoRep); Append(~EndoDesc, pic);
+EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ);
+pic := #RosatiFixedModule(EndoRep);
+
+EndoAlg := [* EndoAlgQQ, EndoAlgZZ *];
+EndoDesc := < EndoDescRR, EndoDescQQ, EndoDescZZ, pic >;
 vprint EndoFind, 2 : "done calculating endomorphism structure.";
 return EndoAlg, EndoDesc;
 
@@ -108,8 +108,25 @@ end intrinsic;
 
 function EndomorphismAlgebraQQ(C, GensC, EndoRep)
 // Given an associative algebra C, returns a description of it.
-/* TODO: Depends on genus <= 3 */
 // Entry: [ power, dim (D | QQ), field desc, disc (D), dim (factor) ]
+
+// TODO: This uses foul tricks with discriminants of maximal orders.
+// Similar discriminantal criteria could be implemented in higher genus.
+
+// The essential case is telling between M_n (B over F) and M_2n (F). It seems
+// more worthwhile to find an actual algebra decomposition; the current
+// algorithms already cannot tell the discriminant for the division algebra in
+// the M_2 (B over F) case in genus 8. Amazingly, everything is OK before that!
+
+// The current version also does not give full determinantal info for QM over a
+// proper number field, which happens from genus 4 onward. This could be be
+// arranged: One only needs definiteness and the finite primes. However,
+// canonically returning descriptions of these is then the next issue. We avoid
+// this for now.
+
+// For genus smaller than 8, one can perform this case by hand using the same
+// methods as in the algorithms belong and considering the discriminant in
+// detail.
 
 /* Central decomposition */
 Ds := DirectSumDecomposition(C);
@@ -123,40 +140,79 @@ for i in [1..#Ds] do
 
     /* Some relative dimensions */
     mdimfac := Rank(MatrixFromIdempotent(C, GensC, idem, EndoRep)) div 2;
-    m2reldimalg := Dimension(E2);
+    // TODO: This assumption is a bit too strong
+    assert mdimfac le 7;
+    m2reldimalg := Dimension(E2); test, sqrtm2reldimalg := IsSquare(m2reldimalg);
 
+    DescFactorQQ := < >;
     if IsTotallyReal(F) then
-        if m2reldimalg eq 1 then
-            m := 1; disc := 1;
-            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
-            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
-
-        elif m2reldimalg eq 4 then
+        if sqrtm2reldimalg eq 2 then
             test, Q := IsQuaternionAlgebra(E2);
-            DQFin := Discriminant(Q); disc := Integers() ! Norm(DQFin);
-            if disc eq 1 then m := 2; else m := 1; end if;
+            if IsMatrixRing(Q) then
+                m := 2; disc := 1;
+            else
+                m := 1; disc := Integers() ! Norm(Discriminant(Q));
+                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+                if IsOdd(#Fac) then disc *:= -1; end if;
+            end if;
             reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
             DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
 
-        elif m2reldimalg eq 9 then
-            m := 3; disc := 1;
+        elif sqrtm2reldimalg eq 4 then
+            // Here we have the distinction M_4 (QQ) or M_2 (B over QQ)
+            discOO := Abs(Discriminant(MaximalOrder(C)));
+            if discOO eq 2^32 then
+                m := 4; disc := 1;
+            else
+                m := 2; disc := Abs(discOO) div 2^32;
+                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+                if IsOdd(#Fac) then disc *:= -1; end if;
+            end if;
+            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
+            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
+
+        elif sqrtm2reldimalg eq 6 then
+            // Here we have the distinction M_6 (QQ) or M_3 (B over QQ)
+            discOO := Abs(Discriminant(MaximalOrder(C)));
+            if discOO eq -2^36 * 3^36 then
+                m := 6; disc := 1;
+            else
+                m := 3; disc := Abs(discOO) div (2^36 * 3^36);
+                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+                if IsOdd(#Fac) then disc *:= -1; end if;
+            end if;
             reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
             DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
 
         else
-            DescFactorQQ := < -1, -1, FDesc, -1, -1 >;
+            m := sqrtm2reldimalg; disc := 1;
+            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
+            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
         end if;
 
     else
-        if m2reldimalg le 9 then
-            test, m := IsSquare(m2reldimalg); disc := 1;
+        if sqrtm2reldimalg eq 2 then
+            test, Q := IsQuaternionAlgebra(E2);
+            if IsMatrixRing(Q) then
+                m := 2; disc := 1;
+            else
+                m := 1; disc := Integers() ! Norm(Discriminant(Q));
+                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+            end if;
             reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
             DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
+
         else
-            DescFactorQQ := < -1, -1, FDesc, -1, -1 >;
+            m := sqrtm2reldimalg; disc := 1;
+            reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
+            DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
         end if;
     end if;
 
+    if #DescFactorQQ eq 0 then
+        error "All cases in EndomorphismAlgebraQQ fell through!";
+        DescFactorQQ := < -1, -1, FDesc, -1, -1 >;
+    end if;
     Append(~EndoDescQQ, DescFactorQQ);
 end for;
 return C, Sort(EndoDescQQ);
@@ -184,44 +240,41 @@ end function;
 function EndomorphismAlgebraRR(C, EndoDescQQ)
 // Given an associative algebra C and its description over QQ, returns a
 // description of the algebra tensored with RR.
+/* TODO: Depends on genus (isotypical component) <= 4
+         AND additionally genus <= 4 in the CM step */
 
 EndoDescRR := [ ];
 for DescFactorQQ in EndoDescQQ do
-    m, dimalg, FDesc, disc, dimfac := Explode(DescFactorQQ);
-    R := PolynomialRing(Rationals()); F := NumberField(R ! FDesc); e := Degree(F);
-    reldimalg := dimalg div e;
-    reldimdivalg := reldimalg div m^2;
-
     if DescFactorQQ[1] eq -1 then
-        EndoDescRR cat:= [ <-1, -1> : i in [1..e] ];
+        EndoDescRR cat:= [ <-1, -1> ];
         continue;
     end if;
 
-    if IsTotallyReal(F) then
-        // Case I: Matrix ring over F itself
-        if reldimdivalg eq 1 then
-            EndoDescRR cat:= [ <m, 1> : i in [1..e] ];
-            continue;
-        end if;
+    m, dimalg, FDesc, disc, dimfac := Explode(DescFactorQQ);
+    R := PolynomialRing(Rationals()); F := NumberField(R ! FDesc); e := Degree(F);
+    test, d := IsSquare(dimalg div e);
+    assert test;
 
-        // Case II/III: Matrix ring over definite/indefinite quaternion algebra over F
-        if reldimdivalg eq 4 then
+    if IsTotallyReal(F) then
+        // Case II/III: Matrix ring over definite/indefinite quaternion algebra
+        // over totally real field F
+        if d eq 2 then
             if Sign(disc) eq 1 then
-                EndoDescRR cat:= [ <2*m, 1> : i in [1..e] ];
+                EndoDescRR cat:= [ <d*m, 1> : i in [1..e] ];
                 continue;
             else
                 EndoDescRR cat:= [ <m, 4> : i in [1..e] ];
                 continue;
             end if;
-        end if;
 
-        test, d := IsSquare(reldimdivalg);
-        EndoDescRR cat:= [ <d*m, 1> : i in [1..e] ];
-        continue;
+        // Case I: Matrix ring over totally real field F
+        else
+            EndoDescRR cat:= [ <d*m, 1> : i in [1..e] ];
+            continue;
+        end if;
     end if;
 
-    // Case IV: Matrix ring over division algebra over CM field F
-    test, d := IsSquare(reldimdivalg);
+    // Case IV: Matrix ring over CM field F
     EndoDescRR cat:= [ <d*m, 2> : i in [1..(e div 2)] ];
     continue;
 end for;
@@ -253,14 +306,14 @@ if #Ds eq 1 then
             f := f1 * f3;
             OO := QuaternionOrder([ f(gen) : gen in GensC ]);
             if IsEichler(OO) then
-                return GensC, < Integers() ! ind, 1, DOC >;
+                return GensC, < Integers() ! ind, 1 >;
             else
-                return GensC, < Integers() ! ind, 0, DOC >;
+                return GensC, < Integers() ! ind, 0 >;
             end if;
         end if;
     end if;
 end if;
-return GensC, < Integers() ! ind, -1, DOC >;
+return GensC, < Integers() ! ind, -1 >;
 
 end function;
 

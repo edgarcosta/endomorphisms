@@ -242,7 +242,7 @@ elif d in { 32 } then
     dim := 1; goal := 4;
 elif d in { 16 } then
     disc := Abs(Discriminant(MaximalOrder(C)));
-    if disc eq 4294967296 then
+    if disc eq 2^32 then
         dim := 1; goal := 4;
     else
         dim := 2; goal := 2;

@@ -53,11 +53,11 @@ L := BaseRing(GeoEndoRep[1][1]);
 K := FixedFieldExtra(L, [ Gphi(genH) : genH in gensH ]);
 K_seq := FieldDescriptionExtra(K);
 vprint EndoFind, 2 : "Corresponding field:", K;
-Append(~entry, < c : c in K_seq >);
+Append(~entry, K_seq);
 
 EndoStruct := EndomorphismData(GeoEndoRep, GalK); EndoDesc := EndoStruct[3];
 for x in EndoDesc do Append(~entry, x); end for;
-return EndoDesc;
+return entry;
 
 end function;
 
