@@ -67,7 +67,12 @@ print "";
 print "Curve:";
 print X;
 
-A, desc := HeuristicEndomorphismAlgebra(X);
+desc := HeuristicEndomorphismDescription(X);
+print "";
+print "Heuristic endomorphism description:";
+print desc;
+
+A := HeuristicEndomorphismAlgebra(X);
 print "";
 print "Heuristic endomorphism algebra:";
 print A;

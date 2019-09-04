@@ -10,8 +10,33 @@
  */
 
 
+intrinsic HeuristicEndomorphismDescription(X::. : Geometric := false, CC := false) -> .
+{Returns an encoded description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
+
+assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
+if CC then
+    Geometric := true;
+    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
+else
+    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+end if;
+
+if Geometric then
+    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
+    return Order(Integers(), EndoAlg[2]);
+end if;
+if not assigned X`base_endo_rep then
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
+    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
+end if;
+EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
+return EndoDesc;
+
+end intrinsic;
+
+
 intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -> .
-{Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description. If CC is set to true, then no algebraization occurs.}
+{Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
 
 assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 if CC then
@@ -30,13 +55,13 @@ if not assigned X`base_endo_rep then
     X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return EndoAlg, EndoDesc;
+return EndoAlg[1];
 
 end intrinsic;
 
 
 intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
-{Returns the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. The first component is the algebra, the second the generators of the endomorphism ring, and the final a string description of the algebra tensored with RR. The second return value is a string description. If CC is set to true, then no algebraization occurs.}
+{Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
 
 assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 if CC then
@@ -94,17 +119,7 @@ end intrinsic;
 
 
 intrinsic HeuristicEndomorphismLattice(X::.) -> .
-{Returns the endomorphism lattice of X.}
-
-assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
-return EndomorphismLattice(GeoEndoRep);
-
-end intrinsic;
-
-
-intrinsic HeuristicEndomorphismDescription(X::.) -> .
-{Returns a description of the endomorphism lattice of X.}
+{Returns an encoded description of the endomorphism lattice of X.}
 
 assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
@@ -124,13 +139,13 @@ elif Type(X) eq SECurve then
     g := X`Genus;
 end if;
 if Definition eq "Generalized" then
-    A := HeuristicEndomorphismAlgebra(X)[1];
+    A := HeuristicEndomorphismAlgebra(X);
     if not Dimension(A) eq g then
         return false;
     end if;
     return Center(A) eq A;
 elif Definition eq "Ribet" then
-    A := HeuristicEndomorphismAlgebra(X)[1];
+    A := HeuristicEndomorphismAlgebra(X);
     if not Dimension(A) eq g then
         return false;
     end if;
