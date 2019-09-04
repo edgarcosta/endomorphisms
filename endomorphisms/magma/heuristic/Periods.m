@@ -14,12 +14,11 @@ forward IsSuperellipticEquation;
 forward SuperellipticCompatibility;
 
 
-/* TODO: This stupid intrinsic should go, but it is used in curve
- * reconstruction, so I wait for the Magma update */
 intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum) -> ModMatFldElt, .
 {Returns the period matrix of the curve defined by the complex polynomials
 eqsCC.}
 
+/* At this point CC has some extra precision */
 RCC := Parent(eqsCC[1]); CC := BaseRing(RCC);
 if #GeneratorsSequence(RCC) eq 1 then
     if #eqsCC eq 2 then
@@ -31,13 +30,13 @@ if #GeneratorsSequence(RCC) eq 1 then
     /* We divide by 2 because we integrate with respect to the canonical
      * differential x^i dx / 2y
      * (MN use x^i dx) */
-    X := SE_Curve(gCC, 2 : Prec := Precision(CC) + 10);
+    X := SE_Curve(gCC, 2 : Prec := Precision(CC));
     return ChangeRing(X`BigPeriodMatrix, CC) / 2, X;
 
 elif #GeneratorsSequence(RCC) eq 3 then
     test, fCC, e := IsSuperellipticEquation(eqsCC);
     if test then
-        X := SE_Curve(fCC, e : Prec := Precision(CC) + 10);
+        X := SE_Curve(fCC, e : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
         P := SuperellipticCompatibility(P, e);
         return ChangeRing(P, CC), X;
@@ -46,7 +45,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
         F := Explode(eqsK);
         X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
 
-        S := RiemannSurface(f : Precision := Precision(CC) + 10);
+        S := RiemannSurface(f : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(S), CC);
         return P, S;
     end if;
@@ -70,6 +69,7 @@ end intrinsic;
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
 
+F := BaseRing(X); CC := F`CC;
 vprint EndoFind : "";
 vprint EndoFind : "Calculating period matrix...";
 if assigned X`period_matrix then
@@ -79,7 +79,9 @@ end if;
 
 Y := PlaneModel(X);
 eqsCC := EmbedCurveEquations(Y); eqsF := DefiningEquations(Y);
-X`period_matrix, X`riesrf := PeriodMatrix(eqsCC, eqsF);
+P, RS := PeriodMatrix(eqsCC, eqsF);
+X`period_matrix := ChangeRing(P, F`CC);
+X`riesrf := RS;
 vprint EndoFind : "done calculating period matrix.";
 return X`period_matrix;
 

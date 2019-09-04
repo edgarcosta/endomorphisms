@@ -79,7 +79,7 @@ end intrinsic;
 intrinsic InfinitePlacesExtra(K::Fld) -> SeqEnum
 {The infinite places of K, represented by the roots of the generator in the associated complex field. No identification of complex conjugate places takes place.}
 
-return [ tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexFieldExtra(Precision(K`CC) + 100)) ];
+return [ tup[1] : tup in Roots(MinimalPolynomial(K.1), ComplexField(Precision(K`CC) + 20)) ];
 
 end intrinsic;
 
@@ -91,7 +91,7 @@ F := Parent(r);
 if Type(iota) eq RngIntElt then
     iota := F`iota;
 end if;
-seq := Eltseq(r); CC := F`CC;
+seq := Eltseq(r);
 return &+[ seq[i]*iota^(i - 1) : i in [1..#seq] ];
 
 end intrinsic;
@@ -113,7 +113,6 @@ RCC := PolynomialRing(Parent(K`iota));
 if IsZero(f) then
     return RCC ! 0;
 else
-    prec := Precision(BaseRing(RCC));
     mons := Monomials(f);
     return &+[ EmbedExtra(MonomialCoefficient(f, mon)) * RCC.1^Degree(mon) : mon in mons ];
 end if;
@@ -129,7 +128,6 @@ RCC := PolynomialRing(Parent(K`iota), #GeneratorsSequence(Parent(f)));
 if IsZero(f) then
     return RCC ! 0;
 else
-    prec := Precision(BaseRing(RCC));
     mons := Monomials(f);
     return &+[ EmbedExtra(MonomialCoefficient(f, mon)) * Monomial(RCC, Exponents(mon)) : mon in mons ];
 end if;
@@ -219,7 +217,7 @@ intrinsic DescendAttributesExtra(L::Fld, K::Fld, h::Map)
 assert K eq Domain(h);
 assert L eq Codomain(h);
 K`base := L`base; K`base_gen := CoerceToSubfieldElement(L`base_gen, L, K, h);
-K`CC := L`CC; CC := K`CC;
+K`CC := L`CC;
 K`iota := DescendInfinitePlace(L, K, h);
 
 end intrinsic;
@@ -231,7 +229,7 @@ intrinsic AscendAttributesExtra(L::Fld, K::Fld, h::Map)
 assert K eq Domain(h);
 assert L eq Codomain(h);
 L`base := K`base; L`base_gen := h(K`base_gen);
-L`CC := K`CC; CC := L`CC;
+L`CC := K`CC;
 L`iota := AscendInfinitePlace(L, K, h);
 
 end intrinsic;
@@ -631,7 +629,8 @@ function ExtendSplittingFieldExtraStepGen(K, tupsa, anewCC)
 // anewCC, and transports tupsa to that field. Keeps track of morphisms.
 
 gK, gQQ := MinimalPolynomialExtra(anewCC, K);
-CC := Parent(anewCC); aCCs := [ tup[1] : tup in Roots(gQQ, CC) ];
+CCiota := Parent(K`iota); CCK := K`CC;
+aCCs := [ tup[1] : tup in Roots(gQQ, CCiota) ];
 /* Just keep extending the number field */
 L := K; h := CanonicalInclusionMap(K, K); tupsanew := tupsa;
 for aCC in aCCs do
@@ -645,7 +644,7 @@ end for;
 tupsa := tupsanew[1..#tupsa];
 tupsanew := tupsanew[(#tupsa + 1)..#tupsanew];
 for tupanew in tupsanew do
-    if Abs(tupanew[2] - anewCC) lt CC`epscomp then
+    if Abs(tupanew[2] - anewCC) lt CCK`epscomp then
         return L, tupsa cat [ tupanew ], h;
     end if;
 end for;

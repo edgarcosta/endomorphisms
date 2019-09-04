@@ -164,12 +164,6 @@ gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 
-/*
-for a in seqPart do
-    print MinimalPolynomialLLL(a, F);
-end for;
-*/
-
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by homomorphisms...";
 K, seq, hFK := NumberFieldExtra(seqPart, F);

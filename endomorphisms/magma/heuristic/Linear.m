@@ -140,11 +140,12 @@ L, K := LLL(MJ); rowsK := Rows(K);
 if CalcAlg then
     row1 := rowsK[1]; ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
     test1 := ht1 lt RR`height_bound;
-    // But we also accept a large jump! That has to be right.
-    if not test1 and (#rowsK gt 1) then
+    /*
+    if not test1 and (#rowsK ge 12) then
         row2 := rowsK[2]; ht2 := Max([ Height(c) : c in Eltseq(row2) ]);
-        test1 := ht1^2 lt ht2;
+        test1 := 100*ht1 lt ht2;
     end if;
+    */
 
     if test1 then
         return Matrix([ row1 ]), true;
