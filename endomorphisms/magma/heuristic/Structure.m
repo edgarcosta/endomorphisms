@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2016-2017
  *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
+ *            Davide Lombardo  (davide.lombardo@unipi.it)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
@@ -135,19 +135,19 @@ idems := CentralIdempotents(C);
 EndoDescQQ := [ ];
 for i in [1..#Ds] do
     D := Ds[i]; idem := idems[i];
-    E1 := AlgebraOverCenter(D); F := BaseRing(E1); E2 := ChangeRing(E1, F);
+    E1 := AlgebraOverCenter(D); F := BaseField(E1);
     FDesc := FieldDescriptionExtra(Polredbestabs(F)); dimF := #FDesc - 1;
 
     /* Some relative dimensions */
     mdimfac := Rank(MatrixFromIdempotent(C, GensC, idem, EndoRep)) div 2;
     // TODO: This assumption is a bit too strong
     assert mdimfac le 7;
-    m2reldimalg := Dimension(E2); test, sqrtm2reldimalg := IsSquare(m2reldimalg);
+    m2reldimalg := Dimension(E1); test, sqrtm2reldimalg := IsSquare(m2reldimalg);
 
     DescFactorQQ := < >;
     if IsTotallyReal(F) then
         if sqrtm2reldimalg eq 2 then
-            test, Q := IsQuaternionAlgebra(E2);
+            test, Q := IsQuaternionAlgebra(E1);
             if IsMatrixRing(Q) then
                 m := 2; disc := 1;
             else
@@ -192,7 +192,7 @@ for i in [1..#Ds] do
 
     else
         if sqrtm2reldimalg eq 2 then
-            test, Q := IsQuaternionAlgebra(E2);
+            test, Q := IsQuaternionAlgebra(E1);
             if IsMatrixRing(Q) then
                 m := 2; disc := 1;
             else
@@ -297,11 +297,10 @@ Ds := DirectSumDecomposition(C);
 if #Ds eq 1 then
     E1, f1 := AlgebraOverCenter(C);
     F := BaseRing(E1);
-    E2 := E1;
-    test, d := IsSquare(Dimension(E2));
+    test, d := IsSquare(Dimension(E1));
 
     if d eq 2 and IsQQ(F) then
-        test, Q, f3 := IsQuaternionAlgebra(E2);
+        test, Q, f3 := IsQuaternionAlgebra(E1);
         if test then
             f := f1 * f3;
             OO := QuaternionOrder([ f(gen) : gen in GensC ]);

@@ -20,7 +20,7 @@ print "";
 print FieldDescriptionExtra(L);
 print ElementDescriptionExtra(L.1);
 print InfinitePlacesExtra(L);
-print EmbedExtra(r, L`iota);
+print EmbedExtra(r);
 
 print "";
 print EmbedPolynomialsExtra([ y^2 - 3, y^2 - 5 ]);
@@ -75,8 +75,7 @@ print K`CC;
 print K`iota;
 print elts;
 
-F := K`base;
-h := hom< F -> K | K`base_gen >;
+h := hom< F -> K | >;
 print CoerceToSubfieldElement(K`base_gen, K, F, h);
 print CoerceToSubfieldElement(K ! 1, K, F, h);
 
@@ -97,3 +96,57 @@ M := CompositumExtra([* L1, L2, L3 *]);
 print M;
 M := CompositumExtra([* L1, L1 *]);
 print M;
+
+
+// We work at precision 300
+prec := 300;
+
+// Creation of base number field (say the CM field of its reflex field).
+// All other number fields henceforth will be over this base field.
+R<t> := PolynomialRing(Rationals());
+f := x^3 - 2;
+K := BaseNumberFieldExtra(f, prec);
+
+print "";
+print "Number field:";
+print K;
+print "";
+print "Embedding of K into CC defined by:";
+print K`iota;
+
+// Associated complex field
+CC := K`CC;
+// We create some algebraic numbers in CC
+a1 := Sqrt(CC ! 2);
+a2 := Sqrt(CC ! 3);
+a3 := Sqrt(CC ! 5);
+
+// Adjoining the elements and checking that they embed correctly
+L1, as1 := NumberFieldExtra([ a1, a2 ], K);
+print "";
+print "Number field after first adjunction:";
+print L1;
+print "Embedding of L1 into CC defined by:";
+print L1`iota;
+print "Algebraizations of given complex numbers:";
+print as1;
+print "Embeddings of algebraizations:";
+print [ EmbedExtra(a) : a in as1 ];
+
+
+// This can be repeated, in the sense that a3 can still be adjoined afterwards
+L2, as2, h := NumberFieldExtra([ a3 ], L1);
+print "";
+print "Number field after second adjunction:";
+print L2;
+print "Embedding of L2 into CC defined by:";
+print L2`iota;
+print "Algebraizations of given complex numbers:";
+print as2;
+print "Embeddings of algebraizations:";
+print [ EmbedExtra(a) : a in as2 ];
+print "Embeddings of previous algebraizations:";
+print [ EmbedExtra(h(a)) : a in as1 ];
+
+
+

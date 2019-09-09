@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2016-2017
  *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
+ *            Davide Lombardo  (davide.lombardo@unipi.it)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
@@ -17,7 +17,9 @@ declare attributes FldRe  : epscomp, epsinv, height_bound;
 
 declare verbose EndoFind, 3;
 
-/* TODO: Some attributes have severe side effects, mainly because there is only one rational field in Magma */
+// TODO: We may want to have three different fields: default field, period
+// matrix, iota, in that order of precision.
+// Right now this is only asking for work though.
 
 
 intrinsic ComplexFieldExtra(prec::RngIntElt) -> FldCom

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2016-2017
  *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
+ *            Davide Lombardo  (davide.lombardo@unipi.it)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
@@ -208,8 +208,6 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by homomorphisms...";
 K, seq, hFK := SplittingFieldExtra(seqPart, F);
-print K;
-exit;
 vprint EndoFind : "done finding number field defined by homomorphisms:";
 vprint EndoFind : K;
 

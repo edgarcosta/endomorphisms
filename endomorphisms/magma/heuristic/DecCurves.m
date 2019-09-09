@@ -3,14 +3,12 @@
  *
  *  Copyright (C) 2016-2017
  *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
+ *            Davide Lombardo  (davide.lombardo@unipi.it)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
  */
 
-
-/* TODO: Make geometric versions for use with period matrices only */
 
 function ReconstructionFromComponentG1(P, Q, mor : AllPPs := false, ProjToIdem := true, ProjToPP := true)
 

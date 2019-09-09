@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2016-2017
  *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
+ *            Davide Lombardo  (davide.lombardo@unipi.it)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
@@ -17,19 +17,12 @@ forward SplittingIdempotentsAlgebraStepTwo;
 forward FindIdempotentsStupid;
 forward IsTrueIdempotent;
 
-// TODO: Behavior of CoerceToBase is very obscure
-// TODO: Too much information is recalculated: this should be reproved by true abelian functionality if possible
-
-
-intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
-{Returns factors of the Jacobian and a spanning set of idempotents.}
-
-GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
-GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
-C := GeoEndoAlg[1]; idemsC := CentralIdempotents(C);
-return [ MatricesFromIdempotent(idemC, GeoEndoData) : idemC in idemsC ];
-
-end intrinsic;
+// TODO: Autoduality (project)
+// End result:
+//   Give field or subgroup, find isotypical components, roots, and isogenous genus-2 for it,
+//   all over the base and the latter over an extension if geometric option is set to true.
+//   Join by an overall geometric option that identifies the decomposition field first by using the tangent representation;
+//   more detailed info can be obtained by closer inspection, but should not be given by default.
 
 
 function MatricesFromIdempotent(idem, EndoData)
@@ -53,6 +46,18 @@ return [* idemA, idemR *];
 end function;
 
 
+intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
+{Returns factors of the Jacobian and a spanning set of idempotents.}
+
+GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
+GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
+C := GeoEndoAlg[1]; idemsC := CentralIdempotents(C);
+return [ MatricesFromIdempotent(idemC, GeoEndoData) : idemC in idemsC ];
+
+end intrinsic;
+
+
+// TODO: We should not algebraize again here and remove the subfield
 intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjToIdem := true) -> .
 {Returns component and map corresponding to idempotent idem. If CoerceToBase is set to true, this is returned over the smallest possible field.}
 
@@ -80,6 +85,7 @@ test, B := AlgebraizeMatrixExtra(BCC, L);
 assert test;
 K, hKL := SubfieldExtra(L, Eltseq(B));
 incdata := [* L, K, hKL *];
+
 if CoerceToBase then
     B := CoerceToSubfieldMatrix(B, L, K, hKL);
 end if;
@@ -108,11 +114,16 @@ end intrinsic;
 
 intrinsic SplittingIdempotents(Q::., mor::., incdata::.) -> .
 {Returns further idempotents over the smallest field where the isotypical component splits as far as possible.}
+// TODO: Now we start over a given base K and recalculate;
+//       we find a place in the lattice between K and L where everything shows up for the first time.
+//       This is perhaps not yet the smallest field of definition of a single factor!
+//       Moreover, all of this should be read off from the lattice description and be made less ad hoc.
 
 vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Finding further splitting...";
 L, K, hKL := Explode(incdata);
-/* Recalculate endomorphism algebra over known field (as mentioned above, this is stupid) */
+
+// TODO: Superfluous recalculation of endomorphism algebra
 GeoEndoRepCC := GeometricEndomorphismRepresentationCC(Q);
 GeoEndoRep := [ ];
 vprint EndoFind, 3 : "";
@@ -140,6 +151,8 @@ H := FixedGroupExtra(L, K, hKL);
 S := Subgroups(H); Js := [ rec`subgroup : rec in S ];
 Js := [ J : J in Js | #J ne 1 ];
 if #Js eq 0 then
+    vprint EndoFind, 3 : "done running through lattice.";
+    vprint EndoFind, 2 : "done finding further splitting.";
     return idems_geo, [* L, L, CanonicalInclusionMap(L, L) *];
 end if;
 
@@ -150,6 +163,8 @@ for J in Reverse(Js) do
     idems := SplittingIdempotentsAlgebra(EndoData);
     M := BaseRing(idems[1][1]);
     if #idems eq #idems_geo then
+        vprint EndoFind, 3 : "done running through lattice.";
+        vprint EndoFind, 2 : "done finding further splitting.";
         return idems, [* L, M, hML *];
     end if;
 end for;
@@ -162,11 +177,12 @@ end intrinsic;
 
 intrinsic SplittingIdempotentsAlgebra(EndoData::.) -> .
 {Returns further decomposition of the algebra defined by EndoData.}
-// TODO: Need genus at most 4 for now
+// TODO: Same conditions as in Structure.
+//       Moreover, do this per component only.
 
 /* Assert small dimension */
 g := #Rows(EndoData[1][1][1]);
-assert g le 4;
+assert g le 7;
 
 /* Try successively more complicated methods */
 test1, idems := SplittingIdempotentsAlgebraStepOne(EndoData);
@@ -184,7 +200,8 @@ end intrinsic;
 
 
 function SplittingIdempotentsAlgebraStepOne(EndoData)
-// TODO: Need genus at most 4 for now
+// TODO: Same conditions as in Structure.
+//       Moreover, do this per component only.
 
 C := EndoData[2][1];
 idems := [ ];
@@ -201,22 +218,21 @@ end function;
 
 
 function SplittingIdempotentsAlgebraStepOneSubstep(C)
-// TODO: Need genus at most 4 for now
+// TODO: Same conditions as in Structure.
+//       Moreover, do this per component only.
 
 E1, f1 := AlgebraOverCenter(C);
-/* TODO: Optionally, we could improve and change ring here, but that has
- * undocumented behavior and does not accept field morphisms, so not for now */
-E2 := E1;
 
 /* Fields have no idempotents */
-if IsCommutative(E2) then
+if IsCommutative(E1) then
     return true, [ C ! 1 ];
 end if;
 
 /* Central algebras of dimension 4 */
-test_dim, d := IsSquare(Dimension(E2));
+// TODO: Unify with next using methods in Structure.m
+test_dim, d := IsSquare(Dimension(E1));
 if d eq 2 then
-    test_quat, Q, f3 := IsQuaternionAlgebra(E2);
+    test_quat, Q, f3 := IsQuaternionAlgebra(E1);
     test_mat, M, f4 := IsMatrixRing(Q : Isomorphism := true);
     if not test_mat then
         return true, [ C ! 1 ];
@@ -231,7 +247,8 @@ end function;
 
 
 function SplittingIdempotentsAlgebraStepTwo(EndoData);
-// TODO: Need genus at most 4 for now
+// TODO: Same conditions as in Structure.
+//       Moreover, do this per component only.
 /* Catches M3 over QQ or CM, M4 over ZZ or CM, M2 over quaternion algebra */
 
 C := EndoData[2][1]; d := Dimension(C);
@@ -262,11 +279,7 @@ C := EndoData[2][1]; d := Dimension(C);
 Bmin := 0; Bmax := 0; counter := 0; idems := [ ];
 
 while true do
-    if IsEven(counter) then
-        Bmax +:= 1;
-    else
-        Bmin -:= 1;
-    end if;
+    if IsEven(counter) then Bmax +:= 1; else Bmin -:= 1; end if;
     counter +:= 1;
     D := [ Bmin..Bmax ];
 
@@ -277,12 +290,15 @@ while true do
         test_mult, lambda := IsRationalMultiple(v2, v);
         if test_mult and (lambda ne 0) then
             idem := (1/lambda)*c;
-            if IsTrueIdempotent(EndoData, dim, idem) then
+            test_true, idem := IsTrueIdempotent(EndoData, dim, idem);
+            if test_true then
                 test_seen := MatrixInBasis(idem, idems);
                 if not test_seen then
                     Append(~idems, idem);
                 end if;
             end if;
+
+            /* Return when enough idempotents were found */
             if #idems eq goal then
                 return idems;
             end if;
@@ -294,11 +310,13 @@ end function;
 
 
 function IsTrueIdempotent(EndoData, dim, idem)
-/* Only accept idempotents whose homology representation has rank dim */
+/* Only accept idempotents whose homology representation has right dimension */
 
 A, R := Explode(MatricesFromIdempotent(idem, EndoData));
 if Rank(R) eq 2*dim then
-    return true;
+    return true, R;
+elif Rank(1 - R) eq 2*dim then
+    return true, 1 - R;
 end if;
 return false;
 
@@ -314,9 +332,6 @@ idems, incdataroot := SplittingIdempotents(Q, mor, incdata);
 
 comps := [ ];
 for idem in idems do
-    // TODO: I do not understand this old remark
-    /* No need to coerce since we are already over smallest possible field; in
-     * fact the field might even drop too much */
     Qroot, morroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjToIdem := ProjToIdem);
     Append(~comps, [* Qroot, morroot, incdataroot *]);
 end for;
@@ -325,6 +340,7 @@ return comps;
 end intrinsic;
 
 
+// TODO: More logical version: all over given field?
 intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : AllIdems := false, ProjToIdem := true) -> .
 {Returns maximal possible splitting of the Jacobian P over the smallest field over which this occurs, plus corresponding projections.}
 

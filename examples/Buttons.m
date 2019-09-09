@@ -1,4 +1,4 @@
-SetVerbose("EndoFind", 3);
+SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
 prec := 100;

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2016-2017
  *            Edgar Costa      (edgarcosta@math.dartmouth.edu)
- *            Davide Lombardo  (davide.lombardo@math.u-psud.fr)
+ *            Davide Lombardo  (davide.lombardo@unipi.it)
  *            Jeroen Sijsling  (jeroen.sijsling@uni-ulm.de)
  *
  *  See LICENSE.txt for license details.
@@ -158,6 +158,10 @@ end if;
 end intrinsic;
 
 
+// TODO: This is terrible. It should have a base, geometric, and field version instead to clean this up.
+//       After that, a second function can see if a genus 1 or 2 root factor comes from equation over base.
+//       (Extension is too advanced to put here.)
+//       Returns values should be field plus equations; it also needs a descriptive version.
 intrinsic HeuristicJacobianFactors(X::. : AllIdems := true, AllPPs := false, ProjToIdem := true, ProjToPP := true) -> .
 {Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors. Setting AllMaps to true returns multiple entries for a given components in the decomposition together with all possible maps (instead of a single one). Setting AllPPs to true returns multiple entries for a given idempotent, corresponding to the various choices of principal polarization. Setting ProjToIdem to false uses an inclusion instead of a projection when taking idempotents. Setting ProjToPP to false uses an inclusion instead of a projection when making a period matrix principally polarized. If ProjToIdem and ProjToPP are not equal, then right now the algorithm only returns a component, not a corresponding map from or to the Jacobian of X.}
 
@@ -165,8 +169,6 @@ assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
 P := PeriodMatrix(X); gP := #Rows(P);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 
-/* The upcoming is badly written boilerplate code, but for me it describes the
- * case distinctions (list or lists of lists) fairly */
 if not AllIdems and not AllPPs then
     comps := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
     recs := [ ];
@@ -240,9 +242,6 @@ if Type(facinfo) eq RngIntElt then
 end if;
 
 Rs := &cat[ [ fac[2][2] : fac in facs ] : facs in facinfo ];
-print "OINK";
-print facinfo;
-print Rs;
 gYs := [ #Rows(R) div 2 : R in Rs ];
 gX := &+gYs;
 EYs := [ StandardSymplecticMatrix(gY) : gY in gYs ];
