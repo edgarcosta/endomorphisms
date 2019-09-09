@@ -26,7 +26,7 @@ epscomp, epsLLL, epsinv and height_bound.}
 
 CC := ComplexField(prec);
 RR := RealField(CC);
-CC`epscomp := RR ! (10^(Round(-9.2*prec/10))); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(40 + (prec div 10)));
+CC`epscomp := RR ! (10^(Round(-9.5*prec/10))); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(40 + (prec div 10)));
 RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound;
 return CC;
 
