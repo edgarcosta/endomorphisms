@@ -162,6 +162,7 @@ value.}
 
 /* Determine matrices over CC */
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+gensPart := [ [* ChangeRing(gen[1], F`CC), gen[2] *] : gen in gensPart ];
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 
@@ -198,6 +199,7 @@ F into K is the second return value.}
 Q := P;
 /* Determine matrices over CC */
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+gensPart := [ [* ChangeRing(gen[1], F`CC), gen[2] *] : gen in gensPart ];
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 
@@ -363,6 +365,8 @@ and T A T^(-1) is the new tangent representation.
 /* Hyperelliptic curve and its period matrix */
 Y := HyperellipticCurve(h21(g)); PY := PeriodMatrix(Y);
 PX := ChangeRing(TCC, BaseRing(Parent(PY))) * PY;
+
+// TODO: Keep an eye on this
 if CC then
     return GeometricEndomorphismRepresentationCC(PX), PX;
 end if;
