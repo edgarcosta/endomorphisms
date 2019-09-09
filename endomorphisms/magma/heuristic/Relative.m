@@ -154,6 +154,14 @@ return K;
 end intrinsic;
 
 
+intrinsic RationalsExtra() -> FldNum
+{Default RationalsExtra with precision 100.}
+
+return RationalsExtra(100);
+
+end intrinsic;
+
+
 intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
 {Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
 
@@ -172,6 +180,14 @@ hKL := hom< K -> L | >;
 /* Final improvement step before returning root */
 L0, hLL0 := ImproveFieldExtra(L);
 return L0, hLL0(L ! r), hKL * hLL0;
+
+end intrinsic;
+
+
+intrinsic BaseNumberFieldExtra(f::RngUPolElt) -> FldNum
+{Default BaseNumberFieldExtra defined by f with precision 100.}
+
+return BaseNumberFieldExtra(f, 100);
 
 end intrinsic;
 

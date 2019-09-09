@@ -33,6 +33,14 @@ return CC;
 end intrinsic;
 
 
+intrinsic ComplexFieldExtra() -> FldCom
+{Default ComplexFieldExtra with precision 100.}
+
+return ComplexFieldExtra(100);
+
+end intrinsic;
+
+
 intrinsic SetEpsComp(CC::FldCom, epscomp::.)
 {Modifies the attributes epscomp of CC. This decides whether something is 0.}
 
