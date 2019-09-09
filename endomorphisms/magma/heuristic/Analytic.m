@@ -208,6 +208,8 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by homomorphisms...";
 K, seq, hFK := SplittingFieldExtra(seqPart, F);
+print K;
+exit;
 vprint EndoFind : "done finding number field defined by homomorphisms:";
 vprint EndoFind : K;
 

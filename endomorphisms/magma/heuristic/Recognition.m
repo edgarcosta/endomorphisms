@@ -17,33 +17,22 @@ forward AlgebraizeElementLLL;
 function ScalingFactor(aCC)
 /* Simple rational factor such that aCC / fac has small absolute value */
 
+if Abs(aCC) le Parent(aCC)`epscomp then return 1; end if;
 return 1;
 
 absa := Abs(aCC); fac := 1;
-while absa gt 2 do
-    fac *:= 2; absa /:= 2;
-end while;
-while absa lt 1/2 do
-    fac *:= 1/2; absa /:= 1/2;
-end while;
+while absa gt 2 do fac *:= 2; absa /:= 2; end while;
+while absa lt 1/2 do fac *:= 1/2; absa /:= 1/2; end while;
 return fac;
 
 absa := Abs(aCC);
-if absa gt 1 then
-    d := Floor(absa);
-else
-    d := 1 / Floor(1 / absa);
-end if;
+if absa gt 1 then d := Floor(absa); else d := 1 / Floor(1 / absa); end if;
 bCC := aCC / d; absb := Abs(bCC);
 d *:= (Floor(4*absb) / 4);
 return d;
 
 absa := Abs(aCC);
-if absa gt 1 then
-    d := Floor(absa);
-else
-    d := 1 / Floor(1 / absa);
-end if;
+if absa gt 1 then d := Floor(absa); else d := 1 / Floor(1 / absa); end if;
 bCC := aCC / d; absb := Abs(bCC);
 d *:= (Floor(4*absb) / 4);
 return d;
@@ -51,14 +40,14 @@ return d;
 end function;
 
 
-function TestCloseToRoot(f, aCC, epscomp);
+function TestCloseToRoot(f, aCC);
 /* Tests whether complex number aCC is close to a root of polynomial f over
  * NumberFieldExtra */
 
 fCC := EmbedPolynomialExtra(f); rtsCC := [ tup[1] : tup in Roots(fCC) ];
 for rtCC in rtsCC do
     abs := Abs(rtCC - aCC);
-    if abs le epscomp then
+    if abs le Parent(aCC)`epscomp then
         vprint EndoFind, 3 : "";
         vprint EndoFind, 3 : "Distance to root:";
         vprint EndoFind, 3 : RealField(5) ! abs;
@@ -70,25 +59,19 @@ return false;
 end function;
 
 
-function MinimalPolynomialLLL(aCC, K : LowerBound := 1, UpperBound := Infinity(), StepSize := 1)
+function MinimalPolynomialLLL(aCC, K : UpperBound := Infinity())
 /* Returns a relative minimal polynomial of the complex number aCC with respect
  * to the stored infinite place of K. */
 
 CCSmall := ComplexField(5);
 vprint EndoFind, 3 : "";
-vprint EndoFind, 3 : "Determining minimal polynomial over QQ using LLL for:";
+vprint EndoFind, 3 : "Determining minimal polynomial using LLL for:";
 vprint EndoFind, 3 : CCSmall ! aCC;
+vprint EndoFind, 3 : "over:";
+vprint EndoFind, 3 : K;
 
-/* Zero is easy */
 degK := Degree(K); R := PolynomialRing(K); genK := K.1; CCK := K`CC;
 assert Precision(Parent(aCC)) ge Precision(CCK);
-if Abs(aCC) le CCK`epscomp then
-    f := R.1;
-    vprint EndoFind, 3 : "";
-    vprint EndoFind, 3 : f;
-    vprint EndoFind, 3 : "done determining minimal polynomial over QQ using LLL.";
-    return f;
-end if;
 
 /* Scale and take the images of a power basis of K over QQ */
 /* This is all over a complex field CC with higher precision than CCK */
@@ -107,22 +90,20 @@ while degf lt UpperBound do
     MLine cat:= [ powergenCC * poweraCCsc : powergenCC in powersgenCC ];
     M := Transpose(Matrix(CCK, [ MLine ]));
 
-    if (degf ge LowerBound) and (degf mod StepSize eq 0) then
-        /* Split and take an IntegralLeftKernel */
-        MSplit := HorizontalSplitMatrix(M);
-        Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
+    /* Split and take an IntegralLeftKernel */
+    MSplit := HorizontalSplitMatrix(M);
+    Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
 
-        if test_ker then
-            row := Rows(Ker)[1];
-            f := &+[ &+[ row[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
-            f := Evaluate(f, R.1 / faca); f /:= LeadingCoefficient(f);
+    if test_ker then
+        row := Rows(Ker)[1];
+        f := &+[ &+[ row[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
+        f := Evaluate(f, R.1 / faca); f /:= LeadingCoefficient(f);
 
-            if TestCloseToRoot(f, aCC, CCK`epscomp) then
-                vprint EndoFind, 3 : "";
-                vprint EndoFind, 3 : f;
-                vprint EndoFind, 3 : "done determining minimal polynomial over QQ using LLL.";
-                return f;
-            end if;
+        if TestCloseToRoot(f, aCC) then
+            vprint EndoFind, 3 : "";
+            vprint EndoFind, 3 : f;
+            vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
+            return f;
         end if;
     end if;
 end while;
@@ -176,9 +157,8 @@ intrinsic FractionalApproximation(aCC::FldComElt) -> FldRatElt
 CC := Parent(aCC); RR := RealField(CC);
 M := Matrix(RR, [ [ 1 ], [ -Real(aCC) ] ]);
 Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
-if not test_ker then
-    return Rationals() ! 0, false;
-end if;
+if not test_ker then return Rationals() ! 0, false; end if;
+
 q := Ker[1,1] / Ker[1,2];
 if (RR ! Abs(q - aCC)) le RR`epscomp then
     return q, true;
@@ -195,9 +175,8 @@ intrinsic FractionalApproximation(aRR::FldReElt) -> FldRatElt
 RR := Parent(aRR);
 M := Matrix(RR, [ [ 1 ], [ -aRR ] ]);
 K, test_ker := IntegralLeftKernel(M : CalcAlg := true);
-if not test_ker then
-    return Rationals() ! 0, false;
-end if;
+if not test_ker then return Rationals() ! 0, false; end if;
+
 q := K[1,1] / K[1,2];
 if (RR ! Abs(q - aRR)) le RR`epscomp then
     return q, true;
@@ -260,28 +239,18 @@ intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseRatRec := true, min
 {Returns an approximation of the complex number aCC as an element of K. It calculates a minimal polynomial over QQ first.}
 
 CCK := K`CC; CCiota := Parent(K`iota);
-assert Precision(Parent(aCC)) ge Precision(CCK); 
+assert Precision(Parent(aCC)) ge Precision(CCK);
 
-if UseRatRec and Type(K) eq FldRat then
-    return RationalReconstruction(aCC);
-end if;
+if UseRatRec and Type(K) eq FldRat then return RationalReconstruction(aCC); end if;
+if Type(minpol) eq RngIntElt then minpol := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK))); end if;
 
-if Type(minpol) eq RngIntElt then
-    minpol := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)));
-end if;
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Finding roots in field with Pari...";
 rts := RootsPari(minpol, K);
 vprint EndoFind, 3 : rts;
 vprint EndoFind, 3 : "done finding roots in field with Pari.";
 
-for rt in rts do
-    rtCC := EmbedExtra(rt);
-
-    if Abs(rtCC - aCC) le CCK`epscomp then
-        return true, rt;
-    end if;
-end for;
+for rt in rts do if Abs(EmbedExtra(rt) - aCC) le CCK`epscomp then return true, rt; end if; end for;
 return false, 0;
 
 end intrinsic;
@@ -293,9 +262,7 @@ intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseRatRec := true) -> .
 L := [ ];
 for aCC in LCC do
     test, a := AlgebraizeElementExtra(aCC, K : UseRatRec := UseRatRec);
-    if not test then
-        return false, 0;
-    end if;
+    if not test then return false, 0; end if;
     Append(~L, a);
 end for;
 return true, L;
@@ -311,9 +278,7 @@ for rowCC in Rows(MCC) do
     row := [ ];
     for cCC in Eltseq(rowCC) do
         test, c := AlgebraizeElementExtra(cCC, K : UseRatRec := UseRatRec);
-        if not test then
-            return false, 0;
-        end if;
+        if not test then return false, 0; end if;
         Append(~row, c);
     end for;
     Append(~rows, row);
@@ -323,34 +288,26 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), minpolQQ := 0) -> RngUPolElt
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), minpolQQ := 0, UseQQ := false) -> RngUPolElt
 {Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. More stable than MinimalPolynomialLLL via the use of RootsPari. If the minimal polynomial over QQ is already known, then it can be specified by using the keyword argument minpolQQ. This minimal polynomial over QQ is the second return value.}
 
-CCK := K`CC; CCiota := Parent(K`iota);
-assert Precision(Parent(aCC)) ge Precision(CCK); 
-if Type(minpolQQ) eq RngIntElt then
-    f := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound);
-else
-    f := minpolQQ;
+if not UseQQ then
+    return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound);
 end if;
 
+CCK := K`CC; CCiota := Parent(K`iota);
+assert Precision(Parent(aCC)) ge Precision(CCK);
+gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound);
+
 /* First try faster algorithm for linear factors */
-rts := RootsPari(f, K);
+rts := RootsPari(gQQ, K);
 R := PolynomialRing(K);
-gs := [ R.1 - rt : rt in rts ];
-for g in gs do
-    if TestCloseToRoot(g, aCC, CCK`epscomp) then
-        return g, f;
-    end if;
-end for;
+gKs := [ R.1 - rt : rt in rts ];
+for gK in gKs do if TestCloseToRoot(gK, aCC) then return gK, gQQ; end if; end for;
 
 /* Then try more general algorithm */
-gs := FactorizationPari(f, K);
-for g in gs do
-    if TestCloseToRoot(g, aCC, CCK`epscomp) then
-        return g, f;
-    end if;
-end for;
+gKs := FactorizationPari(gQQ, K);
+for gK in gKs do if TestCloseToRoot(gK, aCC) then return gK, gQQ; end if; end for;
 error "Failed to find relative minimal polynomial";
 
 end intrinsic;
