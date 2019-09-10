@@ -163,7 +163,10 @@ intrinsic HeuristicDecompositionInformation(X::.) -> .
 {Returns decomposition information without maps.}
 
 assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
-return DecompositionOverBase(X);
+decbase, decbaseeqs := DecompositionOverBase(X);
+Kiso := IsotypicalField(X); Kdec, _, test := FullDecompositionField(X);
+decgeo, decgeoeqs := DecompositionOverClosure(X);
+return [* [* decbase, decbaseeqs *], Kiso, [* Kdec, test *], [* decgeo, decgeoeqs *]*];
 
 end intrinsic;
 

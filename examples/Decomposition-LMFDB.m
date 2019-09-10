@@ -30,12 +30,20 @@ X := HyperellipticCurve(R![1, 1, 2, 1, 1], R![1, 1, 1, 1]); Append(~Xs, X);
 /* A genus-3 case */
 X := HyperellipticCurve(x^8 + x^6 + 5*x^4 - 3*x^2 + 17); Append(~Xs, X);
 
-//Xs := [ Xs[#Xs] ];
-for X in Xs do
+//Xs := [ Xs[1] ];
+
+for i in [1..#Xs] do
+    X := Xs[i];
+
     print "";
     print "";
-    print "Curve:";
+    print "Curve number", i, ":";
     print X;
+
+    /*
+    print "";
+    print HeuristicEndomorphismLattice(X);
+    */
 
     print "";
     print HeuristicDecompositionInformation(X);

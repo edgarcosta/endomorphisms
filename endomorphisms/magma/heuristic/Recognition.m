@@ -18,7 +18,7 @@ function ScalingFactor(aCC)
 /* Simple rational factor such that aCC / fac has small absolute value */
 
 if Abs(aCC) le Parent(aCC)`epscomp then return 1; end if;
-return 1;
+//return 1;
 
 absa := Abs(aCC); fac := 1;
 while absa gt 2 do fac *:= 2; absa /:= 2; end while;
@@ -121,7 +121,7 @@ CCK := K`CC; prec := Precision(CCK);
 assert Precision(Parent(aCC)) ge Precision(CCK);
 
 degK := Degree(K);
-MLine := &cat[ EmbedExtra(genK^i) : i in [0..(degK - 1)] ] cat [ -aCC ];
+MLine := [ EmbedExtra(genK^i) : i in [0..(degK - 1)] ] cat [ -aCC ];
 M := Transpose(Matrix(CCK, [ MLine ]));
 
 vprint EndoFind, 3 : "";
@@ -235,8 +235,10 @@ function RationalReconstruction(r);
 end function;
 
 
-intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseRatRec := true, minpol := 0) -> .
+intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseQQ := false, UseRatRec := true, minpol := 0) -> .
 {Returns an approximation of the complex number aCC as an element of K. It calculates a minimal polynomial over QQ first.}
+
+if not UseQQ then return AlgebraizeElementLLL(aCC, K); end if;
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
