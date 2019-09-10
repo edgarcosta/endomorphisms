@@ -400,3 +400,109 @@ end for;
 return comps;
 
 end intrinsic;
+
+
+// TODO: Some hacks coming up
+import "Structure.m": EndomorphismAlgebraQQ;
+
+
+function ComponentFromIdempotentHack(P, idem);
+
+R := idem[2];
+ACC := TangentRepresentation(R, P, P);
+Q, mor := ImgIdemp([* ACC, R *], P);
+BCC := mor[1]; S := mor[2];
+return Q, [* BCC, S *];
+
+end function;
+
+
+intrinsic DecompositionOverBase(X::.) -> .
+{HAX I SAY.}
+
+F := BaseRing(X); P := PeriodMatrix(X);
+GeoEndoRep := GeometricEndomorphismRepresentation(P, F);
+F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
+EndoRep := EndomorphismRepresentation(GeoEndoRep, F, h);
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
+EndoData := [* EndoRep, EndoAlg, EndoDesc *];
+
+Rs := [ gen[2] : gen in EndoRep ]; g := #Rows(Rs[1]) div 2;
+/* Creation of relevant algebras */
+g := #Rows(Rs[1]) div 2;
+/* Ambient matrix algebra, plus generators of the endomorphism ring */
+A := Algebra(MatrixRing(Rationals(), 2*g));
+GensA := [ A ! Eltseq(R) : R in Rs ];
+/* As a subalgebra */
+B := sub<A | GensA>; GensB := [ B ! gen : gen in GensA ];
+/* As an associative algebra */
+C := AssociativeAlgebra(B); GensC := [ C ! gen : gen in GensB ];
+EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
+
+// Boring case
+if #EndoDescQQ eq 1 then
+    e, _, _, _, dim := Explode(EndoDescQQ[1]);
+    if e eq 1 then
+        return [ [ dim, e ] ], [ ];
+    end if;
+end if;
+
+facs := [ ]; eqs := [* *];
+for i := 1 to #EndoDescQQ do
+    // Get factor
+    tup := EndoDescQQ[i];
+    idem := idems[i]; idemAR := MatricesFromIdempotent(idem, EndoData);
+    e, _, _, _, dim := Explode(tup);
+    Q, morQ := ComponentFromIdempotentHack(P, idemAR);
+    Append(~facs, [ dim, e ]);
+
+    if (dim eq 1) and (e eq 1) then
+        if Im(Q[1,2]/Q[1,1]) lt 0 then
+            Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
+        end if;
+        E := ReconstructCurve(Q, F : Base := true);
+        Append(~eqs, E);
+        continue;
+    end if;
+
+    if (dim eq 2) and (e eq 1) then
+        A, R := Explode(morQ);
+        EQ := InducedPolarization(StandardSymplecticMatrix(g), R);
+        E0, _ := FrobeniusFormAlternatingAlt(EQ);
+        Ts := IsogenousPPLattices(EQ);
+
+        for T in Ts[3..3] do
+            Qp := Q*ChangeRing(T^(-1), BaseRing(Q));
+            assert IsBigPeriodMatrix(Qp);
+            Y, _, test := ReconstructCurve(Qp, F : Base := true);
+            if true then
+                Append(~eqs, Y);
+                break;
+            end if;
+        end for;
+        continue;
+    end if;
+
+    if (e eq 2) or (e eq 3) then
+        GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, F);
+        F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRepQ[1][1]));
+        EndoRepQ := EndomorphismRepresentation(GeoEndoRepQ, F, h);
+        EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ);
+        EndoDataQ := [* EndoRepQ, EndoAlgQ, EndoDescQ *];
+        idemsQ := SplittingIdempotentsAlgebra(EndoDataQ);
+
+        Qp := ComponentFromIdempotentHack(Q, idemsQ[1]);
+        if Im(Qp[1,2]/Qp[1,1]) lt 0 then
+            Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
+        end if;
+        Ep := ReconstructCurve(Qp, F : Base := true);
+        Append(~eqs, Ep);
+        continue;
+    end if;
+
+    error "kabonka";
+end for;
+
+return facs, eqs;
+
+end intrinsic;

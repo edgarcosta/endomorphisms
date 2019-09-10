@@ -31,8 +31,8 @@
     DecFacts.m
     DecCurves.m
     TestFactor.m
-
     VerifyCorr.m
+
     Buttons.m
   }
   polarization

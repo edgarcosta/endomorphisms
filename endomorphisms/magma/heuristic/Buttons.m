@@ -158,6 +158,16 @@ end if;
 end intrinsic;
 
 
+// TODO: This is a hack to avoid the next function
+intrinsic HeuristicDecompositionInformation(X::.) -> .
+{Returns decomposition information without maps.}
+
+assert ISA(Type(X),Crv) or ISA(Type(X), SECurve);
+return DecompositionOverBase(X);
+
+end intrinsic;
+
+
 // TODO: This is terrible. It should have a base, geometric, and field version instead to clean this up.
 //       After that, a second function can see if a genus 1 or 2 root factor comes from equation over base.
 //       (Extension is too advanced to put here.)

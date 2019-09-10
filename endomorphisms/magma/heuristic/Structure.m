@@ -106,7 +106,7 @@ return EndoAlg, EndoDesc;
 end intrinsic;
 
 
-function EndomorphismAlgebraQQ(C, GensC, EndoRep)
+function EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := true)
 // Given an associative algebra C, returns a description of it.
 // Entry: [ power, dim (D | QQ), field desc, disc (D), dim (factor) ]
 
@@ -215,7 +215,10 @@ for i in [1..#Ds] do
     end if;
     Append(~EndoDescQQ, DescFactorQQ);
 end for;
-return C, Sort(EndoDescQQ);
+if SortResult then
+    EndoDescQQ := Sort(EndoDescQQ);
+end if;
+return C, EndoDescQQ, idems;
 
 end function;
 
