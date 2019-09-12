@@ -59,7 +59,15 @@ end intrinsic;
 intrinsic PeriodMatrix(X::SECurve) -> ModMatFldElt
 {Returns the period matrix of X.}
 F := BaseRing(Parent(X`DefiningPolynomial)); CC := Parent(F`iota);
-return ChangeRing(X`BigPeriodMatrix, CC), X;
+P := ChangeRing(X`BigPeriodMatrix, CC);
+
+/* Compatibility with Birkenhake--Lange */
+g := #Rows(P);
+P1 := Submatrix(P, 1,1,   g,g);
+P2 := Submatrix(P, 1,g+1, g,g);
+P := HorizontalJoin(P2, P1);
+
+return P, X;
 end intrinsic;
 
 
@@ -80,6 +88,13 @@ end if;
 Y := PlaneModel(X);
 eqsCC := EmbedCurveEquations(Y); eqsF := DefiningEquations(Y);
 P, RS := PeriodMatrix(eqsCC, eqsF);
+
+/* Compatibility with Birkenhake--Lange */
+g := #Rows(P);
+P1 := Submatrix(P, 1,1,   g,g);
+P2 := Submatrix(P, 1,g+1, g,g);
+P := HorizontalJoin(P2, P1);
+
 X`period_matrix := ChangeRing(P, CC);
 X`riesrf := RS;
 vprint EndoFind : "done calculating period matrix.";

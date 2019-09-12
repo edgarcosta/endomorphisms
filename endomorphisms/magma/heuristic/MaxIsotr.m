@@ -16,13 +16,22 @@ intrinsic InducedPolarization(E::., R::. : ProjToIdem := true) -> .
 {Given a matrix E corresponding to a polarization, returns the pushforward (default) or pullback of E along R. The pullback is the pairing directly induced via the map represented by R, and the pushforward is its dual.}
 
 if ProjToIdem then
-    Q := R*E*Transpose(R);
+    Q := (R*E^(-1)*Transpose(R))^(-1);
+    Q *:= LCM([ Denominator(c) : c in Eltseq(Q) ]);
 else
     Q := Transpose(R)*E*R;
-    Q := Q^(-1);
-    Q := -Denominator(Q)*Q;
 end if;
 return Q;
+
+end intrinsic;
+
+
+intrinsic FrobeniusFormAlternatingRational(E::.) -> .
+{Version that works with matrices over QQ.}
+
+E := ChangeRing(E, Integers());
+E0, T0 := FrobeniusFormAlternating(E);
+return ChangeRing(E0, Rationals()), ChangeRing(T0, Rationals());
 
 end intrinsic;
 
@@ -43,15 +52,13 @@ end intrinsic;
 
 
 function SymplecticSubmodulesPrime(p, d)
-// This is really stupid: right cosets are better. However, do not see how to
-// do that now and can get by without.
-/* TODO: Magma causes problems here: apply direct method */
+/* Rows give vectors */
+// TODO: Right cosets.
 
-assert d mod 2 eq 0;
 FF := FiniteField(p);
-V := VectorSpace(FF, d);
-B0 := [ V.i : i in [1..(d div 2)] ];
-G := SymplecticGroup(d, FF);
+V := VectorSpace(FF, 2*d);
+B0 := [ V.i : i in [1..d] ];
+G := SymplecticGroup(2*d, FF);
 Ws := [ ];
 for g in G do
     W := sub< V | [ b*g : b in B0 ] >;
@@ -65,23 +72,27 @@ end function;
 
 
 function SymplecticSubmodulesPrimePower(pf, d)
-// Based on a suggestion of John Voight
+// Based on a suggestion of John Voight; the dumb implementation is mine (...)
+// TODO: Right cosets.
 
-assert d mod 2 eq 0; g := d div 2;
 test, p, f := IsPrimePower(pf);
-if f eq 1 and d eq 2 then
+if f eq 1 and d eq 1 then
     return SymplecticSubmodulesPrime(p, d);
 end if;
 
 R := quo< Integers() | pf >;
-M := RSpace(R, d);
+M := RSpace(R, 2*d);
 
-bases := CartesianPower(M, d);
+/* Find bases of rank d by enumeration */
+bases := CartesianPower(M, 2*d);
 bases := [ [ e : e in basis ] : basis in bases ];
 bases := [ basis : basis in bases | sub< M | basis > eq M ];
-bases_new := [ ]; E := DiagonalJoin([ Matrix(R, [[0,-1],[1,0]]) : i in [1..g] ]);
+
+/* Check with preserve new standard form E */
+bases_new := [ ]; E := DiagonalJoin([ Matrix(R, [[0,1],[-1,0]]) : i in [1..d] ]);
 for basis in bases do
     A := Matrix(R, [ Eltseq(b) : b in basis ]);
+    /* Note that rows of A are important, hence difference from usual */
     if A*E*Transpose(A) eq E then
         Append(~bases_new, basis);
     end if;
@@ -92,8 +103,8 @@ submods := [ ];
 for basis in bases do
     /* Check that elements generate */
     factors := [ ];
-    /* In the end we have to consider d/2 pairs */
-    for i in [1..(d div 2)] do
+    /* In the end we have to consider d pairs */
+    for i in [1..d] do
         factor := [ ];
         /* The pairs per (i, i + 1) */
         for e in [0..(f div 2)] do
@@ -101,6 +112,7 @@ for basis in bases do
         end for;
         Append(~factors, factor);
     end for;
+
     /* Now take cartesian product and keep new spaces */
     CP := CartesianProduct(factors);
     for tup in CP do
@@ -116,14 +128,12 @@ return submods;
 end function;
 
 
-intrinsic SymplecticSubmodules(n::RngIntElt, d::RngIntElt : ProjToPP := true) -> .
-{All symplectic submodules of index n in rank 2*d, or alternatively the maximal
-symplectic submodules of (ZZ / n ZZ)^(2*d) with the canonical form.}
+intrinsic SymplecticSubmodules(n::RngIntElt, d::RngIntElt) -> .
+{All symplectic submodules of index n in rank 2*d. Uses rows.}
 
-assert d mod 2 eq 0;
 Fac := Factorization(n);
 pfs := [ tup[1]^tup[2] : tup in Fac ];
-L0 := Lattice(IdentityMatrix(Rationals(), d));
+L0 := Lattice(IdentityMatrix(Rationals(), 2*d));
 Lats := [ L0 ];
 
 for pf in pfs do
@@ -131,14 +141,35 @@ for pf in pfs do
     Latsnew := [ ];
     for Lat in Lats do
         for submod in submods do
-            if ProjToPP then
-                B := ChangeRing(Matrix(Basis(Lat)), Rationals());
-                M := pf * B;
-                Mnew := Matrix(Rationals(), [ [ Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]) * B;
-            else
-                M := ChangeRing(Matrix(Basis(Lat)), Rationals());;
-                Mnew := (1/pf) * Matrix(Rationals(), [ [ Rationals() ! Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]);
-            end if;
+            B := ChangeRing(Matrix(Basis(Lat)), Rationals());
+            M := pf * B;
+            Mnew := Matrix(Rationals(), [ [ Rationals() ! Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]) * B;
+            Append(~Latsnew, Lattice(VerticalJoin(M, Mnew)));
+        end for;
+    end for;
+    Lats := Latsnew;
+end for;
+return Lats;
+
+end intrinsic;
+
+
+intrinsic SymplecticOvermodules(n::RngIntElt, d::RngIntElt) -> .
+{All symplectic overmodules of index n in rank 2*d. Uses rows.}
+// TODO: I forgot why this is mathematically correct...
+
+Fac := Factorization(n);
+pfs := [ tup[1]^tup[2] : tup in Fac ];
+L0 := Lattice(IdentityMatrix(Rationals(), 2*d));
+Lats := [ L0 ];
+
+for pf in pfs do
+    submods := SymplecticSubmodulesPrimePower(pf, d);
+    Latsnew := [ ];
+    for Lat in Lats do
+        for submod in submods do
+            M := ChangeRing(Matrix(Basis(Lat)), Rationals());;
+            Mnew := (1/pf) * Matrix(Rationals(), [ [ Rationals() ! Integers() ! c : c in Eltseq(gen) ] : gen in Generators(submod) ]);
             Append(~Latsnew, Lattice(VerticalJoin(M, Mnew)));
         end for;
     end for;
@@ -150,11 +181,13 @@ end intrinsic;
 
 
 intrinsic IsogenousPPLattices(E::. : ProjToPP := true) -> .
-{Given an alternating form E, finds the sublattices to ZZ^2d of smallest possible index on which E induces a principal polarization. These are returned in matrix form, that is, as a span of a basis in the rows. This basis is symplectic in the usual sense.}
+{Given an alternating form E, finds the sublattices to ZZ^2d of smallest possible index on which E induces a principal polarization. These are returned in matrix form, that is, as a span of a basis in the rows. This basis is symplectic in the usual sense. More concretely, applying T*E*Transpose(T) sends E to normal form, and T (resp. T^(-1)) is integral if PropToPP is false (resp. true).}
 
 g := #Rows(E) div 2;
 if g eq 1 then
-    return [ E ];
+    // TODO: Arguably we should return something here as well, since currently
+    // the standard polarization may not be positive
+    return [ IdentityMatrix(Rationals(), 2) ];
 elif g eq 2 then
     return IsogenousPPLatticesG2(E : ProjToPP := ProjToPP);
 else
@@ -164,46 +197,39 @@ end if;
 end intrinsic;
 
 
-/* TODO: Generalize (note that description below is not quite correct) */
 function IsogenousPPLatticesG2(E : ProjToPP := true)
-// Given an alternating form E, finds the sublattices to ZZ^2d of smallest
-// possible index on which E induces a principal polarization. These are
-// returned in matrix form, that is, as a span of a basis in the rows. This
-// basis is symplectic in the usual sense.
-/* In general, we would isolate the blocks with given d and deal with those one at a time */
+// TODO: Generalize
 
+/* Take new normal form and find quotient of d_i */
 E0, T0 := FrobeniusFormAlternatingAlt(E);
 d := GCD([ Integers() ! c : c in Eltseq(E0) ]);
 E0 := (1/d)*E0;
 n := Integers() ! Abs(E0[3,4]);
 
+/* Take relevant projections or inclusions */
+if not ProjToPP then
+    Lats := SymplecticSubmodules(n, 1);
+    Us := [ ChangeRing(Matrix(Basis(Lat)), Rationals()) : Lat in Lats ];
+    Us := [ DiagonalJoin(U, IdentityMatrix(Rationals(), 2)) : U in Us ];
+else
+    Lats := SymplecticOvermodules(n, 1);
+    Us := [ ChangeRing(Matrix(Basis(Lat)), Rationals()) : Lat in Lats ];
+    Us := [ DiagonalJoin(IdentityMatrix(Rationals(), 2), U) : U in Us ];
+end if;
+
+/* Correct sign and compose all transformations */
 Ts := [ ];
-for Lat in SymplecticSubmodules(n, 2 : ProjToPP := ProjToPP) do
-    Ur := ChangeRing(Matrix(Basis(Lat)), Rationals());
-    if ProjToPP then
-        U := DiagonalJoin(Ur, IdentityMatrix(Rationals(), 2));
-    else
-        U := DiagonalJoin(IdentityMatrix(Rationals(), 2), Ur);
-    end if;
-    Append(~Ts, U*ChangeRing(T0, Rationals()));
+for U in Us do
+    E := U*E0*Transpose(U);
+    _, T := FrobeniusFormAlternatingRational(E);
+    Append(~Ts, T*U*T0);
 end for;
 
-/* Transform back */
-sigma := Sym(4) ! [1, 3, 2, 4];
-P := PermutationMatrix(Integers(), sigma);
-Ts := [ P*T : T in Ts ];
-
-/* Sign */
-for i in [1..#Ts] do
-    T := Ts[i];
-    E0 := T*E*Transpose(T);
-    if Sign(E0[1,3]) lt 0 then
-        T := DiagonalMatrix(Rationals(), [1,1,-1,1]) * T;
-    end if;
-    if Sign(E0[2,4]) lt 0 then
-        T := DiagonalMatrix(Rationals(), [1,1,1,-1]) * T;
-    end if;
-    Ts[i] := T;
+/* Check distinctness of lattices obtained explicitly */
+Lats := [ Lattice(T) : T in Ts ];
+CP := CartesianPower([1..#Lats], 2);
+for tup in [ tup : tup in CP | tup[1] ne tup[2] ] do
+    assert Lats[tup[1]] ne Lats[tup[2]];
 end for;
 return Ts;
 

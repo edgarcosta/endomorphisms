@@ -61,7 +61,7 @@ end if;
 facs := [ ];
 for T in Ts[1..N] do
     CorrectMap := ProjToIdem eq ProjToPP;
-    Qnew := Q*ChangeRing(T^(-1), BaseRing(Q));
+    Qnew := Q*ChangeRing(Transpose(T), BaseRing(Q));
     Rnew := R;
     if CorrectMap then
         if ProjToPP then

@@ -58,7 +58,7 @@ QR := Q * ChangeRing(R, CC);
 QR0 := Submatrix(QR, [ 1..#Rows(QR) ], s0);
 A := NumericalLeftSolve(P0, QR0);
 test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
-if test gt CC`epscomp then
+if test gt 10^20*CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return A;
@@ -87,7 +87,7 @@ SplitQ := VerticalSplitMatrix(Q);
 RRR := NumericalRightSolve(SplitQ, SplitAP);
 R := Matrix(Rationals(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
 test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
-if test gt CC`epscomp then
+if test gt 10^20*CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return R;
@@ -131,7 +131,7 @@ for r in Rows(Ker) do
     R := Matrix(Rationals(), 2*gQ, 2*gP, Eltseq(r));
     /* Culling the correct transformations from holomorphy condition */
     Comm := ChangeRing(R, RR) * JP - JQ * ChangeRing(R, RR);
-    if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
+    if &and([ (RR ! Abs(c)) lt 10^20*RR`epscomp : c in Eltseq(Comm) ]) then
         A := TangentRepresentation(R, P, Q);
         Append(~gens, [* A, R *]);
     end if;
@@ -181,7 +181,7 @@ As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ]
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
-    assert abs lt BaseRing(P)`epscomp;
+    assert abs lt 10^20*BaseRing(P)`epscomp;
 end for;
 return gens, hFK;
 
@@ -223,7 +223,7 @@ gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 /* FInal check for correctness */
 for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
-    assert abs lt BaseRing(P)`epscomp;
+    assert abs lt 10^20*BaseRing(P)`epscomp;
 end for;
 return gens, hFK;
 

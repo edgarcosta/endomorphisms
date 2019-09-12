@@ -15,7 +15,7 @@ intrinsic KerModKer0(h::., P::., Q::.) -> .
 
 /* Check input */
 A := h[1]; R := h[2]; CC := BaseRing(A);
-assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le CC`epscomp;
+assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le 10^20*CC`epscomp;
 assert #Rows(R) eq #Rows(Transpose(Q)); assert #Rows(Transpose(R)) eq #Rows(Transpose(P));
 test := &and[ IsIntegral(c) : c in Eltseq(R) ];
 if not test then
@@ -33,7 +33,7 @@ intrinsic Ker0(h::., P::., Q::.) -> .
 
 /* Check input */
 A := h[1]; R := h[2]; CC := BaseRing(A);
-assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le CC`epscomp;
+assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le 10^20*CC`epscomp;
 assert #Rows(R) eq #Rows(Transpose(Q)); assert #Rows(Transpose(R)) eq #Rows(Transpose(P));
 
 /* Linear algebra on homology */
@@ -56,7 +56,7 @@ assert IsZero(R*ihom);
 L := Lattice(Transpose(ihom));
 assert L eq PureLattice(L);
 test := Maximum([ Abs(c) : c in Eltseq(itan*K - P*ChangeRing(ihom, CC)) ]);
-if test gt CC`epscomp then
+if test gt 10^20*CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 
@@ -70,7 +70,7 @@ intrinsic Coker(h::., P::., Q::.) -> .
 
 /* Check input */
 A := h[1]; R := h[2]; CC := BaseRing(A);
-assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le CC`epscomp;
+assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le 10^20*CC`epscomp;
 assert #Rows(R) eq #Rows(Transpose(Q)); assert #Rows(Transpose(R)) eq #Rows(Transpose(P));
 
 /* Build lattice and complement */
@@ -88,7 +88,7 @@ A0, s := SubmatrixOfRank(A, #B div 2 : ColumnsOrRows := "Columns");
 /* Modify invertible matrix A0 for numerical stability when taking quotients later */
 CC := BaseRing(A0);
 g := #Rows(A0); c := #Rows(Transpose(A0));
-cols := [ Minimum([ i : i in [1..#Eltseq(row)] | Abs(row[i]) ge CC`epscomp ]) : row in Rows(Transpose(A0)) ];
+cols := [ Minimum([ i : i in [1..#Eltseq(row)] | Abs(row[i]) ge 10^20*CC`epscomp ]) : row in Rows(Transpose(A0)) ];
 cols cat:= [ i : i in [1..g] | not i in cols ];
 Perm := PermutationMatrix(CC, cols)^(-1);
 
@@ -108,7 +108,7 @@ ptan := TangentRepresentation(phom, Q, C);
 /* Check output */
 assert IsZero(phom*R);
 test := Maximum([ Abs(c) : c in Eltseq(ptan*Q - C*ChangeRing(phom, CC)) ]);
-if test gt CC`epscomp then
+if test gt 10^20*CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 
@@ -122,7 +122,7 @@ intrinsic ImgInc(h::., P::., Q::.) -> .
 
 /* Check input */
 A := h[1]; R := h[2]; CC := BaseRing(A);
-assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le CC`epscomp;
+assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le 10^20*CC`epscomp;
 
 /* Compose previous algorithms */
 C, proj := Coker(h, P, Q);
@@ -135,7 +135,7 @@ end if;
 K, i := Ker0(proj, Q, C); itan, ihom := Explode(i);
 /* Check output */
 test := Maximum([ Abs(c) : c in Eltseq(itan*K - Q*ChangeRing(ihom, CC)) ]);
-if test gt CC`epscomp then
+if test gt 10^20*CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return K, i;
@@ -148,7 +148,7 @@ intrinsic ImgProj(h::., P::., Q::.) -> .
 
 /* Check input */
 A := h[1]; R := h[2]; CC := BaseRing(A);
-assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le CC`epscomp;
+assert Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]) le 10^20*CC`epscomp;
 
 /* Compose previous algorithms */
 K, i := Ker0(h, P, Q);
@@ -161,7 +161,7 @@ end if;
 C, p := Coker(i, K, P); ptan, phom := Explode(p);
 /* Check output */
 test := Maximum([ Abs(c) : c in Eltseq(ptan*P - C*ChangeRing(phom, CC)) ]);
-if test gt CC`epscomp then
+if test gt 10^20*CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return C, p;
@@ -169,7 +169,6 @@ return C, p;
 end intrinsic;
 
 
-/* No longer used, but might be useful for rationality questions */
 intrinsic ImgIdemp(idem::List, P::.) -> List
 {Given an idempotent idem for the period matrix P, returns a corresponding
 lattice and an analytic representation of the projection to it.}
@@ -197,7 +196,7 @@ Q := CombineVerticallySplitMatrix(QSplit, CC);
 S := U * R;
 proj := [* B, S, BCC *];
 /* Check output */
-if Maximum([ Abs(c) : c in Eltseq(BCC*P - Q*ChangeRing(S, CC)) ]) gt CC`epscomp then
+if Maximum([ Abs(c) : c in Eltseq(BCC*P - Q*ChangeRing(S, CC)) ]) gt 10^20*CC`epscomp then
     error "Error in determining projection";
 end if;
 proj := [* B, S *];

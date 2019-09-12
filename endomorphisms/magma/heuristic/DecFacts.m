@@ -446,7 +446,7 @@ for i := 1 to #EndoDescQQ do
     Append(~facs, [ dim, e ]);
 
     if (dim eq 1) and (e eq 1) then
-        if Im(Q[1,2]/Q[1,1]) lt 0 then
+        if Im(Q[1,1]/Q[1,2]) lt 0 then
             Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
         end if;
         E := ReconstructCurve(Q, F : Base := true);
@@ -457,14 +457,13 @@ for i := 1 to #EndoDescQQ do
     if (dim eq 2) and (e eq 1) then
         A, R := Explode(morQ);
         EQ := InducedPolarization(StandardSymplecticMatrix(g), R);
-        E0, _ := FrobeniusFormAlternatingAlt(EQ);
-        Ts := IsogenousPPLattices(EQ);
+        Ts := IsogenousPPLattices(EQ : ProjToPP := true);
 
-        for T in Ts[3..3] do
-            Qp := Q*ChangeRing(T^(-1), BaseRing(Q));
+        for T in Ts do
+            Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
             assert IsBigPeriodMatrix(Qp);
             Y, _, test := ReconstructCurve(Qp, F : Base := true);
-            if true then
+            if test then
                 Append(~eqs, Y);
                 break;
             end if;
@@ -481,7 +480,7 @@ for i := 1 to #EndoDescQQ do
         idemsQ := SplittingIdempotentsAlgebra(EndoDataQ);
 
         Qp := ComponentFromIdempotentHack(Q, idemsQ[1]);
-        if Im(Qp[1,2]/Qp[1,1]) lt 0 then
+        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
             Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
         end if;
         Ep := ReconstructCurve(Qp, F : Base := true);
@@ -580,7 +579,7 @@ for i := 1 to #EndoDescQQ do
     Append(~facs, [ dim, e ]);
 
     if (dim eq 1) and (e eq 1) then
-        if Im(Q[1,2]/Q[1,1]) lt 0 then
+        if Im(Q[1,1]/Q[1,2]) lt 0 then
             Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
         end if;
         E := ReconstructCurve(Q, K : Base := true);
@@ -591,14 +590,13 @@ for i := 1 to #EndoDescQQ do
     if (dim eq 2) and (e eq 1) then
         A, R := Explode(morQ);
         EQ := InducedPolarization(StandardSymplecticMatrix(g), R);
-        E0, _ := FrobeniusFormAlternatingAlt(EQ);
-        Ts := IsogenousPPLattices(EQ);
+        Ts := IsogenousPPLattices(EQ : ProjToPP := true);
 
-        for T in Ts[3..3] do
-            Qp := Q*ChangeRing(T^(-1), BaseRing(Q));
+        for T in Ts do
+            Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
             assert IsBigPeriodMatrix(Qp);
             Y, _, test := ReconstructCurve(Qp, K : Base := true);
-            if true then
+            if test then
                 Append(~eqs, Y);
                 break;
             end if;
@@ -615,7 +613,7 @@ for i := 1 to #EndoDescQQ do
         idemsQ := SplittingIdempotentsAlgebra(EndoDataQ);
 
         Qp := ComponentFromIdempotentHack(Q, idemsQ[1]);
-        if Im(Qp[1,2]/Qp[1,1]) lt 0 then
+        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
             Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
         end if;
         Ep := ReconstructCurve(Qp, K : Base := true);

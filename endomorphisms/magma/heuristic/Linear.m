@@ -126,9 +126,7 @@ if CalcAlg then
     B := 10^precnew;
 else
     eps := Maximum([ Abs(c) : c in Eltseq(M) ]);
-    if Abs(eps) lt RR`epscomp then
-        eps := 1;
-    end if;
+    if Abs(eps) lt RR`epscomp then eps := 1; end if;
     B := 10^(precnew div 2) / eps;
 end if;
 
@@ -140,13 +138,9 @@ L, K := LLL(MJ); rowsK := Rows(K);
 if CalcAlg then
     row1 := rowsK[1]; ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
     test1 := ht1 lt RR`height_bound;
-    /*
-    if not test1 and (#rowsK ge 12) then
-        row2 := rowsK[2]; ht2 := Max([ Height(c) : c in Eltseq(row2) ]);
-        test1 := 100*ht1 lt ht2;
-    end if;
-    */
 
+    //print row1;
+    //print test1;
     if test1 then
         return Matrix([ row1 ]), true;
     end if;
@@ -162,7 +156,12 @@ for row in rowsK do
     if test1 then
         prod := Matrix(RR, [ Eltseq(row) ])*M;
         abs := Max([ Abs(c) : c in Eltseq(prod) ]);
-        test2 := abs lt RR`epscomp;
+        /* Always use accuracy of the smaller complex field */
+        if not CalcAlg then
+            test2 := abs lt 10^20*RR`epscomp;
+        else
+            test2 := abs lt RR`epscomp;
+        end if;
 
         if test2 then
             CCSmall := ComplexField(5);

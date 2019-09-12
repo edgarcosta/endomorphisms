@@ -188,7 +188,7 @@ if not AllIdems and not AllPPs then
     for comp in comps do
         Q, mor := Explode(comp);
         if #Rows(Q) eq #Rows(P) then
-            return [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ];
+            return [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ];
         end if;
         rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
         Append(~recs, rec);
@@ -201,7 +201,7 @@ elif not AllIdems and AllPPs then
     for comp in comps do
         Q, mor := Explode(comp);
         if #Rows(Q) eq #Rows(P) then
-            return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ] ];
+            return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ] ];
         end if;
         recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
         Append(~recss, recs);
@@ -216,7 +216,7 @@ elif AllIdems and not AllPPs then
         for comp in comptup do
             Q, mor := Explode(comp);
             if #Rows(Q) eq #Rows(P) then
-                return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ] ];
+                return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ] ];
             end if;
             rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
             Append(~recs, rec);
@@ -233,7 +233,7 @@ elif AllIdems and AllPPs then
         for comp in comptup do
             Q, mor := Explode(comp);
             if #Rows(Q) eq #Rows(P) then
-                return [ [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Integers(), 2*gP) *] *] ] ] ];
+                return [ [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ] ] ];
             end if;
             recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
             Append(~recss, recs);
