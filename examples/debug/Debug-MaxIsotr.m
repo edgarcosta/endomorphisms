@@ -1,85 +1,75 @@
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 3);
+SetVerbose("CurveRec", 0);
 
-print "Test SymplecticSubmodules:";
-print #SymplecticSubmodules(4, 2);
-print #SymplecticSubmodules(2, 2);
-print #SymplecticSubmodules(2, 4);
-//print #SymplecticSubmodules(2, 6);
-
-print "Checking IsogenousPPLattices...";
-d := 6;
-EQ := Matrix(QQ, [[0,0,d,0],[0,0,0,1],[-d,0,0,0],[0,-1,0,0]]);
-M := RandomSymplecticMatrix(2, 15);
-EQ := M*EQ*Transpose(M);
-Us := IsogenousPPLattices(EQ);
-for U in Us do
-    if not U*EQ*Transpose(U) eq d*ChangeRing(StandardSymplecticMatrix(2), Rationals()) then
-        print "Problem";
-        print U*EQ*Transpose(U);
-    end if;
-end for;
-print "done.";
-
-prec := 300;
-CCSmall := ComplexField(5);
+prec := 100;
 F := RationalsExtra(prec);
+CC := F`CC;
 R<x> := PolynomialRing(F);
 
-f := x^8 + x^6 + 1;
-X := HyperellipticCurve(f);
+f3 := x^8 + x^6 + 4*x^4 - 7*x^2 - 17;
+f1 := x^4 + x^3 + 4*x^2 - 7*x^1 - 17;
+f2 := x*f1;
 
-P := PeriodMatrix(X);
-EndoRep := GeometricEndomorphismRepresentation(P, F);
+X3 := HyperellipticCurve(f3);
+X2 := HyperellipticCurve(f2);
+X1 := HyperellipticCurve(f1);
 
+P3 := PeriodMatrix(X3);
+P2 := PeriodMatrix(X2);
+P1 := PeriodMatrix(X1);
+
+function RandomInvertibleMatrix(g, B)
+D := [ -B..B ];
+repeat
+    T := Matrix(Rationals(), g,g, [ Random(D) : i in [1..g^2] ]);
+until Determinant(T) eq 1;
+return T;
+end function;
+
+U3 := RandomInvertibleMatrix(6, 2);
+U3CC := ChangeRing(U3, BaseRing(P3));
+Q3 := P3*U3CC;
 print "";
-print "Geometric endomorphism representations:";
-print EndoRep;
+print U3;
 
-idems := IsotypicalIdempotents(P, EndoRep);
-idem := idems[1];
+U2 := RandomInvertibleMatrix(4, 2);
+U2CC := ChangeRing(U2, BaseRing(P2));
+Q2 := P2*U2CC;
+print "";
+print U2;
 
-Q, proj := ComponentFromIdempotent(P, idem);
-A, R := Explode(proj);
+test, E3 := SomePrincipalPolarization(P3);
+print E3;
 
-print "Induced action on homology:";
+/* Test projection */
+GeoHomRep := GeometricHomomorphismRepresentationCC(P3, P2);
+A, R := Explode(GeoHomRep[1]);
+print "";
 print R;
 
-EQ := InducedPolarization(StandardSymplecticMatrix(3), R);
-test, EQ := IsPolarization(EQ, Q);
+test, E3 := SomePrincipalPolarization(Q3);
+_, U := FrobeniusFormAlternatingRational(E3);
+print SomePrincipalPolarization(Q3*ChangeRing(Transpose(U), BaseRing(Q3)));
 
-Q, proj := ComponentFromIdempotent(P, idem : ProjToIdem := true);
-A, R := Explode(proj);
+print "";
+print IsBigPeriodMatrix(P3);
 
-EQ := InducedPolarization(StandardSymplecticMatrix(3), R : ProjToIdem := true);
-test, EQ := IsPolarization(EQ, Q);
+print "";
+print SymplecticSubmodules(12, 1);
 
-print "Sanity check for induced polarization:";
-print test;
-print EQ;
-print PolarizationBasis(Q);
+E := Matrix(Rationals(), [[0,1],[-1,0]]);
+E := Matrix(Rationals(), [[0,0,1,0],[0,0,0,12],[-1,0,0,0],[0,-12,0,0]]);
+U2 := RandomInvertibleMatrix(4, 2);
+E := U2*E*Transpose(U2);
+print "";
+Ts := IsogenousPPLattices(E : ProjToPP := true);
 
-EQ0, T := FrobeniusFormAlternatingAlt(EQ);
-print "Check claim in documentation:";
-print EQ0 eq T*EQ*Transpose(T);
-
-print "EQ0:";
-print EQ0;
-print BaseRing(EQ0);
-
-Us := IsogenousPPLattices(EQ);
-print "Isogenous lattices:";
-print Us;
-
-print "Corresponding determinants and polarizations:";
-for U in Us do
-    print Determinant(U);
-    print U*EQ*Transpose(U);
+for T in Ts do
+    print "";
+    print T^(-1);
+    print Determinant(T^(-1));
+    print T*E*Transpose(T);
 end for;
 
-print "Checking isogenous lattices via projection...";
-Us := IsogenousPPLattices(EQ);
-for U in Us do
-    Qnew := Q*ChangeRing(U^(-1), BaseRing(Q));
-    assert IsBigPeriodMatrix(Qnew);
-end for;
-print "done";
+
+
