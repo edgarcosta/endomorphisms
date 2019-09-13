@@ -179,6 +179,7 @@ end intrinsic;
 
 intrinsic PlaneModel(X::Crv) -> .
 {Returns a plane model for more complicated curves.}
+// TODO: This is sometimes buggy.
 
 if assigned X`plane_model then
     return X`plane_model;

@@ -535,7 +535,8 @@ max := Maximum(powersums);
 Hs := [ Hs[i] : i in [1..#Hs] | powersums[i] eq max ];
 H0 := Hs[#Hs];
 test := &and[ (H0 meet H) eq H : H in Hs ];
-H0 := &meet(Hs);
+Hsmax := [ Hmax : Hmax in Hs | &and[ not (((Hmax meet H) eq Hmax) and (Hmax ne H)) : H in Hs ] ];
+H0 := &meet(Hsmax);
 
 gensH0 := Generators(H0);
 K0, h0 := FixedFieldExtra(L, [ Gphi(gen) : gen in gensH0 ]);
@@ -553,10 +554,7 @@ L := BaseRing(GeoEndoRep[1][1]);
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
 
 K, h := FullDecompositionField(X);
-H := FixedGroupExtra(L, K, h); gensH := Generators(H);
-GalK := [* gensH, Gphi *];
-
-EndoData := EndomorphismData(GeoEndoRep, GalK);
+EndoData := EndomorphismData(GeoEndoRep, K, h);
 EndoRep, EndoAlg, EndoDesc := Explode(EndoData);
 C, GensC := Explode(EndoAlg);
 EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
@@ -605,8 +603,7 @@ for i := 1 to #EndoDescQQ do
     end if;
 
     if (e eq 2) or (e eq 3) then
-        GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, K);
-        F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRepQ[1][1]));
+        GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, L);
         EndoRepQ := EndomorphismRepresentation(GeoEndoRepQ, K, h);
         EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ);
         EndoDataQ := [* EndoRepQ, EndoAlgQ, EndoDescQ *];

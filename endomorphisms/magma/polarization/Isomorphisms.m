@@ -20,8 +20,6 @@ if #GeoHomRep eq 0 then
 end if;
 Rs := [ tup[2] : tup in GeoHomRep ];
 
-GeoHomRep := GeometricHomomorphismRepresentationCC(P, Q);
-
 g := #Rows(P); CC := BaseRing(P);
 E := StandardSymplecticMatrix(g);
 As := [ gen[1] : gen in GeoHomRep ];
@@ -61,8 +59,80 @@ Rs := [ aut[2] : aut in auts ];
 g := #Rows(P);
 GM := MatrixGroup< 2*g, Integers() | Rs >;
 min := GM ! (-GM ! 1);
-Q := quo< GM | min >;
 G := Image(PermutationRepresentation(GM));
+Q := quo< GM | min >;
 return G, Q, GM;
+
+end intrinsic;
+
+
+intrinsic SymplecticIsomorphisms(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : GeoHomRep := [ ]) -> .
+{Determines symplectic isomorphisms between abelian varieties defined by P and Q, which are assumed to be equipped with the standard principal polarization.}
+
+isosPart := SymplecticIsomorphismsCC(P, Q : GeoHomRep := GeoHomRep);
+print "asd";
+isosPart := [ [* ChangeRing(iso[1], F`CC), iso[2] *] : iso in isosPart ];
+/* Determine minimal polynomials needed */
+seqPart := &cat[ Eltseq(iso[1]) : iso in isosPart ];
+
+print "asd";
+/* Use splitting field instead of number field since the resulting field is
+ * normal */
+vprint EndoFind : "";
+vprint EndoFind : "Finding number field defined by isomorphisms...";
+K, seq, hFK := NumberFieldExtra(seqPart, F);
+vprint EndoFind : "done finding number field defined by isomorphisms:";
+vprint EndoFind : K;
+
+assert #seq eq #seqPart;
+if #seq eq 0 then
+    return [ ], hFK;
+end if;
+
+r := #Rows(isosPart[1][1]); c := #Rows(Transpose(isosPart[1][1]));
+As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#isosPart] ];
+isos := [ [* As[k], isosPart[k][2] *] : k in [1..#isosPart] ];
+
+/* Final check for correctness */
+for i in [1..#isos] do
+    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(isos[i][1]) - isosPart[i][1]) ]);
+    assert abs lt 10^20*BaseRing(P)`epscomp;
+end for;
+return isos, hFK;
+
+end intrinsic;
+
+
+intrinsic SymplecticAutomorphisms(P::ModMatFldElt, F::Fld : GeoHomRep := [ ]) -> .
+{Determines symplectic automorphism group of the abelian variety defined by P, which is assumed to be equipped with the standard principal polarization.}
+
+isosPart := SymplecticIsomorphismsCC(P, P : GeoHomRep := GeoHomRep);
+isosPart := [ [* ChangeRing(iso[1], F`CC), iso[2] *] : iso in isosPart ];
+/* Determine minimal polynomials needed */
+seqPart := &cat[ Eltseq(iso[1]) : iso in isosPart ];
+
+/* Use splitting field instead of number field since the resulting field is
+ * normal */
+vprint EndoFind : "";
+vprint EndoFind : "Finding number field defined by isomorphisms...";
+K, seq, hFK := SplittingFieldExtra(seqPart, F);
+vprint EndoFind : "done finding number field defined by isomorphisms:";
+vprint EndoFind : K;
+
+assert #seq eq #seqPart;
+if #seq eq 0 then
+    return [ ], hFK;
+end if;
+
+r := #Rows(isosPart[1][1]); c := #Rows(Transpose(isosPart[1][1]));
+As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#isosPart] ];
+isos := [ [* As[k], isosPart[k][2] *] : k in [1..#isosPart] ];
+
+/* Final check for correctness */
+for i in [1..#isos] do
+    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(isos[i][1]) - isosPart[i][1]) ]);
+    assert abs lt 10^20*BaseRing(P)`epscomp;
+end for;
+return isos, hFK;
 
 end intrinsic;
