@@ -285,7 +285,7 @@ if K eq L then
 end if;
 
 /* Polishing */
-K0, hKK0 := Polredbestabs(K);
+K0, hKK0 := Polredabs(K : Best := true);
 hKK0i := Inverse(hKK0);
 hK0L := hom< K0 -> L | hKL(hKK0i(K0.1)) >;
 DescendAttributesExtra(L, K0, hK0L);
@@ -295,9 +295,9 @@ end intrinsic;
 
 
 intrinsic ImproveFieldExtra(K::Fld) -> Fld, Map
-{Polredbestabs plus attribute transfer. Returns the isomorphism.}
+{Polredabs plus attribute transfer. Returns the isomorphism.}
 
-K0, hKK0 := Polredbestabs(K);
+K0, hKK0 := Polredabs(K : Best := true);
 TransferAttributesExtra(K, K0, hKK0);
 return K0, hKK0;
 
@@ -400,7 +400,7 @@ F := K`base; genFCC0 := EmbedExtra(F.1);
 CC := K`CC; genKCC0 := EmbedExtra(K.1);
 
 /* Get absolute field and we need an iso that respects results so far */
-Lrel := NumberField(gK); Labs := AbsoluteField(Lrel); L, h := Polredbestabs(Labs);
+Lrel := NumberField(gK); Labs := AbsoluteField(Lrel); L, h := Polredabs(Labs : Best := true);
 anew := h(Labs ! Lrel.1); f := MinimalPolynomial(K.1); rtsf := RootsPari(f, L);
 L`CC := CC; L`base := F;
 
@@ -550,7 +550,7 @@ genKCC0 := EmbedExtra(K.1);
 
 /* Get absolute field and we need an iso that respects results so far */
 Lrel := Compositum(K, SplittingFieldPari(gQQ)); Labs := AbsoluteField(Lrel);
-L, h := Polredbestabs(Labs); L`CC := CC; L`base := F;
+L, h := Polredabs(Labs : Best := true); L`CC := CC; L`base := F;
 rtsg := RootsPari(gQQ, L); f := MinimalPolynomial(K.1); rtsf := RootsPari(f, L);
 
 /* Choose compatible root */
@@ -627,7 +627,7 @@ genFCC0 := EmbedExtra(F.1); genKCC0 := EmbedExtra(K.1);
 /* Get absolute field and we need an iso that respects results so far */
 L, rtsg := SplittingField(gK);
 if IsQQ(K) then h1 := hom< K -> L | >; else h1 := hom< K -> L | L ! (K.1) >; end if;
-L, h2 := Polredbestabs(L); h := h1*h2;
+L, h2 := Polredabs(L : Best := true); h := h1*h2;
 L`CC := CC; L`base := F; L`base_gen := h(K`base_gen); anew := h2(rtsg[1]);
 
 /* Choose compatible embedding */
