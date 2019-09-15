@@ -29,7 +29,7 @@ assert BaseRing(f) eq Rationals();
 assert BaseRing(K) eq Rationals();
 g := DefiningPolynomial(K);
 cmd := Sprintf(
-"{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); apply(h->apply(c->vector(poldegree(g),i,polcoeff(c,i-1)),lift(Vecrev(h))),nffactor(K,f)[,1]~)",
+"{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(h->apply(c->vector(poldegree(g),i,polcoeff(c,i-1)),lift(Vecrev(h))),nffactor(K,f)[,1]~))",
 Coefficients(f), Coefficients(g));
 s := Pipe("gp -q -D timer=0", cmd);
 
@@ -47,7 +47,7 @@ intrinsic SplittingFieldPari(f::RngUPolElt) -> .
 //return SplittingField(f);
 assert BaseRing(f) eq Rationals();
 cmd := Sprintf(
-"{f = Pol(Vecrev(%o),'x); nfsplitting(f)",
+"{f = Pol(Vecrev(%o),'x); print1(nfsplitting(f))",
 Coefficients(f), Coefficients(f));
 s := Pipe("gp -q -D timer=0", cmd);
 R<x> := PolynomialRing(BaseRing(f));
