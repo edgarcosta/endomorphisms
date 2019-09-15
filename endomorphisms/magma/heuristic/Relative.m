@@ -63,7 +63,9 @@ intrinsic ElementDescriptionExtra(r::.) -> .
 {Returns a list describing the field element r.}
 
 K := Parent(r);
-if IsQQ(K`base) then
+if IsQQ(K) then
+    return r;
+elif IsQQ(K`base) then
     return [ Rationals() ! c : c in Eltseq(r) ];
 else
     return [ [ Rationals() ! c : c in Eltseq(d) ] : d in Eltseq(r) ];

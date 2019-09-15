@@ -19,8 +19,7 @@ X := HyperellipticCurve(R![0, -1, 1, 1, -3, 2], R![1]); Append(~Xs, X);
 X := HyperellipticCurve(R![0, 0, 0, 0, 1, 1], R![1, 1, 0, 1]); Append(~Xs, X);
 X := HyperellipticCurve(R![-1, 0, 2, 0, -2, 0, 1], R![]); Append(~Xs, X);
 X := HyperellipticCurve(R![0, -4, 6, 0, -3, 1], R![]); Append(~Xs, X);
-/* The next line takes very long because our splitting function is too naive */
-//X := HyperellipticCurve(R![-1], R![1, 0, 0, 1]); Append(~Xs, X);
+X := HyperellipticCurve(R![-1], R![1, 0, 0, 1]); Append(~Xs, X);
 X := HyperellipticCurve(R![0, -1, 1, 0, -1, 1], R![]); Append(~Xs, X);
 X := HyperellipticCurve(R![1, 0, 0, 1], R![1, 0, 0, 1]); Append(~Xs, X);
 X := HyperellipticCurve(R![-7, 0, 0, 0, 1], R![0, 1, 0, 1]); Append(~Xs, X);
@@ -30,7 +29,7 @@ X := HyperellipticCurve(R![1, 1, 2, 1, 1], R![1, 1, 1, 1]); Append(~Xs, X);
 /* A genus-3 case */
 X := HyperellipticCurve(x^8 + x^6 + 5*x^4 - 3*x^2 + 17); Append(~Xs, X);
 
-Xs := [ Xs[1] ];
+//Xs := [ Xs[18] ];
 
 for i in [1..#Xs] do
     X := Xs[i];
@@ -46,7 +45,7 @@ for i in [1..#Xs] do
 
     print "";
     print "Decomposition:";
-    print HeuristicDecompositionInformation(X);
+    print HeuristicDecompositionDescription(X);
 end for;
 
 exit;

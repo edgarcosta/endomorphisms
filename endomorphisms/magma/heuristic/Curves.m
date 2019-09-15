@@ -92,20 +92,24 @@ error "Function not available for general curves";
 end intrinsic;
 
 
-function CurveDescriptionHyperelliptic(X, F)
+function CurveDescriptionHyperelliptic(X)
 
 if Genus(X) eq 1 then
     desc := "ell";
 
-    K := BaseRing(X); F := BaseRing(K);
-    K_seq := FieldDescriptionExtra(K, F);
+    K := BaseRing(X);
+    K_seq := FieldDescriptionExtra(K);
     field := K_seq;
 
     f, h := HyperellipticPolynomials(X);
     f_seq := Eltseq(f); h_seq := Eltseq(h);
-    f_seq_seq := [ ElementDescriptionExtra(coeff, F) : coeff in f_seq ];
-    h_seq_seq := [ ElementDescriptionExtra(coeff, F) : coeff in h_seq ];
-    coeffs := [ f_seq_seq, h_seq_seq ];
+    f_seq_seq := [ ElementDescriptionExtra(coeff) : coeff in f_seq ];
+    h_seq_seq := [ ElementDescriptionExtra(coeff) : coeff in h_seq ];
+    if #h_seq_seq eq 0 then
+        coeffs := f_seq_seq;
+    else
+        coeffs := [ f_seq_seq, h_seq_seq ];
+    end if;
 
 else
     desc := "hyp";
@@ -118,13 +122,12 @@ return [* desc, field, coeffs *];
 end function;
 
 
-function CurveDescriptionPlane(X, F)
+function CurveDescriptionPlane(X)
 
 desc := "pln";
 
-K := BaseRing(X); F := BaseRing(K);
-
-K_seq := FieldDescriptionExtra(K, F);
+K := BaseRing(X);
+K_seq := FieldDescriptionExtra(K);
 field := K_seq;
 
 f := DefiningPolynomials(X)[1];
@@ -132,7 +135,7 @@ mons := Monomials(f);
 coeffsexps := [ ];
 for mon in mons do
     coeff := MonomialCoefficient(f, mon);
-    coeff_seq := ElementDescriptionExtra(coeff, F);
+    coeff_seq := ElementDescriptionExtra(coeff);
     exp := Exponents(mon);
     Append(~coeffsexps, [* coeff_seq, exp *]);
 end for;
@@ -142,13 +145,13 @@ return [* desc, field, coeffsexps *];
 end function;
 
 
-intrinsic CurveDescription(X::Crv, F::Fld) -> List
-{Returns a string description of the curve X over the field F.}
+intrinsic CurveDescription(X::Crv) -> List
+{Returns a string description of the curve X.}
 
 if Type(X) eq CrvHyp then
-    return CurveDescriptionHyperelliptic(X, F);
+    return CurveDescriptionHyperelliptic(X);
 elif Type(X) eq CrvPln then
-    return CurveDescriptionPlane(X, F);
+    return CurveDescriptionPlane(X);
 else
     error "No description for general curves yet";
 end if;
