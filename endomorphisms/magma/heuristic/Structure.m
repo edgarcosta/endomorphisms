@@ -136,7 +136,7 @@ EndoDescQQ := [ ];
 for i in [1..#Ds] do
     D := Ds[i]; idem := idems[i];
     E1 := AlgebraOverCenter(D); F := BaseField(E1);
-    FDesc := FieldDescriptionExtra(Polredabs(F : Best := true)); dimF := #FDesc - 1;
+    FDesc := FieldDescriptionExtra(Polredabs(F)); dimF := #FDesc - 1;
 
     /* Some relative dimensions */
     mdimfac := Rank(MatrixFromIdempotent(C, GensC, idem, EndoRep)) div 2;

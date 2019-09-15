@@ -239,11 +239,11 @@ P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
 assert ISA(Type(X), Crv) or ISA(Type(X), SECurve);
-if assigned X`ghpols then
-    q, f := Explode(X`ghpols);
-    geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f : CC := true);
-    return geo_endo_rep;
-end if;
+//if assigned X`ghpols then
+//    q, f := Explode(X`ghpols);
+//    geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f : CC := true);
+//    return geo_endo_rep;
+//end if;
 return GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
 
 end intrinsic;
@@ -267,11 +267,11 @@ if CC and assigned X`geo_endo_rep_CC then
 end if;
 
 if CC then
-    if assigned X`ghpols then
-        q, f := Explode(X`ghpols);
-        X`geo_endo_rep_CC, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f : CC := true);
-        return X`geo_endo_rep_CC;
-    elif ISA(Type(X), Crv) then
+//    if assigned X`ghpols then
+//        q, f := Explode(X`ghpols);
+//        X`geo_endo_rep_CC, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f : CC := true);
+//        return X`geo_endo_rep_CC;
+    if ISA(Type(X), Crv) then
         X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
         return X`geo_endo_rep;
     elif Type(X) eq SECurve then
@@ -280,11 +280,11 @@ if CC then
     end if;
 end if;
 
-if assigned X`ghpols then
-    q, f := Explode(X`ghpols);
-    X`geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f);
-    return X`geo_endo_rep;
-elif ISA(Type(X), Crv) then
+//if assigned X`ghpols then
+//    q, f := Explode(X`ghpols);
+//    X`geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f);
+//    return X`geo_endo_rep;
+if ISA(Type(X), Crv) then
     X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
     return X`geo_endo_rep;
 elif Type(X) eq SECurve then
@@ -372,7 +372,7 @@ if CC then
 end if;
 return GeometricEndomorphismRepresentation(PX, F), PX;
 
-/* Find endomorphisms and take corresponding subfield */
+/* Possibly more stable: Find endomorphisms and take corresponding subfield */
 GeoEndoRep := GeometricEndomorphismRepresentation(Y);
 GeoEndoRep := [ [* T*tup[1]*T^(-1), tup[2] *] : tup in GeoEndoRep ];
 LK := BaseRing(GeoEndoRep[1][1]);
