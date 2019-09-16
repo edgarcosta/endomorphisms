@@ -96,25 +96,22 @@ function CurveDescriptionHyperelliptic(X)
 
 if Genus(X) eq 1 then
     desc := "ell";
-
-    K := BaseRing(X);
-    K_seq := FieldDescriptionExtra(K);
-    field := K_seq;
-
-    f, h := HyperellipticPolynomials(X);
-    f_seq := Eltseq(f); h_seq := Eltseq(h);
-    f_seq_seq := [ ElementDescriptionExtra(coeff) : coeff in f_seq ];
-    h_seq_seq := [ ElementDescriptionExtra(coeff) : coeff in h_seq ];
-    if #h_seq_seq eq 0 then
-        coeffs := f_seq_seq;
-    else
-        coeffs := [ f_seq_seq, h_seq_seq ];
-    end if;
-
 else
     desc := "hyp";
-    field := [ ];
-    coeffs := [ ];
+end if;
+
+K := BaseRing(X);
+K_seq := FieldDescriptionExtra(K);
+field := K_seq;
+
+f, h := HyperellipticPolynomials(X);
+f_seq := Eltseq(f); h_seq := Eltseq(h);
+f_seq_seq := [ ElementDescriptionExtra(coeff) : coeff in f_seq ];
+h_seq_seq := [ ElementDescriptionExtra(coeff) : coeff in h_seq ];
+if #h_seq_seq eq 0 then
+    coeffs := f_seq_seq;
+else
+    coeffs := [ f_seq_seq, h_seq_seq ];
 end if;
 
 return [* desc, field, coeffs *];
