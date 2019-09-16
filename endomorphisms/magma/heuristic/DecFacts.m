@@ -461,7 +461,6 @@ for i := 1 to #EndoDescQQ do
 
         for T in Ts do
             Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
-            assert IsBigPeriodMatrix(Qp);
             Y, _, test := ReconstructCurve(Qp, F : Base := true);
             if test then
                 Append(~eqs, Y);
@@ -592,7 +591,6 @@ for i := 1 to #EndoDescQQ do
 
         for T in Ts do
             Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
-            assert IsBigPeriodMatrix(Qp);
             Y, _, test := ReconstructCurve(Qp, K : Base := true);
             if test then
                 Append(~eqs, Y);
