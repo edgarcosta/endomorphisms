@@ -33,16 +33,10 @@ function RandomSplitPrime(f, B)
  */
 
 K := BaseRing(Parent(f));
-if Type(K) eq FldRat then
-    OK := Integers();
-else
-    OK := EquationOrder(K);
-end if;
+if Type(K) eq FldRat then OK := Integers(); else OK := EquationOrder(K); end if;
 
 while true do
-    repeat
-        p := RandomPrime(B : Proof := false);
-    until p^2 ge B;
+    repeat p := RandomPrime(B : Proof := false); until p^2 ge B;
     FF := FiniteField(p);
 
     if Type(K) eq FldRat then
@@ -71,11 +65,7 @@ function FractionalCRTQQ(rs, ps : I := 0)
 /* rs is a set of remainders at the set of primes ps */
 
 ps := [ Norm(p) : p in ps ];
-if Type(I) eq RngIntElt then
-    if I eq 0 then
-        I := &*ps;
-    end if;
-end if;
+if Type(I) eq RngIntElt then if I eq 0 then I := &*ps; end if; end if;
 rs := [ Integers() ! r : r in rs ];
 M := Matrix([ [ 1, CRT(rs, ps), Norm(I) ] ]);
 Lat := Lattice(Kernel(Transpose(M)));
@@ -92,12 +82,8 @@ function FractionalCRTSplit(rs, ps : I := 0);
  * avoid recalculation */
 
 OK := Order(ps[1]); K := NumberField(OK);
-if Type(K) eq FldRat then
-    return FractionalCRTQQ(rs, ps : I := I);
-end if;
-if Type(I) eq RngIntElt then
-    I := &*ps;
-end if;
+if Type(K) eq FldRat then return FractionalCRTQQ(rs, ps : I := I); end if;
+if Type(I) eq RngIntElt then I := &*ps; end if;
 BOK := Basis(OK); BI := Basis(I);
 
 /* Find n that works */
@@ -199,12 +185,8 @@ if assigned X`RRgens then
     dens := [ U`KU ! U`KA ! Denominator(ReduceRationalFunctionSplit(X`KA ! gen, h)) : gen in X`RRgens ];
     U`RRgens := [ nums[i]/dens[i] : i in [1..#X`RRgens] ];
 end if;
-if assigned X`globgens then
-    U`globgens := [ U`RA ! ReducePolynomialSplit(gen, h) : gen in X`globgens ];
-end if;
-if assigned X`DEs_sub then
-    U`DEs_sub := [ U`RA ! ReducePolynomialSplit(f, h) : f in X`DEs_sub ];
-end if;
+if assigned X`globgens then U`globgens := [ U`RA ! ReducePolynomialSplit(gen, h) : gen in X`globgens ]; end if;
+if assigned X`DEs_sub then U`DEs_sub := [ U`RA ! ReducePolynomialSplit(f, h) : f in X`DEs_sub ]; end if;
 U`initialized := true;
 return U;
 

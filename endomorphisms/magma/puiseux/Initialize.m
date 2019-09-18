@@ -29,15 +29,16 @@ declare verbose EndoCheck, 3;
 forward OurAffinePatch;
 forward AlgebraicUniformizerIndex;
 forward OurBasisOfDifferentials;
-forward ChangeTangentAction;
 forward NormalizedBasisOfDifferentials;
 forward CantorEquations;
+forward ChangeTangentAction;
 
 forward InitializeCurve;
 
 
 function OurAffinePatch(X, P0);
 /* The patches are chosen in such a way that we can later use the same differentials */
+/* NOTE: Too much here happens by hand... but the minus signs are arguably important */
 
 if IsAffine(X) then
     return X, DefiningEquations(X), P0, 1;
@@ -53,6 +54,8 @@ elif X`is_hyperelliptic or (X`g eq 1) then
          * (Likely an irrelevant matter because we correct in the differentials.) */
         DEs := [ RA ! (RA.2^d * Evaluate(DE, [ 1/RA.2, RA.1/(RA.2^(d div 2)) ])) : DE in DEs ];
     end if;
+    /* Check correctness of above */
+    //print U; print DEs;
     U := Curve(AffineSpace(RA), DEs);
     return U, DEs, U ! Eltseq(P0), patch_index;
 
@@ -65,6 +68,8 @@ elif X`is_planar then
     elif patch_index eq 3 then
         DEs := [ RA ! (RA.2^Degree(DE) * Evaluate(DE, [ 1/RA.2, RA.1/RA.2 ])) : DE in DEs ];
     end if;
+    /* Check correctness of above */
+    //print U; print DEs;
     U := Curve(AffineSpace(RA), DEs);
     return U, DEs, U ! Eltseq(P0), patch_index;
 end if;
@@ -84,29 +89,17 @@ if X`is_hyperelliptic or (X`g eq 1) then
     /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
      * since evaluating x at (0, 0) can be unequal to 0 */
     if Degree(fX, RA.2) eq 2 then
-        if Evaluate(Derivative(fX, RA.2), Eltseq(P0)) ne 0 then
-            return 1;
-        else
-            return 2;
-        end if;
+        if Evaluate(Derivative(fX, RA.2), Eltseq(P0)) ne 0 then return 1; else return 2; end if;
     else
-        if Evaluate(Derivative(fX, RA.1), Eltseq(P0)) ne 0 then
-            return 2;
-        else
-            return 1;
-        end if;
+        if Evaluate(Derivative(fX, RA.1), Eltseq(P0)) ne 0 then return 2; else return 1; end if;
     end if;
 
 else
-    // Here we do the usual test, without the preference of the elliptic case.
+    // Here we do the usual test, without the preference of the hyperelliptic case.
     fX := X`DEs[1]; RA := X`RA; P0 := X`P0;
     /* NOTE: Do NOT neglect to take an Eltseq here; omitting it is deadly,
      * since evaluating x at (0, 0) can be unequal to 0 */
-    if Evaluate(Derivative(fX, RA.2), Eltseq(P0)) ne 0 then
-        return 1;
-    else
-        return 2;
-    end if;
+    if Evaluate(Derivative(fX, RA.2), Eltseq(P0)) ne 0 then return 1; else return 2; end if;
 end if;
 
 end function;
@@ -116,8 +109,10 @@ function OurBasisOfDifferentials(X)
 /*
  * Input:   A curve X.
  * Output:  A basis of global differentials on X, represented by elements of
- *          the rational function field by using our choice of uniformizer
+ *          the rational function field by using our choice of uniformizer,
+ *          which at the point of invocation is the first coordinate.
  */
+/* NOTE: This function is only invoked AFTER the curve is in its correct patch */
 
 g := X`g; RA := X`RA; u := RA.1; v := RA.2; f := X`DEs[1];
 if g eq 0 then
@@ -128,85 +123,23 @@ elif (g eq 1) or X`is_hyperelliptic then
     /* Usual version where the uniformizing coordinate u is that on PP^1 */
     if Degree(f, v) eq 2 then
         s := MonomialCoefficient(f, v^2);
-        return [ s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
+        return [  s*u^(i-1) / Derivative(f, v) : i in [1..g] ];
     else
         /* If coordinate on PP^1 did not work, then this is the expression in
-         * the new uniformizer */
+         * the new uniformizer. This only happens in the elliptic case, meaning
+         * that we do not have to adapt differentials then */
         s := MonomialCoefficient(f, u^2);
         return [ -s*v^(i-1) / Derivative(f, v) : i in [1..g] ];
     end if;
 
 elif X`is_plane_quartic then
     /* Plane quartic case: we use ({x,y,1} / (dF / dy)) dx */
-    return [ X`KA ! ( n / Derivative(f, v)) : n in [u, v, 1] ];
+    return [ X`KA ! (n / Derivative(f, v)) : n in [u, v, 1] ];
 
 else
     x := X`KU ! (X`RU).1;
     return [ X`KA ! (b / Differential(x)) : b in BasisOfDifferentialsFirstKind(X`U) ];
 end if;
-
-end function;
-
-
-function ChangeTangentAction(X, Y, M)
-/*
- * Input:  Two curves X, Y and a representation M on the standard basis of
- *         differentials.
- * Output: Matrix for standard differentials on the patches of X and Y used.
- */
-
-F := X`F;
-/* M acts on the right, so to precompose with the operation on X we modify the
- * columns. */
-M := Transpose(M);
-if X`g eq 1 or X`is_hyperelliptic then
-    if X`patch_index eq 3 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := -Matrix(F, Reverse(rows));
-    end if;
-
-elif X`is_plane_quartic then
-    if X`patch_index eq 2 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
-    elif X`patch_index eq 3 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
-    end if;
-    /* We need to correct for the uniformization index here because we do not
-     * do so above */
-    if X`unif_index eq 2 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
-    end if;
-end if;
-M := Transpose(M);
-
-/* M acts on the right, so to postcompose with the operation on Y we modify the
- * rows. */
-if Y`g eq 1 or Y`is_hyperelliptic then
-    if Y`patch_index eq 3 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := -Matrix(F, Reverse(rows));
-    end if;
-
-elif Y`is_plane_quartic then
-    if Y`patch_index eq 2 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
-    elif Y`patch_index eq 3 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := Matrix(F, [ rows[2], rows[3], rows[1] ]);
-    end if;
-    /* We need to correct for the uniformization index here because we do not
-     * do so above */
-    if Y`unif_index eq 2 then
-        rows := [ Eltseq(row) : row in Rows(M) ];
-        M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
-    end if;
-end if;
-
-return M;
 
 end function;
 
@@ -235,7 +168,7 @@ end function;
 function CantorEquations(X);
 /* Gives the equations in the description a (x) = 0, y = b (x)
  * May not use usual parameter if uniformizer differs */
-/* TODO: Actually, that last point is a bit suboptimal */
+/* TODO: That last convention is a bit suboptimal */
 
 g := X`g; f := X`DEs[1]; F := X`F;
 S := PolynomialRing(F, 2*g); T<t> := PolynomialRing(S);
@@ -257,23 +190,16 @@ end function;
 
 procedure InitializeCurve(X, P0 : NonWP := false)
 
-if not assigned X`initialized then
-    X`initialized := false;
-end if;
-if X`initialized then
-    return;
-end if;
+if not assigned X`initialized then X`initialized := false; end if;
+if X`initialized then return; end if;
 
 X`is_hyperelliptic := Type(X) eq CrvHyp; X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
 X`g := Genus(X); X`is_plane_quartic := (X`is_planar) and (X`is_smooth) and (X`g eq 3);
-if not X`is_planar then
-    error "Please give your curve in planar form";
-end if;
+if not X`is_planar then error "Please give your curve in hyperelliptic or planar form"; end if;
 
-/* Find affine patch, then put uniformizer first: */
+/* Find affine patch, then put uniformizer first by switching coordinates */
 X`U, X`DEs, X`P0, X`patch_index := OurAffinePatch(X, P0);
 X`A := Ambient(X`U); RA<u,v> := CoordinateRing(X`A); X`RA := RA; X`KA := FieldOfFractions(RA);
-
 X`unif_index := AlgebraicUniformizerIndex(X);
 if X`unif_index eq 2 then
     X`DEs := [ X`RA ! Evaluate(DE, [ (X`RA).2, (X`RA).1 ]) : DE in X`DEs ];
@@ -315,7 +241,71 @@ vprint EndoCheck, 2 : "Cantor equations:";
 vprint EndoCheck, 2 : X`cantor_eqs;
 
 X`initialized := true;
-
 return;
 
 end procedure;
+
+
+function ChangeTangentAction(X, Y, M)
+/*
+ * Input:  Two curves X, Y and a representation M on the standard basis of
+ *         differentials.
+ * Output: Matrix for standard differentials on the patches of X and Y used.
+ */
+/* NOTE: Only invoked latter to correct for basis chosen in OurBasisOfDifferentials.
+   TODO: Apply it here instead, if possible. */
+
+F := X`F;
+/* M acts on the right, so to precompose with the operation on X we modify the
+ * columns. */
+M := Transpose(M);
+if X`g eq 1 or X`is_hyperelliptic then
+    if X`patch_index eq 3 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M := -Matrix(F, Reverse(rows));
+    end if;
+    /* NOTE: There is no unif_index correction in this case because we always
+     * take the canonical basis in the above way */
+
+elif X`is_plane_quartic then
+    if X`patch_index eq 2 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
+    elif X`patch_index eq 3 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M :=  Matrix(F, [ rows[2], rows[3], rows[1] ]);
+    end if;
+    if X`unif_index eq 2 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
+    end if;
+end if;
+M := Transpose(M);
+
+/* M acts on the right, so to postcompose with the operation on Y we modify the
+ * rows. */
+if Y`g eq 1 or Y`is_hyperelliptic then
+    if Y`patch_index eq 3 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M := -Matrix(F, Reverse(rows));
+    end if;
+    /* NOTE: There is no unif_index correction in this case because we always
+     * take the canonical basis in the above way */
+
+elif Y`is_plane_quartic then
+    if Y`patch_index eq 2 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
+    elif Y`patch_index eq 3 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M :=  Matrix(F, [ rows[2], rows[3], rows[1] ]);
+    end if;
+    if Y`unif_index eq 2 then
+        rows := [ Eltseq(row) : row in Rows(M) ];
+        M := -Matrix(F, [ rows[2], rows[1], rows[3] ]);
+    end if;
+end if;
+
+return M;
+
+end function;

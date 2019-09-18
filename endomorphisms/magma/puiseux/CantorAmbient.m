@@ -33,7 +33,6 @@ forward RelativeToAbsolute;
 
 function CandidateFunctions(X, d)
 /* Candidate numerators and denominators for Cantor functions */
-// TODO: Use Riemann-Roch space instead
 
 g := X`g; f := X`DEs[1]; R := X`RA;
 x := R.1; y := R.2;
@@ -53,6 +52,8 @@ if X`is_hyperelliptic or (g eq 1) then
 elif X`is_planar then
     nums := [ x^i*y^j : i in [0..d], j in [0..(Degree(f, y) - 1)] | i + j le d ];
     dens := nums;
+    nums := [ y^i*x^j : i in [0..d], j in [0..(Degree(f, x) - 1)] | i + j le d ];
+    dens := [ y^i : i in [0..d] ];
 end if;
 return dens, nums;
 
@@ -60,7 +61,8 @@ end function;
 
 
 function FunctionValuesFromApproximations(Y, Qs)
-/* Evaluates Cantor functions in the branches Qs */
+/* Gives the Cantor functions for the developed branches (these will be
+ * integral, not Puiseux series) */
 
 PR := Parent(Qs[1][1]); R<t> := PolynomialRing(PR);
 pol_approx := &*[ t - Q[1] : Q in Qs ];
@@ -75,7 +77,7 @@ return as_approx cat bs_approx;
 end function;
 
 
-function FunctionsFromApproximations(X, Y, P, Qs, d)
+function FunctionsFromApproximations(X, Y, P, Qs, d : Margin := 2^4)
 /* Finds candidate functions in degree d from a developed branch */
 
 I := ideal<X`RA | X`DEs[1]>;
@@ -87,6 +89,7 @@ for f_approx in fs_approx do
     ev_dens := [ -f_approx * Evaluate(den, P) : den in dens ];
     ev_nums := [ Evaluate(num, P) : num in nums ];
     evs := ev_dens cat ev_nums;
+    /* Note that floor here is need because precision may still be non-integral */
     prec := Floor(Minimum([ AbsolutePrecision(ev) : ev in evs ]));
     M := Matrix([ [ X`F ! Coefficient(ev, i) : i in [0..(prec - 1)] ] : ev in evs ]);
     Ker := Kernel(M);
@@ -99,11 +102,6 @@ for f_approx in fs_approx do
         for b in B do
             v := Eltseq(b);
             f := &+[ v[i + #dens]*nums[i] : i in [1..#nums] ] / &+[ v[i]*dens[i] : i in [1..#dens] ];
-            /* The next check should be superfluous if the precision is above a
-             * small bound */
-            //if (X`RA ! Numerator(X`KA ! f)) in I then
-            //    return false, [ ];
-            //end if;
             Append(~fs, X`KA ! f);
             break;
         end for;
@@ -115,17 +113,21 @@ end function;
 
 
 function CheckApproximation(X, Y, P, Qs, fs)
-/*
- * Verifies if the given functions approximate well
- */
+/* Checks if the given functions fs evaluate to 0 on the given branches P, Qs */
 
 g := Y`g;
 as := fs[1..g]; bs := fs[(g + 1)..(2*g)];
 for Q in Qs do
-    if not IsWeaklyZero(Q[1]^g + &+[ Evaluate(as[i], P) * Q[1]^(g - i) : i in [1..g] ]) then
+    diff1 := Q[1]^g + &+[ Evaluate(as[i], P) * Q[1]^(g - i) : i in [1..g] ];
+    diff2 := Q[2]   - &+[ Evaluate(bs[i], P) * Q[1]^(g - i) : i in [1..g] ];
+    vprint EndoCheck, 3 : "";
+    vprint EndoCheck, 3 : "Check approximations zero:";
+    vprint EndoCheck, 3 : diff1;
+    vprint EndoCheck, 3 : diff2;
+    if not IsWeaklyZero(diff1) then
         return false;
     end if;
-    if not IsWeaklyZero(Q[2]   - &+[ Evaluate(bs[i], P) * Q[1]^(g - i) : i in [1..g] ]) then
+    if not IsWeaklyZero(diff2) then
         return false;
     end if;
 end for;
@@ -135,10 +137,8 @@ end function;
 
 
 function CheckCantor(X, Y, fs)
-/*
- * Verifies if the given functions satisfy the Cantor equations and hence
- * defines a morphism
- */
+/* Verifies if the given functions fs satisfy the Cantor equations and hence
+ * define a morphism */
 
 I := ideal<X`RA | X`DEs[1]>;
 for cantor_eq in Y`cantor_eqs do
@@ -155,7 +155,9 @@ intrinsic CantorFromMatrixAmbientGlobal(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : 
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
+/* Correct for echelonization */
 NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
@@ -178,25 +180,27 @@ end intrinsic;
 intrinsic CantorFromMatrixAmbientSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-/* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
 InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
+/* Correct for echelonization */
 NormM := Y`T * NormM * (X`T)^(-1);
 
+/*
 vprint EndoCheck, 3 : "";
 vprint EndoCheck, 3 : "Differential bases on factors:";
 vprint EndoCheck, 3: X`NormB;
 vprint EndoCheck, 3: Y`NormB;
 vprint EndoCheck, 2 : "Normalized endomorphism representation:";
 vprint EndoCheck, 2: NormM;
+*/
 
 /* Some global elements needed below */
-F := X`F; OF := X`OF; RX := X`RA; KX := X`KA;
-/* Bit more global margin just to be sure */
+F := X`F; OF := X`OF; RX := X`RA; KA := X`KA;
 
 vprint EndoCheck, 2 : "";
 vprint EndoCheck, 2 : "Initializing iterator...";
-Iterator, f := InitializedIterator(X, Y, NormM, 2*Y`g + 2);
+Iterator, f := InitializedIterator(X, Y, NormM, X`g + 3);
 P := Iterator[1]; Qs := Iterator[2];
 vprint EndoCheck, 2 : "done.";
 
@@ -205,7 +209,6 @@ I := ideal<X`OF | 1>;
 
 d := LowerBound;
 while true do
-    /* Find new prime */
     repeat
         pr, h := RandomSplitPrime(f, B);
     until not pr in prs;
@@ -217,7 +220,7 @@ while true do
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
     NormM_red := ReduceMatrixSplit(NormM, h);
 
-    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, 2*Y`g + 2);
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, X`g + 3);
     while true do
         found, fs_red, Iterator_red := CantorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that
@@ -238,6 +241,7 @@ while true do
     fs := [ ];
     for i:=1 to #fss_red[1] do
         num := RX ! 0;
+        /* Because we took a large prime, the monomials that show up there will suffice */
         for mon in Monomials(Numerator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Numerator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
@@ -247,9 +251,9 @@ while true do
         for mon in Monomials(Denominator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Denominator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            den +:= FractionalCRTSplit(rs, prs) * Monomial(RX, exp);
+            den +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RX, exp);
         end for;
-        Append(~fs, KX ! (num / den));
+        Append(~fs, KA ! (num / den));
     end for;
     vprint EndoCheck : "done.";
 
@@ -286,19 +290,22 @@ vprint EndoCheck, 2 : "Number of digits in expansion:", n*e;
 /* Take non-zero image branch */
 vprint EndoCheck, 2 : "Expanding branches...";
 while true do
-    P, Qs, _, _ := Explode(Iterator);
+    P, Qs, _, _ := Explode(Iterator); Pold := P; Qsold := Qs;
     prec := Precision(Parent(Qs[1][1]));
-    if prec ge n then
+    if prec ge n*e then
         break;
     end if;
     Iterator := IterateIterator(Iterator);
+    P, Qs, _, _ := Explode(Iterator);
+    /* Check that iteration does what it is supposed to do */
+    assert &and[ IsWeaklyZero(P[j] - Pold[j]) : j in [1..#P] ];
+    assert &and[ &and[ IsWeaklyZero(Qs[i][j] - Qsold[i][j]) : j in [1..#Qs[i] ] ] : i in [1..#Qs] ];
 end while;
-P, Qs, _, _ := Explode(Iterator);
 vprint EndoCheck, 2 : "done.";
 
 /* Fit a Cantor morphism to it */
 vprint EndoCheck, 2 : "Solving linear system... ";
-test, fs := FunctionsFromApproximations(X, Y, P, Qs, d);
+test, fs := FunctionsFromApproximations(X, Y, P, Qs, d : Margin := Margin div 2);
 vprint EndoCheck, 2 : "done.";
 
 if test then

@@ -27,12 +27,16 @@ forward InitializedIterator;
 forward IterateIterator;
 
 
+/* NOTE: Every generator of a Puiseux series ring should be coerced because of
+ *       infinite precision issues */
+
 function LiftPuiseuxSeries(f, PR, e)
 /*
  * Input:  A Puiseux series f, a Puiseux ring PR, and an exponent denominator e.
  * Output: The coercion of f to PR, if all exponents of f have denominator e.
  */
 
+/* Absolute precision for f is value of N in O (t^N) in expression for f */
 L := [ Coefficient(f, i/e)*PR.1^(i/e) : i in [0..e*AbsolutePrecision(f) - 1] ];
 if #L eq 0 then
     return PR ! 0;
@@ -50,22 +54,31 @@ function PuiseuxLeadingExponent(M, echelon_exps)
  * Output:  The ramification index of the corresponding Puiseux expansions and
  *          the corresponding entries of M.
  */
+/* NOTE: Key equality: if t = s^e, then t^i dt = s^(e i + e - 1) ds up to multiple */
 
 rowsM := Rows(M);
 gY := #rowsM; gX := #Eltseq(rowsM[1]);
+
+/* In what follows, we that the point on Y is not Weierstrass.
+ * i-th entry gives t^(i - 1) dt, pulling back to s^(e i - 1) ds which has to
+ * equal x[j0] - 1. This implies e = x[j0]/i. */
 exps := [ ];
 for i in [1..gY] do
     row := Eltseq(rowsM[i]);
     j0 := Minimum([ j : j in [1..gX] | row[j] ne 0 ]);
-    exp := echelon_exps[j0]*(j0/i);
+    exp := echelon_exps[j0]/i;
     Append(~exps, exp);
 end for;
+
+/* Now reverse the above by seeing if there is a j, necessarily the smallest,
+ * for which x[j] = e*i. This is stupid but who cares, the dimension is small. */
 exp0 := Minimum(exps);
-vals := [ ]; ncols := #Rows(Transpose(M));
+vals := [ ];
 for i in [1..gY] do
-    j := echelon_exps[i]*exp0;
-    if j in [1..ncols] then
-        Append(~vals, (1/exp0)*M[i, Integers()!j]);
+    row := Eltseq(rowsM[i]);
+    j0 := Minimum([ j : j in [1..gX] | row[j] ne 0 ]);
+    if echelon_exps[j0] eq exp0*i then
+        Append(~vals, (1/exp0)*M[i, j0]);
     else
         Append(~vals, BaseRing(Parent(M)) ! 0);
     end if;
@@ -84,7 +97,7 @@ function InitializeImageBranch(M, echelon_exps)
  * Output:  The leading coefficients of the corresponding Puiseux expansions
  *          and the polynomial that gives their field of definition.
  */
-/* TODO: This needs genericity assumptions */
+/* NOTE: This needs genericity assumptions */
 
 /* Recovering old invariants: */
 F := Parent(M[1,1]);
@@ -95,7 +108,8 @@ exp, vals := PuiseuxLeadingExponent(M, echelon_exps);
  * there is no need to desymmetrize */
 if gY eq 1 then
     r := Eltseq(Rows(M)[1]);
-    RF := PolynomialRing(F); xF := RF.1; PF := PuiseuxSeriesRing(F, #r + 1); tF := PF.1;
+    PF := PuiseuxSeriesRing(F, #r + 1); tF := PF.1;
+    RF := PolynomialRing(F); xF := RF.1;
     return [ &+[ (r[n] / n) * tF^n : n in [1..#r] ] + O(tF^(#r + 1)) ], xF - 1;
 end if;
 
@@ -103,21 +117,24 @@ end if;
 A := AffineSpace(F, gY); RA := CoordinateRing(A);
 eqs := [ ];
 for n in [1..gY] do
+    /* The next line implictly uses that Y has echelon exponents [1..g];
+     * it inspects the coefficients in front of the pullbacks 
+     * t^i dt = s^(e i - * 1) ds when using t_i = c_i s^e. */
     powersum := &+[ RA.i^n : i in [1..gY] ];
     Append(~eqs, powersum - vals[n]);
 end for;
 S := Scheme(A, eqs);
 
-/* The upcoming steps are taken to avoid the use of an algebraic closure */
-RF := PolynomialRing(F);
-hc := [ RF!0 : i in [1..gY] ]; hc[#hc] := RF.1; h := hom<RA -> RF | hc>;
-
-/* By symmetry, this extension always suffices */
 G := GroebnerBasis(ideal<RA | eqs>);
+RF := PolynomialRing(F);
+hc := [ RF ! 0 : i in [1..gY] ]; hc[#hc] := RF.1; h := hom<RA -> RF | hc>;
+/* By symmetry, this extension always suffices */
 K := SplittingField(h(G[#G]));
-/* Extending and evaluating: */
 SK := BaseExtend(S, K);
 P := Eltseq(Points(SK)[1]);
+
+// TODO: See if this way to circumvent precision problems ever gives trouble
+assert exp le 1;
 PK := PuiseuxSeriesRing(K, 2);
 wK := PK.1^exp;
 return [ P[i] * wK + O(wK^2) : i in [1..gY] ], h(G[#G]);
@@ -189,10 +206,13 @@ P0 := X`P0; Q0 := Y`P0;
 tjs0, f := InitializeImageBranch(M, X`echelon_exps);
 PR := Parent(tjs0[1]);
 
+print tjs0;
+
 /* Creating P */
 P := [ PR ! P0[1], PR ! P0[2] ];
 P[1] +:= PR.1;
-P := [ PR ! c : c in DevelopPoint(X, P, X`g + 1) ];
+// TODO: +1 should be good enough but OK
+P := [ PR ! c : c in DevelopPoint(X, P, X`g + 3) ];
 
 /* Creating Qs */
 Qs := [ [ PR ! Q0[1], PR ! Q0[2] ] : i in [1..Y`g] ];
@@ -200,12 +220,12 @@ for i in [1..Y`g] do
     Qs[i][1] +:= tjs0[i];
 end for;
 /* Make sure precision buffer is always large enough to see first term */
-Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, 2*X`g + 2) ] : Qj in Qs ];
+Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 3) ] : Qj in Qs ];
 
 /* Fill out small terms */
 IterateLift := CreateLiftIteratorFunction(X, Y, M);
 while true do
-    Pnew, Qsnew := IterateLift(P, Qs, Y`g + 1);
+    Pnew, Qsnew := IterateLift(P, Qs, X`g + 3);
     if Pnew eq P and Qsnew eq Qs then
         P := Pnew; Qs := Qsnew; break;
     end if;
@@ -221,9 +241,6 @@ function CreateLiftIteratorFunction(X, Y, M)
  * Input:   Curves X and Y and a normalized matrix M.
  * Output:  An iterator that refines the Puiseux expansion upon application.
  */
-/* An extremely annoying corollary of Magma's Puiseux conventions is that
- * precision gets thrown away. We simply shave a few digits off the iteration at
- * every turn to deal with this. */
 
 fX := X`DEs[1]; dfX := Derivative(fX, X`RA.2); BX := X`NormB; gX := X`g;
 fY := Y`DEs[1]; dfY := Derivative(fY, Y`RA.2); BY := Y`NormB; gY := Y`g;
@@ -311,6 +328,8 @@ know such a bound.}
 e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
 P, Qs, f := InitializeLift(X, Y, M);
 IterateLift := CreateLiftIteratorFunction(X, Y, M);
+/* Foolproof: continue until stabilization (costs one more calculation for a
+ * lot more certainty) */
 while true do
     Pnew, Qsnew := IterateLift(P, Qs, n);
     if Pnew eq P and Qsnew eq Qs then
@@ -326,6 +345,7 @@ end intrinsic;
 intrinsic IterateIterator(Iterator::List) -> .
 {Applies Iterator to add maximal possible precision that does not get lost
 later on.}
+// TODO: Build in corresponding asserts
 
 P, Qs, IterateLift, MaxPrec := Explode(Iterator);
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);

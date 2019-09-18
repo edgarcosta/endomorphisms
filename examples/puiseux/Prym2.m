@@ -20,7 +20,10 @@ PY := PeriodMatrix(Y);
 HomRep := GeometricHomomorphismRepresentation(PX, PY, F);
 print HomRep;
 T := HomRep[1][1];
+print T;
+print HomRep[1][2];
 
+/*
 print "";
 print "Calculating divisor:";
 time test, D := DivisorFromMatrixAmbientSplit(X, P0, Y, Q0, T);
@@ -28,6 +31,7 @@ eqs := DefiningEquations(D);
 R<y2,y1,x2,x1> := Parent(eqs[1]);
 print "Divisor:";
 print GroebnerBasis(Ideal(D));
+*/
 
 print "";
 print "Calculating Cantor representation...";
