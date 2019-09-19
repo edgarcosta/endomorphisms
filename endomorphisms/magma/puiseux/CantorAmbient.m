@@ -334,9 +334,7 @@ function ChangeFunctions(X, Y, fs)
 /* Change the functions on patches to rational functions on the original curves.
  * Especially relevant when considering elliptic curve factors. */
 
-/* For now we only do this in genus 1: */
 R := X`RA; K := X`KA;
-if Y`g eq 1 then
 subsX := [ K ! X`RA.1, K ! X`RA.2 ];
 if X`is_hyperelliptic or (X`g eq 1) then
     if X`patch_index eq 3 then
@@ -353,11 +351,11 @@ if X`unif_index eq 2 then
     subsX := [ subsX[2], subsX[1] ];
 end if;
 fs := [ X`KA ! Evaluate(f, subsX) : f in fs ];
-end if;
 
 // TODO: Transform to Y in general by thinking about how the Cantor equation
 // changes. But this is nasty.
 if Y`g eq 1 then
+    /* NOTE: Uncanonical minus to make this a map of curves */
     fs := [ -fs[1], fs[2] ];
     if Y`unif_index eq 2 then
         fs := [ fs[2], fs[1] ];
@@ -369,11 +367,7 @@ end if;
 
 /* Making denominators contains x only */
 if X`is_hyperelliptic then
-    if IsAffine(X) then
-        A := X;
-    else
-        A := AffinePatch(X, 1);
-    end if;
+    if IsAffine(X) then A := X; else A := AffinePatch(X, 1); end if;
     S := PolynomialRing(X`F); T := PolynomialRing(S);
     DER := R ! DefiningEquations(A)[1]; DET := AbsoluteToRelative(DER, R, T);
     _, h := HyperellipticPolynomials(X); h := T ! S ! h; h := RelativeToAbsolute(h, R, T);

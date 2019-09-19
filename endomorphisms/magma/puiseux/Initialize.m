@@ -298,6 +298,8 @@ elif Y`is_plane_quartic then
         M := -Matrix(F, [ rows[1], rows[3], rows[2] ]);
     elif Y`patch_index eq 3 then
         rows := [ Eltseq(row) : row in Rows(M) ];
+        /* This line is essentially a coincidence, since the corresponding
+         * inverse happens to coincide with a transpose */
         M :=  Matrix(F, [ rows[2], rows[3], rows[1] ]);
     end if;
     if Y`unif_index eq 2 then

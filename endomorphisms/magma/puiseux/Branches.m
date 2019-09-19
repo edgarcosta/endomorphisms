@@ -206,8 +206,6 @@ P0 := X`P0; Q0 := Y`P0;
 tjs0, f := InitializeImageBranch(M, X`echelon_exps);
 PR := Parent(tjs0[1]);
 
-print tjs0;
-
 /* Creating P */
 P := [ PR ! P0[1], PR ! P0[2] ];
 P[1] +:= PR.1;
@@ -241,12 +239,13 @@ function CreateLiftIteratorFunction(X, Y, M)
  * Input:   Curves X and Y and a normalized matrix M.
  * Output:  An iterator that refines the Puiseux expansion upon application.
  */
+// NOTE: It is not absolutely necessary to use normalized differentials here.
 
 fX := X`DEs[1]; dfX := Derivative(fX, X`RA.2); BX := X`NormB; gX := X`g;
 fY := Y`DEs[1]; dfY := Derivative(fY, Y`RA.2); BY := Y`NormB; gY := Y`g;
 e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
 
-    function Iterate(P, Qs, n);
+    function IterateLift(P, Qs, n);
     /*
      * Input:   Points P, branches Q, and a precision n.
      * Output:  A refinement to twice the current precision or n, whichever is
@@ -311,7 +310,7 @@ e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
 
     end function;
 
-return Iterate;
+return IterateLift;
 
 end function;
 
