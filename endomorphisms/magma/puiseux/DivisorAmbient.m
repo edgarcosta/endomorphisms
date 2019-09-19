@@ -40,6 +40,7 @@ xX := RX.1; yX := RX.2;
 if Degree(fX, RX.1) eq 2 then
     xX := RX.2; yX := RX.1;
 end if;
+
 gY := Y`g; fY := Y`DEs[1]; RY := Y`RA;
 xY := RY.1; yY := RY.2;
 /* Change in hyperelliptic case for greater effectiveness: */
@@ -68,7 +69,7 @@ return divs;
 end function;
 
 
-function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs)
+function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := 2^4)
 /*
  * Input:   Two curves X and Y,
  *          a basis of divisor equations fs,
@@ -86,8 +87,7 @@ for f in fs do
     for Q in Qs do
         seq := ExtractPoints(X, Y, P, Q);
         ev := Evaluate(f, seq);
-        /* Small buffer: we might just as well take 1 instead of X`g */
-        r cat:= [ Coefficient(ev, i/e) : i in [0..prec - X`g] ];
+        r cat:= [ Coefficient(ev, i/e) : i in [0..prec - 1 - Margin] ];
     end for;
     Append(~M, r);
 end for;
@@ -105,12 +105,9 @@ if X`is_hyperelliptic and Y`is_hyperelliptic then
     Iprod := ideal< Rprod | eqs >;
     varord := VariableOrder();
     Bxs := Basis(EliminationIdeal(Iprod, { varord[1], varord[3] }));
-    //Bys := Basis(EliminationIdeal(Iprod, { varord[1], varord[4] }));
     if (#Bxs ne 0) then
         gcdx := hxsinv(GCD([ hxs(b) : b in Bxs ]));
-        //gcdy := hysinv(GCD([ hys(b) : b in Bys ]));
         eqs cat:= [ gcdx ];
-        //eqs := [ gcdx ] cat Reverse(eqs)[1..2] cat [ eqs[1] ];
     else
         eqs := [ Rprod ! 0 ];
     end if;
@@ -126,10 +123,14 @@ end function;
 
 function CheckEquations(X, Y, P, Qs, DEs)
 
+vprint EndoCheck, 3 : "";
+vprint EndoCheck, 3 : "Check approximations zero:";
 for DE in DEs do
     for Q in Qs do
         seq := ExtractPoints(X, Y, P, Q);
-        if not IsWeaklyZero(Evaluate(DE, seq)) then
+        ev := Evaluate(DE, seq);
+        vprint EndoCheck, 3 : ev;
+        if not IsWeaklyZero(ev) then
             return false;
         end if;
     end for;
@@ -173,11 +174,13 @@ intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : 
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
+/* Correct for echelonization */
 NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
-Iterator := InitializedIterator(X, Y, NormM, 2*Y`g + 1);
+Iterator := InitializedIterator(X, Y, NormM, X`g + 3);
 while true do
     found, S, Iterator := DivisorFromMatrixByDegree(X, Y, Iterator, d : Margin := Margin);
     if found then
@@ -197,14 +200,15 @@ intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : M
 
 /* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
 InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
+/* Correct for echelonization */
 NormM := Y`T * NormM * (X`T)^(-1);
 
 /* Some global elements needed below */
 F := X`F; OF := X`OF;
 Rprod := PolynomialRing(X`F, 4, "lex");
-/* Bit more global margin just to be sure */
-Iterator, f := InitializedIterator(X, Y, NormM, 2*Y`g + 1);
+Iterator, f := InitializedIterator(X, Y, NormM, X`g + 3);
 P := Iterator[1]; Qs := Iterator[2];
 
 prs := [ ]; DEss_red := [* *];
@@ -224,7 +228,7 @@ while true do
     X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
     NormM_red := ReduceMatrixSplit(NormM, h);
 
-    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, 2*Y`g + 1);
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, X`g + 3);
     while true do
         found, S_red, Iterator_red := DivisorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
         /* If that does not work, give up and try one degree higher. Note that
@@ -291,21 +295,22 @@ vprint EndoCheck, 2 : "Number of terms in expansion:", n;
 
 vprint EndoCheck, 2 : "Expanding branches...";
 while true do
-    P, Qs, _, _ := Explode(Iterator);
+    P, Qs, _, _ := Explode(Iterator); Pold := P; Qsold := Qs;
     prec := Precision(Parent(Qs[1][1]));
-    /* TODO: Multiply by ramification index like this? */
-    //prec := Minimum([ RelativePrecision(c) : c in P cat &cat(Qs) ]);
     if prec ge n then
         break;
     end if;
     Iterator := IterateIterator(Iterator);
+    P, Qs, _, _ := Explode(Iterator);
+    /* Check that iteration does what it is supposed to do */
+    assert &and[ IsWeaklyZero(P[j] - Pold[j]) : j in [1..#P] ];
+    assert &and[ &and[ IsWeaklyZero(Qs[i][j] - Qsold[i][j]) : j in [1..#Qs[i] ] ] : i in [1..#Qs] ];
 end while;
-P, Qs, _, _ := Explode(Iterator);
 vprint EndoCheck, 2 : "done.";
 
 /* Fit a divisor to it */
 vprint EndoCheck, 2 : "Solving linear system...";
-ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs);
+ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := Margin div 2);
 vprint EndoCheck, 2 : "done.";
 
 for S in ICs do

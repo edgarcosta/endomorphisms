@@ -117,11 +117,12 @@ function CheckApproximation(X, Y, P, Qs, fs)
 
 g := Y`g;
 as := fs[1..g]; bs := fs[(g + 1)..(2*g)];
+vprint EndoCheck, 3 : "";
+vprint EndoCheck, 3 : "Check approximations zero:";
+
 for Q in Qs do
     diff1 := Q[1]^g + &+[ Evaluate(as[i], P) * Q[1]^(g - i) : i in [1..g] ];
     diff2 := Q[2]   - &+[ Evaluate(bs[i], P) * Q[1]^(g - i) : i in [1..g] ];
-    vprint EndoCheck, 3 : "";
-    vprint EndoCheck, 3 : "Check approximations zero:";
     vprint EndoCheck, 3 : diff1;
     vprint EndoCheck, 3 : diff2;
     if not IsWeaklyZero(diff1) then
@@ -330,18 +331,16 @@ end function;
 
 
 function ChangeFunctions(X, Y, fs)
-/*
- * Change the functions on patches to rational functions on the original curves.
- * Especially relevant when considering elliptic curve factors.
- */
+/* Change the functions on patches to rational functions on the original curves.
+ * Especially relevant when considering elliptic curve factors. */
 
 /* For now we only do this in genus 1: */
-g := X`g; R := X`RA; K := X`KA;
+R := X`RA; K := X`KA;
 if Y`g eq 1 then
 subsX := [ K ! X`RA.1, K ! X`RA.2 ];
 if X`is_hyperelliptic or (X`g eq 1) then
     if X`patch_index eq 3 then
-        subsX := [ subsX[2] / subsX[1]^(g + 1), 1 / subsX[1] ];
+        subsX := [ subsX[2] / subsX[1]^(X`g + 1), 1 / subsX[1] ];
     end if;
 elif X`is_planar then
     if X`patch_index eq 2 then
