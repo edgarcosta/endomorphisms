@@ -12,7 +12,7 @@ repeat
     P0 := X ! [0, 1];
 until not IsWeierstrassPlace(Place(P0));
 print f;
-time InitializeCurve(X, P0 : NonWP := true);
+time InitializeCurve(X, P0 : AssertNonWP := true);
 
 prec := 1000;
 F := RationalsExtra(prec);
@@ -25,7 +25,7 @@ repeat
     P0 := X ! [0, 1];
 until not IsWeierstrassPlace(Place(P0));
 print f;
-time InitializeCurve(X, P0 : NonWP := true);
+time InitializeCurve(X, P0 : AssertNonWP := true);
 
 prec := 100;
 F := RationalsExtra(prec);
@@ -37,7 +37,7 @@ f /:= 2; h := R ! 0;
 X := HyperellipticCurve(f, h);
 // Try to make one the point at infinity!
 P0 := X ! [1, 1, 1];
-time InitializeCurve(X, P0 : NonWP := true);
+time InitializeCurve(X, P0 : AssertNonWP := true);
 
 /* This is fast and does not give trouble so far */
 f := X`DEs[1];

@@ -36,13 +36,12 @@ function CandidateFunctions(X, d)
 
 g := X`g; f := X`DEs[1]; R := X`RA;
 x := R.1; y := R.2;
-/* Change in hyperelliptic case for greater effectiveness: */
+/* Change in elliptic case for greater effectiveness: */
 if Degree(f, x) lt Degree(f, y) then
     x := R.2; y := R.1;
 end if;
 
 if X`is_hyperelliptic or (g eq 1) then
-    /* This case distinction is a bit silly */
     if Degree(f) mod 2 eq 1 then
         nums := [ x^i : i in [0..(d div 2)] ] cat [ x^i*y : i in [0..((d - 2*g - 1) div 2)] ];
     else
@@ -50,10 +49,8 @@ if X`is_hyperelliptic or (g eq 1) then
     end if;
     dens := [ x^i : i in [0..(d div 2)] ];
 elif X`is_planar then
-    nums := [ x^i*y^j : i in [0..d], j in [0..(Degree(f, y) - 1)] | i + j le d ];
-    dens := nums;
-    nums := [ y^i*x^j : i in [0..d], j in [0..(Degree(f, x) - 1)] | i + j le d ];
-    dens := [ y^i : i in [0..d] ];
+    nums := [ x^i*y^j : i in [0..d], j in [0..(Degree(f, y) - 1)] ];
+    dens := [ x^i : i in [0..d] ];
 end if;
 return dens, nums;
 
@@ -155,14 +152,15 @@ end function;
 intrinsic CantorFromMatrixAmbientGlobal(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* The order below matters because of our initialization conventions */
+InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
 /* Correct for echelonization */
 NormM := Y`T * NormM * (X`T)^(-1);
 
 d := LowerBound;
-Iterator := InitializedIterator(X, Y, NormM, 2*Y`g + 2);
+Iterator := InitializedIterator(X, Y, NormM, X`g + 3);
 
 while true do
     found, fs, Iterator := CantorFromMatrixByDegree(X, Y, Iterator, d : Margin := Margin);
@@ -181,7 +179,8 @@ end intrinsic;
 intrinsic CantorFromMatrixAmbientSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* The order below matters because of our initialization conventions */
+InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
 /* Correct for echelonization */
@@ -197,7 +196,7 @@ vprint EndoCheck, 2: NormM;
 */
 
 /* Some global elements needed below */
-F := X`F; OF := X`OF; RX := X`RA; KA := X`KA;
+F := X`F; OF := X`OF; RA := X`RA; KA := X`KA;
 
 vprint EndoCheck, 2 : "";
 vprint EndoCheck, 2 : "Initializing iterator...";
@@ -241,18 +240,18 @@ while true do
     vprint EndoCheck : "Fractional CRT... ";
     fs := [ ];
     for i:=1 to #fss_red[1] do
-        num := RX ! 0;
+        num := RA ! 0;
         /* Because we took a large prime, the monomials that show up there will suffice */
         for mon in Monomials(Numerator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Numerator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            num +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RX, exp);
+            num +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RA, exp);
         end for;
-        den := RX ! 0;
+        den := RA ! 0;
         for mon in Monomials(Denominator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Denominator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            den +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RX, exp);
+            den +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RA, exp);
         end for;
         Append(~fs, KA ! (num / den));
     end for;
@@ -334,11 +333,11 @@ function ChangeFunctions(X, Y, fs)
 /* Change the functions on patches to rational functions on the original curves.
  * Especially relevant when considering elliptic curve factors. */
 
-R := X`RA; K := X`KA;
-subsX := [ K ! X`RA.1, K ! X`RA.2 ];
+R := X`RA; KA := X`KA;
+subsX := [ KA ! X`RA.1, KA ! X`RA.2 ];
 if X`is_hyperelliptic or (X`g eq 1) then
     if X`patch_index eq 3 then
-        subsX := [ subsX[2] / subsX[1]^(X`g + 1), 1 / subsX[1] ];
+        subsX := [ 1 / subsX[1], subsX[2] / subsX[1]^(X`g + 1) ];
     end if;
 elif X`is_planar then
     if X`patch_index eq 2 then
@@ -361,7 +360,7 @@ if Y`g eq 1 then
         fs := [ fs[2], fs[1] ];
     end if;
     if Y`patch_index eq 3 then
-        fs := [ 1 / fs[2], fs[1] / fs[2]^2 ];
+        fs := [ 1 / fs[1], fs[2] / fs[1]^2 ];
     end if;
 end if;
 

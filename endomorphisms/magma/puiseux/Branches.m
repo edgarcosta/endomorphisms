@@ -133,11 +133,9 @@ K := SplittingField(h(G[#G]));
 SK := BaseExtend(S, K);
 P := Eltseq(Points(SK)[1]);
 
-// TODO: See if this way to circumvent precision problems ever gives trouble
-assert exp le 1;
-PK := PuiseuxSeriesRing(K, 2);
-wK := PK.1^exp;
-return [ P[i] * wK + O(wK^2) : i in [1..gY] ], h(G[#G]);
+r := Eltseq(Rows(M)[1]);
+PK := PuiseuxSeriesRing(K, #r + 1); wK := PK.1^exp;
+return [ P[i] * wK : i in [1..gY] ], h(G[#G]);
 
 end function;
 
@@ -170,7 +168,9 @@ x0 := P0[1]; y0 := P0[2];
 PR := PuiseuxSeriesRing(F, 1);
 x := PR ! Coefficient(PR ! x0, 0); y := PR ! Coefficient(PR ! y0, 0);
 if n eq 0 then
-    return [x, y];
+    P := [ x, y ];
+    assert IsWeaklyZero(Evaluate(f, P));
+    return P;
 end if;
 
 log := 0;
@@ -190,7 +190,9 @@ while log le Ceiling(Log(2, n)) - 1 do
     y +:= -Evaluate(f, [x, y])/Evaluate(df, [x, y]);
     log +:= 1;
 end while;
-return [x, y];
+P := [ x, y ];
+assert IsWeaklyZero(Evaluate(f, P));
+return P;
 
 end function;
 

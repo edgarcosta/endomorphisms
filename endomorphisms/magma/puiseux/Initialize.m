@@ -44,23 +44,23 @@ if IsAffine(X) then
     return X, DefiningEquations(X), P0, 1;
 
 elif X`is_hyperelliptic or (X`g eq 1) then
-    U, P0, patch_index := AffinePatch(X, P0);
+    U, P0, patch_index := AffinePatch(X, P0); P0 := Eltseq(P0);
     DEs := DefiningEquations(AffinePatch(X, 1));
     RA := Parent(DEs[1]);
     d := 2*(X`g) + 2;
     if patch_index eq 3 then
-        /* Minus inserted for consistency in defining polynomial:
-         * Magma sees usual als p (x) - y^2 but this patch as x^2 - p (y).
-         * (Likely an irrelevant matter because we correct in the differentials.) */
-        DEs := [ RA ! (RA.2^d * Evaluate(DE, [ 1/RA.2, RA.1/(RA.2^(d div 2)) ])) : DE in DEs ];
+        /* Make sure that second variable defines hyperelliptic extension with
+         * same sign as usual */
+        DEs := [ RA ! (RA.1^d * Evaluate(DE, [ 1/RA.1, RA.2/(RA.1^(d div 2)) ])) : DE in DEs ];
+        P0 := Reverse(P0);
     end if;
     /* Check correctness of above */
     //print U; print DEs;
     U := Curve(AffineSpace(RA), DEs);
-    return U, DEs, U ! Eltseq(P0), patch_index;
+    return U, DEs, U ! P0, patch_index;
 
 elif X`is_planar then
-    U, P0, patch_index := AffinePatch(X, P0);
+    U, P0, patch_index := AffinePatch(X, P0); P0 := Eltseq(P0);
     DEs := DefiningEquations(AffinePatch(X, 1));
     RA := Parent(DEs[1]);
     if patch_index eq 2 then
@@ -71,7 +71,7 @@ elif X`is_planar then
     /* Check correctness of above */
     //print U; print DEs;
     U := Curve(AffineSpace(RA), DEs);
-    return U, DEs, U ! Eltseq(P0), patch_index;
+    return U, DEs, U ! P0, patch_index;
 end if;
 
 end function;
@@ -144,7 +144,7 @@ end if;
 end function;
 
 
-function NormalizedBasisOfDifferentials(X : NonWP := false)
+function NormalizedBasisOfDifferentials(X : AssertNonWP := false)
 /*
  * Input:   A curve X.
  * Output:  A differential basis Bnorm that is normalized with respect to the uniformizing parameter,
@@ -156,7 +156,7 @@ BP := [ Evaluate(b, P) : b in X`OurB ];
 M := Matrix([ [ Coefficient(BP[i], j - 1) : j in [1..(2*X`g + 1)] ] : i in [1..X`g] ]);
 E, T := EchelonForm(M); c := #Rows(Transpose(E));
 echelon_exps := [ Minimum([ i : i in [1..c] | Eltseq(row)[i] ne 0 ]) : row in Rows(E) ];
-if NonWP and (not echelon_exps eq [1..X`g]) then
+if AssertNonWP and (not echelon_exps eq [1..X`g]) then
     error "Base point is Weierstrass";
 end if;
 NormB := [ &+[ T[i,j] * X`OurB[j] : j in [1..X`g] ] : i in [1..X`g] ];
@@ -188,10 +188,11 @@ return Coefficients(eqpol);
 end function;
 
 
-procedure InitializeCurve(X, P0 : NonWP := false)
+procedure InitializeCurve(X, P0 : AssertNonWP := false)
 
 if not assigned X`initialized then X`initialized := false; end if;
 if X`initialized then return; end if;
+if AssertNonWP then assert not IsWeierstrassPlace(Place(X ! P0)); end if;
 
 X`is_hyperelliptic := Type(X) eq CrvHyp; X`is_planar := IsPlaneCurve(X); X`is_smooth := IsNonSingular(X);
 X`g := Genus(X); X`is_plane_quartic := (X`is_planar) and (X`is_smooth) and (X`g eq 3);
@@ -227,7 +228,7 @@ elif Type(X`F) eq FldNum then
 end if;
 
 X`OurB := OurBasisOfDifferentials(X);
-X`NormB, X`T, X`echelon_exps := NormalizedBasisOfDifferentials(X : NonWP := NonWP);
+X`NormB, X`T, X`echelon_exps := NormalizedBasisOfDifferentials(X : AssertNonWP := AssertNonWP);
 _<u,v> := Parent(X`OurB[1]);
 vprint EndoCheck, 3 : "";
 vprint EndoCheck, 3 : "Standard basis of differentials:";
@@ -264,8 +265,6 @@ if X`g eq 1 or X`is_hyperelliptic then
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, Reverse(rows));
     end if;
-    /* NOTE: There is no unif_index correction in this case because we always
-     * take the canonical basis in the above way */
 
 elif X`is_plane_quartic then
     if X`patch_index eq 2 then
@@ -289,8 +288,6 @@ if Y`g eq 1 or Y`is_hyperelliptic then
         rows := [ Eltseq(row) : row in Rows(M) ];
         M := -Matrix(F, Reverse(rows));
     end if;
-    /* NOTE: There is no unif_index correction in this case because we always
-     * take the canonical basis in the above way */
 
 elif Y`is_plane_quartic then
     if Y`patch_index eq 2 then

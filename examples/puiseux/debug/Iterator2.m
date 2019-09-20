@@ -13,7 +13,7 @@ repeat
     P0 := X ! [0, 1];
 until not IsWeierstrassPlace(Place(P0));
 print f;
-time InitializeCurve(X, P0 : NonWP := true);
+time InitializeCurve(X, P0 : AssertNonWP := true);
 
 repeat
     f := x^8 + &+[ Random(D)*x^i : i in [0..7] ];
@@ -22,7 +22,7 @@ repeat
     P0 := X ! [0, 0];
 until true;
 print f;
-time InitializeCurve(X, P0 : NonWP := false);
+time InitializeCurve(X, P0 : AssertNonWP := false);
 
 repeat
     g := x^8 + &+[ Random(D)*x^i : i in [0..7] ];
@@ -31,7 +31,7 @@ repeat
     Q0 := Y ! [1, 1];
 until not IsWeierstrassPlace(Place(Q0));
 print g;
-time InitializeCurve(Y, Q0 : NonWP := true);
+time InitializeCurve(Y, Q0 : AssertNonWP := true);
 
 M := Matrix(F, 3, 3, [ Random(D) : i in [1..9] ]);
 print M;

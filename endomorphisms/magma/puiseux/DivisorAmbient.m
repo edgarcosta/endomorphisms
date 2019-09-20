@@ -36,14 +36,14 @@ function CandidateDivisors(X, Y, d)
 
 gX := X`g; fX := X`DEs[1]; RX := X`RA;
 xX := RX.1; yX := RX.2;
-/* Change in hyperelliptic case for greater effectiveness: */
+/* Change in elliptic case for greater effectiveness: */
 if Degree(fX, RX.1) eq 2 then
     xX := RX.2; yX := RX.1;
 end if;
 
 gY := Y`g; fY := Y`DEs[1]; RY := Y`RA;
 xY := RY.1; yY := RY.2;
-/* Change in hyperelliptic case for greater effectiveness: */
+/* Change in elliptic case for greater effectiveness: */
 if Degree(fY, RY.1) eq 2 then
     xY := RY.2; yY := RY.1;
 end if;
@@ -173,7 +173,8 @@ end function;
 intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* The order below matters because of our initialization conventions */
+InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
 /* Correct for echelonization */
@@ -198,8 +199,8 @@ end intrinsic;
 intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
-/* We start at a suspected estimate and then increase degree until we find an appropriate divisor */
-InitializeCurve(X, P0); InitializeCurve(Y, Q0 : NonWP := true);
+/* The order below matters because of our initialization conventions */
+InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
 /* Correct for echelonization */
