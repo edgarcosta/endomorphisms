@@ -23,7 +23,7 @@ end if;
 
 if Geometric then
     EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return Order(Integers(), EndoAlg[2]);
+    return EndoDesc;
 end if;
 if not assigned X`base_endo_rep then
     F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
@@ -48,7 +48,7 @@ end if;
 
 if Geometric then
     EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoAlg, EndoDesc;
+    return EndoAlg[1];
 end if;
 if not assigned X`base_endo_rep then
     F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));

@@ -45,7 +45,7 @@ for i in [1..#Xs] do
 
     print "";
     print "Decomposition:";
-    print HeuristicDecompositionDescription(X);
+    print HeuristicDecompositionInformation(X);
 end for;
 
 exit;

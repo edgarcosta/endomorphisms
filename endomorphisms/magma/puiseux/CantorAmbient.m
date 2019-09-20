@@ -33,6 +33,7 @@ forward RelativeToAbsolute;
 
 function CandidateFunctions(X, d)
 /* Candidate numerators and denominators for Cantor functions */
+/* TODO: Add possibility to swap coordinates */
 
 g := X`g; f := X`DEs[1]; R := X`RA;
 x := R.1; y := R.2;
@@ -49,6 +50,7 @@ if X`is_hyperelliptic or (g eq 1) then
     end if;
     dens := [ x^i : i in [0..(d div 2)] ];
 elif X`is_planar then
+    //x := R.2; y := R.1;
     nums := [ x^i*y^j : i in [0..d], j in [0..(Degree(f, y) - 1)] ];
     dens := [ x^i : i in [0..d] ];
 end if;

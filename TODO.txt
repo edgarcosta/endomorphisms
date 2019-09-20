@@ -16,7 +16,6 @@ The second possibility is to first translate the infinitesimal development of Qj
 Later:
 Determine the "right" map when not consistently taking projections or inclusions; the naive suggestion is to use the inverse and multiply out denominators, but that seems too large
 Case of coinciding branches (multiplication trick)
-Divisor from Cantor? In principle this is all right: We pull back to X x Y^gY via the canonical map and then push to X x Y via idX x projection on the first coordinate. However, Magma cannot do this, since in it pushforwards are limited to maps between curves.
 Possibly store period matrices of reconstructed curve
 Use Khuri-Makdisi for Cantor representation
 

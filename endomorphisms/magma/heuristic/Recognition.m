@@ -238,12 +238,12 @@ end function;
 intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseQQ := false, UseRatRec := true, minpol := 0) -> .
 {Returns an approximation of the complex number aCC as an element of K. It calculates a minimal polynomial over QQ first.}
 
+if UseRatRec and Type(K) eq FldRat then return RationalReconstruction(aCC); end if;
 if not UseQQ then return AlgebraizeElementLLL(aCC, K); end if;
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
 
-if UseRatRec and Type(K) eq FldRat then return RationalReconstruction(aCC); end if;
 if Type(minpol) eq RngIntElt then minpol := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK))); end if;
 
 vprint EndoFind, 3 : "";
