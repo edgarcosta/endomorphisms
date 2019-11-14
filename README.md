@@ -98,5 +98,9 @@ Citing this code
 Please cite the following preprint if this code has been helpful in your research:
 
 Edgar Costa, Nicolas Mascot, Jeroen Sijsling, and John Voight  
-*Rigorous computation of the endomorphism ring of a Jacobian*  
-Preprint at [arXiv:1705.09248](https://arxiv.org/abs/1705.09248)
+*Rigorous computation of the endomorphism ring of a Jacobian*
+Mathematics of Computation, 88 (2019), 1303-1339 
+
+DOI: https://doi.org/10.1090/mcom/3373 
+
+Preprint available at [arXiv:1705.09248](https://arxiv.org/abs/1705.09248)
