@@ -17,7 +17,7 @@ You should also install [`pascalmolin/hcperiods`](https://github.com/pascalmolin
 
 Upcoming installations with Magma will include code by Christian Neurohr that will enable the computation of period matrices of plane curves. For now, this code is available via the dependency [`JRSijsling/RiemannSurfaces`](https://github.com/JRSijsling/RiemannSurfaces), a fork containing small modifications of the magnificent original version at [`christianneurohr/RiemannSurfaces`](https://github.com/christianneurohr/RiemannSurfaces).
 
-Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
+Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction) and [`JRSijsling/quartic_reconstruction`](https://github.com/JRSijsling/quartic_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
 
 Additional prerequisite for older Magma versions
 --
