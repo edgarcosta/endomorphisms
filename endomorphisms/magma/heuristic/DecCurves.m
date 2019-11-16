@@ -14,7 +14,7 @@ function ReconstructionFromComponentG1(P, Q, mor : AllPPs := false, ProjToIdem :
 
 A, R := Explode(mor); K := BaseRing(A);
 Rnew := R;
-if Im(Q[1,2]/Q[1,1]) lt 0 then
+if not IsBigPeriodMatrix(Q) then
     Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
     T := Matrix(Rationals(), [[0, 1],[1, 0]]);
     CorrectMap := ProjToIdem eq ProjToPP;
