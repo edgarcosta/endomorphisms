@@ -17,7 +17,7 @@ You should also install [`pascalmolin/hcperiods`](https://github.com/pascalmolin
 
 Upcoming installations with Magma will include code by Christian Neurohr that will enable the computation of period matrices of plane curves. For now, this code is available via the dependency [`JRSijsling/RiemannSurfaces`](https://github.com/JRSijsling/RiemannSurfaces), a fork containing small modifications of the magnificent original version at [`christianneurohr/RiemannSurfaces`](https://github.com/christianneurohr/RiemannSurfaces).
 
-Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
+Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction) and [`JRSijsling/quartic_reconstruction`](https://github.com/JRSijsling/quartic_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
 
 Additional prerequisite for older Magma versions
 --
@@ -98,5 +98,9 @@ Citing this code
 Please cite the following preprint if this code has been helpful in your research:
 
 Edgar Costa, Nicolas Mascot, Jeroen Sijsling, and John Voight  
-*Rigorous computation of the endomorphism ring of a Jacobian*  
-Preprint at [arXiv:1705.09248](https://arxiv.org/abs/1705.09248)
+*Rigorous computation of the endomorphism ring of a Jacobian*
+Mathematics of Computation, 88 (2019), 1303-1339 
+
+DOI: https://doi.org/10.1090/mcom/3373 
+
+Preprint available at [arXiv:1705.09248](https://arxiv.org/abs/1705.09248)
