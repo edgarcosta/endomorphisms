@@ -70,12 +70,10 @@ intrinsic SymplecticIsomorphisms(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : GeoH
 {Determines symplectic isomorphisms between abelian varieties defined by P and Q, which are assumed to be equipped with the standard principal polarization.}
 
 isosPart := SymplecticIsomorphismsCC(P, Q : GeoHomRep := GeoHomRep);
-print "asd";
 isosPart := [ [* ChangeRing(iso[1], F`CC), iso[2] *] : iso in isosPart ];
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(iso[1]) : iso in isosPart ];
 
-print "asd";
 /* Use splitting field instead of number field since the resulting field is
  * normal */
 vprint EndoFind : "";
