@@ -45,13 +45,16 @@ intrinsic SplittingFieldPari(f::RngUPolElt) -> .
 {Splitting field of f calculated using Pari.}
 
 //return SplittingField(f);
-assert BaseRing(f) eq Rationals();
+F := BaseRing(f);
+assert F eq Rationals();
 cmd := Sprintf(
 "{f = Pol(Vecrev(%o),'x); print1(nfsplitting(f))",
 Coefficients(f), Coefficients(f));
 s := Pipe("gp -q -D timer=0", cmd);
-R<x> := PolynomialRing(BaseRing(f));
-return Polredbestabs(NumberField(eval(s)));
+R<x> := PolynomialRing(F);
+L := Polredbestabs(NumberField(eval(s)));
+f := R ! DefiningPolynomial(L);
+return NumberFieldExtra(f);
 
 end intrinsic;
 
