@@ -36,6 +36,6 @@ time test, fs := CantorFromMatrixAmbientSplit(X, P0, Y, Q0, M : LowerBound := 24
 R<x,y> := Parent(fs[1]);
 print fs;
 
-print "Verification:", CorrespondenceVerifyG1(X, P0, Y, Q0, M, fs);
+print "Verification:", CorrespondenceVerifyG1(X, Y, M, fs);
 
 exit;
