@@ -53,6 +53,9 @@ function MorphismOfSmallDegreePQ(P, Q, K : Bound := 3)
 
 gX := #Rows(P); gY := #Rows(Q);
 HomRep, hKM := GeometricHomomorphismRepresentation(P, Q, K);
+/* Next two lines keeps things over base */
+HomRep := EndomorphismRepresentation(HomRep, K, hKM);
+_, hKM := InclusionOfBaseExtra(K);
 Rs := [ rep[2] : rep in HomRep ];
 
 D := [-Bound..Bound];
