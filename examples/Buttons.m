@@ -62,6 +62,19 @@ f1 := -y*z - 12*z^2 + x*w - 32*w^2;
 f2 := y^3 + 108*x^2*z + 36*y^2*z + 8208*x*z^2 - 6480*y*z^2 + 74304*z^3 + 96*y^2*w + 2304*y*z*w - 248832*z^2*w + 2928*y*w^2 - 75456*z*w^2 + 27584*w^3;
 X := Curve(P3, [f1, f2]);
 
+// More examples over QQ
+F := RationalsExtra(prec);
+R<x> := PolynomialRing(F);
+f := -25*x^6 + 12*x^5 + 27*x^4 - 16*x^3 - 3*x^2 + 4*x + 1;
+X := HyperellipticCurve(f);
+
+// Plane curves
+F := RationalsExtra(prec);
+R<x,y,z> := PolynomialRing(F, 3);
+f := -x^4 + (19208/355)*y^4 + 6*x^3*z + 196/355*(103*x^2 + 132*x*z + 5*z^2)*y^2 + 38*x^2*z^2 + 6*x*z^3 - z^4;
+X := PlaneCurve(f);
+
+
 
 print "";
 print "Curve:";

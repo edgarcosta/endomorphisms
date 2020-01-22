@@ -67,7 +67,7 @@ CC := BaseRing(P);
 ECC := ChangeRing(E, CC);
 prod1 := P * ECC^(-1) * Transpose(P);
 if not Maximum([ Abs(c) : c in Eltseq(prod1) ]) lt 10^20*BaseRing(P)`epscomp then
-    return false, 0;
+    return false;
 end if;
 
 /* Test positivity */
