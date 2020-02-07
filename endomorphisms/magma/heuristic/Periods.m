@@ -78,7 +78,12 @@ end intrinsic;
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
 
-F := BaseRing(X); CC := Parent(F`iota);
+F := BaseRing(X);
+if not assigned F`iota then
+    F := BaseNumberFieldExtra(DefiningPolynomial(F), 100);
+    X := ChangeRing(X, F);
+end if;
+CC := Parent(F`iota);
 vprint EndoFind : "";
 vprint EndoFind : "Calculating period matrix...";
 if assigned X`period_matrix then
