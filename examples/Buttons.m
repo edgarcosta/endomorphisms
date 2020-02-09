@@ -68,13 +68,6 @@ R<x> := PolynomialRing(F);
 f := -25*x^6 + 12*x^5 + 27*x^4 - 16*x^3 - 3*x^2 + 4*x + 1;
 X := HyperellipticCurve(f);
 
-// Plane curves
-F := RationalsExtra(prec);
-R<x,y,z> := PolynomialRing(F, 3);
-f := -x^4 + (19208/355)*y^4 + 6*x^3*z + 196/355*(103*x^2 + 132*x*z + 5*z^2)*y^2 + 38*x^2*z^2 + 6*x*z^3 - z^4;
-X := PlaneCurve(f);
-
-
 
 print "";
 print "Curve:";

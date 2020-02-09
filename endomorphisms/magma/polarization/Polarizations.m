@@ -9,6 +9,17 @@
  */
 
 
+function MatrixExtra(P)
+// Creates matrix over relevant base ring
+CC := BaseRing(P);
+if not assigned CC`epscomp then
+    CC := ComplexFieldExtra(Precision(BaseRing(P)));
+end if;
+return ChangeRing(P, CC);
+
+end function;
+
+
 intrinsic StandardSymplecticMatrix(g::RngIntElt) -> AlgMatElt
 {Standard symplectic 2 g x 2 g matrix.}
 
@@ -22,6 +33,7 @@ end intrinsic;
 intrinsic PolarizationBasis(P::ModMatFldElt) -> SeqEnum
 {Determines a basis of the alternating forms giving rise to a polarization on the period matrix P.}
 
+P := MatrixExtra(P);
 JP := ComplexStructure(P); RR := BaseRing(JP);
 gP := #Rows(JP) div 2; n := 4*gP^2;
 
@@ -62,6 +74,7 @@ end intrinsic;
 intrinsic IsPolarization(E::., P::.) -> .
 {Tests whether or not E defines a polarization on P.}
 
+P := MatrixExtra(P);
 CC := BaseRing(P);
 /* Test Hermitian property */
 ECC := ChangeRing(E, CC);
@@ -86,6 +99,7 @@ end intrinsic;
 intrinsic SomePrincipalPolarization(P::ModMatFldElt : B := 2) -> SeqEnum
 {Tries to return some principal polarization for P.}
 
+P := MatrixExtra(P);
 Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
 
 counter := 0;
@@ -115,8 +129,9 @@ end intrinsic;
 
 
 intrinsic SomePolarization(P::ModMatFldElt : B := 2) -> SeqEnum
-{Tries to return some principal polarization for P.}
+{Tries to return some polarization for P.}
 
+P := MatrixExtra(P);
 Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
 
 counter := 0;
@@ -149,6 +164,7 @@ intrinsic SomePrincipalPolarizations(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
 {Tries to return some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori if possible */
 
+P := MatrixExtra(P);
 Es := PolarizationBasis(P); CC := BaseRing(P);
 n := #Es; CP := CartesianPower(D, n);
 
@@ -171,6 +187,7 @@ intrinsic SomePolarizations(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
 {Tries to return some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori if possible */
 
+P := MatrixExtra(P);
 Es := PolarizationBasis(P); CC := BaseRing(P);
 n := #Es; CP := CartesianPower(D, n);
 
