@@ -1,14 +1,10 @@
 SetVerbose("EndoFind", 1);
 SetVerbose("CurveRec", 1);
 
-/*
-prec := 200;
+prec := 300;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);
 CC := F`CC;
-*/
-prec := 200;
-CC := ComplexField(prec);
 
 z12 := Exp(2*CC.1*Pi(CC)/12);
 P := Matrix(CC, [
@@ -18,6 +14,10 @@ P := Matrix(CC, [
 [z12^0,z12^7,z12^14,z12^21,z12^28,z12^35,z12^42,z12^49]
 ]);
 
-Es := PolarizationBasis(P);
-print Es;
-print SomePrincipalPolarization(P);
+test, E := SomePrincipalPolarization(P);
+_, U := FrobeniusFormAlternatingRational(E);
+Q := P*ChangeRing(Transpose(U), BaseRing(P));
+
+/* This one also works over a usual ComplexField */
+print SymplecticAutomorphismsCC(Q);
+print SymplecticAutomorphisms(Q, F);

@@ -8,9 +8,13 @@
  *  See LICENSE.txt for license details.
  */
 
+import "Polarizations.m": MatrixExtra;
+
+
 intrinsic SymplecticIsomorphismsCC(P::ModMatFldElt, Q::ModMatFldElt : GeoHomRep := [ ]) -> .
 {Determines symplectic isomorphisms between abelian varieties defined by P and Q, which are assumed to be equipped with the standard principal polarization.}
 
+P := MatrixExtra(P); Q := MatrixExtra(Q);
 if #Rows(P) ne #Rows(Q) then
     return [ ];
 end if;
@@ -54,6 +58,7 @@ end intrinsic;
 intrinsic SymplecticAutomorphismsCC(P::ModMatFldElt : GeoHomRep := [ ]) -> .
 {Determines symplectic automorphism group of the abelian variety defined by P, which is assumed to be equipped with the standard principal polarization.}
 
+P := MatrixExtra(P);
 auts := SymplecticIsomorphismsCC(P, P : GeoHomRep := GeoHomRep);
 Rs := [ aut[2] : aut in auts ];
 g := #Rows(P);
@@ -69,6 +74,7 @@ end intrinsic;
 intrinsic SymplecticIsomorphisms(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : GeoHomRep := [ ]) -> .
 {Determines symplectic isomorphisms between abelian varieties defined by P and Q, which are assumed to be equipped with the standard principal polarization.}
 
+P := MatrixExtra(P); Q := MatrixExtra(Q);
 isosPart := SymplecticIsomorphismsCC(P, Q : GeoHomRep := GeoHomRep);
 isosPart := [ [* ChangeRing(iso[1], F`CC), iso[2] *] : iso in isosPart ];
 /* Determine minimal polynomials needed */
@@ -104,6 +110,7 @@ end intrinsic;
 intrinsic SymplecticAutomorphisms(P::ModMatFldElt, F::Fld : GeoHomRep := [ ]) -> .
 {Determines symplectic automorphism group of the abelian variety defined by P, which is assumed to be equipped with the standard principal polarization.}
 
+P := MatrixExtra(P);
 isosPart := SymplecticIsomorphismsCC(P, P : GeoHomRep := GeoHomRep);
 isosPart := [ [* ChangeRing(iso[1], F`CC), iso[2] *] : iso in isosPart ];
 /* Determine minimal polynomials needed */
