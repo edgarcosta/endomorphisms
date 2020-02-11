@@ -39,7 +39,7 @@ elif #GeneratorsSequence(RCC) eq 3 then
     if test then
         X := SE_Curve(fCC, e : Prec := Precision(CC));
         P := X`BigPeriodMatrix;
-        //P := SuperellipticCompatibility(P, e);
+        P := SuperellipticCompatibility(P, e);
         return ChangeRing(P, CC), X;
     else
         /* Note: only polynomials over QQ for now */
@@ -155,7 +155,7 @@ rowsP := Rows(P);
 if #rowsP eq 3 then
     return Matrix([ rowsP[3], rowsP[1], rowsP[2] ]);
 end if;
-error "Need g = 3 for now";
+return P;
 
 end function;
 
