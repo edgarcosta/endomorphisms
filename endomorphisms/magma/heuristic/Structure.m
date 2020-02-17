@@ -74,7 +74,7 @@ end intrinsic;
 //end intrinsic;
 
 
-intrinsic EndomorphismStructure(EndoRep::SeqEnum) -> List
+intrinsic EndomorphismStructure(EndoRep::SeqEnum : CalcPic := true) -> List
 {Given a representation EndoRep of an endomorphism ring, return the
 corresponding algebra, ring, and algebra tensored with RR, along with
 corresponding descriptions.}
@@ -96,10 +96,14 @@ C := AssociativeAlgebra(B); GensC := [ C ! gen : gen in GensB ];
 EndoAlgQQ, EndoDescQQ := EndomorphismAlgebraQQ(C, GensC, EndoRep);
 EndoAlgZZ, EndoDescZZ := EndomorphismAlgebraZZ(C, GensC);
 EndoDescRR := EndomorphismAlgebraRR(C, EndoDescQQ);
-pic := #RosatiFixedModule(EndoRep);
-
 EndoAlg := [* EndoAlgQQ, EndoAlgZZ *];
-EndoDesc := < EndoDescRR, EndoDescQQ, EndoDescZZ, pic >;
+
+if CalcPic then
+    pic := #RosatiFixedModule(EndoRep);
+    EndoDesc := < EndoDescRR, EndoDescQQ, EndoDescZZ, pic >;
+else
+    EndoDesc := < EndoDescRR, EndoDescQQ, EndoDescZZ >;
+end if;
 vprint EndoFind, 2 : "done calculating endomorphism structure.";
 return EndoAlg, EndoDesc;
 

@@ -49,7 +49,7 @@ end function;
 intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
 {Returns factors of the Jacobian and a spanning set of idempotents.}
 
-GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
+GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep : CalcPic := false);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
 C := GeoEndoAlg[1]; idemsC := CentralIdempotents(C);
 return [ MatricesFromIdempotent(idemC, GeoEndoData) : idemC in idemsC ];
@@ -136,7 +136,7 @@ vprint EndoFind, 3 : "done algebraizing matrices.";
 
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Finding geometric endomorphisms...";
-GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep);
+GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep : CalcPic := false);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
 idems_geo := SplittingIdempotentsAlgebra(GeoEndoData);
 vprint EndoFind, 3 : "done finding endomorphisms.";
@@ -423,7 +423,7 @@ intrinsic DecompositionOverBase(X::.) -> .
 F := BaseRing(X); P := PeriodMatrix(X); g := #Rows(P);
 EndoDesc := HeuristicEndomorphismDescription(X);
 EndoRep := X`base_endo_rep;
-EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
 C, GensC := Explode(EndoAlg);
 EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
@@ -474,7 +474,7 @@ for i := 1 to #EndoDescQQ do
         GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, F);
         F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRepQ[1][1]));
         EndoRepQ := EndomorphismRepresentation(GeoEndoRepQ, F, h);
-        EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ);
+        EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ : CalcPic := false);
         EndoDataQ := [* EndoRepQ, EndoAlgQ, EndoDescQ *];
         idemsQ := SplittingIdempotentsAlgebra(EndoDataQ);
 
@@ -499,7 +499,7 @@ intrinsic IsotypicalField(X::.) -> .
 {HAX I SAY.}
 
 EndoRep := GeometricEndomorphismRepresentation(X);
-EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
 C, GensC := Explode(EndoAlg);
 EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
@@ -603,7 +603,7 @@ for i := 1 to #EndoDescQQ do
     if (e eq 2) or (e eq 3) then
         GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, L);
         EndoRepQ := EndomorphismRepresentation(GeoEndoRepQ, K, h);
-        EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ);
+        EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ : CalcPic := false);
         EndoDataQ := [* EndoRepQ, EndoAlgQ, EndoDescQ *];
         idemsQ := SplittingIdempotentsAlgebra(EndoDataQ);
 
