@@ -17,7 +17,7 @@ forward EndomorphismAlgebraZZ;
 forward DecompositionDescription;
 
 
-intrinsic EndomorphismData(GeoEndoRep::SeqEnum, GalK::List) -> List
+intrinsic EndomorphismData(GeoEndoRep::SeqEnum, GalK::List : CalcPic := true) -> List
 {Given a representation of the geometric endomorphism ring and a Galois group
 GalK, returns the endomorphism structure over the subfield corresponding to
 GalK.}
@@ -26,21 +26,21 @@ vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Calculating representation over subfield...";
 EndoRep, hKL := EndomorphismRepresentation(GeoEndoRep, GalK);
 vprint EndoFind, 2 : "done calculating representation over subfield.";
-EndoAlg, EndoDesc := EndomorphismStructure(EndoRep);
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := CalcPic);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
 return EndoData, hKL;
 
 end intrinsic;
 
 
-intrinsic EndomorphismData(GeoEndoRep::SeqEnum, K::Fld, h::Map) -> List
+intrinsic EndomorphismData(GeoEndoRep::SeqEnum, K::Fld, h::Map : CalcPic := true) -> List
 {Given a representation of the geometric endomorphism ring and a field K,
 returns the endomorphism structure over K.}
 
 /* Apply previous function after finding a corresponding subgroup */
 L := BaseRing(GeoEndoRep[1][1]);
 GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
-return EndomorphismData(GeoEndoRep, GalK);
+return EndomorphismData(GeoEndoRep, GalK : CalcPic := CalcPic);
 
 end intrinsic;
 

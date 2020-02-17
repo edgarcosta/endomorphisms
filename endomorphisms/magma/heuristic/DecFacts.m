@@ -159,7 +159,7 @@ end if;
 /* Run through lattice and use smallest field where decomposition occurs */
 for J in Reverse(Js) do
     gensM := Generators(J); GalM := [* gensM, Gphi *];
-    EndoData, hML := EndomorphismData(GeoEndoRep, GalM);
+    EndoData, hML := EndomorphismData(GeoEndoRep, GalM : CalcPic := false);
     idems := SplittingIdempotentsAlgebra(EndoData);
     M := BaseRing(idems[1][1]);
     if #idems eq #idems_geo then
