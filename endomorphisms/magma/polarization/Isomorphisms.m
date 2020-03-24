@@ -22,6 +22,9 @@ end if;
 if #GeoHomRep eq 0 then
     GeoHomRep := GeometricHomomorphismRepresentationCC(P, Q);
 end if;
+if #GeoHomRep eq 0 then
+    return [ ];
+end if;
 Rs := [ tup[2] : tup in GeoHomRep ];
 
 g := #Rows(P); CC := BaseRing(P);
