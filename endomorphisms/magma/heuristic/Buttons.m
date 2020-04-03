@@ -324,7 +324,9 @@ if IsHyperelliptic(X) and Cheat then
         X := HyperellipticCurve(geven);
     end if;
 end if;
-print X;
+vprint EndoFind : "";
+vprint EndoFind : "Curve after transformation to standard form:";
+vprint EndoFind : X;
 
 GeoEndoRepCC := HeuristicEndomorphismRepresentation(X : Geometric := true, CC := true);
 if not VerifySaturated(GeoEndoRepCC, X`period_matrix) then
