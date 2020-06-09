@@ -11,7 +11,6 @@
  */
 
 declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep_CC, geo_endo_rep, base_endo_rep, base_point, ghpols;
-declare attributes SECurve : plane_model, period_matrix, riesrf, geo_endo_rep_CC, geo_endo_rep, base_endo_rep, base_point, ghpols;
 
 
 intrinsic PlaneCurve(F::RngMPolElt) -> Crv
@@ -36,7 +35,7 @@ one of "hyp", "genhyp", "plane" and "gen".}
 
 if Type(X) eq CrvHyp then
     return "hyp";
-elif assigned X`gh_pols eq CrvPln then
+elif assigned X`ghpols then
     return "genhyp";
 elif Type(X) eq CrvPln then
     return "plane";
@@ -47,38 +46,14 @@ end if;
 end intrinsic;
 
 
-function EmbedCurveEquations(X)
-// Returns the defining equations of X base changed to CC to precision prec,
-// using the infinite place of the base ring of X.
-
-if Type(X) eq CrvHyp or Type(X) eq CrvEll then
-    f, h := HyperellipticPolynomials(X);
-    return EmbedPolynomialsExtra([ f, h ]);
-elif Type(X) eq CrvPln then
-    F := DefiningPolynomial(X);
-    return EmbedPolynomialsExtra([ F ]);
-end if;
-error "Function not available for general curves";
-
-end function;
-
-
 intrinsic ChangeRingCurve(X::Crv, h::.) -> Crv
 {Returns X base changed by a morphism h whose domain is the base ring of X.}
 
 if Type(X) eq CrvHyp then
     fK, hK := HyperellipticPolynomials(X);
     L := Codomain(h); S := PolynomialRing(L);
-    if fK eq 0 then
-        fL := S ! 0;
-    else
-        fL := &+[ h(Coefficient(fK, d))*S.1^d : d in [0..Degree(fK)] ];
-    end if;
-    if hK eq 0 then
-        hL := S ! 0;
-    else
-        hL := &+[ h(Coefficient(hK, d))*S.1^d : d in [0..Degree(hK)] ];
-    end if;
+    if fK eq 0 then fL := S ! 0; else fL := &+[ h(Coefficient(fK, d))*S.1^d : d in [0..Degree(fK)] ]; end if;
+    if hK eq 0 then hL := S ! 0; else hL := &+[ h(Coefficient(hK, d))*S.1^d : d in [0..Degree(hK)] ]; end if;
     return HyperellipticCurve(fL, hL);
 
 elif Type(X) eq CrvPln then
@@ -156,7 +131,50 @@ end if;
 end intrinsic;
 
 
-/* These functions are only used in Sage */
+intrinsic PlaneModel(X::Crv) -> .
+{Returns a plane model for more complicated curves.}
+
+if assigned X`plane_model then return X`plane_model; end if;
+if Type(X) eq CrvHyp or Type(X) eq CrvPln then X`plane_model := X; return X`plane_model; end if;
+
+F := DefiningPolynomial(AlgorithmicFunctionField(FunctionField(X)));
+L := Parent(F); K := BaseRing(L);
+
+R := PolynomialRing(BaseRing(K));
+S := PolynomialRing(BaseRing(K), 2);
+h := hom< R -> S | S.1 >;
+
+F0 := S ! 0; coeffs := Coefficients(F);
+for i in [1..#coeffs] do
+    F0 +:= h(R ! coeffs[i])*S.2^(i - 1);
+end for;
+
+X`plane_model := PlaneCurve(F0);
+return X`plane_model;
+
+end intrinsic;
+
+
+intrinsic GeneralizedHyperellipticCurve(q::RngMPolElt,f::RngMPolElt) -> Crv
+{ Given conic q(z,y,z) and homogeneous poynomial f(x,y,z) of degree >= 3, returns curve [q(x,y,z)=0,w^2=f(z,y,x)] in [2,1,1,1] weighted projective space. }
+// Written by Andrew Sutherland
+
+require Parent(q) eq Parent(f): "Polynomials must lie in the same polynomial ring.";
+require Rank(Parent(q)) eq 3: "Ternary homogeneous polynomials expected.";
+R := Parent(q); F := BaseRing(R);
+require VariableWeights(R) eq [1,1,1]: "Polynomials must lie in an unweighted polynomial ring of rank 2 or 3.";
+require IsHomogeneous(q) and Degree(q) eq 2: "First input should be a conic.";
+require IsHomogeneous(f) and IsEven(Degree(f)) and Degree(f) ge 4: "Second input should be bivariate or homogeneous trivariate polynomial whose homogenization is of even degree at least 4.";
+
+P<w,x,y,z> := ProjectiveSpace(F,[2,1,1,1]);
+X := Curve(P,[Evaluate(q,[x,y,z]),w^2-Evaluate(f,[x,y,z])]);
+X`ghpols := [ q, f ];
+return X;
+
+end intrinsic;
+
+
+/* These functions are for the SageMath interface */
 intrinsic HyperellipticCurveExtra(f::RngUPolElt, h::., prec::RngIntElt) -> Crv
 {Returns the hyperelliptic curve over the rationals with precision prec defined
 by f and h. Only relevant in the Sage interface.}
@@ -174,51 +192,4 @@ which can be given affinely or projectively. Only relevant in the Sage interface
 QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ, #GeneratorsSequence(Parent(F)));
 return PlaneCurve(RQQ ! F);
 
-end intrinsic;
-
-
-intrinsic PlaneModel(X::Crv) -> .
-{Returns a plane model for more complicated curves.}
-// TODO: This is sometimes buggy.
-
-if assigned X`plane_model then
-    return X`plane_model;
-end if;
-
-if Type(X) eq CrvHyp or Type(X) eq CrvPln then
-    X`plane_model := X;
-    return X`plane_model;
-end if;
-
-F := DefiningPolynomial(AlgorithmicFunctionField(FunctionField(X)));
-L := Parent(F); K := BaseRing(L);
-
-R := PolynomialRing(BaseRing(K));
-S := PolynomialRing(BaseRing(K), 2);
-h := hom< R -> S | S.1 >;
-F0 := S ! 0;
-
-coeffs := Coefficients(F);
-for i in [1..#coeffs] do
-    F0 +:= h(R ! coeffs[i])*S.2^(i - 1);
-end for;
-X`plane_model := PlaneCurve(F0);
-return X`plane_model;
-
-end intrinsic;
-
-
-intrinsic GeneralizedHyperellipticCurve(q::RngMPolElt,f::RngMPolElt) -> Crv
-{ Given conic q(z,y,z) and homogeneous poynomial f(x,y,z) of degree >= 3, returns curve [q(x,y,z)=0,w^2=f(z,y,x)] in [2,1,1,1] weighted projective space. }
-    require Parent(q) eq Parent(f): "Polynomials must lie in the same polynomial ring.";
-    require Rank(Parent(q)) eq 3: "Ternary homogeneous polynomials expected.";
-    R := Parent(q); F := BaseRing(R);
-    require VariableWeights(R) eq [1,1,1]: "Polynomials must lie in an unweighted polynomial ring of rank 2 or 3.";
-    require IsHomogeneous(q) and Degree(q) eq 2: "First input should be a conic.";
-    require IsHomogeneous(f) and IsEven(Degree(f)) and Degree(f) ge 4: "Second input should be bivariate or homogeneous trivariate polynomial whose homogenization is of even degree at least 4.";
-
-    P<w,x,y,z> := ProjectiveSpace(F,[2,1,1,1]);
-    X := Curve(P,[Evaluate(q,[x,y,z]),w^2-Evaluate(f,[x,y,z])]);
-    X`ghpols := [ q, f ];
-    return X;
 end intrinsic;

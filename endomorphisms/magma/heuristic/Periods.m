@@ -10,80 +10,15 @@
  */
 
 import "Curves.m": EmbedCurveEquations;
-forward IsSuperellipticEquation;
-forward SuperellipticCompatibility;
 forward PeriodMatrixGH;
 
-
-intrinsic PeriodMatrix(eqsCC::SeqEnum, eqsK::SeqEnum) -> ModMatFldElt, .
-{Returns the period matrix of the curve defined by the complex polynomials
-eqsCC.}
-
-/* At this point CC has some extra precision */
-RCC := Parent(eqsCC[1]); CC := BaseRing(RCC);
-if #GeneratorsSequence(RCC) eq 1 then
-    if #eqsCC eq 2 then
-        fCC, hCC := Explode(eqsCC);
-        gCC := (4*fCC + hCC^2) / 4;
-    else
-        gCC := Explode(eqsCC);
-    end if;
-    /* We divide by 2 because we integrate with respect to the canonical
-     * differential x^i dx / 2y
-     * (MN use x^i dx) */
-    X := SE_Curve(gCC, 2 : Prec := Precision(CC));
-    return ChangeRing(X`BigPeriodMatrix, CC) / 2, X;
-
-elif #GeneratorsSequence(RCC) eq 3 then
-    test, fCC, e := IsSuperellipticEquation(eqsCC);
-    if test then
-        X := SE_Curve(fCC, e : Prec := Precision(CC));
-        P := X`BigPeriodMatrix;
-        P := SuperellipticCompatibility(P, e);
-        return ChangeRing(P, CC), X;
-    else
-        /* Note: only polynomials over QQ for now */
-        F := Explode(eqsK);
-        X := PlaneCurve(F); f := DefiningEquation(AffinePatch(X, 1));
-
-        S := RiemannSurface(f : Precision := Precision(CC));
-        P := ChangeRing(BigPeriodMatrix(S), CC);
-        return P, S;
-    end if;
-
-else
-    error "No functionality for general curves available";
-end if;
-end intrinsic;
+/* TODO: Add integration over CC via cheat using QQ (i) */
 
 
-intrinsic PeriodMatrix(X::SECurve) -> ModMatFldElt
-{Returns the period matrix of X.}
-F := BaseRing(Parent(X`DefiningPolynomial)); CC := Parent(F`iota);
-P := ChangeRing(X`BigPeriodMatrix, CC);
-
-/* Compatibility with Birkenhake--Lange */
-g := #Rows(P);
-P1 := Submatrix(P, 1,1,   g,g);
-P2 := Submatrix(P, 1,g+1, g,g);
-P := HorizontalJoin(P2, P1);
-
-return P, X;
-end intrinsic;
-
-
-/* TODO: Also implement this right for generalized hyperelliptic curves for
- * isogeny purposes (right now this is not needed because of the conjugation
- * involved) */
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
 
-F := BaseRing(X);
-if not assigned F`iota then
-    F := BaseNumberFieldExtra(DefiningPolynomial(F), 100);
-    X := ChangeRing(X, F);
-end if;
-CC := Parent(F`iota);
+F := BaseRing(X); CC := Parent(F`iota);
 vprint EndoFind : "";
 vprint EndoFind : "Calculating period matrix...";
 if assigned X`period_matrix then
@@ -91,73 +26,64 @@ if assigned X`period_matrix then
     return X`period_matrix;
 end if;
 
-if assigned X`ghpols then
+if CurveType(X) eq "genhyp" then
     q, f := Explode(X`ghpols);
     X`period_matrix := PeriodMatrixGH(q, f);
     return X`period_matrix;
 end if;
 
-Y := PlaneModel(X);
-eqsCC := EmbedCurveEquations(Y); eqsF := DefiningEquations(Y);
-P, RS := PeriodMatrix(eqsCC, eqsF);
+if CurveType(X) eq "hyp" then
+    f, h := HyperellipticPolynomials(X);
+    g := (4*f + h^2) / 4;
+    gCC := EmbedPolynomialExtra(g);
+    RS := RiemannSurface(gCC, 2);
+    P := ChangeRing(BigPeriodMatrix(RS), CC);
+end if;
 
-/* Compatibility with Birkenhake--Lange */
+if CurveType(X) in [ "plane", "gen" ] then
+    Y := PlaneModel(X);
+
+    /* Determine correct embedding */
+    if not Type(F) eq FldRat then
+        sigmas := InfinitePlaces(F);
+        for sigmatry in sigmas do
+            embF := EmbedExtra(F.1);
+            embsigma := CC ! Evaluate(F.1, sigmatry : Precision := Precision(CC));
+            embsigmacc := ComplexConjugate(embsigma);
+            if Abs(embF - embsigma) lt CC`epscomp then
+                found := true; cc := false; sigma := sigmatry; break;
+            elif Abs(embF - embsigmacc) lt CC`epscomp then
+                found := true; cc := true; sigma := sigmatry; break;
+            end if;
+        end for;
+        assert found;
+    end if;
+
+    f := DefiningPolynomial(AffinePatch(Y, 1));
+    if Type(F) eq FldRat then
+        RS := RiemannSurface(f : Precision := Precision(CC));
+        P := ChangeRing(BigPeriodMatrix(RS), CC);
+    else
+        RS := RiemannSurface(f, sigma : Precision := Precision(CC));
+        P := ChangeRing(BigPeriodMatrix(RS), CC);
+        /* Conjugate if needed */
+        if cc then
+            P := Matrix(CC, [ [ ComplexConjugate(c) : c in Eltseq(row) ] : row in Rows(P) ]);
+        end if;
+    end if;
+end if;
+
+/* Storing info and ensuring compatibility with Birkenhake--Lange */
+X`riesrf := RS;
 g := #Rows(P);
 P1 := Submatrix(P, 1,1,   g,g);
 P2 := Submatrix(P, 1,g+1, g,g);
 P := HorizontalJoin(P2, P1);
-
-X`period_matrix := ChangeRing(P, CC);
-X`riesrf := RS;
+X`period_matrix := P;
 vprint EndoFind : "done calculating period matrix.";
 return X`period_matrix;
 
 end intrinsic;
-
-
-/* TODO: Next functions should go since this realization is up to the user once
- * there is a dedicated SE class */
-function IsSuperellipticEquation(eqs)
-// Returns whether the plane curve defined by eqs is of the form y^e z^* = f
-// (x, z). If so, return the inhomogenous form of f along with e.
-
-R<x,y,z> := Parent(eqs[1]);
-if #GeneratorsSequence(R) eq 1 then
-    return false, 0, 1;
-end if;
-
-F := Explode(eqs);
-mons := Monomials(F);
-monsy := [ mon : mon in mons | Exponents(mon)[2] ne 0 ];
-monsxz := [ mon : mon in mons | Exponents(mon)[2] eq 0 ];
-if #monsy ne 1 or not &and[ Exponents(mon)[1] eq 0 : mon in monsy ] then
-    return false, 0, 1;
-end if;
-
-e := Exponents(monsy[1])[2];
-S<t> := PolynomialRing(BaseRing(R));
-f := &+[ MonomialCoefficient(F, mon) * t^(Exponents(mon)[1]) : mon in monsxz ];
-C := MonomialCoefficient(F, monsy[1]);
-f := -f/C;
-return true, f, e;
-
-end function;
-
-
-function SuperellipticCompatibility(P, e)
-// Transforms the differentials on a superelliptic curve to compensate for
-// conventions.
-// TODO: Generalize this to apply beyond genus 3. This is a matter of fixing a
-// base of differentials. But actually superelliptic curves should be treated
-// as a class of their own. Not now: use base provided by Christian.
-
-rowsP := Rows(P);
-if #rowsP eq 3 then
-    return Matrix([ rowsP[3], rowsP[1], rowsP[2] ]);
-end if;
-return P;
-
-end function;
 
 
 function PeriodMatrixGH(q, f)
@@ -172,15 +98,20 @@ R := PolynomialRing(F); h21 := hom< S2 -> R | [ R.1, 1 ] >;
 Q := Conic(PP2, q);
 test, P := HasRationalPoint(Q);
 if not test then
+    /* Find suitable base extension */
     p := Evaluate(q, [ R.1, 0, 1 ]); K := NumberFieldExtra(p);
     S := PolynomialRing(K, 3); h := hom< Parent(q) -> S | [ S.1, S.2, S.3 ] >;
     q := h(q); f := h(f);
 
+    /* Redefine */
     S3 := S; KS3 := FieldOfFractions(S3); PP2 := ProjectiveSpace(S3);
     S2 := PolynomialRing(K, 2); KS2 := FieldOfFractions(S2); PP1 := ProjectiveSpace(S2);
     R := PolynomialRing(K); h21 := hom< S2 -> R | [ R.1, 1 ] >;
 
-    Q := Conic(PP2, q); test, P := HasRationalPoint(Q);
+    /* Now we have a point! */
+    Q := Conic(PP2, q);
+    p := Evaluate(q, [ R.1, 0, 1 ]); r := Roots(p)[1][1];
+    P := Q ! [ r, 0, 1 ];
 end if;
 phi := Parametrization(Q, P);
 DE := DefiningEquations(phi);
@@ -189,6 +120,7 @@ DE := [ h(c) : c in DE ];
 
 /* Create hyperelliptic curve */
 // TODO: This could give incompatibilities! Not yet though.
+// [Update: I no longer understand this comment, but I keep it in just in case.]
 g := Evaluate(f, DE);
 PP2W := ProjectiveSpace(K, [Degree(f),1,1]);
 S3W := CoordinateRing(PP2W);

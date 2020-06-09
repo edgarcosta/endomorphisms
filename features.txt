@@ -1,0 +1,22 @@
+=======================
+FEATURES OF THE PACKAGE
+=======================
+
+Pari/GP:
+The package uses Pari/GP to improve Magma functionality with fields. In particular, one can Polredabs or Polredbest input fields or polynomials. Similarly, there are functions RootsPari, HasRootPari, FactorizationPari, SplittingFieldPari and AutomorphismGroupPari.
+
+Abelian category:
+There are functions Ker0, Coker, ImgInc, ImgProj and ImgIdemp for calculating in the category of abelian varieties.
+
+Polarization and duals:
+Heuristic functions to determine (principal) polarizations on a given complex torus are available. There are isomorphism and automorphism tests for principally polarized abelian varieties (respecting the given polarization), and duals of maps can be formed. Finally, one can determine the image of a given endomorphism under the Rosati involution and calculate the rank of the subspace of the endomorphism algebra that is fixed under Rosati.
+
+Complex fields:
+
+Periods:
+
+Endomorphism representations:
+
+Structure:
+
+Buttons:
