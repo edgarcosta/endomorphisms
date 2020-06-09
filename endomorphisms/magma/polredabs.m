@@ -48,7 +48,7 @@ intrinsic Polredbestabs(f::RngUPolElt) -> RngUPolElt, SeqEnum, BoolElt
   return fredabs, Eltseq(iota(K.1)), bl;
 end intrinsic;
 
-intrinsic Polredabs(K::Fld : Best := false) -> FldNum, Map, BoolElt
+intrinsic Polredabs(K::Fld : Best := true) -> FldNum, Map, BoolElt
   { A smallest generating polynomial of the number field, using pari. }
 
   if Type(K) eq FldRat then
