@@ -154,34 +154,34 @@ return RationalsExtra(100);
 end intrinsic;
 
 
-//intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
-//{Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
-//
-//K := BaseRing(f);
-//if Degree(f) eq 1 then
-//    L := RationalsExtra(prec);
-//    hKL := hom< K -> L | >;
-//    r := Roots(f, L)[1][1];
-//    return L, r, hKL;
-//end if;
-//
-//Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
-//L`base := L; L`base_gen := L.1; L`CC := ComplexFieldExtra(prec); L`iota := InfinitePlacesExtra(L)[1];
-//hKL := hom< K -> L | >;
-//
-///* Final improvement step before returning root */
-//L0, hLL0 := ImproveFieldExtra(L);
-//return L0, hLL0(L ! r), hKL * hLL0;
-//
-//end intrinsic;
-//
-//
-//intrinsic BaseNumberFieldExtra(f::RngUPolElt) -> FldNum
-//{Default BaseNumberFieldExtra defined by f with precision 100.}
-//
-//return BaseNumberFieldExtra(f, 100);
-//
-//end intrinsic;
+intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
+{Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
+
+K := BaseRing(f);
+if Degree(f) eq 1 then
+    L := RationalsExtra(prec);
+    hKL := hom< K -> L | >;
+    r := Roots(f, L)[1][1];
+    return L, r, hKL;
+end if;
+
+Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
+L`base := L; L`base_gen := L.1; L`CC := ComplexFieldExtra(prec); L`iota := InfinitePlacesExtra(L)[1];
+hKL := hom< K -> L | >;
+
+/* Final improvement step before returning root */
+L0, hLL0 := ImproveFieldExtra(L);
+return L0, hLL0(L ! r), hKL * hLL0;
+
+end intrinsic;
+
+
+intrinsic BaseNumberFieldExtra(f::RngUPolElt) -> FldNum
+{Default BaseNumberFieldExtra defined by f with precision 100.}
+
+return BaseNumberFieldExtra(f, 100);
+
+end intrinsic;
 
 
 intrinsic DescendInfinitePlace(L::Fld, K::Fld, h::Map) -> Fld
@@ -517,7 +517,7 @@ for aCC in aCCs do
     L := Lnew;
 end for;
 
-// TODO: This sanity check before returning is optional
+/* Sanity check before returning */
 F := L`base; CC := L`CC;
 genKCC0 := EmbedExtra(K.1);
 genKCC1 := EmbedExtra(h(K.1));
@@ -638,7 +638,9 @@ end if;
 F := K`base; CC := K`CC;
 genFCC0 := EmbedExtra(F.1); genKCC0 := EmbedExtra(K.1);
 
-/* Get absolute field and we need an iso that respects results so far */
+/* Get absolute field and we need an iso that respects results so far.
+ * We could also extend repeatedly, but this is more effective in practice.
+ * A more general Pari/GP version should be used */
 L, rtsg := SplittingField(gK);
 if IsQQ(K) then h1 := hom< K -> L | >; else h1 := hom< K -> L | L ! (K.1) >; end if;
 L, h2 := Polredabs(L); h := h1*h2;
@@ -725,7 +727,7 @@ end intrinsic;
 
 
 intrinsic CompositumExtra(K::Fld, L::Fld : Compat := false) -> Fld
-{Returns the compositum of the fields K and L over their common base field, by taking the splitting field of the polynomial defining L to extend K.}
+{Returns the compositum of the fields K and L over their common base field, by taking a root of the polynomial defining L over K.}
 
 /* Trivial cases */
 if IsQQ(K) and IsQQ(L) then

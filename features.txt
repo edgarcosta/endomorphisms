@@ -15,9 +15,9 @@ Complex fields:
 The fields ComplexFieldExtra carry some extra parameters for comparison purposes. These can be used to decide what is 0 or to set height bounds when running LLL algorithms.
 
 Number fields:
-Relative fields are represented using "normal" number fields in Magma for simplification purpose. The base field is indicated via a flag and an embedding that memorizes the image of the generator of the base field. Infinite places are defined without identifying under complex conjugation. Embeddings with respect to infinite places (the chosen one by default) and conjugations by maps are also implemented, not only for elements, but also for polynomials and matrices.
+Relative fields are represented using "normal" number fields in Magma for simplification purpose. The base field is indicated via a flag and an embedding that memorizes the image of the generator of the base field. Infinite places are defined without identifying under complex conjugation. Embeddings with respect to infinite places (the chosen one by default) as well as conjugations and coercions by maps are also implemented, not only for elements, but also for polynomials and matrices.
 
-As a main function, given a (relative) base number field and elements of CC, a corresponding extension can be determined.
+As a main function, given a (relative) base number field and elements of CC, a corresponding extension can be determined. This is also possible for splitting fields.
 
 Take care with the following:
 * All fields will get simplified by default, meaning that you should not rely on generators coming out with the minimal polynomials that you are used to. Instead, find the relevant elements after creating the field by taking roots.
