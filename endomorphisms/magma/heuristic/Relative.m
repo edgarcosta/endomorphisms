@@ -9,6 +9,9 @@
  *  See LICENSE.txt for license details.
  */
 
+/* Main idea: All fields have QQ as a base in Magma for simplifying
+* manipulations, and the inclusion of the base is remembered by specifying an
+* image of its generator */
 
 declare attributes FldNum : base, base_gen, CC, iota, aut;
 declare attributes FldRat : base, base_gen, CC, iota, aut;
@@ -151,34 +154,34 @@ return RationalsExtra(100);
 end intrinsic;
 
 
-intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
-{Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
-
-K := BaseRing(f);
-if Degree(f) eq 1 then
-    L := RationalsExtra(prec);
-    hKL := hom< K -> L | >;
-    r := Roots(f, L)[1][1];
-    return L, r, hKL;
-end if;
-
-Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
-L`base := L; L`base_gen := L.1; L`CC := ComplexFieldExtra(prec); L`iota := InfinitePlacesExtra(L)[1];
-hKL := hom< K -> L | >;
-
-/* Final improvement step before returning root */
-L0, hLL0 := ImproveFieldExtra(L);
-return L0, hLL0(L ! r), hKL * hLL0;
-
-end intrinsic;
-
-
-intrinsic BaseNumberFieldExtra(f::RngUPolElt) -> FldNum
-{Default BaseNumberFieldExtra defined by f with precision 100.}
-
-return BaseNumberFieldExtra(f, 100);
-
-end intrinsic;
+//intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
+//{Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
+//
+//K := BaseRing(f);
+//if Degree(f) eq 1 then
+//    L := RationalsExtra(prec);
+//    hKL := hom< K -> L | >;
+//    r := Roots(f, L)[1][1];
+//    return L, r, hKL;
+//end if;
+//
+//Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
+//L`base := L; L`base_gen := L.1; L`CC := ComplexFieldExtra(prec); L`iota := InfinitePlacesExtra(L)[1];
+//hKL := hom< K -> L | >;
+//
+///* Final improvement step before returning root */
+//L0, hLL0 := ImproveFieldExtra(L);
+//return L0, hLL0(L ! r), hKL * hLL0;
+//
+//end intrinsic;
+//
+//
+//intrinsic BaseNumberFieldExtra(f::RngUPolElt) -> FldNum
+//{Default BaseNumberFieldExtra defined by f with precision 100.}
+//
+//return BaseNumberFieldExtra(f, 100);
+//
+//end intrinsic;
 
 
 intrinsic DescendInfinitePlace(L::Fld, K::Fld, h::Map) -> Fld
@@ -370,7 +373,7 @@ for aCC in aCCs do
     L := Lnew;
 end for;
 
-// TODO: This sanity check before returning is optional
+/* Sanity check before returning */
 F := L`base; CC := L`CC;
 genKCC0 := EmbedExtra(K.1); genKCC1 := EmbedExtra(h(K.1));
 assert Abs(genKCC1 - genKCC0) lt CC`epscomp;
@@ -453,10 +456,19 @@ error "Failed to extend relative number field";
 end function;
 
 
-intrinsic NumberFieldExtra(f::RngUPolElt) -> .
+intrinsic NumberFieldExtra(f::RngUPolElt : prec:= 100) -> .
 {Given polynomial f, finds extension as NumberFieldExtra.}
 
 K := BaseRing(f);
+if not assigned K`base then
+    /* We deliberately ignore furnishing relative extensions... for now */
+    assert IsQQ(K);
+    K := RationalsExtra(prec);
+    R := PolynomialRing(K);
+    f := R ! f;
+    return NumberFieldExtra(f);
+end if;
+
 if Degree(f) eq 1 then
     L := K;
     r := Roots(f)[1][1];

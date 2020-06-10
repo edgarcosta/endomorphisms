@@ -12,8 +12,18 @@ Polarization and duals:
 Heuristic functions to determine (principal) polarizations on a given complex torus are available. There are isomorphism and automorphism tests for principally polarized abelian varieties (respecting the given polarization), and duals of maps can be formed. Finally, one can determine the image of a given endomorphism under the Rosati involution and calculate the rank of the subspace of the endomorphism algebra that is fixed under Rosati.
 
 Complex fields:
+The fields ComplexFieldExtra carry some extra parameters for comparison purposes. These can be used to decide what is 0 or to set height bounds when running LLL algorithms.
+
+Number fields:
+Relative fields are represented using "normal" number fields in Magma for simplification purpose. The base field is indicated via a flag and an embedding that memorizes the image of the generator of the base field. Infinite places are defined without identifying under complex conjugation. Embeddings with respect to infinite places (the chosen one by default) and conjugations by maps are also implemented, not only for elements, but also for polynomials and matrices.
+
+As a main function, given a (relative) base number field and elements of CC, a corresponding extension can be determined.
+
+Take care with the following:
+* All fields will get simplified by default, meaning that you should not rely on generators coming out with the minimal polynomials that you are used to. Instead, find the relevant elements after creating the field by taking roots.
 
 Periods:
+Native Magma algorithms are currently used, embedding the curve using the specified infinite place. Special care is taken to work over the base field in all circumstances: This involves some extra work to deal with degree-2 covers of conics in genus 3. This defines a new "generalized hyperelliptic" curve type. Hyperelliptic curves and plane curves are easier to deal with, and curves of higher genus get converted to plane form using algebraic function fields in Magma.
 
 Endomorphism representations:
 

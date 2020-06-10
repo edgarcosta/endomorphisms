@@ -10,11 +10,11 @@
     CCExtra.m
     Sagify.m
 
-    Curves.m
-    Periods.m
-
     Relative.m
     Recognition.m
+
+    Curves.m
+    Periods.m
 
     Linear.m
     Saturate.m
