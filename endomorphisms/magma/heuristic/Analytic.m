@@ -179,6 +179,8 @@ end if;
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
 As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
+
+/* Final check for correctness */
 for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
     assert abs lt 10^20*BaseRing(P)`epscomp;
@@ -220,7 +222,7 @@ r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
 As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 
-/* FInal check for correctness */
+/* Final check for correctness */
 for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
     assert abs lt 10^20*BaseRing(P)`epscomp;
@@ -239,11 +241,6 @@ P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
 assert ISA(Type(X), Crv);
-//if assigned X`ghpols then
-//    q, f := Explode(X`ghpols);
-//    geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f : CC := true);
-//    return geo_endo_rep;
-//end if;
 return GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
 
 end intrinsic;
@@ -258,7 +255,6 @@ P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
 assert ISA(Type(X), Crv);
-/* TODO: Could also embed if CC in next case. Not so important now */
 if not CC and assigned X`geo_endo_rep then
     return X`geo_endo_rep;
 end if;
@@ -267,28 +263,16 @@ if CC and assigned X`geo_endo_rep_CC then
 end if;
 
 if CC then
-//    if assigned X`ghpols then
-//        q, f := Explode(X`ghpols);
-//        X`geo_endo_rep_CC, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f : CC := true);
-//        return X`geo_endo_rep_CC;
-    if ISA(Type(X), Crv) then
-        X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
-        return X`geo_endo_rep;
-    end if;
-end if;
-
-//if assigned X`ghpols then
-//    q, f := Explode(X`ghpols);
-//    X`geo_endo_rep, X`period_matrix := GeometricEndomorphismRepresentationGH(q, f);
-//    return X`geo_endo_rep;
-if ISA(Type(X), Crv) then
-    X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
+    X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
     return X`geo_endo_rep;
 end if;
+X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
+return X`geo_endo_rep;
 
 end intrinsic;
 
 
+/* Deprecated */
 function GeometricEndomorphismRepresentationGH(q, f : CC := false)
 /* Compability to calculate with geometrically hyperelliptic curves */
 

@@ -17,7 +17,7 @@ The fields ComplexFieldExtra carry some extra parameters for comparison purposes
 Number fields:
 Relative fields are represented using "normal" number fields in Magma for simplification purpose. The base field is indicated via a flag and an embedding that memorizes the image of the generator of the base field. Infinite places are defined without identifying under complex conjugation. Embeddings with respect to infinite places (the chosen one by default) as well as conjugations and coercions by maps are also implemented, not only for elements, but also for polynomials and matrices.
 
-As a main function, given a (relative) base number field and elements of CC, a corresponding extension can be determined. This is also possible for splitting fields.
+As a main function, given a (relative) base number field and elements of CC, a corresponding extension can be determined. This is also possible for splitting fields. Recognition techniques in these fields are also implemented. These are calculated via the usual LLL method, which is ensured to be very stable.
 
 Take care with the following:
 * All fields will get simplified by default, meaning that you should not rely on generators coming out with the minimal polynomials that you are used to. Instead, find the relevant elements after creating the field by taking roots.
@@ -26,6 +26,7 @@ Periods:
 Native Magma algorithms are currently used, embedding the curve using the specified infinite place. Special care is taken to work over the base field in all circumstances: This involves some extra work to deal with degree-2 covers of conics in genus 3. This defines a new "generalized hyperelliptic" curve type. Hyperelliptic curves and plane curves are easier to deal with, and curves of higher genus get converted to plane form using algebraic function fields in Magma.
 
 Endomorphism representations:
+These are calculated via the usual LLL method, which is ensured to be very stable. Recognition functions over a base field are provided.
 
 Structure:
 

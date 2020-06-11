@@ -117,7 +117,7 @@ return MRe + CC.1*MIm;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
+intrinsic IntegralLeftKernelOld(M::. : CalcAlg := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
 RR := BaseRing(M); prec := Precision(RR);
@@ -162,6 +162,66 @@ for row in rowsK do
         else
             test2 := abs lt RR`epscomp;
         end if;
+
+        if test2 then
+            CCSmall := ComplexField(5);
+            vprint EndoFind, 3 : "";
+            vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
+            vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
+            Append(~rowsK0, row);
+        end if;
+    end if;
+end for;
+
+if #rowsK0 eq 0 then
+    return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+else
+    return Matrix(rowsK0), true;
+end if;
+
+end intrinsic;
+
+
+intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
+{Returns simultaneous integral cancellations of all the rows of M.}
+
+CC := BaseRing(M); prec := Precision(CC);
+precnew := Minimum(Round(8*prec/10), prec - 15);
+if CalcAlg then
+    s := Eltseq(M);
+    rowsK := Rows(Matrix(Basis(AllLinearRelations(s, precnew))));
+    if #rowsK eq 0 then
+        return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+    end if;
+
+    row1 := rowsK[1]; test1 := true;
+    //ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
+    //test1 := ht1 lt RR`height_bound;
+    if test1 then return Matrix([ row1 ]), true; end if;
+end if;
+
+cols := Rows(Transpose(M));
+L := StandardLattice(#Eltseq(cols[1]));
+for col in cols do
+    s := Eltseq(col);
+    L meet:= AllLinearRelations(s, precnew);
+    if Rank(L) eq 0 then
+        return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+    end if;
+end for;
+
+rowsK := Rows(Matrix(Basis(L)));
+rowsK0 := [ ];
+for row in rowsK do
+    ht := Max([ Height(c) : c in Eltseq(row) ]);
+    test1 := ht lt CC`height_bound;
+    test1 := true;
+
+    if test1 then
+        prod := Matrix(CC, [ Eltseq(row) ])*M;
+        abs := Max([ Abs(c) : c in Eltseq(prod) ]);
+        test2 := abs lt 10^20*CC`epscomp;
+        test2 := true;
 
         if test2 then
             CCSmall := ComplexField(5);

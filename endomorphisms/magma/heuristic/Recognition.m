@@ -17,8 +17,8 @@ forward AlgebraizeElementLLL;
 function ScalingFactor(aCC)
 /* Simple rational factor such that aCC / fac has small absolute value */
 
+return 1;
 if Abs(aCC) le Parent(aCC)`epscomp then return 1; end if;
-//return 1;
 
 absa := Abs(aCC); fac := 1;
 while absa gt 2 do fac *:= 2; absa /:= 2; end while;
@@ -91,8 +91,9 @@ while degf lt UpperBound do
     M := Transpose(Matrix(CCK, [ MLine ]));
 
     /* Split and take an IntegralLeftKernel */
-    MSplit := HorizontalSplitMatrix(M);
-    Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
+    //MSplit := HorizontalSplitMatrix(M);
+    //Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
+    Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 
     if test_ker then
         row := Rows(Ker)[1];
@@ -127,9 +128,11 @@ M := Transpose(Matrix(CCK, [ MLine ]));
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Algebraizing element...";
 vprint EndoFind, 3 : "";
+
 /* Split and take an IntegralLeftKernel */
-MSplit := HorizontalSplitMatrix(M);
-Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
+//MSplit := HorizontalSplitMatrix(M);
+//Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
+Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 
 if test_ker then
     row := Rows(Ker)[1];
@@ -156,6 +159,7 @@ intrinsic FractionalApproximation(aCC::FldComElt) -> FldRatElt
 
 CC := Parent(aCC); RR := RealField(CC);
 M := Matrix(RR, [ [ 1 ], [ -Real(aCC) ] ]);
+
 Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then return Rationals() ! 0, false; end if;
 
@@ -174,6 +178,7 @@ intrinsic FractionalApproximation(aRR::FldReElt) -> FldRatElt
 
 RR := Parent(aRR);
 M := Matrix(RR, [ [ 1 ], [ -aRR ] ]);
+
 K, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then return Rationals() ! 0, false; end if;
 
@@ -208,6 +213,7 @@ end intrinsic;
 
 // TODO: This function can be used and is very useful, but it masks problems with precision loss
 function RationalReconstruction(r);
+    CC := Parent(r);
     r1 := Real(r);
     r2 := Imaginary(r);
     p := Precision(r2);
@@ -229,9 +235,9 @@ function RationalReconstruction(r);
     end while;
     if b ne best then
         return false, 0;
-    else
-        return true, b;
     end if;
+    test := Abs(r - b) lt Parent(r)`epscomp;
+    return test, b;
 end function;
 
 
@@ -291,11 +297,9 @@ end intrinsic;
 
 
 intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), minpolQQ := 0, UseQQ := false) -> RngUPolElt
-{Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. More stable than MinimalPolynomialLLL via the use of RootsPari. If the minimal polynomial over QQ is already known, then it can be specified by using the keyword argument minpolQQ. This minimal polynomial over QQ is the second return value.}
+{Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. If the minimal polynomial over QQ is already known, then it can be specified by using the keyword argument minpolQQ. This minimal polynomial over QQ is the second return value.}
 
-if not UseQQ then
-    return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound);
-end if;
+if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound); end if;
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
