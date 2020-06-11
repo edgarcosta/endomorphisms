@@ -15,10 +15,10 @@ intrinsic EllipticCMCurve(D::RngIntElt, F::Fld) -> BoolElt
 
 CC := F`CC; RR := RealField(CC);
 CCLarge := ComplexFieldExtra(Precision(CC) + 100);
-if -D mod 4 eq 1 then
-    tau := (Sqrt(CCLarge ! -D) + 1)/2;
-elif -D mod 4 eq 0 then
-    tau := Sqrt(CCLarge ! -D)/2;
+if D mod 4 eq 1 then
+    tau := (Sqrt(CCLarge ! D) + 1)/2;
+elif D mod 4 eq 0 then
+    tau := Sqrt(CCLarge ! D)/2;
 else
     error "D is not the discriminant of a quadratic order";
 end if;
@@ -102,6 +102,6 @@ intrinsic MorphismOfSmallDegree(X::Crv, Y::Crv : Bound := 3) -> .
 F := BaseRing(X); K := BaseRing(Y);
 P := PeriodMatrix(X); Q := PeriodMatrix(Y);
 mor, d0, hKL := MorphismOfSmallDegreePQ(P, Q, K : Bound := Bound);
-return [* ChangeRingCurve(Y, hKL), mor *], d0;
+return [* ChangeRingCurve(Y, hKL), hKL, mor *], d0;
 
 end intrinsic;

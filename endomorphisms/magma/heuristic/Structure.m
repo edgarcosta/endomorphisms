@@ -324,7 +324,7 @@ return GensC, < Integers() ! ind, -1 >;
 end function;
 
 
-/* TODO: The following two functions are of various degrees of redundancy */
+/* The following two functions are deprecated */
 function HasGenerator(EndoStruct : B := 1)
 // Determines whether a single generator for the endomorphism ring exists, and
 // returns it if it does.

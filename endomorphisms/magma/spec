@@ -20,12 +20,12 @@
     Saturate.m
     Analytic.m
 
-    SatoTate.m
-    SatoTateHash.m
-
     OverField.m
     Structure.m
     Lattice.m
+
+    SatoTate.m
+    SatoTateHash.m
 
     MaxIsotr.m
     DecFacts.m

@@ -10,10 +10,32 @@
  */
 
 
+function CurveExtra(X : prec := 100)
+assert ISA(Type(X), Crv);
+F := BaseRing(X);
+if assigned F`base then
+    return X;
+end if;
+
+if IsQQ(F) then
+    K := RationalsExtra(prec);
+    h := hom< F -> K | >;
+    return ChangeRingCurve(X, h);
+end if;
+
+K := NumberFieldExtra(DefiningPolynomial(F) : prec := 100);
+test, h := IsIsomorphic(F, K);
+assert test;
+return ChangeRingCurve(X, h);
+
+end function;
+
+
 intrinsic HeuristicEndomorphismDescription(X::. : Geometric := false, CC := false) -> .
 {Returns an encoded description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
 
 assert ISA(Type(X), Crv);
+X := CurveExtra(X);
 if CC then
     Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
@@ -39,6 +61,7 @@ intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -
 {Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
 
 assert ISA(Type(X), Crv);
+X := CurveExtra(X);
 if CC then
     Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
@@ -64,6 +87,7 @@ intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
 {Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
 
 assert ISA(Type(X), Crv);
+X := CurveExtra(X);
 if CC then
     Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
@@ -89,6 +113,7 @@ intrinsic HeuristicEndomorphismRepresentation(X::. : Geometric := false, CC := f
 {Returns the endomorphism representation of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs.}
 
 assert ISA(Type(X),Crv);
+X := CurveExtra(X);
 if CC then
     Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
@@ -112,6 +137,7 @@ intrinsic HeuristicEndomorphismFieldOfDefinition(X::.) -> .
 {Returns the field of definition of the endomorphisms of X.}
 
 assert ISA(Type(X), Crv);
+X := CurveExtra(X);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 return BaseRing(GeoEndoRep[1][1]);
 
@@ -122,6 +148,7 @@ intrinsic HeuristicEndomorphismLattice(X::.) -> .
 {Returns an encoded description of the endomorphism lattice of X.}
 
 assert ISA(Type(X), Crv);
+X := CurveExtra(X);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 return EndomorphismLattice(GeoEndoRep);
 
@@ -133,6 +160,7 @@ intrinsic HeuristicIsGL2(X::. : Definition := "Generalized") -> .
 
 assert ISA(Type(X), Crv);
 assert Definition in [ "Generalized", "Ribet" ];
+X := CurveExtra(X);
 if ISA(Type(X), Crv) then
     g := Genus(X);
 end if;
@@ -161,6 +189,7 @@ intrinsic HeuristicDecompositionInformation(X::.) -> .
 {Returns decomposition information without maps.}
 
 assert ISA(Type(X),Crv);
+X := CurveExtra(X);
 decbase, decbaseeqs := DecompositionOverBase(X);
 Kiso := IsotypicalField(X); Kdec, _, test := FullDecompositionField(X);
 decgeo, decgeoeqs := DecompositionOverClosure(X);
@@ -173,6 +202,7 @@ intrinsic HeuristicDecompositionDescription(X::.) -> .
 {Returns decomposition description. First entry describes isotypical field, second entry decomposition field, third entry whether this field is minimal, fourth entry describes decomposition over the base (dimensions and powers followed by equations), fifth entry describes decomposition over decomposition field (dimensions and powers followed by equations).}
 
 assert ISA(Type(X),Crv);
+X := CurveExtra(X);
 Kiso := IsotypicalField(X);
 part1 := FieldDescriptionExtra(Kiso);
 
@@ -205,6 +235,7 @@ intrinsic HeuristicJacobianFactors(X::. : AllIdems := true, AllPPs := false, Pro
 {Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors. Setting AllMaps to true returns multiple entries for a given components in the decomposition together with all possible maps (instead of a single one). Setting AllPPs to true returns multiple entries for a given idempotent, corresponding to the various choices of principal polarization. Setting ProjToIdem to false uses an inclusion instead of a projection when taking idempotents. Setting ProjToPP to false uses an inclusion instead of a projection when making a period matrix principally polarized. If ProjToIdem and ProjToPP are not equal, then right now the algorithm only returns a component, not a corresponding map from or to the Jacobian of X.}
 
 assert ISA(Type(X),Crv);
+X := CurveExtra(X);
 P := PeriodMatrix(X); gP := #Rows(P);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 
@@ -276,6 +307,7 @@ intrinsic IsogenyInformation(X::. : facinfo := 0) -> .
 {Returns homology exponents of isogeny induced by splitting, and tests if it is compatible with the various polarizations. The information in facinfo has to be calculated with AllIdems set to true.}
 
 assert ISA(Type(X),Crv);
+X := CurveExtra(X);
 if Type(facinfo) eq RngIntElt then
     facinfo := HeuristicJacobianFactors(X);
 end if;
@@ -303,6 +335,8 @@ end intrinsic;
 intrinsic CertifiedEndomorphismAlgebra(X::Crv : P0 := 0, Geometric := false, Al := "Cantor", Cheat := false) -> .
 {Returns the (certified) endomorphism algebra of X using the base point P0 (if given), by default over the base and over QQbar if Geometric is set to true. The output is the same as for HeuristicEndomorphismAlgebra with the last argument the certificates. Al is either "Cantor" or "Divisor".}
 
+assert ISA(Type(X),Crv);
+X := CurveExtra(X);
 F := BaseRing(X);
 if IsHyperelliptic(X) and Cheat then
     f, h := HyperellipticPolynomials(X);

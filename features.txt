@@ -30,4 +30,14 @@ These are calculated via the usual LLL method, which is ensured to be very stabl
 
 Structure:
 
+Sato-Tate groups:
+Functions to return these in genus 2 are implemented. In higher genus, a hash is calculated that describes the action on the real endomorphism algebra.
+
+Factors:
+TBD (MatrixFromIdempotent is in Structure.m, then MaxIsotr, DecFacts, DecCurves).
+
 Buttons:
+A curve is automatically converted to a suitable NumberFieldExtra if it is given over one.
+
+Verification:
+TBD.
