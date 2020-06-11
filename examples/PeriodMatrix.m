@@ -29,6 +29,8 @@ Q := Matrix(CC, [
 [1,z12^3]
 ]);
 
+time GeoEndoRepCC := GeometricEndomorphismRepresentationCC(DiagonalJoin([ P, P ]));
+time GeoEndoRepCC := GeometricEndomorphismRepresentationCC(DiagonalJoin([ P, P, P ]));
 GeoEndoRepCC := GeometricEndomorphismRepresentationCC(P);
 GeoHomRepCC := GeometricHomomorphismRepresentationCC(P, Q);
 GeoEndoRep := GeometricEndomorphismRepresentation(P, F);

@@ -47,13 +47,17 @@ return Matrix(RR, [ [MonomialCoefficient(c, var) : c in Comm] : var in vars ]);
 end function;
 
 
-intrinsic TangentRepresentation(R::., P::ModMatFldElt, Q::ModMatFldElt) -> .
+intrinsic TangentRepresentation(R::., P::ModMatFldElt, Q::ModMatFldElt : s0 := []) -> .
 {Given a homology representation R of a homomorphism and two period matrices P
 and Q, returns an analytic representation A of that same homomorphism, so that
-A P = Q R.}
+A P = Q R. The keyword argument s0 is for repeated use with the same period
+matrix P.}
 
 CC := BaseRing(P);
-P0, s0 := InvertibleSubmatrix(P);
+if #s0 eq 0 then
+    P0, s0 := InvertibleSubmatrix(P);
+end if;
+P0 := Submatrix(P, [ 1..#Rows(P) ], s0);
 QR := Q * ChangeRing(R, CC);
 QR0 := Submatrix(QR, [ 1..#Rows(QR) ], s0);
 A := NumericalLeftSolve(P0, QR0);
@@ -61,7 +65,7 @@ test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
 if test gt 10^20*CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
-return A;
+return A, s0;
 
 end intrinsic;
 
@@ -126,13 +130,13 @@ if not test then
 end if;
 
 /* Deciding which rows to keep */
-CC := BaseRing(P); RR := BaseRing(JP); gens := [ ];
+CC := BaseRing(P); RR := BaseRing(JP); gens := [ ]; s0 := [ ];
 for r in Rows(Ker) do
     R := Matrix(Rationals(), 2*gQ, 2*gP, Eltseq(r));
     /* Culling the correct transformations from holomorphy condition */
     Comm := ChangeRing(R, RR) * JP - JQ * ChangeRing(R, RR);
     if &and([ (RR ! Abs(c)) lt 10^20*RR`epscomp : c in Eltseq(Comm) ]) then
-        A := TangentRepresentation(R, P, Q);
+        A, s0 := TangentRepresentation(R, P, Q : s0 := s0);
         Append(~gens, [* A, R *]);
     end if;
 end for;

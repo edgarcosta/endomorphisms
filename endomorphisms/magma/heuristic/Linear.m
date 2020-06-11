@@ -52,13 +52,14 @@ if NumericalRank(M0 : Epsilon := CC`epsinv) eq rk then
     return M0, s0;
 end if;
 
-for s in Subsets({1..r}, rk) do
+while true do
+    s := RandomSubset({1..r}, rk);
     s0 := [ c : c in s ];
     M0 := Matrix([ RM[i] : i in s ]);
     if NumericalRank(M0 : Epsilon := CC`epsinv) eq rk then
         return M0, s0;
     end if;
-end for;
+end while;
 error "Failed to find submatrix of the desired rank";
 
 end intrinsic;
@@ -202,15 +203,28 @@ end if;
 
 cols := Rows(Transpose(M));
 L := StandardLattice(#Eltseq(cols[1]));
+rowsK := Rows(Matrix(Basis(L)));
 for col in cols do
-    s := Eltseq(col);
-    L meet:= AllLinearRelations(s, precnew);
-    if Rank(L) eq 0 then
-        return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+    scol := Eltseq(col);
+    superfluous := true;
+    for row in rowsK do
+        srow := Eltseq(row);
+        abs := Abs(&+[ srow[i]*scol[i] : i in [1..#srow] ]);
+        if not abs lt CC`epscomp then
+            superfluous := false;
+            break;
+        end if;
+    end for;
+
+    if not superfluous then
+        L meet:= AllLinearRelations(scol, precnew);
+        if Rank(L) eq 0 then
+            return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+        end if;
+        rowsK := Rows(Matrix(Basis(L)));
     end if;
 end for;
 
-rowsK := Rows(Matrix(Basis(L)));
 rowsK0 := [ ];
 for row in rowsK do
     ht := Max([ Height(c) : c in Eltseq(row) ]);
