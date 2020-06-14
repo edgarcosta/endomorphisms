@@ -1,7 +1,7 @@
-SetVerbose("EndoFind", 3);
+SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
-prec := 100;
+prec := 50;
 
 Xs := [* *];
 
@@ -95,7 +95,9 @@ for X in Xs do
     print "Curve:";
     print X;
 
-    Lat := HeuristicEndomorphismLattice(X);
+    time P := PeriodMatrix(X);
+    time desc := HeuristicEndomorphismAlgebra(X : CC := true);
+    time Lat := HeuristicEndomorphismLattice(X);
     print "";
     print "Heuristic endomorphism lattice:";
     print Lat;

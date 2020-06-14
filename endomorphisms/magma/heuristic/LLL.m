@@ -47,6 +47,7 @@ B := 10^p;
 MJ := Matrix(Integers(), [ [ Round(B * c) : c in Eltseq(row) ] : row in Rows(M) ]);
 MI := IdentityMatrix(Integers(), #Rows(MJ)); MJ := HorizontalJoin(MI, MJ);
 L, K := LLL(MJ); rowsK := Rows(K);
+//print rowsK;
 
 row1 := rowsK[1]; ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
 abs := Abs(&+[ row1[i]*q[i] : i in [1..#q] ]);

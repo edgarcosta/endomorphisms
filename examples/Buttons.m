@@ -12,11 +12,11 @@ print "";
 print "Curve:";
 print X;
 
-desc := HeuristicEndomorphismAlgebra(X : CC := true);
-rep := HeuristicEndomorphismRepresentation(X);
-L := HeuristicEndomorphismFieldOfDefinition(X);
-Lat := HeuristicEndomorphismLattice(X);
-test_gl2 := HeuristicIsGL2(X);
+time desc := HeuristicEndomorphismAlgebra(X : CC := true);
+time rep := HeuristicEndomorphismRepresentation(X);
+time L := HeuristicEndomorphismFieldOfDefinition(X);
+time Lat := HeuristicEndomorphismLattice(X);
+time test_gl2 := HeuristicIsGL2(X);
 
 print "";
 print "Heuristic endomorphism lattice:";

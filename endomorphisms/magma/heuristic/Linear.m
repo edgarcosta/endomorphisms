@@ -242,12 +242,13 @@ intrinsic IntegralLeftKernel(M::. : CalcAlg := false, Fast := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
 CC := BaseRing(M); prec := CC`prec_algdep;
-if Precision(CC) lt 200 then False := true; end if;
+//if Precision(CC) lt 200 and Precision(CC) gt 75 then Fast := true; end if;
+//if Precision(CC) lt 200 then Fast := true; end if;
 if CalcAlg then
     sM := Eltseq(M);
     if Fast then
         /* Try small combinations */
-        test, sK := OurIntegerRelation(sM, 1000*prec);
+        test, sK := OurIntegerRelation(sM, 10*prec);
     else
         /* Try large combinations in a stable way */
         test, sK := OurAlgdep(sM, prec);

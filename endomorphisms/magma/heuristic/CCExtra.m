@@ -29,7 +29,7 @@ epscomp, epsLLL, epsinv and height_bound.}
 CC := ComplexField(prec);
 RR := RealField(CC);
 if prec lt 200 then
-    CC`epscomp := RR ! (10^(-prec + 10)); CC`epsinv  := RR ! 10^(-6); CC`height_bound := 10^6; CC`prec_algdep := prec - 15;
+    CC`epscomp := RR ! (10^(-prec + 10)); CC`epsinv  := RR ! 10^(-6); CC`height_bound := 10^6; CC`prec_algdep := prec - 5;
     RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound; RR`prec_algdep := CC`prec_algdep;
     return CC;
 end if;
