@@ -62,7 +62,7 @@ QR := Q * ChangeRing(R, CC);
 QR0 := Submatrix(QR, [ 1..#Rows(QR) ], s0);
 A := NumericalLeftSolve(P0, QR0);
 test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
-if test gt 10^20*CC`epscomp then
+if test gt CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return A, s0;
@@ -91,7 +91,7 @@ SplitQ := VerticalSplitMatrix(Q);
 RRR := NumericalRightSolve(SplitQ, SplitAP);
 R := Matrix(Rationals(), [ [ Round(cRR) : cRR in Eltseq(row) ] : row in Rows(RRR) ]);
 test := Maximum([ Abs(c) : c in Eltseq(A*P - Q*ChangeRing(R, CC)) ]);
-if test gt 10^20*CC`epscomp then
+if test gt CC`epscomp then
     error "Error in determining tangent representation:", ComplexField(5) ! test;
 end if;
 return R;
@@ -135,7 +135,7 @@ for r in Rows(Ker) do
     R := Matrix(Rationals(), 2*gQ, 2*gP, Eltseq(r));
     /* Culling the correct transformations from holomorphy condition */
     Comm := ChangeRing(R, RR) * JP - JQ * ChangeRing(R, RR);
-    if &and([ (RR ! Abs(c)) lt 10^20*RR`epscomp : c in Eltseq(Comm) ]) then
+    if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
         A, s0 := TangentRepresentation(R, P, Q : s0 := s0);
         Append(~gens, [* A, R *]);
     end if;
@@ -164,6 +164,7 @@ representation ACC. We have ACC P = Q R, and via the infinite place of K the
 matrix A is mapped to ACC. The inclusion of F into K is the second return
 value.}
 
+CC := BaseRing(P);
 /* Determine matrices over CC */
 gensPart := GeometricHomomorphismRepresentationCC(P, Q);
 gensPart := [ [* ChangeRing(gen[1], F`CC), gen[2] *] : gen in gensPart ];
@@ -187,7 +188,7 @@ gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 /* Final check for correctness */
 for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
-    assert abs lt 10^20*BaseRing(P)`epscomp;
+    assert abs lt CC`epscomp;
 end for;
 return gens, hFK;
 
@@ -229,7 +230,7 @@ gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 /* Final check for correctness */
 for i in [1..#gens] do
     abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
-    assert abs lt 10^20*BaseRing(P)`epscomp;
+    assert abs lt BaseRing(P)`epscomp;
 end for;
 return gens, hFK;
 
