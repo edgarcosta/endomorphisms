@@ -12,8 +12,8 @@
 
 /* We add parameters for comparison, LLL, and seeing whether a square matrix is
  * invertible. */
-declare attributes FldCom : epscomp, epsinv, height_bound;
-declare attributes FldRe  : epscomp, epsinv, height_bound;
+declare attributes FldCom : epscomp, epsinv, height_bound, prec_algdep;
+declare attributes FldRe  : epscomp, epsinv, height_bound, prec_algdep;
 
 declare verbose EndoFind, 3;
 
@@ -28,8 +28,13 @@ epscomp, epsLLL, epsinv and height_bound.}
 
 CC := ComplexField(prec);
 RR := RealField(CC);
-CC`epscomp := RR ! (10^(Round(-9.5*prec/10))); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(40 + (prec div 10)));
-RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound;
+if prec lt 200 then
+    CC`epscomp := RR ! (10^(prec - 10)); CC`epsinv  := RR ! 0.001; CC`height_bound := 10^6; CC`prec_algdep := prec - 15;
+    RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound; RR`prec_algdep := CC`prec_algdep;
+    return CC;
+end if;
+CC`epscomp := RR ! (10^(-Round(9.5*prec/10))); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(30 + (prec div 10))); CC`prec_algdep := Round(8*prec/10);
+RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound; RR`prec_algdep := CC`prec_algdep;
 return CC;
 
 end intrinsic;

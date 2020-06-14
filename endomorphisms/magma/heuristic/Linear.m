@@ -9,6 +9,8 @@
  *  See LICENSE.txt for license details.
  */
 
+import "LLL.m": OurIntegerRelation, OurAllLinearRelations, OurAlgdep;
+
 
 intrinsic NumericalLeftSolve(A::., B::.) -> .
 {Returns the numerical solution X to the equation X * A = B.}
@@ -118,17 +120,70 @@ return MRe + CC.1*MIm;
 end intrinsic;
 
 
+intrinsic IntegralRightKernel(M::.) -> .
+{Returns simultaneous integral cancellations of all the columns of M.}
+
+K, test := IntegralLeftKernel(Transpose(M));
+return Transpose(K), test;
+
+end intrinsic;
+
+
+intrinsic MatrixInBasis(M::., Bs::SeqEnum) -> .
+{Returns a vector that describes M as a rational combination of the elements in Bs.}
+
+if #Bs eq 0 then
+    return false, 0;
+end if;
+MBs := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(b) ] : b in Eltseq(B) ] : B in Bs ]);
+MM := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(m) ] : m in Eltseq(M) ] ]);
+return IsConsistent(MBs, MM);
+
+end intrinsic;
+
+
+intrinsic IsRationalMultiple(v::., v0::.) -> .
+{Returns whether v is a rational multiple of v0 or not, along with a corresponding scalar if this is the case.}
+
+M := Matrix([ Eltseq(v) ]);
+M0 := Matrix([ Eltseq(v0) ]);
+test, tup := MatrixInBasis(M, [ M0 ]);
+if not test then
+    return false, 0;
+end if;
+return test, Eltseq(tup)[1];
+
+end intrinsic;
+
+
+intrinsic IsMultiplePolynomial(f::., f0::.) -> .
+{Returns whether f is a multiple of f0 or not, along with a corresponding scalar if this is the case.}
+
+if not Monomials(f) eq Monomials(f0) then
+    return false, 0;
+end if;
+coeffs := Coefficients(f); coeffs0 := Coefficients(f0);
+M := Matrix([ coeffs ]); M0 := Matrix([ coeffs0 ]);
+test, A := IsConsistent(M0, M);
+if not test then
+    return false, 0;
+else
+    return true, A[1,1];
+end if;
+
+end intrinsic;
+
+
 intrinsic IntegralLeftKernelOld(M::. : CalcAlg := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
-RR := BaseRing(M); prec := Precision(RR);
-precnew := Minimum(Round(8*prec/10), prec - 15);
+RR := BaseRing(M); prec := RR`prec_algdep;
 if CalcAlg then
-    B := 10^precnew;
+    B := 10^prec;
 else
     eps := Maximum([ Abs(c) : c in Eltseq(M) ]);
     if Abs(eps) lt RR`epscomp then eps := 1; end if;
-    B := 10^(precnew div 2) / eps;
+    B := 10^(prec div 2) / eps;
 end if;
 
 MJ := Matrix(Integers(), [ [ Round(B * c) : c in Eltseq(row) ] : row in Rows(M) ]);
@@ -183,22 +238,30 @@ end if;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
+intrinsic IntegralLeftKernel(M::. : CalcAlg := false, Fast := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
-CC := BaseRing(M); prec := Precision(CC);
-precnew := Minimum(Round(8*prec/10), prec - 15);
+CC := BaseRing(M); prec := CC`prec_algdep;
 if CalcAlg then
-    s := Eltseq(M);
-    rowsK := Rows(Matrix(Basis(AllLinearRelations(s, precnew))));
-    if #rowsK eq 0 then
+    sM := Eltseq(M);
+    if Fast then
+        /* Try small combinations */
+        test, sK := OurIntegerRelation(sM, 1000*prec);
+    else
+        /* Try large combinations in a stable way */
+        test, sK := OurAlgdep(sM, prec);
+    end if;
+    if not test then
         return Matrix([ [ 0 : row in Rows(M) ] ]), false;
     end if;
 
-    row1 := rowsK[1]; test1 := true;
-    //ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
-    //test1 := ht1 lt RR`height_bound;
-    if test1 then return Matrix([ row1 ]), true; end if;
+    ht := Max([ Height(c) : c in Eltseq(sK) ]);
+    abs := Abs(&+[ sK[i]*sM[i] : i in [1..#sK] ]);
+    CCSmall := ComplexField(5);
+    vprint EndoFind, 3 : "";
+    vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
+    vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
+    return Matrix([ sK ]), true;
 end if;
 
 cols := Rows(Transpose(M));
@@ -217,7 +280,7 @@ for col in cols do
     end for;
 
     if not superfluous then
-        L meet:= AllLinearRelations(scol, precnew);
+        L meet:= OurAllLinearRelations(scol, prec);
         if Rank(L) eq 0 then
             return Matrix([ [ 0 : row in Rows(M) ] ]), false;
         end if;
@@ -229,13 +292,11 @@ rowsK0 := [ ];
 for row in rowsK do
     ht := Max([ Height(c) : c in Eltseq(row) ]);
     test1 := ht lt CC`height_bound;
-    test1 := true;
 
     if test1 then
         prod := Matrix(CC, [ Eltseq(row) ])*M;
         abs := Max([ Abs(c) : c in Eltseq(prod) ]);
-        test2 := abs lt 10^20*CC`epscomp;
-        test2 := true;
+        test2 := abs lt CC`epscomp;
 
         if test2 then
             CCSmall := ComplexField(5);
@@ -251,60 +312,6 @@ if #rowsK0 eq 0 then
     return Matrix([ [ 0 : row in Rows(M) ] ]), false;
 else
     return Matrix(rowsK0), true;
-end if;
-
-end intrinsic;
-
-
-intrinsic IntegralRightKernel(M::.) -> .
-{Returns simultaneous integral cancellations of all the columns of M.}
-
-K, test := IntegralLeftKernel(Transpose(M));
-return Transpose(K), test;
-
-end intrinsic;
-
-
-intrinsic MatrixInBasis(M::., Bs::SeqEnum) -> .
-{Returns a vector that describes M as a rational combination of the elements in Bs.}
-
-if #Bs eq 0 then
-    return false, 0;
-end if;
-MBs := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(b) ] : b in Eltseq(B) ] : B in Bs ]);
-MM := Matrix(Rationals(), [ &cat[ &cat[ Eltseq(c) : c in Eltseq(m) ] : m in Eltseq(M) ] ]);
-return IsConsistent(MBs, MM);
-
-end intrinsic;
-
-
-intrinsic IsRationalMultiple(v::., v0::.) -> .
-{Returns whether v is a rational multiple of v0 or not, along with a corresponding scalar if this is the case.}
-
-M := Matrix([ Eltseq(v) ]);
-M0 := Matrix([ Eltseq(v0) ]);
-test, tup := MatrixInBasis(M, [ M0 ]);
-if not test then
-    return false, 0;
-end if;
-return test, Eltseq(tup)[1];
-
-end intrinsic;
-
-
-intrinsic IsMultiplePolynomial(f::., f0::.) -> .
-{Returns whether f is a multiple of f0 or not, along with a corresponding scalar if this is the case.}
-
-if not Monomials(f) eq Monomials(f0) then
-    return false, 0;
-end if;
-coeffs := Coefficients(f); coeffs0 := Coefficients(f0);
-M := Matrix([ coeffs ]); M0 := Matrix([ coeffs0 ]);
-test, A := IsConsistent(M0, M);
-if not test then
-    return false, 0;
-else
-    return true, A[1,1];
 end if;
 
 end intrinsic;

@@ -89,10 +89,6 @@ while degf lt UpperBound do
     degf +:= 1; poweraCCsc *:= aCCsc;
     MLine cat:= [ powergenCC * poweraCCsc : powergenCC in powersgenCC ];
     M := Transpose(Matrix(CCK, [ MLine ]));
-
-    /* Split and take an IntegralLeftKernel */
-    //MSplit := HorizontalSplitMatrix(M);
-    //Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
     Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 
     if test_ker then
@@ -129,26 +125,17 @@ vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Algebraizing element...";
 vprint EndoFind, 3 : "";
 
-/* Split and take an IntegralLeftKernel */
-//MSplit := HorizontalSplitMatrix(M);
-//Ker, test_ker := IntegralLeftKernel(MSplit : CalcAlg := true);
 Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
-
-if test_ker then
-    row := Rows(Ker)[1];
-    vprint EndoFind, 3 : "Trying row:", row;
-    den := row[#Eltseq(row)];
-    if den ne 0 then
-        a := &+[ row[i + 1]*genK^i : i in [0..(degK - 1)] ] / den;
-
-        if Abs(EmbedExtra(a) - aCC) le CCK`epscomp then
-            vprint EndoFind, 3 : a;
-            vprint EndoFind, 3 : "done algebraizing element.";
-            return true, a;
-        end if;
+row := Rows(Ker)[1]; den := row[#Eltseq(row)];
+if den ne 0 then
+    a := &+[ row[i + 1]*genK^i : i in [0..(degK - 1)] ] / den;
+    if Abs(EmbedExtra(a) - aCC) le CCK`epscomp then
+        vprint EndoFind, 3 : a;
+        vprint EndoFind, 3 : "done algebraizing element.";
+        return true, a;
     end if;
 end if;
-vprint EndoFind, 3 : "No element found.";
+vprint EndoFind, 3 : "no element found.";
 return false, 0;
 
 end function;
