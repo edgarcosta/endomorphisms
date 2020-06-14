@@ -11,6 +11,7 @@
 
 
 function CurveExtra(X : prec := 100)
+/* Converts curve to NumberFieldExtra if it is not given thus */
 assert ISA(Type(X), Crv);
 F := BaseRing(X);
 if assigned F`base then
@@ -29,32 +30,6 @@ assert test;
 return ChangeRingCurve(X, h);
 
 end function;
-
-
-intrinsic HeuristicEndomorphismDescription(X::. : Geometric := false, CC := false) -> .
-{Returns an encoded description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
-
-assert ISA(Type(X), Crv);
-X := CurveExtra(X);
-if CC then
-    Geometric := true;
-    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
-else
-    GeoEndoRep := GeometricEndomorphismRepresentation(X);
-end if;
-
-if Geometric then
-    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoDesc;
-end if;
-if not assigned X`base_endo_rep then
-    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
-    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
-end if;
-EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return EndoDesc;
-
-end intrinsic;
 
 
 intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -> .
@@ -78,33 +53,8 @@ if not assigned X`base_endo_rep then
     X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return EndoAlg[1];
-
-end intrinsic;
-
-
-intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
-{Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
-
-assert ISA(Type(X), Crv);
-X := CurveExtra(X);
-if CC then
-    Geometric := true;
-    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
-else
-    GeoEndoRep := GeometricEndomorphismRepresentation(X);
-end if;
-
-if Geometric then
-    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return Order(Integers(), EndoAlg[2]);
-end if;
-if not assigned X`base_endo_rep then
-    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
-    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
-end if;
-EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return Order(Integers(), EndoAlg[2]);
+/* Description, algebra, ring */
+return EndoDesc, EndoAlg[1], EndoAlg[2];
 
 end intrinsic;
 
@@ -160,18 +110,15 @@ intrinsic HeuristicIsGL2(X::. : Definition := "Generalized") -> .
 
 assert ISA(Type(X), Crv);
 assert Definition in [ "Generalized", "Ribet" ];
-X := CurveExtra(X);
-if ISA(Type(X), Crv) then
-    g := Genus(X);
-end if;
+X := CurveExtra(X); g := Genus(X);
 if Definition eq "Generalized" then
-    A := HeuristicEndomorphismAlgebra(X);
+    desc, A := HeuristicEndomorphismAlgebra(X);
     if not Dimension(A) eq g then
         return false;
     end if;
     return Center(A) eq A;
 elif Definition eq "Ribet" then
-    A := HeuristicEndomorphismAlgebra(X);
+    desc, A := HeuristicEndomorphismAlgebra(X);
     if not Dimension(A) eq g then
         return false;
     end if;
@@ -184,9 +131,8 @@ end if;
 end intrinsic;
 
 
-// TODO: This is a hack to avoid the next function
-intrinsic HeuristicDecompositionInformation(X::.) -> .
-{Returns decomposition information without maps.}
+intrinsic HeuristicDecomposition(X::.) -> .
+{Returns decomposition description. The first entry describes the isotypical field, the second entry describes the decomposition field and whether this field is minimal, the third entry describes decomposition over the base (dimensions and powers followed by equations), and the fourth entry describes the decomposition over the decomposition field (dimensions and powers followed by equations).}
 
 assert ISA(Type(X),Crv);
 X := CurveExtra(X);
@@ -198,7 +144,8 @@ return [* Kiso, [* Kdec, test *], [* decbase, decbaseeqs *], [* decgeo, decgeoeq
 end intrinsic;
 
 
-intrinsic HeuristicDecompositionDescription(X::.) -> .
+// TODO: This function needs an overhaul */
+intrinsic HeuristicDecompositionInformation(X::.) -> .
 {Returns decomposition description. First entry describes isotypical field, second entry decomposition field, third entry whether this field is minimal, fourth entry describes decomposition over the base (dimensions and powers followed by equations), fifth entry describes decomposition over decomposition field (dimensions and powers followed by equations).}
 
 assert ISA(Type(X),Crv);
@@ -375,5 +322,58 @@ for rep in EndoRep do
     Append(~fss, rep cat [* fs *]);
 end for;
 return true, fss;
+
+end intrinsic;
+
+
+/* Functions from here on are deprecated and no longer supported */
+intrinsic HeuristicEndomorphismDescription(X::. : Geometric := false, CC := false) -> .
+{Returns an encoded description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
+
+assert ISA(Type(X), Crv);
+X := CurveExtra(X);
+if CC then
+    Geometric := true;
+    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
+else
+    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+end if;
+
+if Geometric then
+    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
+    return EndoDesc;
+end if;
+if not assigned X`base_endo_rep then
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
+    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
+end if;
+EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
+return EndoDesc;
+
+end intrinsic;
+
+
+intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
+{Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
+
+assert ISA(Type(X), Crv);
+X := CurveExtra(X);
+if CC then
+    Geometric := true;
+    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
+else
+    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+end if;
+
+if Geometric then
+    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
+    return Order(Integers(), EndoAlg[2]);
+end if;
+if not assigned X`base_endo_rep then
+    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
+    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
+end if;
+EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
+return Order(Integers(), EndoAlg[2]);
 
 end intrinsic;

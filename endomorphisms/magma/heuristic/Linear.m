@@ -241,8 +241,8 @@ end intrinsic;
 intrinsic IntegralLeftKernel(M::. : CalcAlg := false, Fast := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 
-if Precision(CC) lt 200 then False := true; end if;
 CC := BaseRing(M); prec := CC`prec_algdep;
+if Precision(CC) lt 200 then False := true; end if;
 if CalcAlg then
     sM := Eltseq(M);
     if Fast then

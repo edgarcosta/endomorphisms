@@ -195,7 +195,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : UseSplittingField := true) -> SeqEnum
 {Given period matrices P and a field F, this function determines a ZZ-basis of
 the corresponding abelian variety. These are returned as triples of an
 algebraized tangent representation A over a number field K, a homology
@@ -213,9 +213,13 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 /* Use splitting field instead of number field since the resulting field is
  * normal */
 vprint EndoFind : "";
-vprint EndoFind : "Finding number field defined by homomorphisms...";
-K, seq, hFK := SplittingFieldExtra(seqPart, F);
-vprint EndoFind : "done finding number field defined by homomorphisms:";
+vprint EndoFind : "Finding number field defined by endomorphisms...";
+if UseSplittingField then
+    K, seq, hFK := SplittingFieldExtra(seqPart, F);
+else
+    K, seq, hFK := NumberFieldExtra(seqPart, F);
+end if;
+vprint EndoFind : "done finding number field defined by endomorphisms:";
 vprint EndoFind : K;
 
 assert #seq eq #seqPart;

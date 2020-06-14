@@ -1,4 +1,4 @@
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 3);
 SetVerbose("CurveRec", 0);
 
 prec := 100;
@@ -73,40 +73,15 @@ print "";
 print "Curve:";
 print X;
 
-desc := HeuristicEndomorphismDescription(X);
-print "";
-print "Heuristic endomorphism description:";
-print desc;
-
-A := HeuristicEndomorphismAlgebra(X);
-print "";
-print "Heuristic endomorphism algebra:";
-print A;
-
-OO := HeuristicEndomorphismRing(X);
-print "";
-print "Heuristic endomorphism ring:";
-print OO;
-
+desc := HeuristicEndomorphismAlgebra(X);
 rep := HeuristicEndomorphismRepresentation(X);
-print "";
-print "Heuristic endomorphism representation:";
-print rep;
-
 L := HeuristicEndomorphismFieldOfDefinition(X);
-print "";
-print "Heuristic field of definition of the endomorphisms:";
-print L;
-
 Lat := HeuristicEndomorphismLattice(X);
+test_gl2 := HeuristicIsGL2(X);
+
 print "";
 print "Heuristic endomorphism lattice:";
 print Lat;
-
-test_gl2 := HeuristicIsGL2(X);
-print "";
-print "Heuristic GL_2-determination:";
-print test_gl2;
 
 /*
 facinfo := HeuristicJacobianFactors(X);
@@ -114,6 +89,7 @@ print "";
 print "Heuristic Jacobian factors:";
 print facinfo;
 
+/*
 exps, test, degs := IsogenyInformation(X : facinfo := facinfo);
 print "";
 print "Isogeny exponents:";
