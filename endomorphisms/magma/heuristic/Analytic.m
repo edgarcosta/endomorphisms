@@ -54,9 +54,7 @@ A P = Q R. The keyword argument s0 is for repeated use with the same period
 matrix P.}
 
 CC := BaseRing(P);
-if #s0 eq 0 then
-    P0, s0 := InvertibleSubmatrix(P);
-end if;
+if #s0 eq 0 then P0, s0 := InvertibleSubmatrix(P); end if;
 P0 := Submatrix(P, [ 1..#Rows(P) ], s0);
 QR := Q * ChangeRing(R, CC);
 QR0 := Submatrix(QR, [ 1..#Rows(QR) ], s0);
@@ -70,12 +68,12 @@ return A, s0;
 end intrinsic;
 
 
-intrinsic TangentRepresentation(R::., P::ModMatFldElt) -> .
+intrinsic TangentRepresentation(R::., P::ModMatFldElt : s0 := []) -> .
 {Given a homology representation R of an endomorphism and a period matrix P,
 returns an analytic representation of that same endomorphism, so that A P = Q
 R.}
 
-return TangentRepresentation(R, P, P);
+return TangentRepresentation(R, P, P : s0 := s0);
 
 end intrinsic;
 
@@ -109,7 +107,7 @@ return HomologyRepresentation(A, P, P);
 end intrinsic;
 
 
-intrinsic GeometricHomomorphismRepresentationCC(P::ModMatFldElt, Q::ModMatFldElt) -> SeqEnum
+intrinsic GeometricHomomorphismRepresentationCC(P::ModMatFldElt, Q::ModMatFldElt : s0 := []) -> SeqEnum
 {Given period matrices P and Q, this function determines a ZZ-basis of
 homomorphisms between the corresponding abelian varieties. These are returned
 as pairs of a complex tangent representation A and a homology representation R
@@ -130,7 +128,7 @@ if not test then
 end if;
 
 /* Deciding which rows to keep */
-CC := BaseRing(P); RR := BaseRing(JP); gens := [ ]; s0 := [ ];
+CC := BaseRing(P); RR := BaseRing(JP); gens := [ ];
 for r in Rows(Ker) do
     R := Matrix(Rationals(), 2*gQ, 2*gP, Eltseq(r));
     /* Culling the correct transformations from holomorphy condition */
@@ -145,17 +143,17 @@ return gens;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentationCC(P::ModMatFldElt) -> .
+intrinsic GeometricEndomorphismRepresentationCC(P::ModMatFldElt : s0 := []) -> .
 {Given a period matrix P, this function determines a ZZ-basis of endomorphisms
 of the corresponding abelian variety. These are returned as pairs of a complex
 tangent representation A and a homology representation R for which A P = P R.}
 
-return GeometricHomomorphismRepresentationCC(P, P);
+return GeometricHomomorphismRepresentationCC(P, P : s0 := []);
 
 end intrinsic;
 
 
-intrinsic GeometricHomomorphismRepresentation(P::ModMatFldElt, Q::ModMatFldElt, F::Fld) -> SeqEnum
+intrinsic GeometricHomomorphismRepresentation(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : s0 := []) -> SeqEnum
 {Given period matrices P and Q, as well as a field F, this function determines
 a ZZ-basis of homomorphisms between the corresponding abelian varieties. These
 are returned as triples of an algebraized tangent representation A over a
@@ -166,7 +164,7 @@ value.}
 
 CC := BaseRing(P);
 /* Determine matrices over CC */
-gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+gensPart := GeometricHomomorphismRepresentationCC(P, Q : s0 := []);
 gensPart := [ [* ChangeRing(gen[1], F`CC), gen[2] *] : gen in gensPart ];
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
@@ -195,7 +193,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : UseSplittingField := true) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : s0 := [], UseSplittingField := true) -> SeqEnum
 {Given period matrices P and a field F, this function determines a ZZ-basis of
 the corresponding abelian variety. These are returned as triples of an
 algebraized tangent representation A over a number field K, a homology
@@ -205,7 +203,7 @@ F into K is the second return value.}
 
 Q := P;
 /* Determine matrices over CC */
-gensPart := GeometricHomomorphismRepresentationCC(P, Q);
+gensPart := GeometricHomomorphismRepresentationCC(P, Q : s0 := s0);
 gensPart := [ [* ChangeRing(gen[1], F`CC), gen[2] *] : gen in gensPart ];
 /* Determine minimal polynomials needed */
 seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
@@ -250,7 +248,8 @@ P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
 assert ISA(Type(X), Crv);
-return GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
+P := PeriodMatrix(X); g := #Rows(P);
+return GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
 
 end intrinsic;
 
@@ -264,6 +263,7 @@ P of X, and via the infinite place of K the matrix A is mapped to ACC. The
 inclusion of F into K is the second return value.}
 
 assert ISA(Type(X), Crv);
+P := PeriodMatrix(X); g := #Rows(P); F := BaseRing(X);
 if not CC and assigned X`geo_endo_rep then
     return X`geo_endo_rep;
 end if;
@@ -272,10 +272,10 @@ if CC and assigned X`geo_endo_rep_CC then
 end if;
 
 if CC then
-    X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(PeriodMatrix(X));
+    X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
     return X`geo_endo_rep;
 end if;
-X`geo_endo_rep := GeometricEndomorphismRepresentation(PeriodMatrix(X), BaseRing(X));
+X`geo_endo_rep := GeometricEndomorphismRepresentation(P, F : s0 := [1..g]);
 return X`geo_endo_rep;
 
 end intrinsic;
@@ -351,13 +351,13 @@ and T A T^(-1) is the new tangent representation.
 
 /* Hyperelliptic curve and its period matrix */
 Y := HyperellipticCurve(h21(g)); PY := PeriodMatrix(Y);
-PX := ChangeRing(TCC, BaseRing(Parent(PY))) * PY;
+PX := ChangeRing(TCC, BaseRing(Parent(PY))) * PY; g := #Rows(PX);
 
 // TODO: Keep an eye on this
 if CC then
-    return GeometricEndomorphismRepresentationCC(PX), PX;
+    return GeometricEndomorphismRepresentationCC(PX : s0 := [1..g]), PX;
 end if;
-return GeometricEndomorphismRepresentation(PX, F), PX;
+return GeometricEndomorphismRepresentation(PX, F : s0 := [1..g]), PX;
 
 /* Possibly more stable: Find endomorphisms and take corresponding subfield */
 GeoEndoRep := GeometricEndomorphismRepresentation(Y);

@@ -1,7 +1,7 @@
 SetVerbose("EndoFind", 3);
 SetVerbose("CurveRec", 0);
 
-prec := 500;
+prec := 100;
 
 Xs := [* *];
 

@@ -1,7 +1,7 @@
-SetVerbose("EndoFind", 3);
+SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
-prec := 100;
+prec := 50;
 
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
@@ -21,27 +21,6 @@ test_gl2 := HeuristicIsGL2(X);
 print "";
 print "Heuristic endomorphism lattice:";
 print Lat;
-
-/*
-Should be
-<[ <2, 1> ], <4, 2>, [
-    <<1, 1>, [ 1, 0, 0, 0, 1 ], [ <2, 1> ], [
-        <1, 4, [ -1, 1 ], 6, 2>
-    ], <1, 1>, 3>,
-    <<2, 1>, [ 1, 0, 1 ], [ <1, 1>, <1, 1> ], [
-        <1, 2, [ -3, 0, 1 ], 1, 2>
-    ], <1, -1>, 2>,
-    <<2, 1>, [ 2, 0, 1 ], [ <1, 2> ], [
-        <1, 2, [ 6, 0, 1 ], 1, 2>
-    ], <1, -1>, 1>,
-    <<2, 1>, [ -2, 0, 1 ], [ <1, 1>, <1, 1> ], [
-        <1, 2, [ -2, 0, 1 ], 1, 2>
-    ], <1, -1>, 2>,
-    <<4, 2>, [ -1, 1 ], [ <1, 1> ], [
-        <1, 1, [ -1, 1 ], 1, 2>
-    ], <1, -1>, 1>
-]>
-*/
 
 /*
 facinfo := HeuristicJacobianFactors(X);
