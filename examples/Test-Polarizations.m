@@ -1,7 +1,7 @@
 SetVerbose("EndoFind", 3);
 SetVerbose("CurveRec", 0);
 
-prec := 300;
+prec := 500;
 F := RationalsExtra(prec);
 CC := F`CC;
 R<x> := PolynomialRing(F);
@@ -29,22 +29,17 @@ end function;
 U3 := RandomInvertibleMatrix(6, 2);
 U3CC := ChangeRing(U3, BaseRing(P3));
 Q3 := P3*U3CC;
-print "";
-print U3;
 
 U2 := RandomInvertibleMatrix(4, 2);
 U2CC := ChangeRing(U2, BaseRing(P2));
 Q2 := P2*U2CC;
-print "";
-print U2;
 
 test, E3 := SomePrincipalPolarization(P3);
 print E3;
 
-exit;
-
 /* Test projection */
 GeoHomRep := GeometricHomomorphismRepresentationCC(P3, P2);
+assert #GeoHomRep eq 1;
 A, R := Explode(GeoHomRep[1]);
 print "";
 print R;
@@ -54,10 +49,10 @@ _, U := FrobeniusFormAlternatingRational(E3);
 print SomePrincipalPolarization(Q3*ChangeRing(Transpose(U), BaseRing(Q3)));
 
 print "";
-print IsBigPeriodMatrix(P3);
+assert IsBigPeriodMatrix(P3);
 
 print "";
-print SymplecticSubmodules(12, 1);
+assert #SymplecticSubmodules(12, 1) eq 28;
 
 E := Matrix(Rationals(), [[0,1],[-1,0]]);
 E := Matrix(Rationals(), [[0,0,1,0],[0,0,0,12],[-1,0,0,0],[0,-12,0,0]]);
@@ -65,6 +60,7 @@ U2 := RandomInvertibleMatrix(4, 2);
 E := U2*E*Transpose(U2);
 print "";
 Ts := IsogenousPPLattices(E : ProjToPP := true);
+assert #Ts eq 28;
 
 for T in Ts do
     print "";

@@ -33,7 +33,7 @@ if prec lt 200 then
     RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound; RR`prec_algdep := CC`prec_algdep;
     return CC;
 end if;
-CC`epscomp := RR ! (10^(-Round(9.5*prec/10))); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(30 + (prec div 10))); CC`prec_algdep := Round(8*prec/10);
+CC`epscomp := RR ! (10^(-Round(9*prec/10))); CC`epsinv  := RR ! (2^(-prec)); CC`height_bound := RR ! (3^(30 + (prec div 10))); CC`prec_algdep := Round(8*prec/10);
 RR`epscomp := CC`epscomp; RR`epsinv := CC`epsinv; RR`height_bound := CC`height_bound; RR`prec_algdep := CC`prec_algdep;
 return CC;
 

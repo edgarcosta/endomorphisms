@@ -26,7 +26,7 @@ function OurAllLinearRelations(q, p);
 //(small) integer linear dependencies among the entries. The precision p is
 //used for two purposes, namely a relation must be zero to approximately 10^(-p),
 //and secondly the coefficients themselves must be bounded approximately by p.
-U:=Universe(q);
+U:=Universe(q); eps := U`epscomp;
 if Type(U) eq FldCom then
     L1 := OurAllLinearRelations([ Real(x) : x in q ], p);
     L2 := OurAllLinearRelations([ Imaginary(x) : x in q ], p);
@@ -35,8 +35,10 @@ end if;
 I:=[1..#q]; hb := U`height_bound;
 M:=Matrix([[q[j]] cat [i eq j select 10^(-p) else 0 : i in I] : j in I]);
 A,B:=LLL(M);
-E:=Rows(B)[[i : i in I | Norm(A[i]) lt hb*p^2*#q^2*10^(-2*p)]];
-return Lattice(Matrix(E));
+rows:=Rows(B)[[i : i in I | Norm(A[i]) lt hb^(1/2)*p^2*#q^2*10^(-2*p)]];
+rows:=rows[[i : i in [1..#rows] | Abs(&+[ rows[i][j]*q[j] : j in [1..#q] ]) lt eps ]];
+//print rows;
+return Lattice(Matrix(rows));
 end function;
 
 function OurAlgdep(q, p);

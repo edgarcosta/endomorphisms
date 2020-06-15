@@ -49,23 +49,26 @@ Comm := Eltseq(Transpose(JP_R) * M * JP_R - M) cat Eltseq(M + Transpose(M));
 M :=  Matrix(RR, [ [ MonomialCoefficient(c, var) : c in Comm ] : var in vars ]);
 vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Calculating polarization basis...";
-Ker := IntegralLeftKernel(M);
-print Ker;
+time Ker := IntegralLeftKernel(M);
+//print Ker;
 
 /* Culling the correct polarizations using the conditions on E */
 RR := BaseRing(JP); Es := [];
 for r in Rows(Ker) do
+    ht := Max([ Height(c) : c in Eltseq(r) ]);
     E := Matrix(Rationals(), 2*gP, 2*gP, Eltseq(r));
     ERR := ChangeRing(E, RR);
     /* Culling the correct polarizations using the conditions on E */
     Comm1 := Transpose(JP) * ERR * JP - ERR;
-    if &and([Abs(c) lt 10^20*RR`epscomp : c in Eltseq(Comm1)]) then
+    if &and([Abs(c) lt ht*RR`epscomp : c in Eltseq(Comm1)]) then
         Comm2 := ERR + Transpose(ERR);
-        if &and([Abs(c) lt 10^20*RR`epscomp : c in Eltseq(Comm2)]) then
+        if &and([Abs(c) lt ht*RR`epscomp : c in Eltseq(Comm2)]) then
             Append(~Es, E);
         end if;
     end if;
 end for;
+print Es;
+print "---";
 vprint EndoFind, 2 : "done calculating polarization basis.";
 return Es;
 
@@ -102,7 +105,6 @@ intrinsic SomePrincipalPolarization(P::ModMatFldElt : B := 2) -> SeqEnum
 
 P := MatrixExtra(P);
 Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
-print Es;
 
 counter := 0;
 while true do

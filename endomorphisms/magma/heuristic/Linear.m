@@ -174,16 +174,28 @@ end if;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernelOld(M::. : CalcAlg := false) -> .
+intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
+
+CC := BaseRing(M);
+if Type(CC) eq FldCom then
+    RR := RealField(CC);
+    abs := Max([ Abs(Im(c)) : c in Eltseq(M) ]);
+    if abs lt CC`epscomp then
+        MRR := Matrix([ [ Re(c) : c in Eltseq(row) ] : row in Rows(M) ]);
+        return IntegralLeftKernel(MRR : CalcAlg := CalcAlg);
+    end if;
+    return IntegralLeftKernel(HorizontalSplitMatrix(M) : CalcAlg := CalcAlg);
+end if;
 
 RR := BaseRing(M); prec := RR`prec_algdep;
 if CalcAlg then
     B := 10^prec;
 else
+    // Endomorphisms and polarizations have far smaller coefficients 
     eps := Maximum([ Abs(c) : c in Eltseq(M) ]);
     if Abs(eps) lt RR`epscomp then eps := 1; end if;
-    B := 10^(prec div 2) / eps;
+    B := 10^(prec div 5) / eps;
 end if;
 
 MJ := Matrix(Integers(), [ [ Round(B * c) : c in Eltseq(row) ] : row in Rows(M) ]);
@@ -194,12 +206,7 @@ L, K := LLL(MJ); rowsK := Rows(K);
 if CalcAlg then
     row1 := rowsK[1]; ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
     test1 := ht1 lt RR`height_bound;
-
-    //print row1;
-    //print test1;
-    if test1 then
-        return Matrix([ row1 ]), true;
-    end if;
+    if test1 then return Matrix([ row1 ]), true; end if;
     return Matrix([ [ 0 : row in Rows(M) ] ]), false;
 end if;
 
@@ -213,11 +220,7 @@ for row in rowsK do
         prod := Matrix(RR, [ Eltseq(row) ])*M;
         abs := Max([ Abs(c) : c in Eltseq(prod) ]);
         /* Always use accuracy of the smaller complex field */
-        if not CalcAlg then
-            test2 := abs lt 10^20*RR`epscomp;
-        else
-            test2 := abs lt RR`epscomp;
-        end if;
+        test2 := abs lt ht*RR`epscomp;
 
         if test2 then
             CCSmall := ComplexField(5);
@@ -238,10 +241,11 @@ end if;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::. : CalcAlg := false, Fast := false) -> .
+intrinsic IntegralLeftKernelMagma(M::. : CalcAlg := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
+/* This Magma version turns out to be unstable and unreliable... */
 
-CC := BaseRing(M); prec := CC`prec_algdep;
+CC := BaseRing(M); prec := CC`prec_algdep; Fast := false;
 //if Precision(CC) lt 200 and Precision(CC) gt 75 then Fast := true; end if;
 //if Precision(CC) lt 200 then Fast := true; end if;
 if CalcAlg then
