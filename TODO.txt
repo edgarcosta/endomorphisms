@@ -1,3 +1,9 @@
+Heuristic improvements:
+Find minimal polynomials over QQ and take roots instead of working with the large representation over fields
+
+Projects:
+Further decomposition of endomorphism algebra
+
 Sketch of new version of verification:
 We use Cantor coordinates only.
 As before, we change the affine patches U and V of X and Y such that the given base points P0 and Q0 are in U and V, respectively. We also ask that the first coordinate of U (not necessarily x) be a uniformizer at P0.
@@ -12,12 +18,3 @@ After this, we have to globalize the ai and bi, knowing them at many primes. Thi
 For many curves, it is better not to use the representation Qj - gY P0, but Rj - D0 for some distinguished divisor of degree D0. There are two ways to exploit this, and they should be applied at all primes before globalizing.
 The first is to determine the ai and bi for the Qj and to translate, knowing the addition law on the Jacobian. In fact I do not know this yet for general curves. Still, in the hyperelliptic case this is all right.
 The second possibility is to first translate the infinitesimal development of Qj into that of the Rj. This requires addition of approximated points. Perhaps this is possible by first finding the generic addition law and then substituting. This may be worthwhile to avoid intermediate degrees in the rational functions ai and bi that are larger than they need to be.
-
-Later:
-Determine the "right" map when not consistently taking projections or inclusions; the naive suggestion is to use the inverse and multiply out denominators, but that seems too large
-Case of coinciding branches (multiplication trick)
-Possibly store period matrices of reconstructed curve
-Use Khuri-Makdisi for Cantor representation
-
-Projects:
-Further decomposition of endomorphism algebra

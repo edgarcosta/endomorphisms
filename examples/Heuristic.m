@@ -1,6 +1,7 @@
 SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
+/* Demonstrates the main heuristic functions */
 prec := 50;
 
 F := RationalsExtra(prec);
@@ -17,6 +18,7 @@ time rep := HeuristicEndomorphismRepresentation(X);
 time L := HeuristicEndomorphismFieldOfDefinition(X);
 time Lat := HeuristicEndomorphismLattice(X);
 time test_gl2 := HeuristicIsGL2(X);
+//time dec := HeuristicDecomposition(X);
 
 print "";
 print "Heuristic endomorphism lattice:";

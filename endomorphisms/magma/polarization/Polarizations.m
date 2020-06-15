@@ -50,6 +50,7 @@ M :=  Matrix(RR, [ [ MonomialCoefficient(c, var) : c in Comm ] : var in vars ]);
 vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Calculating polarization basis...";
 Ker := IntegralLeftKernel(M);
+print Ker;
 
 /* Culling the correct polarizations using the conditions on E */
 RR := BaseRing(JP); Es := [];
@@ -101,6 +102,7 @@ intrinsic SomePrincipalPolarization(P::ModMatFldElt : B := 2) -> SeqEnum
 
 P := MatrixExtra(P);
 Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
+print Es;
 
 counter := 0;
 while true do

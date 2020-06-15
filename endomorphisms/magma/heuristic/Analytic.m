@@ -183,11 +183,11 @@ r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
 As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 
-/* Final check for correctness */
-for i in [1..#gens] do
-    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
-    assert abs lt CC`epscomp;
-end for;
+/* Final check for correctness, removed because checking roots is more stable */
+//for i in [1..#gens] do
+//    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
+//    assert abs lt CC`epscomp;
+//end for;
 return gens, hFK;
 
 end intrinsic;
@@ -225,15 +225,18 @@ if #seq eq 0 then
     return [ ], hFK;
 end if;
 
+vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : [ MinimalPolynomial(c) : c in seq ];
+
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));
 As := [ Matrix(K, r, c, seq[((k - 1)*r*c + 1)..(k*r*c)]) : k in [1..#gensPart] ];
 gens := [ [* As[k], gensPart[k][2] *] : k in [1..#gensPart] ];
 
-/* Final check for correctness */
-for i in [1..#gens] do
-    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
-    assert abs lt BaseRing(P)`epscomp;
-end for;
+/* Final check for correctness, removed because checking roots is more stable */
+//for i in [1..#gens] do
+//    abs := Max([ Abs(c) : c in Eltseq(EmbedMatrixExtra(gens[i][1]) - gensPart[i][1]) ]);
+//    assert abs lt BaseRing(P)`epscomp;
+//end for;
 return gens, hFK;
 
 end intrinsic;

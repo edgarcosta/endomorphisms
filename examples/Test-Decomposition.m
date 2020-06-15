@@ -1,7 +1,7 @@
 SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
-prec := 100;
+prec := 200;
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
 
@@ -29,8 +29,6 @@ X := HyperellipticCurve(R![1, 1, 2, 1, 1], R![1, 1, 1, 1]); Append(~Xs, X);
 /* A genus-3 case */
 X := HyperellipticCurve(x^8 + x^6 + 5*x^4 - 3*x^2 + 17); Append(~Xs, X);
 
-//Xs := [ Xs[19] ];
-
 for i in [1..#Xs] do
     X := Xs[i];
 
@@ -45,7 +43,5 @@ for i in [1..#Xs] do
 
     print "";
     print "Decomposition:";
-    print HeuristicDecompositionInformation(X);
+    print HeuristicDecomposition(X);
 end for;
-
-exit;

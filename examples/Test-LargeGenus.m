@@ -1,9 +1,9 @@
-SetVerbose("EndoFind", 0);
+SetVerbose("EndoFind", 3);
 SetVerbose("CurveRec", 0);
 
-prec := 500;
+prec := 50;
 
-// Plane curves
+// Takes about one minute
 F := RationalsExtra(prec);
 R<x,y> := PolynomialRing(F, 2);
 f := 1 + 7*x*y + 21*x^2*y^2 + 35*x^3*y^3 + 28*x^4*y^4 + 2*x^7 + 2*y^7;

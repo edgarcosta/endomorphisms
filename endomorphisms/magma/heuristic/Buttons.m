@@ -132,7 +132,7 @@ end intrinsic;
 
 
 intrinsic HeuristicDecomposition(X::.) -> .
-{Returns decomposition description. The first entry describes the isotypical field, the second entry describes the decomposition field and whether this field is minimal, the third entry describes decomposition over the base (dimensions and powers followed by equations), and the fourth entry describes the decomposition over the decomposition field (dimensions and powers followed by equations).}
+{Returns a description of the decomposition of the Jacobian of X. The first entry describes the isotypical field, the second entry describes the decomposition field and whether this field is minimal, the third entry describes decomposition over the base (dimensions and powers followed by equations), and the fourth entry describes the decomposition over the decomposition field (dimensions and powers followed by equations).}
 
 assert ISA(Type(X),Crv);
 X := CurveExtra(X);
