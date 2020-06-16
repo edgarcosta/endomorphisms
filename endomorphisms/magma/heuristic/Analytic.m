@@ -193,7 +193,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : s0 := [], UseSplittingField := true) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : s0 := [], UseSplittingField := false) -> SeqEnum
 {Given period matrices P and a field F, this function determines a ZZ-basis of
 the corresponding abelian variety. These are returned as triples of an
 algebraized tangent representation A over a number field K, a homology
@@ -226,6 +226,7 @@ if #seq eq 0 then
 end if;
 
 vprint EndoFind, 3 : "";
+vprint EndoFind, 3 : "Minimal polynomials encountered during algebraization of tangent representations:";
 vprint EndoFind, 3 : [ MinimalPolynomial(c) : c in seq ];
 
 r := #Rows(gensPart[1][1]); c := #Rows(Transpose(gensPart[1][1]));

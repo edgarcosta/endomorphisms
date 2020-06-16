@@ -1,7 +1,7 @@
-SetVerbose("EndoFind", 1);
-SetVerbose("CurveRec", 1);
+SetVerbose("EndoFind", 0);
+SetVerbose("CurveRec", 0);
 
-prec := 1000;
+prec := 100;
 CCSmall := ComplexField(5);
 F := RationalsExtra(prec);
 CC := F`CC;

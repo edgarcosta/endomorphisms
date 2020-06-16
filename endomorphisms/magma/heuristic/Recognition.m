@@ -42,8 +42,24 @@ end function;
 
 function TestCloseToRoot(f, aCC);
 /* Tests whether complex number aCC is close to a root of polynomial f over
- * NumberFieldExtra */
+ * NumberFieldExtra. One Newton should do it */
 
+if IsZero(f) then return false; end if;
+if Degree(f) eq 0 then return false; end if;
+fCC := EmbedPolynomialExtra(f); csCC := Coefficients(fCC); CC := Parent(aCC);
+abscsCC := Max([ Abs(c) : c in csCC ]);
+absaCC := Max([1, Abs(aCC)^Degree(f) ]);
+abs := abscsCC*absaCC*CC`height_bound;
+//if not &+[ csCC[i + 1]*aCC^i : i in [0..Degree(f)] ] lt abs then
+//    return false;
+//end if;
+aCCnew := aCC - (Evaluate(fCC, aCC)/Evaluate(Derivative(fCC), aCC));
+if Abs(aCCnew - aCC) lt CC`epscomp then
+    return true;
+end if;
+return false;
+
+ /*
 fCC := EmbedPolynomialExtra(f); rtsCC := [ tup[1] : tup in Roots(fCC) ];
 for rtCC in rtsCC do
     abs := Abs(rtCC - aCC);
@@ -55,6 +71,7 @@ for rtCC in rtsCC do
     end if;
 end for;
 return false;
+*/
 
 end function;
 
@@ -63,6 +80,7 @@ function MinimalPolynomialLLL(aCC, K : UpperBound := Infinity())
 /* Returns a relative minimal polynomial of the complex number aCC with respect
  * to the stored infinite place of K. */
 
+nsavedrows := 2;
 CCSmall := ComplexField(5);
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Determining minimal polynomial using LLL for:";
@@ -85,22 +103,47 @@ MLine := [ ]; poweraCCsc := 1; degf := 0;
 MLine cat:= [ powergenCC * poweraCCsc : powergenCC in powersgenCC ];
 
 /* Successively adding other entries to find relations */
+savedrows := [* 0 : i in [1..nsavedrows] *];
 while degf lt UpperBound do
     degf +:= 1; poweraCCsc *:= aCCsc;
     MLine cat:= [ powergenCC * poweraCCsc : powergenCC in powersgenCC ];
     M := Transpose(Matrix(CCK, [ MLine ]));
     Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
+    vprint EndoFind, 3 : "";
+    vprint EndoFind, 3 : "Kernel during LLL minimal polynomial determination:";
+    vprint EndoFind, 3 : Ker;
 
     if test_ker then
-        row := Rows(Ker)[1];
-        f := &+[ &+[ row[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
+        row := Rows(Ker)[1]; seq := Eltseq(row); ht := Max([ Height(c) : c in seq ]);
+        f := &+[ &+[ seq[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
         f := Evaluate(f, R.1 / faca); f /:= LeadingCoefficient(f);
-
         if TestCloseToRoot(f, aCC) then
-            vprint EndoFind, 3 : "";
-            vprint EndoFind, 3 : f;
-            vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
-            return f;
+            if ht lt CCK`height_bound then
+                vprint EndoFind, 3 : "";
+                vprint EndoFind, 3 : f;
+                vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
+                return f;
+            elif &and[ Type(entry) eq SeqEnum : entry in savedrows ] then
+                testrepeat := true;
+                for i in [1..nsavedrows] do
+                    seqold := savedrows[i] cat [ 0 : j in [1..(nsavedrows - i + 1)*degK] ];
+                    if not seq eq seqold then
+                        testrepeat := false;
+                        break;
+                    end if;
+                end for;
+                if testrepeat then
+                    vprint EndoFind, 3 : "";
+                    vprint EndoFind, 3 : f;
+                    vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
+                    return f;
+                end if;
+            end if;
+
+            for i in [2..nsavedrows] do
+                savedrows[i - 1] := savedrows[i];
+            end for;
+            savedrows[nsavedrows] := seq;
         end if;
     end if;
 end while;
@@ -127,6 +170,7 @@ vprint EndoFind, 3 : "";
 
 Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 row := Rows(Ker)[1]; den := row[#Eltseq(row)];
+/* There is no height test in this case: Be aware of the corresponding risk */
 if den ne 0 then
     a := &+[ row[i + 1]*genK^i : i in [0..(degK - 1)] ] / den;
     if Abs(EmbedExtra(a) - aCC) le CCK`epscomp then
@@ -198,31 +242,15 @@ return Matrix(rows_alg), test;
 end intrinsic;
 
 
-// TODO: This function can be used and is very useful, but it masks problems with precision loss
 function RationalReconstruction(r);
-    CC := Parent(r);
-    r1 := Real(r);
-    r2 := Imaginary(r);
-    p := Precision(r2);
-    if r2 ne Parent(r2) ! 0 then
-        e := Log(AbsoluteValue(r2));
-    else
-        e := -p;
-    end if;
-    if -e lt p/2 then
-        return false, 0;
-    end if;
-    best := 0;
-    i := p div 10;
-    b := BestApproximation(r1, 10^i);
+    CC := Parent(r); r1 := Real(r); r2 := Imaginary(r); p := Precision(r2);
+    if r2 ne Parent(r2) ! 0 then e := Log(AbsoluteValue(r2)); else e := -p; end if;
+    if -e lt p/2 then return false, 0; end if;
+    best := 0; i := p div 10; b := BestApproximation(r1, 10^i);
     while b ne best and i le p do
-        i +:= 5;
-        best := b;
-        b := BestApproximation(r1, 10^i);
+        i +:= 5; best := b; b := BestApproximation(r1, 10^i);
     end while;
-    if b ne best then
-        return false, 0;
-    end if;
+    if b ne best then return false, 0; end if;
     test := Abs(r - b) lt Parent(r)`epscomp;
     return test, b;
 end function;
@@ -251,12 +279,12 @@ return false, 0;
 end intrinsic;
 
 
-intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseRatRec := true) -> .
+intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseQQ := false, UseRatRec := true) -> .
 {Returns an approximation of the elements of the list LCC over K.}
 
 L := [ ];
 for aCC in LCC do
-    test, a := AlgebraizeElementExtra(aCC, K : UseRatRec := UseRatRec);
+    test, a := AlgebraizeElementExtra(aCC, K : UseQQ := UseQQ, UseRatRec := UseRatRec);
     if not test then return false, 0; end if;
     Append(~L, a);
 end for;
@@ -265,14 +293,14 @@ return true, L;
 end intrinsic;
 
 
-intrinsic AlgebraizeMatrixExtra(MCC::., K::Fld : UseRatRec := true) -> .
+intrinsic AlgebraizeMatrixExtra(MCC::., K::Fld : UseQQ := false, UseRatRec := true) -> .
 {Returns an approximation of the complex matrix MCC over K.}
 
 rows := [ ];
 for rowCC in Rows(MCC) do
     row := [ ];
     for cCC in Eltseq(rowCC) do
-        test, c := AlgebraizeElementExtra(cCC, K : UseRatRec := UseRatRec);
+        test, c := AlgebraizeElementExtra(cCC, K : UseQQ := UseQQ, UseRatRec := UseRatRec);
         if not test then return false, 0; end if;
         Append(~row, c);
     end for;
@@ -283,10 +311,14 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), minpolQQ := 0, UseQQ := false) -> RngUPolElt
-{Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. If the minimal polynomial over QQ is already known, then it can be specified by using the keyword argument minpolQQ. This minimal polynomial over QQ is the second return value.}
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), UseQQ := false, Alg := false) -> .
+{Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. This minimal polynomial over QQ is the second return value.}
 
-if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound); end if;
+if Alg then
+    test, a := AlgebraizeElementExtra(aCC, K);
+    if test then R := PolynomialRing(K); return R.1 - a, 0; end if;
+end if;
+if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound), 0; end if;
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);

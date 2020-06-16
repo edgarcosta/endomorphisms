@@ -174,73 +174,6 @@ end if;
 end intrinsic;
 
 
-intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
-{Returns simultaneous integral cancellations of all the rows of M.}
-
-CC := BaseRing(M);
-if Type(CC) eq FldCom then
-    RR := RealField(CC);
-    abs := Max([ Abs(Im(c)) : c in Eltseq(M) ]);
-    if abs lt CC`epscomp then
-        MRR := Matrix([ [ Re(c) : c in Eltseq(row) ] : row in Rows(M) ]);
-        return IntegralLeftKernel(MRR : CalcAlg := CalcAlg);
-    end if;
-    return IntegralLeftKernel(HorizontalSplitMatrix(M) : CalcAlg := CalcAlg);
-end if;
-
-RR := BaseRing(M); prec := RR`prec_algdep;
-if CalcAlg then
-    B := 10^prec;
-else
-    // Endomorphisms and polarizations have far smaller coefficients 
-    eps := Maximum([ Abs(c) : c in Eltseq(M) ]);
-    if Abs(eps) lt RR`epscomp then eps := 1; end if;
-    B := 10^(prec div 5) / eps;
-end if;
-
-MJ := Matrix(Integers(), [ [ Round(B * c) : c in Eltseq(row) ] : row in Rows(M) ]);
-MI := IdentityMatrix(Integers(), #Rows(MJ)); MJ := HorizontalJoin(MI, MJ);
-L, K := LLL(MJ); rowsK := Rows(K);
-
-// First the non-typical case where we are after a minimal polynomial
-if CalcAlg then
-    row1 := rowsK[1]; ht1 := Max([ Height(c) : c in Eltseq(row1) ]);
-    test1 := ht1 lt RR`height_bound;
-    if test1 then return Matrix([ row1 ]), true; end if;
-    return Matrix([ [ 0 : row in Rows(M) ] ]), false;
-end if;
-
-// Now the generic case
-rowsK0 := [ ];
-for row in rowsK do
-    ht := Max([ Height(c) : c in Eltseq(row) ]);
-    test1 := ht lt RR`height_bound;
-
-    if test1 then
-        prod := Matrix(RR, [ Eltseq(row) ])*M;
-        abs := Max([ Abs(c) : c in Eltseq(prod) ]);
-        /* Always use accuracy of the smaller complex field */
-        test2 := abs lt ht*RR`epscomp;
-
-        if test2 then
-            CCSmall := ComplexField(5);
-            vprint EndoFind, 3 : "";
-            vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
-            vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
-            Append(~rowsK0, row);
-        end if;
-    end if;
-end for;
-
-if #rowsK0 eq 0 then
-    return Matrix([ [ 0 : row in Rows(M) ] ]), false;
-else
-    return Matrix(rowsK0), true;
-end if;
-
-end intrinsic;
-
-
 intrinsic IntegralLeftKernelMagma(M::. : CalcAlg := false) -> .
 {Returns simultaneous integral cancellations of all the rows of M.}
 /* This Magma version turns out to be unstable and unreliable... */
@@ -319,5 +252,78 @@ if #rowsK0 eq 0 then
 else
     return Matrix(rowsK0), true;
 end if;
+
+end intrinsic;
+
+
+intrinsic IntegralLeftKernel(M::. : CalcAlg := false) -> .
+{Returns simultaneous integral cancellations of all the rows of M.}
+
+CC := BaseRing(M);
+if Type(CC) eq FldCom then
+    RR := RealField(CC);
+    abs := Max([ Abs(Im(c)) : c in Eltseq(M) ]);
+    if abs lt CC`epscomp then
+        MRR := Matrix([ [ Re(c) : c in Eltseq(row) ] : row in Rows(M) ]);
+        return IntegralLeftKernel(MRR : CalcAlg := CalcAlg);
+    end if;
+    return IntegralLeftKernel(HorizontalSplitMatrix(M) : CalcAlg := CalcAlg);
+end if;
+
+RR := BaseRing(M); prec := RR`prec_algdep;
+if CalcAlg then
+    //eps := Maximum([ Abs(c) : c in Eltseq(M) ]);
+    //B := 10^prec / eps;
+    B := 10^prec;
+else
+    // Endomorphisms and polarizations have far smaller coefficients
+    //eps := Maximum([ Abs(c) : c in Eltseq(M) ]);
+    //if Abs(eps) lt RR`epscomp then eps := 1; end if;
+    //B := 10^(prec div 5) / eps;
+    B := 10^(prec div 5);
+end if;
+
+MJ := Matrix(Integers(), [ [ Round(B * c) : c in Eltseq(row) ] : row in Rows(M) ]);
+MI := IdentityMatrix(Integers(), #Rows(MJ)); MJ := HorizontalJoin(MI, MJ);
+L, K := LLL(MJ); rowsK := Rows(K);
+
+// First the non-typical case where we are after a minimal polynomial
+if CalcAlg then
+    row := rowsK[1]; htrow := Max([ Height(c) : c in Eltseq(row) ]);
+    return Matrix([ row ]), true;
+    absM := Max([ Abs(c) : c in Eltseq(M) ]);
+    rowM := Vector(RR, Eltseq(row))*M;
+    test := Max([ Abs(c) : c in Eltseq(rowM) ]) lt htrow*absM*RR`epscomp;
+    if test then return Matrix([ row ]), true; end if;
+    return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+end if;
+
+// Now the generic case
+rowsK0 := [ ];
+for row in rowsK do
+    ht := Max([ Height(c) : c in Eltseq(row) ]);
+    test1 := ht lt RR`height_bound;
+
+    if test1 then
+        prod := Matrix(RR, [ Eltseq(row) ])*M;
+        abs := Max([ Abs(c) : c in Eltseq(prod) ]);
+        /* Always use accuracy of the smaller complex field */
+        test2 := abs lt ht*RR`epscomp;
+        //print RR; print RR`epscomp; print test2;
+
+        if test2 then
+            CCSmall := ComplexField(5);
+            vprint EndoFind, 3 : "";
+            vprint EndoFind, 3 : "Height of row:", Round(Log(ht));
+            vprint EndoFind, 3 : "Precision reached:", CCSmall ! abs;
+            Append(~rowsK0, row);
+        end if;
+    end if;
+end for;
+
+if #rowsK0 eq 0 then
+    return Matrix([ [ 0 : row in Rows(M) ] ]), false;
+end if;
+return Matrix(rowsK0), true;
 
 end intrinsic;
