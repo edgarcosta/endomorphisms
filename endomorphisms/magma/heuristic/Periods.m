@@ -37,7 +37,7 @@ if CurveType(X) eq "hyp" then
     g := (4*f + h^2) / 4;
     gCC := EmbedPolynomialExtra(g);
     RS := RiemannSurface(gCC, 2);
-    P := ChangeRing(BigPeriodMatrix(RS), CC);
+    P := ChangeRing(BigPeriodMatrix(RS), CC) / 2;
 end if;
 
 if CurveType(X) in [ "plane", "gen" ] then
