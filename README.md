@@ -3,6 +3,8 @@ Description
 
 This repository contains a mix of Magma, Pari and SageMath code for calculating the endomorphism algebras and rings of Jacobian varieties of curves over number fields and finite fields.
 
+PLEASE NOTE: The current version of the repository uses Magma version 2.25, which includes the period algorithms by Molin--Neurohr mentioned below. If you have an earlier version of Magma, please try checking out commit `7433e5` and following the instructions on including the period functionality that is described below.
+
 Prerequisites
 --
 An installation of Magma, Pari and SageMath, so that all of these are available on the command line, is required to run all of the code. Most of the algorithms are written in Magma, whose algebro-geometric and numerical capabilities are essential. Some of the heavy lifting in the creation of number fields and the recognition of complex numbers as algebraic numbers is outsourced to Pari, whose performance when working with number fields is better than that of Magma. Finally, SageMath is used for the calculation of Frobenius and as a wrapper, because its Python substrate allows for easier creation and manipulation of data structures.
