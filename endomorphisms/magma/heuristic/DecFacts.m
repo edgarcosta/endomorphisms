@@ -425,11 +425,12 @@ for i := 1 to #EndoDescQQ do
 
     /* Reconstruction of single elliptic curve factor */
     if (dim eq 1) and (e eq 1) then
-        if Im(Q[1,1]/Q[1,2]) lt 0 then
-            Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
+        Qp := Q;
+        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
+            Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
         end if;
-        E := ReconstructCurve(Q, F : Base := true);
-        Append(~eqs, E);
+        Ep := ReconstructCurve(Qp, F : Base := true);
+        Append(~eqs, Ep);
         continue;
     end if;
 
@@ -474,7 +475,7 @@ end intrinsic;
 
 
 intrinsic IsotypicalField(X::.) -> .
-{Determines the field of definition of the isotypical components of the Jacobian of X.}
+{Determines the field of definition of the isotypical components of the Jacobian of X. For now the genus is supposed to be at most 3.}
 
 EndoRep := GeometricEndomorphismRepresentation(X);
 EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
@@ -490,7 +491,7 @@ end intrinsic;
 
 
 intrinsic FullDecompositionField(X::.) -> .
-{Returns a field over which the Jacobian of X splits completely.}
+{Returns a field over which the Jacobian of X splits completely. For now the genus is supposed to be at most 3.}
 
 /* First find group corresponding to isotypical field */
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
@@ -527,6 +528,46 @@ return K0, h0, test;
 end intrinsic;
 
 
+intrinsic ReduceToReps (S::[], E::UserProgram) -> SeqEnum
+{ Given a list of objects S and an equivalence relation E on S returns a maximal sublist of inequivalent objects. }
+    if #S le 1 then return S; end if;
+    if #S eq 2 then return E(S[1],S[2]) select [S[1]] else S; end if;
+    T:=[S[1]];
+    for i:=2 to #S do
+        s:=S[i]; sts:=true;
+        for j:=#T to 1 by -1 do // check most recently added entries first in case adjacent objects in S are more likely to be equivalent (often true)
+            if E(s,T[j]) then sts:=false; break; end if;
+        end for;
+        if sts then T:=Append(T,s); end if;
+    end for;
+    return T;
+end intrinsic;
+
+
+intrinsic ReduceToClasses (S::[], E::UserProgram) -> SeqEnum
+{ Given a list of objects S and an equivalence relation E on S returns orbits under E. }
+    if #S eq 0 then return []; end if;
+    if #S eq 1 then return [S[1]]; end if;
+    if #S eq 2 then return E(S[1],S[2]) select [S] else [[S[1]],[S[2]]]; end if;
+    Ts:=[[S[1]]];
+    for i:=2 to #S do
+        s:=S[i]; sts := true;
+        for j:=#Ts to 1 by -1 do // check most recently added entries first in case adjacent objects in S are more likely to be equivalent (often true)
+            if E(s,Ts[j][1]) then Append(~Ts[j],i); sts:=false; break; end if;
+        end for;
+        if sts then Append(~Ts,[i]); end if;
+    end for;
+    return Ts;
+end intrinsic;
+
+
+function IsIsogenousCC(Q1, Q2)
+// Test if elliptic curves are isogenous
+GeoHomRep := GeometricHomomorphismRepresentationCC(Q1, Q2);
+return #GeoHomRep ne 0;
+end function;
+
+
 intrinsic DecompositionOverClosure(X::.) -> .
 {Describes decomposition over smallest decomposition field as a sequence [ dimension, exponent ] followed by corresponding curves. All is done over the base field. For now the genus is supposed to be at most 3.}
 
@@ -547,7 +588,7 @@ if #EndoDescQQ eq 1 then
     if e eq 1 then return [ [ dim, e ] ], [ ]; end if;
 end if;
 
-facs := [ ]; eqs := [* *];
+facs := [ ]; eqs := [* *]; Qps := [* *];
 for i := 1 to #EndoDescQQ do
     /* Get factor analytically */
     tup := EndoDescQQ[i];
@@ -558,10 +599,12 @@ for i := 1 to #EndoDescQQ do
 
     /* Reconstruction of single elliptic curve factor */
     if (dim eq 1) and (e eq 1) then
-        if Im(Q[1,1]/Q[1,2]) lt 0 then
-            Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
+        Qp := Q;
+        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
+            Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
         end if;
-        E := ReconstructCurve(Q, K : Base := true);
+        Append(~Qps, Qp);
+        E := ReconstructCurve(Qp, K : Base := true);
         Append(~eqs, E);
         continue;
     end if;
@@ -576,6 +619,7 @@ for i := 1 to #EndoDescQQ do
             Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
             Yp, _, test := ReconstructCurve(Qp, K : Base := true);
             if test then
+                Append(~Qps, Qp);
                 Append(~eqs, Yp);
                 break;
             end if;
@@ -595,6 +639,7 @@ for i := 1 to #EndoDescQQ do
         if Im(Qp[1,1]/Qp[1,2]) lt 0 then
             Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
         end if;
+        Append(~Qps, Qp);
         Ep := ReconstructCurve(Qp, K : Base := true);
         Append(~eqs, Ep);
         continue;
@@ -603,6 +648,14 @@ for i := 1 to #EndoDescQQ do
     error "DecompositionOverBase failed to terminate correctly.";
 end for;
 
-return facs, eqs;
+if &and[ #Rows(Qp) eq 1 : Qp in Qps ] then
+    inds := [ i : i in [1..#Qps] ];
+    function redfunc(i, j); return IsIsogenousCC(Qps[i], Qps[j]); end function;
+    indss := Sort(ReduceToClasses(inds, redfunc));
+else
+    indss := [ [ i ] : i in [1..#Qps ] ];
+end if;
+
+return facs, eqs, indss;
 
 end intrinsic;

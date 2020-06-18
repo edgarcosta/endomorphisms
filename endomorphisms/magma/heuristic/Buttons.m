@@ -139,8 +139,8 @@ assert ISA(Type(X),Crv);
 X := CurveExtra(X);
 decbase, decbaseeqs := DecompositionOverBase(X);
 Kiso := IsotypicalField(X); Kdec, _, test := FullDecompositionField(X);
-decgeo, decgeoeqs := DecompositionOverClosure(X);
-return [* Kiso, [* Kdec, test *], [* decbase, decbaseeqs *], [* decgeo, decgeoeqs *]*];
+decgeo, decgeoeqs, identsgeo := DecompositionOverClosure(X);
+return [* Kiso, [* Kdec, test *], [* decbase, decbaseeqs *], [* decgeo, decgeoeqs, identsgeo *] *];
 
 end intrinsic;
 
@@ -167,7 +167,7 @@ end intrinsic;
 
 // TODO: This function needs an overhaul */
 intrinsic HeuristicDecompositionInformation(X::.) -> .
-{Returns decomposition description. First entry describes isotypical field, second entry decomposition field, third entry whether this field is minimal, fourth entry describes decomposition over the base (dimensions and powers followed by equations), fifth entry describes decomposition over decomposition field (dimensions and powers followed by equations).}
+{Returns decomposition description. First entry describes isotypical field, second entry decomposition field, third entry whether this field is minimal, fourth entry describes decomposition over the base (dimensions and powers followed by equations), fifth entry describes decomposition over decomposition field (dimensions and powers followed by equations and identifications). For more, see the documentation on output.}
 
 assert ISA(Type(X),Crv);
 X := CurveExtra(X);

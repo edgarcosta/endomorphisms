@@ -72,7 +72,7 @@ HeuristicDecomposition
 ================================================================================
 
 This returns a data type of the form [* Kiso, [* Kdec, test *], [* decbase,
-decbaseeqs *], [* decgeo, decgeoeqs *]*] where
+decbaseeqs *], [* decgeo, decgeoeqs, identsgeo *] *] where
 
   * Kiso is the field of definigion of the isotypical decomposition of J = Jac (X)
   * Kdec is a minimal field over which J splits as far as possible, together
@@ -82,9 +82,14 @@ decbaseeqs *], [* decgeo, decgeoeqs *]*] where
     which it occurs, whereas decbaseeqs tries to find a curve over the base
     field corresponding to the given factor up to isogeny. The latter may not
     exist!
-  * [* decgeo, decgeoeqs *] is a similar description of a decomposition as [*
-    decbase, decbaseeqs *], but this time the calculations are performed over
-    Kdec instead of over the base field.
+  * [* decgeo, decgeoeqs, identsgeo *] is a similar description of a
+    decomposition as [* decbase, decbaseeqs *], but this time the calculations
+    are performed over Kdec instead of over the base field. The returned
+    decomposition type decgeo indicates the decomposition over Kdec, and the
+    factors corresponding to the equations may still merge further upon
+    extension to the full endomorphism field: The pairs that do are indicated
+    in identsgeo.
+
 
 ================================================================================
 EndRROverQQbar
