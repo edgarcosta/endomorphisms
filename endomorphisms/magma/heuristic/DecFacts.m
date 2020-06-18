@@ -402,7 +402,7 @@ intrinsic DecompositionOverBase(X::.) -> .
 {Describes decomposition over base as a sequence [ dimension, exponent ] followed by corresponding curves. All is done over the base field. For now the genus is supposed to be at most 3.}
 
 F := BaseRing(X); P := PeriodMatrix(X); g := #Rows(P);
-EndoRep := GeometricEndomorphismRepresentation(X);
+EndoRep := HeuristicEndomorphismRepresentation(X);
 EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
 C, GensC := Explode(EndoAlg);

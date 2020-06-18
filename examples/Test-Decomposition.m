@@ -1,7 +1,7 @@
 SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
-prec := 200;
+prec := 100;
 F := RationalsExtra(prec);
 R<x> := PolynomialRing(F);
 
