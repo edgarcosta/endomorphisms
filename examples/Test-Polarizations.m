@@ -1,8 +1,7 @@
-SetSeed(1);
 SetVerbose("EndoFind", 3);
 SetVerbose("CurveRec", 0);
 
-prec := 100;
+prec := 300;
 F := RationalsExtra(prec);
 CC := F`CC;
 R<x> := PolynomialRing(F);
@@ -83,6 +82,7 @@ P := Matrix(CC, [
 ]);
 
 test, E := SomePrincipalPolarization(P);
+print E;
 _, U := FrobeniusFormAlternatingRational(E);
 Q := P*ChangeRing(Transpose(U), BaseRing(P));
 
