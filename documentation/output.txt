@@ -11,7 +11,7 @@ The first return value is an endomorphism description EndoDesc. Such description
 
 EndoDesc: Has the format EndR,EndQ,EndZ,PicNum>, where
 
-  * EndR is a lex-sorted list of pairs of integers [[m,d],...] (same format as GeomEndR) describing End(Jac(C_F)) x R
+  * EndR is a lex-sorted list of pairs of integers [[m,d],...] (same format as GeomEndR) describing End(Jac(C_F)) x R: a tuple in this list indicates a factor Mat_m (D), where D is the skew field of dimension d over RR
   * EndQ is a lex sorted list of tuples <m,dimD,[z0,..,zn],discD,dimA> describing factorization of End(Jac(C_F)xQ) = Prod B_i
     into isotypic components B = M_m(D) with D a division algebra whose center Z is a number field
 
