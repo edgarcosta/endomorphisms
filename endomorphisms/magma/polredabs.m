@@ -24,7 +24,7 @@ intrinsic Polredabs(f::RngUPolElt : Best := true) -> RngUPolElt, SeqEnum, BoolEl
     assert #ssroot le Degree(f);
     ssroot := ssroot cat [0 : i in [1..Degree(f)-#ssroot]];
   catch e
-    print("WARNING: need gp at command-line for polredabs, without this many examples become untractable\n");
+    print("WARNING: need gp at command-line for polredabs, without this many examples become intractable\n");
     return f, [0,1] cat [0: i in [1..Degree(f)-2]], false;
   end try;
   return Parent(f) ! sspol, ssroot, true;
