@@ -1,15 +1,26 @@
 intrinsic RootsPari(f::RngUPolElt, K::Fld) -> .
 {Given a polynomial f and a field K, finds all roots of f in K.}
 
-assert BaseRing(f) eq Rationals();
-assert BaseRing(K) eq Rationals();
-g := DefiningPolynomial(K);
-cmd := Sprintf(
-"{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(z->vector(poldegree(g),i, polcoeff(z,i-1)),lift(nfroots(g,f))))}",
-Coefficients(f), Coefficients(g));
-s := Pipe("gp -q -D timer=0", cmd);
-rts := [ K ! rt : rt in eval(s) ];
-return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
+  assert BaseRing(f) eq Rationals();
+  assert BaseRing(K) eq Rationals();
+  try
+    g := DefiningPolynomial(K);
+    cmd := Sprintf(
+    "{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(z->vector(poldegree(g),i, polcoeff(z,i-1)),lift(nfroots(g,f))))}",
+    Coefficients(f), Coefficients(g));
+    s := Pipe("gp -q -D timer=0", cmd);
+    rts := [ K ! rt : rt in eval(s) ];
+    return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
+  catch e
+    vprintf EndoFind : "WARNING: need gp at commando-line for RootsPari!\n";
+    rts := [];
+    for pair in Roots(f, K) do
+      for i in 1..pair[2] do
+        Append(~rts, pair[1]);
+      end for;
+    end for;
+    return rts;
+  end try;
 
 end intrinsic;
 
@@ -25,36 +36,49 @@ end intrinsic;
 intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
 {Given a polynomial f and a field K, finds the factorization of f over K.}
 
-assert BaseRing(f) eq Rationals();
-assert BaseRing(K) eq Rationals();
-g := DefiningPolynomial(K);
-cmd := Sprintf(
-"{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(h->apply(c->vector(poldegree(g),i,polcoeff(c,i-1)),lift(Vecrev(h))),nffactor(K,f)[,1]~))",
-Coefficients(f), Coefficients(g));
-s := Pipe("gp -q -D timer=0", cmd);
+  assert BaseRing(f) eq Rationals();
+  assert BaseRing(K) eq Rationals();
+  try
+  g := DefiningPolynomial(K);
+  cmd := Sprintf(
+  "{f = Pol(Vecrev(%o),'x); g = Pol(Vecrev(%o),'y); K = nfinit(g); print1(apply(h->apply(c->vector(poldegree(g),i,polcoeff(c,i-1)),lift(Vecrev(h))),nffactor(K,f)[,1]~))",
+  Coefficients(f), Coefficients(g));
+  s := Pipe("gp -q -D timer=0", cmd);
 
-R := PolynomialRing(K);
-seqs := eval(s);
-facs := [ &+[ (K ! seq[i])*R.1^(i - 1) : i in [1..#seq] ] : seq in seqs ];
-return facs;
-
+  R := PolynomialRing(K);
+  seqs := eval(s);
+  facs := [ &+[ (K ! seq[i])*R.1^(i - 1) : i in [1..#seq] ] : seq in seqs ];
+  return facs;
+  catch e
+    vprintf EndoFind : "WARNING: need gp at commando-line for FactorizationPari!\n";
+    for pair in Factorization(f, K) do
+      for i in 1..pair[2] do
+        Append(~rts, pair[1]);
+      end for;
+    end for;
+  end try;
 end intrinsic;
 
 
 intrinsic SplittingFieldPari(f::RngUPolElt) -> .
 {Splitting field of f calculated using Pari.}
 
-//return SplittingField(f);
-F := BaseRing(f);
-assert F eq Rationals();
-cmd := Sprintf(
-"{f = Pol(Vecrev(%o),'x); print1(nfsplitting(f))",
-Coefficients(f), Coefficients(f));
-s := Pipe("gp -q -D timer=0", cmd);
-R<x> := PolynomialRing(F);
-L := Polredbestabs(NumberField(eval(s)));
-f := R ! DefiningPolynomial(L);
-return NumberFieldExtra(f);
+  //return SplittingField(f);
+  F := BaseRing(f);
+  assert F eq Rationals();
+  try
+    cmd := Sprintf(
+    "{f = Pol(Vecrev(%o),'x); print1(nfsplitting(f))",
+    Coefficients(f), Coefficients(f));
+    s := Pipe("gp -q -D timer=0", cmd);
+    R<x> := PolynomialRing(F);
+    L := Polredbestabs(NumberField(eval(s)));
+    f := R ! DefiningPolynomial(L);
+  catch e
+    vprintf EndoFind : "WARNING: need gp at commando-line for SplittingFieldPari!\n";
+    f := DefiningPolynomial(SplittingField(f));
+  end try;
+  return NumberFieldExtra(f);
 
 end intrinsic;
 
