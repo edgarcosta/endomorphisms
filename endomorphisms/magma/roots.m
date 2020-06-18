@@ -15,7 +15,7 @@ intrinsic RootsPari(f::RngUPolElt, K::Fld) -> .
     vprintf EndoFind : "WARNING: need gp at commando-line for RootsPari!\n";
     rts := [];
     for pair in Roots(f, K) do
-      for i in 1..pair[2] do
+      for i in [1..pair[2]] do
         Append(~rts, pair[1]);
       end for;
     end for;
@@ -52,7 +52,7 @@ intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
   catch e
     vprintf EndoFind : "WARNING: need gp at commando-line for FactorizationPari!\n";
     for pair in Factorization(f, K) do
-      for i in 1..pair[2] do
+      for i in [1..pair[2]] do
         Append(~rts, pair[1]);
       end for;
     end for;
