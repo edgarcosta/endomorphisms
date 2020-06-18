@@ -1,0 +1,108 @@
+This file explains the output format of the routines in
+endomorphisms/endomorphisms/magma/heuristic/Buttons.m. Their optional flags are
+described in the internal Magma documentation of the functions.
+
+
+================================================================================
+HeuristicEndomorphismAlgebra:
+================================================================================
+
+The first return value is an endomorphism description EndoDesc. Such descriptions are as follows.
+
+EndoDesc: Has the format EndR,EndQ,EndZ,PicNum>, where
+
+  * EndR is a lex-sorted list of pairs of integers [[m,d],...] (same format as GeomEndR) describing End(Jac(C_F)) x R
+  * EndQ is a lex sorted list of tuples <m,dimD,[z0,..,zn],discD,dimA> describing factorization of End(Jac(C_F)xQ) = Prod B_i
+    into isotypic components B = M_m(D) with D a division algebra whose center Z is a number field
+
+      - m is the degree of the isotypic component B as a matrix algebra over D (i.e. B is an m x m matrix algebra)
+      - dimD is the Q-dimension of the division algebra D
+      - [z0,...,zn] is a list of integer coeffs of a defining poly for the number field Z (center of D)
+      - discD is the discriminant of D over Z (in general an O_Z-ideal, but for us a signed integer)
+      - dimA is the dimension of the simple subvariety of Jac(C_F) corresponding to B
+  * EndZ is a pair of integers [i,e] where i is the index of End(Jac(C_F)) in a maximal order of End(Jac(C_F)) x Q
+    and e is -1,0,1 with e=-1 if D is commutative and otherwise e=1 if EndZ is an Eichler order and 0 otherwise
+  * PicNum is the Picard number of Jac(C_F) (the Q-dimension of the subalgebra of EndQ fixed by the Rosati involution)
+
+The second return value of HeuristicEndomorphismAlgebra is the endomorphism algebra as an abstract algebra, and the third return value is the endomorphism ring as an order in this algebra.
+
+
+All three EndomorphismDescription functions return a tuple <GeomEndR, EndFieldGalId, EndRecords> where
+
+  * GeomEndR is a lex-sorted list of pairs of integers [[m1,d1],[m2,d2],...] where [m,d] denotes M_m(D) and d=dim(D) (D is R,C,H).
+  * EndFieldGalId is the small group identifier of G=Gal(K/Q),K for which End(Jac(C_K)) = End(Jac(C_Qbar))
+  * EndRecords is a list of tuples, one for each subgroup H of G (up to conjugacy) ordered according to Magma subgroups ordering,
+    with the format <SubgroupId,FieldPoly,EndR,EndQ,EndZ,PicNum> where
+
+      - SubgroupId is the small group identifier of H
+      - FieldPoly is a list of integer coeffs of defining poly for the fixed field F of H
+      - EndR is a lex-sorted list of pairs of integers [[m,d],...] (same format as GeomEndR) describing End(Jac(C_F)) x R
+      - EndQ is a lex sorted list of tuples <m,dimD,[z0,..,zn],discD,dimA> describing factorization of End(Jac(C_F)xQ) = Prod B_i
+        into isotypic components B = M_m(D) with D a division algebra whose center Z is a number field
+          * m is the degree of the isotypic component B as a matrix algebra over D (i.e. B is an m x m matrix algebra)
+          * dimD is the Q-dimension of the division algebra D
+          * [z0,...,zn] is a list of integer coeffs of a defining poly for the number field Z (center of D)
+          * discD is the discriminant of D over Z (in general an O_Z-ideal, but for us a signed integer)
+          * dimA is the dimension of the simple subvariety of Jac(C_F) corresponding to B
+      - EndZ is a pair of integers [i,e] where i is the index of End(Jac(C_F)) in a maximal order of End(Jac(C_F)) x Q
+        and e is -1,0,1 with e=-1 if D is commutative and otherwise e=1 if EndZ is an Eichler order and 0 otherwise
+      - PicNum is the Picard number of Jac(C_F) (the Q-dimension of the subalgebra of EndQ fixed by the Rosati involution)
+
+
+================================================================================
+HeuristicEndomorphismRepresentation
+================================================================================
+
+Returns a list of pairs [* T, R *] that generate the endomorphism ring of the
+Jacobian J of X. The matrix T is the representation of a given endomorphism on
+the tangent space of J, whereas R is the corresponding representation on
+homology.
+
+
+================================================================================
+HeuristicEndomorphismFieldOfDefinition
+================================================================================
+
+This returns the field of definition of the endomorphism of the Jacobian as a NumberFieldExtra, hence in particular as a regular number field in Magma.
+
+
+================================================================================
+HeuristicEndomorphismLattice
+================================================================================
+
+All three EndomorphismDescription functions return a tuple <GeomEndR, EndFieldGalId, EndRecords> where
+
+  * GeomEndR is a lex-sorted list of pairs of integers [[m1,d1],[m2,d2],...] where [m,d] denotes M_m(D) and d=dim(D) (D is R,C,H).
+  * EndFieldGalId is the small group identifier of G=Gal(K/Q),K for which End(Jac(C_K)) = End(Jac(C_Qbar))
+  * EndRecords is a list of tuples, one for each subgroup H of G (up to conjugacy) ordered according to Magma subgroups ordering,
+    with the format <SubgroupId,FieldPoly,EndR,EndQ,EndZ,PicNum> where EndR,EndQ,EndZ,PicNum are as described above and
+
+      - SubgroupId is the small group identifier of H
+      - FieldPoly is a list of integer coeffs of defining poly for the fixed field F of H
+
+
+================================================================================
+HeuristicIsGL2
+================================================================================
+
+This returns a boolean
+
+
+================================================================================
+HeuristicDecomposition
+================================================================================
+
+To be added after debugging
+
+================================================================================
+EndRROverQQbar
+================================================================================
+
+This returns a single entry EndR as described above.
+
+
+================================================================================
+EndRROverQQ
+================================================================================
+
+This returns a single entry EndR as described above.

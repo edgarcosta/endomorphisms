@@ -11,7 +11,8 @@
 
 
 function CurveExtra(X : prec := 100)
-/* Converts curve to NumberFieldExtra if it is not given thus */
+/* This converts a curve to be over a NumberFieldExtra if it is not given in
+ * this way */
 assert ISA(Type(X), Crv);
 F := BaseRing(X);
 if assigned F`base then
@@ -33,7 +34,7 @@ end function;
 
 
 intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -> .
-{Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
+{Returns the abstract endomorphism algebra of the Jacobian of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization. Notational conventions are specified in the documentation folder.}
 
 assert ISA(Type(X), Crv);
 X := CurveExtra(X);
@@ -60,7 +61,7 @@ end intrinsic;
 
 
 intrinsic HeuristicEndomorphismRepresentation(X::. : Geometric := false, CC := false) -> .
-{Returns the endomorphism representation of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs.}
+{Returns the endomorphism representation of X the Jacobian of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs. Notational conventions are specified in the documentation folder.}
 
 assert ISA(Type(X),Crv);
 X := CurveExtra(X);
@@ -84,7 +85,7 @@ end intrinsic;
 
 
 intrinsic HeuristicEndomorphismFieldOfDefinition(X::.) -> .
-{Returns the field of definition of the endomorphisms of X.}
+{Returns the field of definition of the endomorphism algebra of the Jacobian of X.}
 
 assert ISA(Type(X), Crv);
 X := CurveExtra(X);
@@ -95,7 +96,7 @@ end intrinsic;
 
 
 intrinsic HeuristicEndomorphismLattice(X::.) -> .
-{Returns an encoded description of the endomorphism lattice of X.}
+{Returns an encoded description of the endomorphism lattice of the Jacobian of X.}
 
 assert ISA(Type(X), Crv);
 X := CurveExtra(X);
@@ -106,7 +107,7 @@ end intrinsic;
 
 
 intrinsic HeuristicIsGL2(X::. : Definition := "Generalized") -> .
-{Returns whether or not X is of GL_2-type in the generalized sense (by default) or in the sense of Ribet (if Definition is set to "Ribet").}
+{Returns whether or not the Jacobian of X is of GL_2-type in the generalized sense (by default) or in the sense of Ribet (if Definition is set to "Ribet").}
 
 assert ISA(Type(X), Crv);
 assert Definition in [ "Generalized", "Ribet" ];
@@ -143,6 +144,26 @@ return [* Kiso, [* Kdec, test *], [* decbase, decbaseeqs *], [* decgeo, decgeoeq
 
 end intrinsic;
 
+
+intrinsic EndRROverQQbar(X::.) -> .
+{Returns a description of End_RR (Jac (Xbar)). This is a list of tuples [ <n, d> ], a single factor of which corresponds to a factor of Mat_n (A_d), where A_d is the unique skew field over RR of dimension d. So for example [ <1, 1>, <2, 4> ] would correspond to the real algebra RR x M_2 (HH).}
+
+EndoDesc := HeuristicEndomorphismAlgebra(X : CC := true);
+return EndoDesc[1];
+
+end intrinsic;
+
+
+intrinsic EndRROverQQ(X::.) -> .
+{Returns a description of End_RR (Jac (Xbar)). This is a list of tuples [ <n, d> ], a single factor of which corresponds to a factor of Mat_n (A_d), where A_d is the unique skew field over RR of dimension d. So for example [ <1, 1>, <2, 4> ] would correspond to the real algebra RR x M_2 (HH).}
+
+EndoDesc := HeuristicEndomorphismAlgebra(X);
+return EndoDesc[1];
+
+end intrinsic;
+
+
+/* THE INTRINSICS FROM THIS POINT ONWARD ARE NOT SUPPORTED */
 
 // TODO: This function needs an overhaul */
 intrinsic HeuristicDecompositionInformation(X::.) -> .
@@ -375,23 +396,5 @@ if not assigned X`base_endo_rep then
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
 return Order(Integers(), EndoAlg[2]);
-
-end intrinsic;
-
-
-intrinsic EndRROverQQbar(X::.) -> .
-{Returns a description of End_RR (Jac (Xbar)).}
-
-EndoDesc := HeuristicEndomorphismAlgebra(X : CC := true);
-return EndoDesc[1];
-
-end intrinsic;
-
-
-intrinsic EndRROverQQ(X::.) -> .
-{Returns a description of End_RR (Jac (X)).}
-
-EndoDesc := HeuristicEndomorphismAlgebra(X);
-return EndoDesc[1];
 
 end intrinsic;

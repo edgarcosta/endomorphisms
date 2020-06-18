@@ -1,7 +1,0 @@
-# Descriptions
-
-After calculating our results, we can encode them in short descriptive strings. Here we describe the two main types of output, produced during a typical database run. But are recursive lists of strings, integers, and in case of decompositions the occasional rational number. The corresponding indices can be found in heuristic/Dicts.sage.
-
-1. Endomorphism lattice description: This is a list with two elements. The first describes the base field and is very often superflous. The second is a list of lists that are built up exactly like the description dictionary mentioned in `Dicts.md`. That is, the first element of such a list describes a field (over the base), the second describes describes the factors over QQ, ZZ, RR and finally the Sato-Tate group. All of these are strings or simple lists, except the first describing the factors over QQ, which is again a list of lists.
-
-2. Decomposition description: This is a list of lists, which in turn describe the factors. These individual lists have four entries. The first describe the kind of curve that we encounter as `ell`, `hyp` or `pln`. The second describes the smallest field over which this factor is defined. The third is a list that describes the coefficients of the resulting curve over that field. In case of an elliptic or hyperelliptic curve, the entries of this list can be coerced to give the relevant hyperelliptic polynomials. In the case of a plane curve, the corresponding exponent vectors are also returned.
