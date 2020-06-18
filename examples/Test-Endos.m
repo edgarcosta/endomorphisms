@@ -1,7 +1,7 @@
 SetVerbose("EndoFind", 0);
 SetVerbose("CurveRec", 0);
 
-prec := 50;
+prec := 100;
 
 Xs := [* *];
 
@@ -77,6 +77,9 @@ for X in Xs[1..#Xs] do
     time P := PeriodMatrix(X);
     time desc := HeuristicEndomorphismAlgebra(X : CC := true);
     time desc := HeuristicEndomorphismAlgebra(X : Geometric := true);
-    //time rep := HeuristicEndomorphismRepresentation(X);
-    //time lat := HeuristicEndomorphismLattice(X);
+    time rep := HeuristicEndomorphismRepresentation(X);
+    time lat := HeuristicEndomorphismLattice(X);
+
+    time EndRROverQQbar(X);
+    time EndRROverQQ(X);
 end for;

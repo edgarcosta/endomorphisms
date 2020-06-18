@@ -46,7 +46,7 @@ end if;
 
 if Geometric then
     EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoAlg[1];
+    return EndoDesc, EndoAlg[1], EndoAlg[2];
 end if;
 if not assigned X`base_endo_rep then
     F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
@@ -375,5 +375,23 @@ if not assigned X`base_endo_rep then
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
 return Order(Integers(), EndoAlg[2]);
+
+end intrinsic;
+
+
+intrinsic EndRROverQQbar(X::.) -> .
+{Returns a description of End_RR (Jac (Xbar)).}
+
+EndoDesc := HeuristicEndomorphismAlgebra(X : CC := true);
+return EndoDesc[1];
+
+end intrinsic;
+
+
+intrinsic EndRROverQQ(X::.) -> .
+{Returns a description of End_RR (Jac (X)).}
+
+EndoDesc := HeuristicEndomorphismAlgebra(X);
+return EndoDesc[1];
 
 end intrinsic;
