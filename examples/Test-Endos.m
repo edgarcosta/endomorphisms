@@ -79,7 +79,4 @@ for X in Xs[1..#Xs] do
     time desc := HeuristicEndomorphismAlgebra(X : Geometric := true);
     time rep := HeuristicEndomorphismRepresentation(X);
     time lat := HeuristicEndomorphismLattice(X);
-
-    time EndRROverQQbar(X);
-    time EndRROverQQ(X);
 end for;
