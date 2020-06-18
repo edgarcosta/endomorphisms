@@ -17,12 +17,7 @@ forward SplittingIdempotentsAlgebraStepTwo;
 forward FindIdempotentsStupid;
 forward IsTrueIdempotent;
 
-// TODO: Autoduality (project)
-// End result:
-//   Give field or subgroup, find isotypical components, roots, and isogenous genus-2 for it,
-//   all over the base and the latter over an extension if geometric option is set to true.
-//   Join by an overall geometric option that identifies the decomposition field first by using the tangent representation;
-//   more detailed info can be obtained by closer inspection, but should not be given by default.
+// TODO: Autoduality
 
 
 function MatricesFromIdempotent(idem, EndoData)
@@ -82,13 +77,11 @@ vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Determining component from idempotent, algebraic step...";
 /* Recalculation to algebraize entries */
 test, B := AlgebraizeMatrixExtra(BCC, L);
-assert test;
+if not test then error "Failed to algebraize map over base field."; end if;
 K, hKL := SubfieldExtra(L, Eltseq(B));
 incdata := [* L, K, hKL *];
 
-if CoerceToBase then
-    B := CoerceToSubfieldMatrix(B, L, K, hKL);
-end if;
+if CoerceToBase then B := CoerceToSubfieldMatrix(B, L, K, hKL); end if;
 vprint EndoFind, 2 : "done determining component from idempotent algebraically.";
 return Q, [* B, S *], incdata;
 
@@ -123,7 +116,7 @@ vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Finding further splitting...";
 L, K, hKL := Explode(incdata);
 
-// TODO: Superfluous recalculation of endomorphism algebra
+// TODO: Superfluous recalculation of endomorphism algebra (costs nothing though)
 GeoEndoRepCC := GeometricEndomorphismRepresentationCC(Q);
 GeoEndoRep := [ ];
 vprint EndoFind, 3 : "";
@@ -178,7 +171,7 @@ end intrinsic;
 intrinsic SplittingIdempotentsAlgebra(EndoData::.) -> .
 {Returns further decomposition of the algebra defined by EndoData.}
 // TODO: Same conditions as in Structure.
-//       Moreover, do this per component only.
+//       Moreover, do this per isotypical component only.
 
 /* Assert small dimension */
 g := #Rows(EndoData[1][1][1]);
@@ -201,15 +194,13 @@ end intrinsic;
 
 function SplittingIdempotentsAlgebraStepOne(EndoData)
 // TODO: Same conditions as in Structure.
-//       Moreover, do this per component only.
+//       Moreover, do this per isotypical component only.
 
 C := EndoData[2][1];
 idems := [ ];
 for D in DirectSumDecomposition(C) do
     test, idemsD := SplittingIdempotentsAlgebraStepOneSubstep(D);
-    if not test then
-        return false, [ ];
-    end if;
+    if not test then return false, [ ]; end if;
     idems cat:= [ C ! idem : idem in idemsD ];
 end for;
 return true, idems;
@@ -219,14 +210,12 @@ end function;
 
 function SplittingIdempotentsAlgebraStepOneSubstep(C)
 // TODO: Same conditions as in Structure.
-//       Moreover, do this per component only.
+//       Moreover, do this per isotypical component only.
 
 E1, f1 := AlgebraOverCenter(C);
 
 /* Fields have no idempotents */
-if IsCommutative(E1) then
-    return true, [ C ! 1 ];
-end if;
+if IsCommutative(E1) then return true, [ C ! 1 ]; end if;
 
 /* Central algebras of dimension 4 */
 // TODO: Unify with next using methods in Structure.m
@@ -248,7 +237,7 @@ end function;
 
 function SplittingIdempotentsAlgebraStepTwo(EndoData);
 // TODO: Same conditions as in Structure.
-//       Moreover, do this per component only.
+//       Moreover, do this per isotypical component only.
 /* Catches M3 over QQ or CM, M4 over ZZ or CM, M2 over quaternion algebra */
 
 C := EndoData[2][1]; d := Dimension(C);
@@ -358,12 +347,7 @@ for comp_iso in comps_iso do
     A, R := Explode(mor);
     comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjToIdem := ProjToIdem);
 
-    if not AllIdems then
-        N := 1;
-    else
-        N := #comp_roots;
-    end if;
-
+    if not AllIdems then N := 1; else N := #comp_roots; end if;
     comptup := [ ];
     for i in [1..N] do
         comp_root := comp_roots[i];
@@ -389,11 +373,7 @@ for comp_iso in comps_iso do
         Append(~comptup, [* Qroot, morcomp, incdataroot *]);
     end for;
 
-    if not AllIdems then
-        Append(~comps, comptup[1]);
-    else
-        Append(~comps, comptup);
-    end if;
+    if not AllIdems then Append(~comps, comptup[1]); else Append(~comps, comptup); end if;
     vprint EndoFind : "";
     vprint EndoFind : "done determining isomorphic component.";
 end for;
@@ -407,6 +387,7 @@ import "Structure.m": EndomorphismAlgebraQQ;
 
 
 function ComponentFromIdempotentHack(P, idem);
+// Returns over CC
 
 R := idem[2];
 ACC := TangentRepresentation(R, P, P);
@@ -418,33 +399,31 @@ end function;
 
 
 intrinsic DecompositionOverBase(X::.) -> .
-{HAX I SAY.}
+{Describes decomposition over base as a sequence [ dimension, exponent ] followed by corresponding curves. All is done over the base field. For now the genus is supposed to be at most 3.}
 
 F := BaseRing(X); P := PeriodMatrix(X); g := #Rows(P);
-EndoDesc := HeuristicEndomorphismDescription(X);
-EndoRep := X`base_endo_rep;
+EndoRep := GeometricEndomorphismRepresentation(X);
 EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
 EndoData := [* EndoRep, EndoAlg, EndoDesc *];
 C, GensC := Explode(EndoAlg);
 EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
 
-// Boring case
+/* Boring case: Single factor that is not a power */
 if #EndoDescQQ eq 1 then
     e, _, _, _, dim := Explode(EndoDescQQ[1]);
-    if e eq 1 then
-        return [ [ dim, e ] ], [ ];
-    end if;
+    if e eq 1 then return [ [ dim, e ] ], [ ]; end if;
 end if;
 
 facs := [ ]; eqs := [* *];
 for i := 1 to #EndoDescQQ do
-    // Get factor
+    /* Get factor analytically */
     tup := EndoDescQQ[i];
     idem := idems[i]; idemAR := MatricesFromIdempotent(idem, EndoData);
     e, _, _, _, dim := Explode(tup);
     Q, morQ := ComponentFromIdempotentHack(P, idemAR);
     Append(~facs, [ dim, e ]);
 
+    /* Reconstruction of single elliptic curve factor */
     if (dim eq 1) and (e eq 1) then
         if Im(Q[1,1]/Q[1,2]) lt 0 then
             Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
@@ -454,6 +433,7 @@ for i := 1 to #EndoDescQQ do
         continue;
     end if;
 
+    /* Reconstruction of single genus-2 factor */
     if (dim eq 2) and (e eq 1) then
         A, R := Explode(morQ);
         EQ := InducedPolarization(StandardSymplecticMatrix(g), R);
@@ -461,15 +441,13 @@ for i := 1 to #EndoDescQQ do
 
         for T in Ts do
             Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
-            Y, _, test := ReconstructCurve(Qp, F : Base := true);
-            if test then
-                Append(~eqs, Y);
-                break;
-            end if;
+            Yp, _, test := ReconstructCurve(Qp, F : Base := true);
+            if test then Append(~eqs, Yp); break; end if;
         end for;
         continue;
     end if;
 
+    /* Larger exponent up to 3 */
     if (e eq 2) or (e eq 3) then
         GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, F);
         F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRepQ[1][1]));
@@ -487,7 +465,7 @@ for i := 1 to #EndoDescQQ do
         continue;
     end if;
 
-    error "Algorithm fall down go boom";
+    error "DecompositionOverBase failed to terminate correctly.";
 end for;
 
 return facs, eqs;
@@ -496,7 +474,7 @@ end intrinsic;
 
 
 intrinsic IsotypicalField(X::.) -> .
-{HAX I SAY.}
+{Determines the field of definition of the isotypical components of the Jacobian of X.}
 
 EndoRep := GeometricEndomorphismRepresentation(X);
 EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
@@ -512,31 +490,36 @@ end intrinsic;
 
 
 intrinsic FullDecompositionField(X::.) -> .
-{HAX I SAY.}
+{Returns a field over which the Jacobian of X splits completely.}
 
+/* First find group corresponding to isotypical field */
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
 L := BaseRing(GeoEndoRep[1][1]);
 K, h := IsotypicalField(X);
 Gp, Gf, Gphi := AutomorphismGroupPari(L);
 G := FixedGroupExtra(L, K, h);
 
+/* For all subgroups of H we write down the sum of the corresponding exponents
+ * in the decomposition */
 Hs := [ rec`subgroup : rec in Subgroups(G) ];
-powersums := [ ];
+expsums := [ ];
 for i in [1..#Hs] do
     H := Hs[i]; gensH := Generators(H);
     Gal := [* gensH, Gphi *];
-    EndoData := EndomorphismData(GeoEndoRep, Gal);
-    EndoDesc := EndoData[3];
-    Append(~powersums, &+[ tup[1] : tup in EndoDesc[2] ]);
+    EndoData := EndomorphismData(GeoEndoRep, Gal); EndoDesc := EndoData[3];
+    Append(~expsums, &+[ tup[1] : tup in EndoDesc[2] ]);
 end for;
 
-max := Maximum(powersums);
-Hs := [ Hs[i] : i in [1..#Hs] | powersums[i] eq max ];
+max := Maximum(expsums);
+Hs := [ Hs[i] : i in [1..#Hs] | expsums[i] eq max ];
 H0 := Hs[#Hs];
+/* Test whether there is a smallest total decomposition field (there may not be) */
 test := &and[ (H0 meet H) eq H : H in Hs ];
+/* H0 is the intersection of the maximal groups in the lattice Hs */
 Hsmax := [ Hmax : Hmax in Hs | &and[ not (((Hmax meet H) eq Hmax) and (Hmax ne H)) : H in Hs ] ];
 H0 := &meet(Hsmax);
 
+/* Take fixed field corresponding to H0 */
 gensH0 := Generators(H0);
 K0, h0 := FixedFieldExtra(L, [ Gphi(gen) : gen in gensH0 ]);
 return K0, h0, test;
@@ -545,7 +528,7 @@ end intrinsic;
 
 
 intrinsic DecompositionOverClosure(X::.) -> .
-{HAX I SAY.}
+{Describes decomposition over smallest decomposition field as a sequence [ dimension, exponent ] followed by corresponding curves. All is done over the base field. For now the genus is supposed to be at most 3.}
 
 P := PeriodMatrix(X); g := #Rows(P);
 GeoEndoRep := GeometricEndomorphismRepresentation(X);
@@ -558,23 +541,22 @@ EndoRep, EndoAlg, EndoDesc := Explode(EndoData);
 C, GensC := Explode(EndoAlg);
 EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
 
-// Boring case
+/* Boring case: Single factor that is not a power */
 if #EndoDescQQ eq 1 then
     e, _, _, _, dim := Explode(EndoDescQQ[1]);
-    if e eq 1 then
-        return [ [ dim, e ] ], [ ];
-    end if;
+    if e eq 1 then return [ [ dim, e ] ], [ ]; end if;
 end if;
 
 facs := [ ]; eqs := [* *];
 for i := 1 to #EndoDescQQ do
-    // Get factor
+    /* Get factor analytically */
     tup := EndoDescQQ[i];
     idem := idems[i]; idemAR := MatricesFromIdempotent(idem, EndoData);
     e, _, _, _, dim := Explode(tup);
     Q, morQ := ComponentFromIdempotentHack(P, idemAR);
     Append(~facs, [ dim, e ]);
 
+    /* Reconstruction of single elliptic curve factor */
     if (dim eq 1) and (e eq 1) then
         if Im(Q[1,1]/Q[1,2]) lt 0 then
             Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
@@ -584,6 +566,7 @@ for i := 1 to #EndoDescQQ do
         continue;
     end if;
 
+    /* Reconstruction of single genus-2 factor */
     if (dim eq 2) and (e eq 1) then
         A, R := Explode(morQ);
         EQ := InducedPolarization(StandardSymplecticMatrix(g), R);
@@ -591,15 +574,16 @@ for i := 1 to #EndoDescQQ do
 
         for T in Ts do
             Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
-            Y, _, test := ReconstructCurve(Qp, K : Base := true);
+            Yp, _, test := ReconstructCurve(Qp, K : Base := true);
             if test then
-                Append(~eqs, Y);
+                Append(~eqs, Yp);
                 break;
             end if;
         end for;
         continue;
     end if;
 
+    /* Larger exponent up to 3 */
     if (e eq 2) or (e eq 3) then
         GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, L);
         EndoRepQ := EndomorphismRepresentation(GeoEndoRepQ, K, h);
@@ -616,10 +600,9 @@ for i := 1 to #EndoDescQQ do
         continue;
     end if;
 
-    error "Algorithm fall down go boom";
+    error "DecompositionOverBase failed to terminate correctly.";
 end for;
 
 return facs, eqs;
 
 end intrinsic;
-

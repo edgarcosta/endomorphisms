@@ -10,7 +10,7 @@
  */
 
 
-function ReconstructionFromComponentG1(P, Q, mor : AllPPs := false, ProjToIdem := true, ProjToPP := true)
+function ReconstructionFromComponentG1(P, Q, mor : AllPPs := false, ProjToIdem := true, ProjToPP := true, Base := false)
 
 A, R := Explode(mor); K := BaseRing(A);
 Rnew := R;
@@ -20,27 +20,21 @@ if not IsBigPeriodMatrix(Q) then
     CorrectMap := ProjToIdem eq ProjToPP;
     Rnew := R;
     if CorrectMap then
-        if ProjToPP then
-            Rnew := T*R;
-        else
-            Rnew := R*T;
-        end if;
+        if ProjToPP then Rnew := T*R; else Rnew := R*T; end if;
     end if;
 end if;
 assert IsBigPeriodMatrix(Q);
-E, h := ReconstructCurve(Q, K);
+E, h := ReconstructCurve(Q, K : Base := Base);
 E`period_matrix := Q;
 
 Anew := ConjugateMatrix(h, A);
-if not AllPPs then
-    return [* E, [* Anew, Rnew *] *];
-end if;
+if not AllPPs then return [* E, [* Anew, Rnew *] *]; end if;
 return [ [* E, [* Anew, Rnew *] *] ];
 
 end function;
 
 
-function ReconstructionFromComponentG2(P, Q, mor : AllPPs := false, ProjToPP := true, ProjToIdem := true)
+function ReconstructionFromComponentG2(P, Q, mor : AllPPs := false, ProjToPP := true, ProjToIdem := true, Base := false)
 
 gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
@@ -52,11 +46,7 @@ vprint CurveRec: "Frobenius form of induced polarization:";
 vprint CurveRec: E0;
 
 Ts := IsogenousPPLattices(EQ);
-if not AllPPs then
-    N := 1;
-else
-    N := #Ts;
-end if;
+if not AllPPs then N := 1; else N := #Ts; end if;
 
 facs := [ ];
 for T in Ts[1..N] do
@@ -64,14 +54,10 @@ for T in Ts[1..N] do
     Qnew := Q*ChangeRing(Transpose(T), BaseRing(Q));
     Rnew := R;
     if CorrectMap then
-        if ProjToPP then
-            Rnew := T*R;
-        else
-            Rnew := R*T^(-1);
-        end if;
+        if ProjToPP then Rnew := T*R; else Rnew := R*T^(-1); end if;
     end if;
     assert IsBigPeriodMatrix(Qnew);
-    Y, h := ReconstructCurve(Qnew, K);
+    Y, h := ReconstructCurve(Qnew, K : Base := Base);
     Y`period_matrix := Qnew;
 
     vprint CurveRec: "";
@@ -82,9 +68,7 @@ for T in Ts[1..N] do
     Append(~facs, [* Y, [* Anew, Rnew *] *]);
 end for;
 
-if not AllPPs then
-    return facs[1];
-end if;
+if not AllPPs then return facs[1]; end if;
 return facs;
 
 end function;
