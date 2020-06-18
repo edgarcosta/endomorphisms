@@ -585,7 +585,7 @@ EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortRe
 /* Boring case: Single factor that is not a power */
 if #EndoDescQQ eq 1 then
     e, _, _, _, dim := Explode(EndoDescQQ[1]);
-    if e eq 1 then return [ [ dim, e ] ], [ ]; end if;
+    if e eq 1 then return [ [ dim, e ] ], [ ], [ ]; end if;
 end if;
 
 facs := [ ]; eqs := [* *]; Qps := [* *];
