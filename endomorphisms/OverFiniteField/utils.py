@@ -49,12 +49,12 @@ def power_charpoly(f, k):
     g = 1;
     for i in range(k):
         g *= f(a ** i  * T)
-    glist = g.list();
+    glist = g.list()
     newf = [None]*(1 + f.degree());
     for i, ci in enumerate(glist):
         if i % k != 0:
             assert ci == 0, "i = %s, ci = %s" % (i, ci)
         else:
             newf[i/k] = R(ci)
-    return RT(newf);
+    return RT(newf)
 
