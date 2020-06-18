@@ -79,6 +79,13 @@ g := #Rows(P);
 P1 := Submatrix(P, 1,1,   g,g);
 P2 := Submatrix(P, 1,g+1, g,g);
 P := HorizontalJoin(P2, P1);
+
+/* Take canonical form in genus 3 */
+if CurveType(X) eq "plane" and g eq 3 then
+    rowsP := Rows(P);
+    P := Matrix([ rowsP[3], rowsP[2], rowsP[1] ]);
+end if;
+
 X`period_matrix := P;
 vprint EndoFind : "done calculating period matrix.";
 return X`period_matrix;
