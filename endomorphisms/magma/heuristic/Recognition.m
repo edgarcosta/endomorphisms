@@ -323,6 +323,7 @@ if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound)
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
 gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound);
+//return gQQ;
 if Degree(gQQ) eq 1 then return ChangeRing(gQQ, K), gQQ; end if;
 
 hQQs := FactorizationPari(gQQ, BaseRing(gQQ));

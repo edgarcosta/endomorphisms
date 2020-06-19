@@ -386,7 +386,7 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 prod := 1; minpols := [ ];
 for i in [1..#seqPart] do
     //aCC := seqPart[Random([1..#seqPart])];
-    aCC := seqPart[9+i];
+    aCC := seqPart[i];
     minpolnew := MinimalPolynomialExtra(aCC, F);
     prodnew := prod*minpolnew;
     if i eq 1 then
