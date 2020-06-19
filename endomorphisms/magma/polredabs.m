@@ -5,6 +5,7 @@
 intrinsic Polredabs(f::RngUPolElt : Best := true) -> RngUPolElt, SeqEnum, BoolElt
   { A smallest generating polynomial of the number field, using pari. }
 
+  vprint EndoFind, 3 : "Starting polredabs...";
   if Best then
     cmdp := "polredbest";
   else
@@ -25,8 +26,10 @@ intrinsic Polredabs(f::RngUPolElt : Best := true) -> RngUPolElt, SeqEnum, BoolEl
     ssroot := ssroot cat [0 : i in [1..Degree(f)-#ssroot]];
   catch e
     print("WARNING: need gp at command-line for polredabs, without this many examples become intractable\n");
+    vprint EndoFind, 3 : "done.";
     return f, [0,1] cat [0: i in [1..Degree(f)-2]], false;
   end try;
+  vprint EndoFind, 3 : "done.";
   return Parent(f) ! sspol, ssroot, true;
 end intrinsic;
 

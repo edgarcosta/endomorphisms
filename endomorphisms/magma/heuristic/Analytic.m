@@ -277,7 +277,7 @@ end if;
 
 if CC then
     X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
-    return X`geo_endo_rep;
+    return X`geo_endo_rep_CC;
 end if;
 X`geo_endo_rep := GeometricEndomorphismRepresentation(P, F : s0 := [1..g]);
 return X`geo_endo_rep;
@@ -373,3 +373,33 @@ GeoEndoRep := [ [* Matrix(genus, genus, seq[((i - 1)*genus^2 + 1)..(i*genus^2)])
 return GeoEndoRep, PX;
 
 end function;
+
+
+intrinsic GaloisShortcut(P::ModMatFldElt, F::Fld : UpperBound := Infinity()) -> .
+{Only returns Galois group.}
+
+CC := BaseRing(P);
+gensPart := GeometricEndomorphismRepresentationCC(P : s0 := []);
+gensPart := [ [* ChangeRing(gen[1], F`CC), gen[2] *] : gen in gensPart ];
+/* Determine minimal polynomials needed */
+seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
+prod := 1; minpols := [ ];
+for i in [1..#seqPart] do
+    //aCC := seqPart[Random([1..#seqPart])];
+    aCC := seqPart[9+i];
+    minpolnew := MinimalPolynomialExtra(aCC, F);
+    prodnew := prod*minpolnew;
+    if i eq 1 then
+        prod := prodnew; G := GaloisGroup(prod); Append(~minpols, minpolnew);
+        if #G eq UpperBound then return IdentifyGroup(G), minpols; end if;
+    else
+        Gnew := GaloisGroup(prodnew);
+        if #Gnew gt #G then
+            G := Gnew; prod := prodnew; Append(~minpols, minpolnew);
+            if #G eq UpperBound then return IdentifyGroup(G), minpols; end if;
+        end if;
+    end if;
+end for;
+error "Did not reach upper bound :-(";
+
+end intrinsic;
