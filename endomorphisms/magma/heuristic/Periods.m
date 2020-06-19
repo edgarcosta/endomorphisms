@@ -15,10 +15,11 @@ forward PeriodMatrixGH;
 /* TODO: Add integration over CC via cheat using QQ (i) */
 
 
+/*
 function RiemannSurfaceMN(gCC, e : Precision := 30)
 return SE_Curve(gCC, e : Prec := Precision);
 end function;
-
+*/
 
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
@@ -41,7 +42,8 @@ if CurveType(X) eq "hyp" then
     f, h := HyperellipticPolynomials(X);
     g := (4*f + h^2) / 4;
     gCC := EmbedPolynomialExtra(g);
-    RS := RiemannSurfaceMN(gCC, 2 : Precision := Precision(CC));
+    //RS := RiemannSurfaceMN(gCC, 2 : Precision := Precision(CC));
+    RS := RiemannSurface(gCC, 2 : Precision := Precision(CC));
     P := ChangeRing(RS`BigPeriodMatrix, CC) / 2;
 end if;
 

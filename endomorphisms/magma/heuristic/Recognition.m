@@ -323,18 +323,20 @@ if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound)
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
 gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound);
-assert IsIrreducible(gQQ);
-if Degree(gQQ) eq 1 then return gQQ, gQQ; end if;
+if Degree(gQQ) eq 1 then return ChangeRing(gQQ, K), gQQ; end if;
 
-/* First try faster algorithm for linear factors */
-rts := RootsPari(gQQ, K);
-R := PolynomialRing(K);
-gKs := [ R.1 - rt : rt in rts ];
-for gK in gKs do if TestCloseToRoot(gK, aCC) then return gK, gQQ; end if; end for;
+hQQs := FactorizationPari(gQQ, BaseRing(gQQ));
+for hQQ in hQQs do
+    /* First try faster algorithm for linear factors */
+    rts := RootsPari(hQQ, K);
+    R := PolynomialRing(K);
+    hKs := [ R.1 - rt : rt in rts ];
+    for hK in hKs do if TestCloseToRoot(hK, aCC) then return hK, hQQ; end if; end for;
 
-/* Then try more general algorithm */
-gKs := FactorizationPari(gQQ, K);
-for gK in gKs do if TestCloseToRoot(gK, aCC) then return gK, gQQ; end if; end for;
+    /* Then try more general algorithm */
+    hKs := FactorizationPari(hQQ, K);
+    for hK in hKs do if TestCloseToRoot(hK, aCC) then return hK, hQQ; end if; end for;
+end for;
 error "Failed to find relative minimal polynomial";
 
 end intrinsic;
