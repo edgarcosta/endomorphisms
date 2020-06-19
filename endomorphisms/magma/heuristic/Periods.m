@@ -21,6 +21,64 @@ return SE_Curve(gCC, e : Prec := Precision);
 end function;
 */
 
+
+function TransformForm(f, T : co := true, contra := false)
+    R := Parent(f);
+    vars := Matrix([ [ mon ] : mon in MonomialsOfDegree(R, 1) ]);
+    if (not co) or contra then
+        return Evaluate(f, Eltseq(ChangeRing(Transpose(T)^(-1), R) * vars));
+    end if;
+    return Evaluate(f, Eltseq(ChangeRing(T, R) * vars));
+end function;
+
+
+function RandomInvertibleMatrix(g, B)
+D := [ -B..B ];
+repeat
+    T := Matrix(Rationals(), g,g, [ Random(D) : i in [1..g^2] ]);
+until Determinant(T) eq 1;
+return T;
+end function;
+
+
+function PolHom(f)
+R := Parent(f);
+S := PolynomialRing(BaseRing(R), 3);
+g := (S.3^Degree(f))*Evaluate(f, [S.1/S.3, S.2/S.3]);
+return S ! g;
+end function;
+
+
+function PeriodMatrixRetryQQ(f, CC);
+while true do
+    try
+        RS := RiemannSurface(f : Precision := Precision(CC));
+        P := ChangeRing(BigPeriodMatrix(RS), CC);
+        return P, RS;
+    catch e
+        F := PolHom(f); F := TransformForm(F, RandomInvertibleMatrix(3, 2));
+        X := PlaneCurve(F);
+        f := DefiningPolynomial(AffinePatch(X, 1));
+    end try;
+end while;
+end function;
+
+
+function PeriodMatrixRetryNF(f, sigma, CC);
+while true do
+    try
+        RS := RiemannSurface(f, sigma : Precision := Precision(CC));
+        P := ChangeRing(BigPeriodMatrix(RS), CC);
+        return P, RS;
+    catch e
+        F := PolHom(f); F := TransformForm(F, RandomInvertibleMatrix(3, 2));
+        X := PlaneCurve(F);
+        f := DefiningPolynomial(AffinePatch(X, 1));
+    end try;
+end while;
+end function;
+
+
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
 
@@ -68,11 +126,9 @@ if CurveType(X) in [ "plane", "gen" ] then
 
     f := DefiningPolynomial(AffinePatch(Y, 1));
     if Type(F) eq FldRat then
-        RS := RiemannSurface(f : Precision := Precision(CC));
-        P := ChangeRing(BigPeriodMatrix(RS), CC);
+        P, RS := PeriodMatrixRetryQQ(f, CC);
     else
-        RS := RiemannSurface(f, sigma : Precision := Precision(CC));
-        P := ChangeRing(BigPeriodMatrix(RS), CC);
+        P, RS := PeriodMatrixRetryNF(f, sigma, CC);
         /* Conjugate if needed */
         if cc then
             P := Matrix(CC, [ [ ComplexConjugate(c) : c in Eltseq(row) ] : row in Rows(P) ]);
