@@ -79,4 +79,5 @@ for X in Xs[1..#Xs] do
     time desc := HeuristicEndomorphismAlgebra(X : Geometric := true);
     time rep := HeuristicEndomorphismRepresentation(X);
     time lat := HeuristicEndomorphismLattice(X);
+    print lat;
 end for;
