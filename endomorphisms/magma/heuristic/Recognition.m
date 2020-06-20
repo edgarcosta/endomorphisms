@@ -76,7 +76,7 @@ return false;
 end function;
 
 
-function MinimalPolynomialLLL(aCC, K : UpperBound := Infinity())
+function MinimalPolynomialLLL(aCC, K : LowerBound := 1, DegreeDivides := Infinity(), UpperBound := Infinity())
 /* Returns a relative minimal polynomial of the complex number aCC with respect
  * to the stored infinite place of K. */
 
@@ -108,42 +108,46 @@ while degf lt UpperBound do
     degf +:= 1; poweraCCsc *:= aCCsc;
     MLine cat:= [ powergenCC * poweraCCsc : powergenCC in powersgenCC ];
     M := Transpose(Matrix(CCK, [ MLine ]));
-    Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
-    vprint EndoFind, 3 : "";
-    vprint EndoFind, 3 : "Kernel during LLL minimal polynomial determination:";
-    vprint EndoFind, 3 : Ker;
+    test := DegreeDivides eq Infinity();
+    if not test then test := DegreeDivides mod degf eq 0; end if;
+    if test then
+        Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
+        vprint EndoFind, 3 : "";
+        vprint EndoFind, 3 : "Kernel during LLL minimal polynomial determination:";
+        vprint EndoFind, 3 : Ker;
 
-    if test_ker then
-        row := Rows(Ker)[1]; seq := Eltseq(row); ht := Max([ Height(c) : c in seq ]);
-        f := &+[ &+[ seq[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
-        f := Evaluate(f, R.1 / faca); f /:= LeadingCoefficient(f);
-        if TestCloseToRoot(f, aCC) then
-            if ht lt CCK`height_bound then
-                vprint EndoFind, 3 : "";
-                vprint EndoFind, 3 : f;
-                vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
-                return f;
-            elif &and[ Type(entry) eq SeqEnum : entry in savedrows ] then
-                testrepeat := true;
-                for i in [1..nsavedrows] do
-                    seqold := savedrows[i] cat [ 0 : j in [1..(nsavedrows - i + 1)*degK] ];
-                    if not seq eq seqold then
-                        testrepeat := false;
-                        break;
-                    end if;
-                end for;
-                if testrepeat then
+        if test_ker then
+            row := Rows(Ker)[1]; seq := Eltseq(row); ht := Max([ Height(c) : c in seq ]);
+            f := &+[ &+[ seq[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
+            f := Evaluate(f, R.1 / faca); f /:= LeadingCoefficient(f);
+            if TestCloseToRoot(f, aCC) then
+                if ht lt CCK`height_bound then
                     vprint EndoFind, 3 : "";
                     vprint EndoFind, 3 : f;
                     vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
                     return f;
+                elif &and[ Type(entry) eq SeqEnum : entry in savedrows ] then
+                    testrepeat := true;
+                    for i in [1..nsavedrows] do
+                        seqold := savedrows[i] cat [ 0 : j in [1..(nsavedrows - i + 1)*degK] ];
+                        if not seq eq seqold then
+                            testrepeat := false;
+                            break;
+                        end if;
+                    end for;
+                    if testrepeat then
+                        vprint EndoFind, 3 : "";
+                        vprint EndoFind, 3 : f;
+                        vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
+                        return f;
+                    end if;
                 end if;
-            end if;
 
-            for i in [2..nsavedrows] do
-                savedrows[i - 1] := savedrows[i];
-            end for;
-            savedrows[nsavedrows] := seq;
+                for i in [2..nsavedrows] do
+                    savedrows[i - 1] := savedrows[i];
+                end for;
+                savedrows[nsavedrows] := seq;
+            end if;
         end if;
     end if;
 end while;
@@ -311,7 +315,7 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), UseQQ := true, Alg := false) -> .
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), UseQQ := false, Alg := false) -> .
 {Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. This minimal polynomial over QQ is the second return value.}
 
 if Alg then

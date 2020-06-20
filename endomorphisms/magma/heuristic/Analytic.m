@@ -375,7 +375,7 @@ return GeoEndoRep, PX;
 end function;
 
 
-intrinsic GaloisShortcut(P::ModMatFldElt, F::Fld : UpperBound := Infinity()) -> .
+intrinsic GaloisShortcut(P::ModMatFldElt, F::Fld : UpperBound := Infinity(), DegreeDivides := Infinity()) -> .
 {Only returns Galois group.}
 
 CC := BaseRing(P);
@@ -387,22 +387,22 @@ prod := 1; minpols := [ ];
 for i in [1..#seqPart] do
     //aCC := seqPart[Random([1..#seqPart])];
     aCC := seqPart[i];
-    minpolnew := MinimalPolynomialExtra(aCC, F);
+    minpolnew := MinimalPolynomialLLL(aCC, F : DegreeDivides := DegreeDivides, UpperBound := UpperBound);
     prodnew := prod*minpolnew;
     if i eq 1 then
         prod := prodnew; G := GaloisGroup(prod); Append(~minpols, minpolnew);
-        if #G eq UpperBound then return G, minpols; end if;
+        if #G eq DegreeDivides then return G, minpols; end if;
     else
         Gnew := GaloisGroup(prodnew);
         if #Gnew gt #G then
             G := Gnew; prod := prodnew; Append(~minpols, minpolnew);
-            if #G eq UpperBound then return G, minpols; end if;
+            if #G eq DegreeDivides then return G, minpols; end if;
         end if;
     end if;
 end for;
-if UpperBound ne Infinity() then
-    error "Did not reach upper bound :-(";
-end if;
+//if UpperBound ne Infinity() then
+//    error "Did not reach upper bound :-(";
+//end if;
 return G, minpols;
 
 end intrinsic;
