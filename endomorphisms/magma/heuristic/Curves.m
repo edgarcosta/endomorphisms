@@ -29,13 +29,44 @@ return Curve(Scheme(ProjectiveSpace(S), Fhom));
 end intrinsic;
 
 
+intrinsic GHCurve(q::RngMPolElt,f::RngMPolElt) -> Crv
+{ Given conic q(z,y,z) and homogeneous poynomial f(x,y,z) of degree >= 3, returns curve [q(x,y,z)=0,w^2=f(z,y,x)] in [2,1,1,1] weighted        projective space. }
+// Written by Andrew Sutherland
+    require Parent(q) eq Parent(f): "Polynomials must lie in the same polynomial ring.";
+    if Rank(Parent(q)) eq 2 then q,f := Explode(Homogenize([q,f])); end if;
+    R := Parent(q); F := BaseRing(R);
+    require VariableWeights(R) eq [1,1,1]: "Polynomials must lie in an unweighted polynomial ring of rank 2 or 3.";
+    require IsHomogeneous(q) and Degree(q) eq 2: "First input should be a conic.";
+    require IsHomogeneous(f) and IsEven(Degree(f)) and Degree(f) ge 4: "Second input should be bivariate or homogeneous trivariate polynomial  whose homogenization is of even degree at least 4.";
+    P<w,x,y,z> := ProjectiveSpace(F,[2,1,1,1]);
+    return Curve(P,[Evaluate(q,[x,y,z]),w^2-Evaluate(f,[x,y,z])]);
+end intrinsic;
+
+
+intrinsic IsGHCurve(C::Crv) -> BoolElt, RngMPolElt, RngMPolElt
+{ Determines whether the curve C is (exactly, not just isomorphic to a curve) of the form [q(x,y,z)=0,w^2=f(x,y,z)] in [2,1,1,1]-weighted      projective space.  If so, also returns q an f. }
+// Written by Andrew Sutherland
+    if VariableWeights(CoordinateRing(Ambient(C))) ne [2,1,1,1] then return false,_,_; end if;
+    p := Sort(DefiningPolynomials(C),func<a,b|Degree(a)-Degree(b)>);
+    if Degree(p[1]) ne 2 or Degree(p[2]) ne 4 then return false,_,_; end if;
+    q,h := Explode(p);
+    R := Parent(h);  F := BaseRing(R);
+    f := R.1^2 - h;
+    for g in [q,f] do if Evaluate(g,[0,R.2,R.3,R.4]) ne g then return false,_,_; end if; end for;
+    R<x,y,z> := PolynomialRing(F,3);
+    return true,Evaluate(q,[0,x,y,z]), Evaluate(f,[0,x,y,z]);
+end intrinsic;
+
+
 intrinsic CurveType(X::Crv) -> MonStgElt
 {Returns a string that describes the type of curve that X belongs to, which is
 one of "hyp", "genhyp", "plane" and "gen".}
 
 if Type(X) eq CrvHyp then
     return "hyp";
-elif assigned X`ghpols then
+elif IsGHCurve(X) then
+    _, q, f := IsGHCurve(X);
+    X`ghpols := [q, f];
     return "genhyp";
 elif Type(X) eq CrvPln then
     return "plane";
@@ -61,6 +92,15 @@ elif Type(X) eq CrvPln then
     L := Codomain(h); S := PolynomialRing(L, 3);
     FL := &+[ h(MonomialCoefficient(FK, mon))*Monomial(S, Exponents(mon)) : mon in Monomials(FK) ];
     return PlaneCurve(FL);
+
+elif IsGHCurve(X) then
+    _, qK, fK := IsGHCurve(X);
+    L := Codomain(h); S := PolynomialRing(L, 3);
+    qL := &+[ h(MonomialCoefficient(qK, mon))*Monomial(S, Exponents(mon)) : mon in Monomials(qK) ];
+    fL := &+[ h(MonomialCoefficient(fK, mon))*Monomial(S, Exponents(mon)) : mon in Monomials(fK) ];
+    XL := GHCurve(qL, fL);
+    XL`ghpols := [qL, fL];
+    return XL;
 end if;
 error "Function not available for general curves";
 
@@ -151,25 +191,6 @@ end for;
 
 X`plane_model := PlaneCurve(F0);
 return X`plane_model;
-
-end intrinsic;
-
-
-intrinsic GeneralizedHyperellipticCurve(q::RngMPolElt,f::RngMPolElt) -> Crv
-{ Given conic q(z,y,z) and homogeneous poynomial f(x,y,z) of degree >= 3, returns curve [q(x,y,z)=0,w^2=f(z,y,x)] in [2,1,1,1] weighted projective space. }
-// Written by Andrew Sutherland
-
-require Parent(q) eq Parent(f): "Polynomials must lie in the same polynomial ring.";
-require Rank(Parent(q)) eq 3: "Ternary homogeneous polynomials expected.";
-R := Parent(q); F := BaseRing(R);
-require VariableWeights(R) eq [1,1,1]: "Polynomials must lie in an unweighted polynomial ring of rank 2 or 3.";
-require IsHomogeneous(q) and Degree(q) eq 2: "First input should be a conic.";
-require IsHomogeneous(f) and IsEven(Degree(f)) and Degree(f) ge 4: "Second input should be bivariate or homogeneous trivariate polynomial whose homogenization is of even degree at least 4.";
-
-P<w,x,y,z> := ProjectiveSpace(F,[2,1,1,1]);
-X := Curve(P,[Evaluate(q,[x,y,z]),w^2-Evaluate(f,[x,y,z])]);
-X`ghpols := [ q, f ];
-return X;
 
 end intrinsic;
 

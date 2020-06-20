@@ -193,7 +193,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : s0 := [], UseSplittingField := false) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : s0 := [], UseSplittingField := true) -> SeqEnum
 {Given period matrices P and a field F, this function determines a ZZ-basis of
 the corresponding abelian variety. These are returned as triples of an
 algebraized tangent representation A over a number field K, a homology

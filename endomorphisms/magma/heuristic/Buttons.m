@@ -10,11 +10,15 @@
  */
 
 
-function CurveExtra(X : prec := 100)
-/* This converts a curve to be over a NumberFieldExtra if it is not given in
- * this way */
+intrinsic CurveExtra(X::Crv : prec := 100) -> .
+{This converts a curve to be over a NumberFieldExtra if it is not given in that way.}
+
 assert ISA(Type(X), Crv);
 F := BaseRing(X);
+if F eq Integers() then
+    X := ChangeRing(X, Rationals());
+    F := BaseRing(X);
+end if;
 if assigned F`base then
     return X;
 end if;
@@ -30,7 +34,7 @@ test, h := IsIsomorphic(F, K);
 assert test;
 return ChangeRingCurve(X, h);
 
-end function;
+end intrinsic;
 
 
 intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -> .

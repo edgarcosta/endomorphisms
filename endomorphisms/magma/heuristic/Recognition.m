@@ -315,7 +315,7 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := Infinity(), UseQQ := false, Alg := false) -> .
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := 16, DegreeDivides := Infinity(), UseQQ := true, Alg := false) -> .
 {Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. This minimal polynomial over QQ is the second return value.}
 
 if Alg then
@@ -326,7 +326,7 @@ if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound)
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
-gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound);
+gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 //return gQQ;
 if Degree(gQQ) eq 1 then return ChangeRing(gQQ, K), gQQ; end if;
 
