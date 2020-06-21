@@ -15,7 +15,7 @@ intrinsic CurveExtra(X::Crv : prec := 100) -> .
 
 assert ISA(Type(X), Crv);
 F := BaseRing(X);
-if F eq Integers() then
+if Type(F) eq RngInt then
     X := ChangeRing(X, Rationals());
     F := BaseRing(X);
 end if;
@@ -37,7 +37,7 @@ return ChangeRingCurve(X, h);
 end intrinsic;
 
 
-intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false) -> .
+intrinsic HeuristicEndomorphismAlgebra(X::. : Geometric := false, CC := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns the abstract endomorphism algebra of the Jacobian of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization. Notational conventions are specified in the documentation folder.}
 
 assert ISA(Type(X), Crv);
@@ -46,7 +46,7 @@ if CC then
     Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
 else
-    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+    GeoEndoRep := GeometricEndomorphismRepresentation(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 end if;
 
 if Geometric then
@@ -64,7 +64,7 @@ return EndoDesc, EndoAlg[1], EndoAlg[2];
 end intrinsic;
 
 
-intrinsic HeuristicEndomorphismRepresentation(X::. : Geometric := false, CC := false) -> .
+intrinsic HeuristicEndomorphismRepresentation(X::. : Geometric := false, CC := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns the endomorphism representation of X the Jacobian of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs. Notational conventions are specified in the documentation folder.}
 
 assert ISA(Type(X),Crv);
@@ -73,7 +73,7 @@ if CC then
     Geometric := true;
     GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
 else
-    GeoEndoRep := GeometricEndomorphismRepresentation(X);
+    GeoEndoRep := GeometricEndomorphismRepresentation(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 end if;
 
 if Geometric then
@@ -88,42 +88,42 @@ return X`base_endo_rep;
 end intrinsic;
 
 
-intrinsic HeuristicEndomorphismFieldOfDefinition(X::.) -> .
+intrinsic HeuristicEndomorphismFieldOfDefinition(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns the field of definition of the endomorphism algebra of the Jacobian of X.}
 
 assert ISA(Type(X), Crv);
 X := CurveExtra(X);
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
+GeoEndoRep := GeometricEndomorphismRepresentation(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 return BaseRing(GeoEndoRep[1][1]);
 
 end intrinsic;
 
 
-intrinsic HeuristicEndomorphismLattice(X::.) -> .
+intrinsic HeuristicEndomorphismLattice(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns an encoded description of the endomorphism lattice of the Jacobian of X.}
 
 assert ISA(Type(X), Crv);
 X := CurveExtra(X);
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
+GeoEndoRep := GeometricEndomorphismRepresentation(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 return EndomorphismLattice(GeoEndoRep);
 
 end intrinsic;
 
 
-intrinsic HeuristicIsGL2(X::. : Definition := "Generalized") -> .
+intrinsic HeuristicIsGL2(X::. : Definition := "Generalized", UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns whether or not the Jacobian of X is of GL_2-type in the generalized sense (by default) or in the sense of Ribet (if Definition is set to "Ribet").}
 
 assert ISA(Type(X), Crv);
 assert Definition in [ "Generalized", "Ribet" ];
 X := CurveExtra(X); g := Genus(X);
 if Definition eq "Generalized" then
-    desc, A := HeuristicEndomorphismAlgebra(X);
+    desc, A := HeuristicEndomorphismAlgebra(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
     if not Dimension(A) eq g then
         return false;
     end if;
     return Center(A) eq A;
 elif Definition eq "Ribet" then
-    desc, A := HeuristicEndomorphismAlgebra(X);
+    desc, A := HeuristicEndomorphismAlgebra(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
     if not Dimension(A) eq g then
         return false;
     end if;
@@ -136,11 +136,13 @@ end if;
 end intrinsic;
 
 
-intrinsic HeuristicDecomposition(X::.) -> .
+intrinsic HeuristicDecomposition(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns a description of the decomposition of the Jacobian of X. The first entry describes the isotypical field, the second entry describes the decomposition field and whether this field is minimal, the third entry describes decomposition over the base (dimensions and powers followed by equations), and the fourth entry describes the decomposition over the decomposition field (dimensions and powers followed by equations).}
 
 assert ISA(Type(X),Crv);
 X := CurveExtra(X);
+/* Precompute, setting parameters here */
+EndoRep := HeuristicEndomorphismRepresentation(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 decbase, decbaseeqs := DecompositionOverBase(X);
 Kiso := IsotypicalField(X); Kdec, _, test := FullDecompositionField(X);
 decgeo, decgeoeqs, identsgeo := DecompositionOverClosure(X);
@@ -158,16 +160,16 @@ return EndoDesc[1];
 end intrinsic;
 
 
-intrinsic EndRROverQQ(X::.) -> .
+intrinsic EndRROverQQ(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns a description of End_RR (Jac (Xbar)). This is a list of tuples [ <n, d> ], a single factor of which corresponds to a factor of Mat_n (A_d), where A_d is the unique skew field over RR of dimension d. So for example [ <1, 1>, <2, 4> ] would correspond to the real algebra RR x M_2 (HH).}
 
-EndoDesc := HeuristicEndomorphismAlgebra(X);
+EndoDesc := HeuristicEndomorphismAlgebra(X : UpperBound := 16, DegreeDivides := Infinity());
 return EndoDesc[1];
 
 end intrinsic;
 
 
-/* THE INTRINSICS FROM THIS POINT ONWARD ARE NOT SUPPORTED */
+/* THE INTRINSICS FROM THIS POINT ONWARD ARE NOT YET SUPPORTED */
 
 // TODO: This function needs an overhaul */
 intrinsic HeuristicDecompositionInformation(X::.) -> .

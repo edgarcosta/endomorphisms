@@ -76,7 +76,7 @@ return false;
 end function;
 
 
-function MinimalPolynomialLLL(aCC, K : LowerBound := 1, DegreeDivides := Infinity(), UpperBound := Infinity())
+function MinimalPolynomialLLL(aCC, K : LowerBound := 1, UpperBound := 16, DegreeDivides := Infinity())
 /* Returns a relative minimal polynomial of the complex number aCC with respect
  * to the stored infinite place of K. */
 
@@ -260,7 +260,7 @@ function RationalReconstruction(r);
 end function;
 
 
-intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseQQ := false, UseRatRec := true, minpol := 0) -> .
+intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseRatRec := true, UseQQ := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns an approximation of the complex number aCC as an element of K. It calculates a minimal polynomial over QQ first.}
 
 if UseRatRec and Type(K) eq FldRat then return RationalReconstruction(aCC); end if;
@@ -268,8 +268,7 @@ if not UseQQ then return AlgebraizeElementLLL(aCC, K); end if;
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
-
-if Type(minpol) eq RngIntElt then minpol := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK))); end if;
+minpol := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Finding roots in field with Pari...";
@@ -283,12 +282,12 @@ return false, 0;
 end intrinsic;
 
 
-intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseQQ := false, UseRatRec := true) -> .
+intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseRatRec := true, UseQQ := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns an approximation of the elements of the list LCC over K.}
 
 L := [ ];
 for aCC in LCC do
-    test, a := AlgebraizeElementExtra(aCC, K : UseQQ := UseQQ, UseRatRec := UseRatRec);
+    test, a := AlgebraizeElementExtra(aCC, K : UseRatRec := UseRatRec, UseQQ := UseQQ, UpperBound := UpperBound, DegreeDivides := DegreeDivides);
     if not test then return false, 0; end if;
     Append(~L, a);
 end for;
@@ -297,14 +296,14 @@ return true, L;
 end intrinsic;
 
 
-intrinsic AlgebraizeMatrixExtra(MCC::., K::Fld : UseQQ := false, UseRatRec := true) -> .
+intrinsic AlgebraizeMatrixExtra(MCC::., K::Fld : UseRatRec := true, UseQQ := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns an approximation of the complex matrix MCC over K.}
 
 rows := [ ];
 for rowCC in Rows(MCC) do
     row := [ ];
     for cCC in Eltseq(rowCC) do
-        test, c := AlgebraizeElementExtra(cCC, K : UseQQ := UseQQ, UseRatRec := UseRatRec);
+        test, c := AlgebraizeElementExtra(cCC, K : UseRatRec := UseRatRec, UseQQ := UseQQ, UpperBound := UpperBound, DegreeDivides := DegreeDivides);
         if not test then return false, 0; end if;
         Append(~row, c);
     end for;
@@ -315,18 +314,18 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : UpperBound := 16, DegreeDivides := Infinity(), UseQQ := true, Alg := false) -> .
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : Alg := false, UseQQ := true, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. This minimal polynomial over QQ is the second return value.}
 
 if Alg then
-    test, a := AlgebraizeElementExtra(aCC, K);
+    test, a := AlgebraizeElementExtra(aCC, K : UseQQ := UseQQ, UpperBound := UpperBound, DegreeDivides := DegreeDivides);
     if test then R := PolynomialRing(K); return R.1 - a, 0; end if;
 end if;
-if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound), 0; end if;
+if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound, DegreeDivides := DegreeDivides), 0; end if;
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
-gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
+gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound, DegreeDivides := Degree(K)*DegreeDivides);
 //return gQQ;
 if Degree(gQQ) eq 1 then return ChangeRing(gQQ, K), gQQ; end if;
 

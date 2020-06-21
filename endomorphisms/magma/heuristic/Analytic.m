@@ -153,7 +153,7 @@ return GeometricHomomorphismRepresentationCC(P, P : s0 := []);
 end intrinsic;
 
 
-intrinsic GeometricHomomorphismRepresentation(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : s0 := []) -> SeqEnum
+intrinsic GeometricHomomorphismRepresentation(P::ModMatFldElt, Q::ModMatFldElt, F::Fld : UpperBound := 16, DegreeDivides := Infinity(), s0 := []) -> SeqEnum
 {Given period matrices P and Q, as well as a field F, this function determines
 a ZZ-basis of homomorphisms between the corresponding abelian varieties. These
 are returned as triples of an algebraized tangent representation A over a
@@ -171,7 +171,7 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by homomorphisms...";
-K, seq, hFK := NumberFieldExtra(seqPart, F);
+K, seq, hFK := NumberFieldExtra(seqPart, F : UpperBound := UpperBound, DegreeDivides := Infinity());
 vprint EndoFind : "done finding number field defined by homomorphisms:", K;
 
 assert #seq eq #seqPart;
@@ -193,7 +193,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : s0 := [], UseSplittingField := true) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : UpperBound := 16, DegreeDivides := Infinity(), UseSplittingField := true, s0 := []) -> SeqEnum
 {Given period matrices P and a field F, this function determines a ZZ-basis of
 the corresponding abelian variety. These are returned as triples of an
 algebraized tangent representation A over a number field K, a homology
@@ -213,9 +213,9 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by endomorphisms...";
 if UseSplittingField then
-    K, seq, hFK := SplittingFieldExtra(seqPart, F);
+    K, seq, hFK := SplittingFieldExtra(seqPart, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 else
-    K, seq, hFK := NumberFieldExtra(seqPart, F);
+    K, seq, hFK := NumberFieldExtra(seqPart, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 end if;
 vprint EndoFind : "done finding number field defined by endomorphisms:";
 vprint EndoFind : K;
@@ -243,7 +243,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentationCC(X::.) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentationCC(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> SeqEnum
 {Given a curve X over a field F, this function determines a ZZ-basis of the
 corresponding abelian variety. These are returned as triples of an algebraized
 tangent representation A over a number field K, a homology representation R and
@@ -258,7 +258,7 @@ return GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(X::. : CC := false) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(X::. : UpperBound := 16, DegreeDivides := Infinity(), CC := false) -> SeqEnum
 {Given a curve X over a field F, this function determines a ZZ-basis of the
 corresponding abelian variety. These are returned as triples of an algebraized
 tangent representation A over a number field K, a homology representation R and
@@ -279,7 +279,7 @@ if CC then
     X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
     return X`geo_endo_rep_CC;
 end if;
-X`geo_endo_rep := GeometricEndomorphismRepresentation(P, F : s0 := [1..g]);
+X`geo_endo_rep := GeometricEndomorphismRepresentation(P, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides, s0 := [1..g]);
 return X`geo_endo_rep;
 
 end intrinsic;
