@@ -151,7 +151,7 @@ while degf lt UpperBound do
         end if;
     end if;
 end while;
-return "Failed to find minimal polynomial using LLL";
+error "Failed to find minimal polynomial using LLL";
 
 end function;
 
