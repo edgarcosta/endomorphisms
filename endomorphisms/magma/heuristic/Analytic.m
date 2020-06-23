@@ -375,8 +375,8 @@ return GeoEndoRep, PX;
 end function;
 
 
-intrinsic GaloisShortcut(P::ModMatFldElt, F::Fld : UpperBound := Infinity(), DegreeDivides := Infinity()) -> .
-{Only returns Galois group.}
+intrinsic HeuristicEndomorphismFieldAsSplittingField(P::ModMatFldElt, F::Fld : UpperBound := 16, DegreeDivides := Infinity()) -> .
+{Returns polynomials whose splitting field defines the field of definition of the endomorphisms.}
 
 CC := BaseRing(P);
 gensPart := GeometricEndomorphismRepresentationCC(P : s0 := []);
@@ -400,9 +400,16 @@ for i in [1..#seqPart] do
         end if;
     end if;
 end for;
-//if UpperBound ne Infinity() then
-//    error "Did not reach upper bound :-(";
-//end if;
 return G, minpols;
+
+end intrinsic;
+
+
+intrinsic HeuristicEndomorphismFieldAsSplittingField(X::Crv : UpperBound := 16, DegreeDivides := Infinity()) -> .
+{Returns polynomials whose splitting field defines the field of definition of the endomorphisms.}
+
+X := CurveExtra(X);
+P := PeriodMatrix(X); F := BaseRing(X);
+return HeuristicEndomorphismFieldAsSplittingField(P, F);
 
 end intrinsic;
