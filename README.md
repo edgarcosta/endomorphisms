@@ -3,11 +3,11 @@ Description
 
 This repository contains a mix of Magma, Pari and SageMath code for calculating the endomorphism algebras and rings of Jacobian varieties of curves over number fields and finite fields.
 
-PLEASE NOTE: The current version of the repository uses Magma version 2.25, which includes the period algorithms by Molin--Neurohr mentioned below. If you have an earlier version of Magma, please try checking out commit `7433e5` and following the instructions on including the period functionality that is described below.
+PLEASE NOTE: The current version of the repository uses Magma version 2.25, which includes the period algorithms by Molin--Neurohr mentioned below. If you have an earlier version of Magma, please try checking out commit `7433e5` and following the instructions on including the period functionality for old versions that is described below.
 
 Prerequisites
 --
-An installation of Magma, Pari and SageMath, so that all of these are available on the command line, is required to run all of the code. Most of the algorithms are written in Magma, whose algebro-geometric and numerical capabilities are essential. Some of the heavy lifting in the creation of number fields and the recognition of complex numbers as algebraic numbers is outsourced to Pari, whose performance when working with number fields is better than that of Magma. Finally, SageMath is used for the calculation of Frobenius and as a wrapper, because its Python substrate allows for easier creation and manipulation of data structures.
+An installation of Magma, Pari and (optionally) SageMath, so that all of these are available on the command line, is required to run all of the code. Most of the algorithms are written in Magma, whose algebro-geometric and numerical capabilities are essential. Some of the heavy lifting in the creation of number fields and the recognition of complex numbers as algebraic numbers is outsourced to Pari, whose performance when working with number fields is better than that of Magma. Finally, SageMath is mainly used for the calculation of Frobenius endomorphisms and as a wrapper, because its Python substrate allows for easier creation and manipulation of data structures.
 
 For optimal results, set your Pari stack size to a decent size by for example adding
 ```
@@ -15,11 +15,11 @@ parisize = "4096M"
 ```
 to your `~/.gprc` file. This is an optional improvement.
 
-You should also install [`pascalmolin/hcperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file, using `AttachSpec` in the same way as in the section on the Magma installation below (but with a different target spec file). This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
+In order to decompose Jacobians, you will need to similarly install and attach [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction) and its dependencies.
 
-Upcoming installations with Magma will include code by Christian Neurohr that will enable the computation of period matrices of plane curves. For now, this code is available via the dependency [`JRSijsling/RiemannSurfaces`](https://github.com/JRSijsling/RiemannSurfaces), a fork containing small modifications of the magnificent original version at [`christianneurohr/RiemannSurfaces`](https://github.com/christianneurohr/RiemannSurfaces).
+If your Magma version predates 2.25, then you should also install [`pascalmolin/hcperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file, using `AttachSpec` in the same way as in the section on the Magma installation below (but with a different target spec file). This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
 
-Finally, in order to decompose Jacobians, you will need [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction) and [`JRSijsling/quartic_reconstruction`](https://github.com/JRSijsling/quartic_reconstruction). If you do so, do not forget to once again include the path to its spec file in your `.magmarc` file.
+The same holds for code by Christian Neurohr that enables the computation of period matrices of plane curves. It is available via the dependency [`JRSijsling/RiemannSurfaces`](https://github.com/JRSijsling/RiemannSurfaces), a fork containing small modifications of the magnificent original version at [`christianneurohr/RiemannSurfaces`](https://github.com/christianneurohr/RiemannSurfaces).
 
 Additional prerequisite for older Magma versions
 --
@@ -77,7 +77,7 @@ where `m` and `n` are either `1`, `2`, or `3`. A higher value gives more comment
 More detailed information
 --
 
-A description of the data structures used in the SageMath wrapper can be found in the files `Dicts.md` and `Descs.md` in the directory `documentation/`.
+A further description of the data structures and return values used is given in the directory `documentation/`.
 
 Credits
 --
@@ -97,7 +97,7 @@ Ph.D. thesis, Carl-von-Ossietzky-Universität Oldenburg (2018)
 Citing this code
 --
 
-Please cite the following preprint if this code has been helpful in your research:
+Please cite the following preprint, as well as the two mentioned above, if this code has been helpful in your research.
 
 Edgar Costa, Nicolas Mascot, Jeroen Sijsling, and John Voight  
 *Rigorous computation of the endomorphism ring of a Jacobian*
