@@ -33,7 +33,7 @@ function RandomSplitPrime(f, B)
  */
 
 K := BaseRing(Parent(f));
-if Type(K) eq FldRat or Degree(K) eq 1 then OK := Integers(); else OK := EquationOrder(K); end if;
+if Type(K) eq FldRat then OK := Integers(); else OK := EquationOrder(K); end if;
 
 while true do
     repeat p := RandomPrime(B : Proof := false); until p^2 ge B;
@@ -82,7 +82,7 @@ function FractionalCRTSplit(rs, ps : I := 0);
  * avoid recalculation */
 
 OK := Order(ps[1]); K := NumberField(OK);
-if Type(K) eq FldRat then return FractionalCRTQQ(rs, ps : I := I); end if;
+if Type(K) eq FldRat or Degree(K) eq 1 then return FractionalCRTQQ(rs, ps : I := I); end if;
 if Type(I) eq RngIntElt then I := &*ps; end if;
 BOK := Basis(OK); BI := Basis(I);
 
