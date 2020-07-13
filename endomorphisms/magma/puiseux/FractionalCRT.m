@@ -33,7 +33,7 @@ function RandomSplitPrime(f, B)
  */
 
 K := BaseRing(Parent(f));
-if Type(K) eq FldRat then OK := Integers(); else OK := EquationOrder(K); end if;
+if Type(K) eq FldRat or Degree(K) eq 1 then OK := Integers(); else OK := EquationOrder(K); end if;
 
 while true do
     repeat p := RandomPrime(B : Proof := false); until p^2 ge B;
