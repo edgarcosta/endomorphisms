@@ -1,8 +1,8 @@
 SetSeed(1);
-SetVerbose("EndoFind", 3);
-SetVerbose("CurveRec", 2);
+SetVerbose("EndoFind", 0);
+SetVerbose("CurveRec", 0);
 
-prec := 333;
+prec := 500;
 
 F := RationalsExtra(prec);
 R<x,y,z> := PolynomialRing(F, 3);
