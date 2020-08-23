@@ -27,7 +27,11 @@ intrinsic Polredabs(f::RngUPolElt : Best := true) -> RngUPolElt, SeqEnum, BoolEl
   catch e
     print("WARNING: need gp at command-line for polredabs, without this many examples become intractable\n");
     vprint EndoFind, 3 : "done.";
-    return f, [0,1] cat [0: i in [1..Degree(f)-2]], false;
+    assert Type(BaseRing(Parent(f))) eq FldRat;
+    lcm := LCM([ Denominator(c) : c in Coefficients(f) ]);
+    f0 := Evaluate(f, (Parent(f).1)/lcm);
+    f0 /:= LeadingCoefficient(f0);
+    return f0, [0,1] cat [0: i in [1..Degree(f)-2]], false;
   end try;
   vprint EndoFind, 3 : "done.";
   return Parent(f) ! sspol, ssroot, true;
