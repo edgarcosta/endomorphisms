@@ -11,6 +11,7 @@
  */
 
 declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep_CC, geo_endo_rep, base_endo_rep, base_point, ghpols;
+forward Homogenize;
 
 
 intrinsic PlaneCurve(F::RngMPolElt) -> Crv
@@ -27,6 +28,17 @@ Fhom := S ! (z^(Degree(F)) * Evaluate(F, [ x/z, y/z ]));
 return Curve(Scheme(ProjectiveSpace(S), Fhom));
 
 end intrinsic;
+
+
+function Homogenize(fs)
+// Given polys f(x0,x1,...x_(n-1)) in n (unweighted) variables returns homogeneous polynomial g(x_0,...,x_n) = x_n^deg(f)*f(x0/xn,...,x_(n-1)/ x_n) in n+1 variables.
+    R := Universe(fs);  F:= BaseRing(R);
+    assert Set(VariableWeights(R)) eq {1};
+    n := Rank(R)+1;
+    S := PolynomialRing(F,n);
+    K := FieldOfFractions(S);
+    return [S!(K.n^(Degree(f))*Evaluate(f,[K.i/K.n:i in [1..n-1]])): f in fs];
+end function;
 
 
 intrinsic GHCurve(q::RngMPolElt,f::RngMPolElt) -> Crv
