@@ -353,7 +353,43 @@ return true, fss;
 end intrinsic;
 
 
-/* Functions from here on are deprecated and no longer supported */
+function Humanize(desc);
+/* Maketh ye stuffeth readable */
+
+str := "";
+alg := desc[2];
+print alg;
+if #alg ne 1 then
+    str cat:= "Isotypical factors of A:\n";
+end if;
+for fac in alg do
+    m, dimD, pol, discD, dimA := Explode(fac);
+    dimK := #pol - 1;
+    assert (dimD mod dimK) eq 0;
+    indDsq := dimD div dimK;
+    test, indD := IsSquare(indDsq);
+    assert test;
+
+    if m gt 1 then
+        str cat:= (Sprint(m) cat "th power of ");
+    end if;
+    str cat:= ("abelian variety of dimension " cat Sprint(dimA)) cat " ";
+    str cat:= "with endomorphism algebra ";
+    if indD ne 1 then
+        str cat:= ("a division algebra of index " cat Sprint(indD) cat " and discriminant " cat Sprint(discD) cat " over ");
+    end if;
+    if #pol eq 2 then
+        str cat:= "QQ\n";
+    else
+        R<t> := PolynomialRing(Rationals());
+        str cat:= ("the number field defined by " cat Sprint(R ! pol)) cat "\n";
+    end if;
+end for;
+return str;
+
+end function;
+
+
 intrinsic HeuristicEndomorphismDescription(X::. : Geometric := false, CC := false) -> .
 {Returns an encoded description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
 
@@ -368,18 +404,19 @@ end if;
 
 if Geometric then
     EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return EndoDesc;
+    return Humanize(EndoDesc);
 end if;
 if not assigned X`base_endo_rep then
     F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
     X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
 end if;
 EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return EndoDesc;
+return Humanize(EndoDesc);
 
 end intrinsic;
 
 
+/* Functions from here on are deprecated and no longer supported */
 intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
 {Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
 
