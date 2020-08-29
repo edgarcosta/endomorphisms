@@ -358,7 +358,6 @@ function Humanize(desc);
 
 str := "";
 alg := desc[2];
-print alg;
 if #alg ne 1 then
     str cat:= "Isotypical factors of A:\n";
 end if;
