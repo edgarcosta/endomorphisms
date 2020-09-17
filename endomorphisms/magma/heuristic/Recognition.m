@@ -76,7 +76,7 @@ return false;
 end function;
 
 
-function MinimalPolynomialLLL(aCC, K : LowerBound := 1, UpperBound := Infinity(), DegreeDivides := Infinity())
+function MinimalPolynomialLLL(aCC, K : LowerBound := 1, UpperBound := 16, DegreeDivides := Infinity())
 /* Returns a relative minimal polynomial of the complex number aCC with respect
  * to the stored infinite place of K. */
 
@@ -260,7 +260,7 @@ function RationalReconstruction(r);
 end function;
 
 
-intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseRatRec := true, UseQQ := false, UpperBound := Infinity(), DegreeDivides := Infinity()) -> .
+intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseRatRec := true, UseQQ := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns an approximation of the complex number aCC as an element of K. It calculates a minimal polynomial over QQ first.}
 
 if UseRatRec and Type(K) eq FldRat then return RationalReconstruction(aCC); end if;
@@ -282,7 +282,7 @@ return false, 0;
 end intrinsic;
 
 
-intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseRatRec := true, UseQQ := false, UpperBound := Infinity(), DegreeDivides := Infinity()) -> .
+intrinsic AlgebraizeElementsExtra(LCC::SeqEnum, K::Fld : UseRatRec := true, UseQQ := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns an approximation of the elements of the list LCC over K.}
 
 L := [ ];
@@ -296,7 +296,7 @@ return true, L;
 end intrinsic;
 
 
-intrinsic AlgebraizeMatrixExtra(MCC::., K::Fld : UseRatRec := true, UseQQ := false, UpperBound := Infinity(), DegreeDivides := Infinity()) -> .
+intrinsic AlgebraizeMatrixExtra(MCC::., K::Fld : UseRatRec := true, UseQQ := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns an approximation of the complex matrix MCC over K.}
 
 rows := [ ];
@@ -314,7 +314,7 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : Alg := false, UseQQ := true, UpperBound := Infinity(), DegreeDivides := Infinity()) -> .
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : Alg := false, UseQQ := true, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. This minimal polynomial over QQ is the second return value.}
 
 if Alg then
