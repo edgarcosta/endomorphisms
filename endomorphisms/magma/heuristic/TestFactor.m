@@ -77,7 +77,7 @@ for tup in CP do
     end if;
 end for;
 if d0 eq Infinity() then
-    error "No morphism found";
+    error "No morphism found. Try increasing the flag Bound or the precision.";
 end if;
 
 A0 := &+[ tup0[i]*HomRep[i][1] : i in [1..#HomRep] ];

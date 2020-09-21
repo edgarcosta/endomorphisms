@@ -214,7 +214,7 @@ for i in [1..#Ds] do
     end if;
 
     if #DescFactorQQ eq 0 then
-        error "All cases in EndomorphismAlgebraQQ fell through!";
+        error "All cases in EndomorphismAlgebraQQ fell through! This should not happen if the genus is at most 7.";
         DescFactorQQ := < -1, -1, FDesc, -1, -1 >;
     end if;
     Append(~EndoDescQQ, DescFactorQQ);

@@ -77,7 +77,7 @@ vprint EndoFind, 2 : "";
 vprint EndoFind, 2 : "Determining component from idempotent, algebraic step...";
 /* Recalculation to algebraize entries */
 test, B := AlgebraizeMatrixExtra(BCC, L);
-if not test then error "Failed to algebraize map over base field."; end if;
+if not test then error "Failed to algebraize map over base field. Try increasing the precision."; end if;
 K, hKL := SubfieldExtra(L, Eltseq(B));
 incdata := [* L, K, hKL *];
 
