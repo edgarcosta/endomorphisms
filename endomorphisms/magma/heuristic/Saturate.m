@@ -88,7 +88,7 @@ subM := Submatrix(M, [1..#Rows(M)], s0);
 S := NumericalLeftSolve(subL, subM);
 S, test := FractionalApproximationMatrix(S);
 if not test then
-    error "No suitable fractional approximation found";
+    error "No suitable fractional approximation found. Try increasing the precision.";
 end if;
 /* At this point we have S L = M, where S has rational entries and an integral
 * inverse */

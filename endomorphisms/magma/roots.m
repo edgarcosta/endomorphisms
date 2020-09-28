@@ -12,7 +12,7 @@ intrinsic RootsPari(f::RngUPolElt, K::Fld) -> .
     rts := [ K ! rt : rt in eval(s) ];
     return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
   catch e
-    vprintf EndoFind : "WARNING: need gp at commando-line for RootsPari!\n";
+    vprintf EndoFind : "WARNING: Need gp at command line for RootsPari!\n";
     rts := [];
     for pair in Roots(f, K) do
       for i in [1..pair[2]] do
@@ -50,7 +50,8 @@ intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
   facs := [ &+[ (K ! seq[i])*R.1^(i - 1) : i in [1..#seq] ] : seq in seqs ];
   return facs;
   catch e
-    vprintf EndoFind : "WARNING: need gp at commando-line for FactorizationPari!\n";
+    vprintf EndoFind : "WARNING: Need gp at command line for FactorizationPari!\n";
+    rts := [ ];
     for pair in Factorization(f, K) do
       for i in [1..pair[2]] do
         Append(~rts, pair[1]);
@@ -75,7 +76,7 @@ intrinsic SplittingFieldPari(f::RngUPolElt) -> .
     L := Polredbestabs(NumberField(eval(s)));
     f := R ! DefiningPolynomial(L);
   catch e
-    vprintf EndoFind : "WARNING: need gp at commando-line for SplittingFieldPari!\n";
+    vprintf EndoFind : "WARNING: Need gp at command line for SplittingFieldPari!\n";
     f := DefiningPolynomial(SplittingField(f));
   end try;
   return NumberFieldExtra(f);

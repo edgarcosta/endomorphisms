@@ -151,7 +151,7 @@ while degf lt UpperBound do
         end if;
     end if;
 end while;
-error "Failed to find minimal polynomial using LLL";
+error "Failed to find minimal polynomial using LLL. Try increasing the precision.";
 
 end function;
 
@@ -341,6 +341,6 @@ for hQQ in hQQs do
     hKs := FactorizationPari(hQQ, K);
     for hK in hKs do if TestCloseToRoot(hK, aCC) then return hK, hQQ; end if; end for;
 end for;
-error "Failed to find relative minimal polynomial";
+error "Failed to find relative minimal polynomial. Try increasing the precision.";
 
 end intrinsic;
