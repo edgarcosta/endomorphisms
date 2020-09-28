@@ -42,10 +42,14 @@ end function;
 
 
 intrinsic GHCurve(q::RngMPolElt,f::RngMPolElt) -> Crv
-{ Given conic q(z,y,z) and homogeneous poynomial f(x,y,z) of degree >= 3, returns curve [q(x,y,z)=0,w^2=f(z,y,x)] in [2,1,1,1] weighted        projective space. }
+{ Given conic q(x,y,z) and homogeneous poynomial f(x,y,z) of degree >= 3, returns curve [q(x,y,z)=0,w^2=f(z,y,x)] in [2,1,1,1] weighted        projective space. }
 // Written by Andrew Sutherland
     require Parent(q) eq Parent(f): "Polynomials must lie in the same polynomial ring.";
-    if Rank(Parent(q)) eq 2 then q,f := Explode(Homogenize([q,f])); end if;
+    if Rank(Parent(q)) eq 2 then 
+      R0 := PolynomialRing(BaseRing(Parent(q)),3);
+      q := Homogenization(Evaluate(q,[R0.1,R0.2]),R0.3);
+      f := Homogenization(Evaluate(f,[R0.1,R0.2]),R0.3);
+    end if;
     R := Parent(q); F := BaseRing(R);
     require VariableWeights(R) eq [1,1,1]: "Polynomials must lie in an unweighted polynomial ring of rank 2 or 3.";
     require IsHomogeneous(q) and Degree(q) eq 2: "First input should be a conic.";
