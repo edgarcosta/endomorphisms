@@ -45,33 +45,33 @@ return EndomorphismData(GeoEndoRep, GalK : CalcPic := CalcPic);
 end intrinsic;
 
 
-//intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> List
-//{Given a representation of the geometric endomorphism ring and Galois group
-//GalK, returns the endomorphism structure over the subfield corresponding to
-//GalK. Also calculates Sato-Tate group from Shorthand.}
-//
-///* Adds Sato-Tate */
-//EndoData := EndomorphismData(GeoEndoRep, GalK);
-//EndoRep, EndoAlg, EndoDesc := Explode(EndoData);
-//SatoTate := SatoTateGroup(EndoData, GeoEndoRep, GalK : Shorthand := Shorthand);
-//Append(~EndoAlg, SatoTate); Append(~EndoDesc, SatoTate);
-//EndoDataWithST := [* EndoRep, EndoAlg, EndoDesc *];
-//return EndoDataWithST;
-//
-//end intrinsic;
+intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> List
+{Given a representation of the geometric endomorphism ring and Galois group
+GalK, returns the endomorphism structure over the subfield corresponding to
+GalK. Also calculates Sato-Tate group from Shorthand.}
+
+/* Adds Sato-Tate */
+EndoData := EndomorphismData(GeoEndoRep, GalK);
+EndoRep, EndoAlg, EndoDesc := Explode(EndoData);
+SatoTate := SatoTateGroup(EndoData, GeoEndoRep, GalK : Shorthand := Shorthand);
+Append(~EndoAlg, SatoTate); Append(~EndoDesc, SatoTate);
+EndoDataWithST := [* EndoRep, EndoAlg, EndoDesc *];
+return EndoDataWithST;
+
+end intrinsic;
 
 
-//intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, K::Fld, h::Map : Shorthand := "") -> List
-//{Given a representation of the geometric endomorphism ring and a field K,
-//returns the endomorphism structure over K. Also calculates Sato-Tate group from
-//Shorthand.}
-//
-///* Apply previous function after finding a corresponding subgroup */
-//L := BaseRing(GeoEndoRep[1][1]);
-//GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
-//return EndomorphismDataWithSatoTate(GeoEndoRep, GalK : Shorthand := Shorthand);
-//
-//end intrinsic;
+intrinsic EndomorphismDataWithSatoTate(GeoEndoRep::SeqEnum, K::Fld, h::Map : Shorthand := "") -> List
+{Given a representation of the geometric endomorphism ring and a field K,
+returns the endomorphism structure over K. Also calculates Sato-Tate group from
+Shorthand.}
+
+/* Apply previous function after finding a corresponding subgroup */
+L := BaseRing(GeoEndoRep[1][1]);
+GalK := SubgroupGeneratorsUpToConjugacy(L, K, h);
+return EndomorphismDataWithSatoTate(GeoEndoRep, GalK : Shorthand := Shorthand);
+
+end intrinsic;
 
 
 intrinsic EndomorphismStructure(EndoRep::SeqEnum : CalcPic := true) -> List

@@ -232,10 +232,7 @@ elif Shorthand eq "F" then
             /* In this case it suffices to check whether the polynomial that
              * defines the center of the geometric endomorphism ring in fact has
              * a root in the ground field */
-            assert "FIXME" cmpeq false;
-            //FIXME
-            //struct := EndomorphismDataWithSatoTate(GeoEndoRep, [* [ ], Gphi *]);
-            struct := [];
+            struct := EndomorphismDataWithSatoTate(GeoEndoRep, [* [ ], Gphi *]);
             A := struct[2][1];
             A := AlgebraOverCenter(A);
             M := BaseRing(A);
