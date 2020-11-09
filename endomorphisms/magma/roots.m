@@ -61,10 +61,11 @@ intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
 end intrinsic;
 
 
-intrinsic SplittingFieldPari(f::RngUPolElt) -> .
+intrinsic SplittingFieldPari(f::RngUPolElt : roots := false) -> .
 {Splitting field of f calculated using Pari.}
 
   //return SplittingField(f);
+  f0 := f;
   F := BaseRing(f);
   assert F eq Rationals();
   try
@@ -79,7 +80,23 @@ intrinsic SplittingFieldPari(f::RngUPolElt) -> .
     vprintf EndoFind : "WARNING: Need gp at command line for SplittingFieldPari!\n";
     f := DefiningPolynomial(SplittingField(f));
   end try;
-  return NumberFieldExtra(f);
+  L := NumberFieldExtra(f);
+  if not roots then
+    return L;
+  end if;
+  return L, RootsPari(f0, L);
+end intrinsic;
+
+
+intrinsic SplittingFieldPari(fs::SeqEnum[RngUPolElt] : roots := true) -> .
+{Splitting field of f calculated using Pari.}
+
+  L := SplittingField(&*fs);
+  if not roots then
+    return L;
+  end if;
+  rss := [ RootsPari(f, L) : f in fs ];
+  return L, rss;
 
 end intrinsic;
 
