@@ -507,7 +507,7 @@ if Degree(f) eq 1 then
     return L, r, hKL;
 end if;
 
-L<r> := SplittingField(f); L := AbsoluteField(Lrel);
+Lrel<r> := SplittingField(f); L := AbsoluteField(Lrel);
 L`base := K`base; L`base_gen := L ! Lrel ! K`base_gen; L`CC := K`CC;
 
 /* Inclusion map */
