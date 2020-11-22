@@ -507,8 +507,9 @@ if Degree(f) eq 1 then
     return L, r, hKL;
 end if;
 
-Lrel<r> := SplittingField(f); L := AbsoluteField(Lrel);
+Lrel<r>, rts := SplittingField(f); L := AbsoluteField(Lrel);
 L`base := K`base; L`base_gen := L ! Lrel ! K`base_gen; L`CC := K`CC;
+rts := [ L ! rt : rt in rts ];
 
 /* Inclusion map */
 if IsQQ(K) then
@@ -520,7 +521,8 @@ L`iota := AscendInfinitePlace(K, L, hKL);
 
 /* Final improvement step before returning */
 L0, hLL0 := ImproveFieldExtra(L);
-return L0, hLL0(L ! r), hKL * hLL0;
+rts := [ hLL0(rt) : rt in rts ];
+return L0, hLL0(L ! r), hKL * hLL0, rts;
 
 end intrinsic;
 
