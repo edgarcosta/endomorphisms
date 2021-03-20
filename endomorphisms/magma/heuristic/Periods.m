@@ -49,14 +49,18 @@ return S ! g;
 end function;
 
 
-function PeriodMatrixRetryQQ(f, CC);
+function PeriodMatrixRetryQQ(f, g, CC);
+T := IdentityMatrix(Rationals(), g);
 while true do
     try
         RS := RiemannSurface(f : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
-        return P, RS;
+        TCC := ChangeRing(T, BaseRing(P));
+        return TCC*P, RS;
     catch e
-        F := PolHom(f); F := TransformForm(F, RandomInvertibleMatrix(3, 2));
+        F := PolHom(f);
+        T := RandomInvertibleMatrix(g, 2);
+        F := TransformForm(F, T);
         X := PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
     end try;
@@ -64,14 +68,19 @@ end while;
 end function;
 
 
-function PeriodMatrixRetryNF(f, sigma, CC);
+function PeriodMatrixRetryNF(f, g, sigma, CC);
+T := IdentityMatrix(Rationals(), g);
 while true do
     try
         RS := RiemannSurface(f, sigma : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
-        return P, RS;
+        TCC := ChangeRing(T, BaseRing(P));
+        return TCC*P, RS;
     catch e
-        F := PolHom(f); F := TransformForm(F, RandomInvertibleMatrix(3, 2));
+        F := PolHom(f);
+        T := RandomInvertibleMatrix(g, 2);
+        T := ChangeRing(T, BaseRing(Parent(f)));
+        F := TransformForm(F, T);
         X := PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
     end try;
@@ -125,10 +134,11 @@ if CurveType(X) in [ "plane", "gen" ] then
     end if;
 
     f := DefiningPolynomial(AffinePatch(Y, 1));
+    g := Genus(X);
     if Type(F) eq FldRat then
-        P, RS := PeriodMatrixRetryQQ(f, CC);
+        P, RS := PeriodMatrixRetryQQ(f, g, CC);
     else
-        P, RS := PeriodMatrixRetryNF(f, sigma, CC);
+        P, RS := PeriodMatrixRetryNF(f, g, sigma, CC);
         /* Conjugate if needed */
         if cc then
             P := Matrix(CC, [ [ ComplexConjugate(c) : c in Eltseq(row) ] : row in Rows(P) ]);
