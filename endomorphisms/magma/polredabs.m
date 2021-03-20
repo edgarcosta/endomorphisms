@@ -1,7 +1,3 @@
-// previous version of galoisorbits.m renamed recognition.m 2018/02/26
-// 7T6-[7,7,3]-7-7-331-g2.m
-// 7T7-[4,12,12]-421-43-43-g1.m
-
 intrinsic Polredabs(f::RngUPolElt : Best := true) -> RngUPolElt, SeqEnum, BoolElt
   { A smallest generating polynomial of the number field, using pari. }
 

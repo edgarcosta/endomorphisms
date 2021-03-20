@@ -65,6 +65,36 @@ return K, [* itan, ihom *];
 end intrinsic;
 
 
+function QuotientByColumns(A)
+
+CC := BaseRing(A);
+r := #Rows(A); c := #Rows(Transpose(A));
+V := VectorSpace(CC, r); VmodW := VectorSpace(CC, r - c);
+
+/* Standardize */
+A0, s0 := SubmatrixOfRank(A, c : ColumnsOrRows := "Rows");
+A := A*A0^(-1);
+s := s0 cat [ i : i in [1..r] | not i in s0 ];
+P := PermutationMatrix(CC, s);
+A := P*A;
+
+/* Check */
+I := Submatrix(A, 1,1,   c,c);
+B := Submatrix(A, c+1,1, r - c,c);
+test := Maximum([ Abs(entry) : entry in Eltseq(I - IdentityMatrix(CC, c)) ]);
+if test gt 10^20*CC`epscomp then
+    error "QuotientByColumns does not give identity matrix";
+end if;
+
+/* Projection morphism */
+Q := HorizontalJoin(-B, IdentityMatrix(CC, r - c));
+Q := Q*P^(-1);
+q := hom< V -> VmodW | Transpose(Q) >;
+return V, VmodW, q;
+
+end function;
+
+
 intrinsic Coker(h::., P::., Q::.) -> .
 {Returns the cokernel of the morphism h = (A, R) from P to Q.}
 
@@ -80,24 +110,14 @@ if #gensCL eq 0 then
     return 0, [0, 0];
 end if;
 
-/* Build new matrix */
+/* Build new tangent matrix surjecting onto the appropriate number of columns */
 B := [ Zd ! b : b in Basis(L) ]; BC := [ Zd ! (g @@ projL) : g in gensCL ];
 colsQ := Rows(Transpose(Q)); colsC := [ &+[ b[i]*colsQ[i] : i in [1..#Eltseq(b)] ] : b in BC ];
 A0, s := SubmatrixOfRank(A, #B div 2 : ColumnsOrRows := "Columns");
 
-/* Modify invertible matrix A0 for numerical stability when taking quotients later */
-CC := BaseRing(A0);
-g := #Rows(A0); c := #Rows(Transpose(A0));
-cols := [ Minimum([ i : i in [1..#Eltseq(row)] | Abs(row[i]) ge 10^20*CC`epscomp ]) : row in Rows(Transpose(A0)) ];
-cols cat:= [ i : i in [1..g] | not i in cols ];
-Perm := PermutationMatrix(CC, cols)^(-1);
-
 /* Build period matrix */
-V := VectorSpace(CC, g);
-gensW := sub<V | [ c*Perm : c in Rows(Transpose(A0)) ] >;
-W := sub< V | gensW >;
-VmodW, q := quo< V | W >;
-C := Transpose(Matrix([ Eltseq(q((V ! col)*Perm)) : col in colsC ]));
+V, VmodW, q := QuotientByColumns(A0);
+C := Transpose(Matrix([ Eltseq(q(V ! col)) : col in colsC ]));
 
 /* Correction of homology representation: */
 M := Matrix(Rationals(), [ Eltseq(b) : b in B cat BC ]);
