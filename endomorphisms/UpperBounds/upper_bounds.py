@@ -4,7 +4,7 @@
 # exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 
 from endomorphisms.OverFiniteField import endomorphism_frob
-from utils import field_intersection_matrix, RR_representation, polredabs
+from .utils import field_intersection_matrix, RR_representation, polredabs
 from sage.all import Set, NumberField
 
 

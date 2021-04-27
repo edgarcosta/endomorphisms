@@ -22,6 +22,6 @@ except RuntimeError as err:
     print("RuntimeError exception caught, with error message:\n\t > %s\nWe weren't able to load the magma package and some functionality of the endomorphisms package will be limited." % str(err).rstrip('\n'))
 
 
-from Curves import mHyperellipticCurve, mPlaneCurve
-from Wrapper import EndomorphismData
-from UpperBounds import endomorphisms_upper_bound, RR_upper_bound, hyperelliptic_endomorphisms_upper_bound, hyperelliptic_RR_upper_bound
+from .Curves import mHyperellipticCurve, mPlaneCurve
+from .Wrapper import EndomorphismData
+from .UpperBounds import endomorphisms_upper_bound, RR_upper_bound, hyperelliptic_endomorphisms_upper_bound, hyperelliptic_RR_upper_bound

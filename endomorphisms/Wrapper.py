@@ -9,10 +9,10 @@
  *  See LICENSE.txt for license details.
 """
 
-from Curves import *
-from Dictionaries import *
-from PrettyPrint import *
-from Representations import *
+from .Curves import *
+from .Dictionaries import *
+from .PrettyPrint import *
+from .Representations import *
 
 from sage.all import magma
 

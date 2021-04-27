@@ -10,7 +10,7 @@
 """
 
 from sage.all import magma, QQ, PolynomialRing, NumberField, squarefree_part
-from Dictionaries import index_dictionary
+from .Dictionaries import index_dictionary
 
 def pretty_print_over_field_description(struct, g):
     return statements_all(struct, g)

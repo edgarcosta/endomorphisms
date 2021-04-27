@@ -4,7 +4,7 @@
 # exposes some of Honda--Tate theory necessary to produce tight upper bounds
 # For more details see Section 7.2
 
-from utils import power_charpoly, tensor_charpoly
+from .utils import power_charpoly, tensor_charpoly
 from sage.all import Integers, Rationals, LCM
 
 def is_ordinary(f, q):
