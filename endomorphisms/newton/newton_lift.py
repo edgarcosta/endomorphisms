@@ -91,7 +91,7 @@ def trace_and_norm_ladic(L, M, P0, P1, P2, f, alpha, degree_bound, primes = 120,
     max_value = 0;
     max_arg = None;
 
-    for degrees_ell, count in degrees_count.iteritems():
+    for degrees_ell, count in degrees_count.items():
         if count > max_value:
             max_arg = degrees_ell;
             max_value = count;

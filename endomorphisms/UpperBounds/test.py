@@ -76,7 +76,7 @@ genus2_special =  fetch_gce_list(os.path.join(database_path, "special_curves_hyp
 for i, examples in enumerate([genus2_hyperelliptic, genus3_hyperelliptic, genus3_special, genus2_special]):
     print("Batch %d" % i);
     print("Testing %d curves" % len(examples))
-    for key, triple in examples.iteritems():
+    for key, triple in examples.items():
         f, h, RRendo = triple;
         frob_list = get_frob_list_HyperellipticCurve(f,h);
         endo_upper_bound = endomorphisms_upper_bound(frob_list);

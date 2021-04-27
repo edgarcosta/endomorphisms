@@ -109,7 +109,7 @@ def endomorphisms_upper_bound(frob_list, eta_char0 = None):
     #We can try to bound the center of each factor
     output = [];
     total_dim = 0;
-    for pair, frob_matrix in frob_factors.iteritems():
+    for pair, frob_matrix in frob_factors.items():
         L = field_intersection_matrix( frob_matrix );
         ejnj, njdimAj = pair
         njdimAj = njdimAj//2;
