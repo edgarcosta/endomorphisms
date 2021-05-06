@@ -156,7 +156,8 @@ for i in [1..#Ds] do
                 m := 2; disc := 1;
             else
                 m := 1; disc := Integers() ! Norm(Discriminant(Q));
-                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+                Fac := Factorization(disc);
+                disc := #Fac eq 0 select 1 else &*[ tup[1] : tup in Fac ];
                 if IsOdd(#Fac) then disc *:= -1; end if;
             end if;
             reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
@@ -169,7 +170,8 @@ for i in [1..#Ds] do
                 m := 4; disc := 1;
             else
                 m := 2; disc := Abs(discOO) div 2^32;
-                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+                Fac := Factorization(disc);
+                disc := #Fac eq 0 select 1 else &*[ tup[1] : tup in Fac ];
                 if IsOdd(#Fac) then disc *:= -1; end if;
             end if;
             reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
@@ -182,7 +184,8 @@ for i in [1..#Ds] do
                 m := 6; disc := 1;
             else
                 m := 3; disc := Abs(discOO) div (2^36 * 3^36);
-                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+                Fac := Factorization(disc);
+                disc := #Fac eq 0 select 1 else &*[ tup[1] : tup in Fac ];
                 if IsOdd(#Fac) then disc *:= -1; end if;
             end if;
             reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
@@ -201,7 +204,8 @@ for i in [1..#Ds] do
                 m := 2; disc := 1;
             else
                 m := 1; disc := Integers() ! Norm(Discriminant(Q));
-                Fac := Factorization(disc); disc := &*[ tup[1] : tup in Fac ];
+                Fac := Factorization(disc);
+                disc:= #Fac eq 0 select 1 else &*[ tup[1] : tup in Fac ];
             end if;
             reldimalg := m2reldimalg div m^2; dimfac := mdimfac div m;
             DescFactorQQ := < m, dimF*reldimalg, FDesc, disc, dimfac >;
