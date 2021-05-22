@@ -64,6 +64,50 @@ return EndoDesc, EndoAlg[1], EndoAlg[2];
 end intrinsic;
 
 
+function Humanize(desc);
+/* Make stuff readable */
+
+str := "";
+alg := desc[2];
+if #alg ne 1 then
+    str cat:= "Isotypical factors of A:\n";
+end if;
+for fac in alg do
+    m, dimD, pol, discD, dimA := Explode(fac);
+    dimK := #pol - 1;
+    assert (dimD mod dimK) eq 0;
+    indDsq := dimD div dimK;
+    test, indD := IsSquare(indDsq);
+    assert test;
+
+    if m gt 1 then
+        str cat:= (Sprint(m) cat "th power of ");
+    end if;
+    str cat:= ("abelian variety of dimension " cat Sprint(dimA)) cat " ";
+    str cat:= "with endomorphism algebra ";
+    if indD ne 1 then
+        str cat:= ("a division algebra of index " cat Sprint(indD) cat " and discriminant " cat Sprint(discD) cat " over ");
+    end if;
+    if #pol eq 2 then
+        str cat:= "QQ\n";
+    else
+        R<t> := PolynomialRing(Rationals());
+        str cat:= ("the number field defined by " cat Sprint(R ! pol)) cat "\n";
+    end if;
+end for;
+return str;
+
+end function;
+
+
+intrinsic HeuristicEndomorphismDescription(X::. : Geometric := false, CC := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
+{Returns a readable description of the endomorphism algebra of the Jacobian of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
+
+return Humanize(HeuristicEndomorphismAlgebra(X : Geometric := Geometric, CC := CC, UpperBound := UpperBound, DegreeDivides := DegreeDivides));
+
+end intrinsic;
+
+
 intrinsic HeuristicEndomorphismRepresentation(X::. : Geometric := false, CC := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
 {Returns the endomorphism representation of X the Jacobian of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, then no algebraization occurs. Notational conventions are specified in the documentation folder.}
 
@@ -136,17 +180,21 @@ end if;
 end intrinsic;
 
 
-intrinsic HeuristicDecomposition(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
+intrinsic HeuristicDecomposition(X::. : UpperBound := 16, DegreeDivides := Infinity(), SmallestField := true) -> .
 {Returns a description of the decomposition of the Jacobian of X. The first entry describes the isotypical field, the second entry describes the decomposition field and whether this field is minimal, the third entry describes decomposition over the base (dimensions and powers followed by equations), and the fourth entry describes the decomposition over the decomposition field (dimensions and powers followed by equations).}
 
 assert ISA(Type(X),Crv);
 X := CurveExtra(X);
-/* Precompute, setting parameters here */
+/* The next line yields a precomputation of the endomorphisms algebra */
+GeoEndoRep := HeuristicEndomorphismRepresentation(X : Geometric := true, UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 EndoRep := HeuristicEndomorphismRepresentation(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
-decbase, decbaseeqs := DecompositionOverBase(X);
-Kiso := IsotypicalField(X); Kdec, _, test := FullDecompositionField(X);
-decgeo, decgeoeqs, identsgeo := DecompositionOverClosure(X);
-return [* Kiso, [* Kdec, test *], [* decbase, decbaseeqs *], [* decgeo, decgeoeqs, identsgeo *] *];
+if BaseRing(GeoEndoRep[1][1]) eq BaseRing(EndoRep[1][1]) then
+    decgeodesc, decgeofacts, decgeoeqs, Kiso, Kdecinfo, merging := DecompositionOverClosure(X);
+    return [* Kiso, Kdecinfo, [* decgeodesc, decgeoeqs *], [* decgeodesc, decgeoeqs, merging *] *];
+end if;
+decbasedesc, decbasefacts, decbaseeqs := DecompositionOverBase(X);
+decgeodesc, decgeofacts, decgeoeqs, Kiso, Kdecinfo, merging := DecompositionOverClosure(X : SmallestField := SmallestField);
+return [* Kiso, Kdecinfo, [* decbasedesc, decbaseeqs *], [* decgeodesc, decgeoeqs, merging *] *];
 
 end intrinsic;
 
@@ -165,143 +213,6 @@ intrinsic EndRROverQQ(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
 
 EndoDesc := HeuristicEndomorphismAlgebra(X : UpperBound := 16, DegreeDivides := Infinity());
 return EndoDesc[1];
-
-end intrinsic;
-
-
-/* THE INTRINSICS FROM THIS POINT ONWARD ARE NOT YET SUPPORTED */
-
-// TODO: This function needs an overhaul */
-intrinsic HeuristicDecompositionInformation(X::.) -> .
-{Returns decomposition description. First entry describes isotypical field, second entry decomposition field, third entry whether this field is minimal, fourth entry describes decomposition over the base (dimensions and powers followed by equations), fifth entry describes decomposition over decomposition field (dimensions and powers followed by equations and identifications). For more, see the documentation on output.}
-
-assert ISA(Type(X),Crv);
-X := CurveExtra(X);
-Kiso := IsotypicalField(X);
-part1 := FieldDescriptionExtra(Kiso);
-
-Kdec, _, test := FullDecompositionField(X);
-part2 := FieldDescriptionExtra(Kdec);
-
-if test then testint := 1; else testint := 0; end if;
-part3 := testint;
-
-decbase, decbaseeqs := DecompositionOverBase(X);
-part41 := [ < fac[1], fac[2] > : fac in decbase ];
-part42 := [ CurveDescription(fac)[3] : fac in decbaseeqs ];
-part4 := < part41, part42 >;
-
-decgeo, decgeoeqs := DecompositionOverClosure(X);
-part51 := [ < fac[1], fac[2] > : fac in decgeo ];
-part52 := [ CurveDescription(fac)[3] : fac in decgeoeqs ];
-part5 := < part51, part52 >;
-
-return < part1, part2, part3, part4, part5 >;
-
-end intrinsic;
-
-
-// TODO: This is terrible. It should have a base, geometric, and field version instead to clean this up.
-//       After that, a second function can see if a genus 1 or 2 root factor comes from equation over base.
-//       (Extension is too advanced to put here.)
-//       Returns values should be field plus equations; it also needs a descriptive version.
-intrinsic HeuristicJacobianFactors(X::. : AllIdems := true, AllPPs := false, ProjToIdem := true, ProjToPP := true) -> .
-{Returns factors of the Jacobian of X over the smallest possible fields, together with maps to these factors. Setting AllMaps to true returns multiple entries for a given components in the decomposition together with all possible maps (instead of a single one). Setting AllPPs to true returns multiple entries for a given idempotent, corresponding to the various choices of principal polarization. Setting ProjToIdem to false uses an inclusion instead of a projection when taking idempotents. Setting ProjToPP to false uses an inclusion instead of a projection when making a period matrix principally polarized. If ProjToIdem and ProjToPP are not equal, then right now the algorithm only returns a component, not a corresponding map from or to the Jacobian of X.}
-
-assert ISA(Type(X),Crv);
-X := CurveExtra(X);
-P := PeriodMatrix(X); gP := #Rows(P);
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
-
-if not AllIdems and not AllPPs then
-    comps := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
-    recs := [ ];
-    for comp in comps do
-        Q, mor := Explode(comp);
-        if #Rows(Q) eq #Rows(P) then
-            return [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ];
-        end if;
-        rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-        Append(~recs, rec);
-    end for;
-    return recs;
-
-elif not AllIdems and AllPPs then
-    comps := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
-    recss := [ ];
-    for comp in comps do
-        Q, mor := Explode(comp);
-        if #Rows(Q) eq #Rows(P) then
-            return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ] ];
-        end if;
-        recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-        Append(~recss, recs);
-    end for;
-    return recss;
-
-elif AllIdems and not AllPPs then
-    comptups := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
-    recss := [ ];
-    for comptup in comptups do
-        recs := [ ];
-        for comp in comptup do
-            Q, mor := Explode(comp);
-            if #Rows(Q) eq #Rows(P) then
-                return [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ] ];
-            end if;
-            rec := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-            Append(~recs, rec);
-        end for;
-        Append(~recss, recs);
-    end for;
-    return recss;
-
-elif AllIdems and AllPPs then
-    comptups := SplitComponents(P, GeoEndoRep : AllIdems := AllIdems, ProjToIdem := ProjToIdem);
-    recsss := [ ];
-    for comptup in comptups do
-        recss := [ ];
-        for comp in comptup do
-            Q, mor := Explode(comp);
-            if #Rows(Q) eq #Rows(P) then
-                return [ [ [ [* X, [* IdentityMatrix(BaseRing(X), gP), IdentityMatrix(Rationals(), 2*gP) *] *] ] ] ];
-            end if;
-            recs := ReconstructionFromComponent(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-            Append(~recss, recs);
-        end for;
-        Append(~recsss, recss);
-    end for;
-    return recsss;
-end if;
-
-end intrinsic;
-
-
-intrinsic IsogenyInformation(X::. : facinfo := 0) -> .
-{Returns homology exponents of isogeny induced by splitting, and tests if it is compatible with the various polarizations. The information in facinfo has to be calculated with AllIdems set to true.}
-
-assert ISA(Type(X),Crv);
-X := CurveExtra(X);
-if Type(facinfo) eq RngIntElt then
-    facinfo := HeuristicJacobianFactors(X);
-end if;
-
-Rs := &cat[ [ fac[2][2] : fac in facs ] : facs in facinfo ];
-gYs := [ #Rows(R) div 2 : R in Rs ];
-gX := &+gYs;
-EYs := [ StandardSymplecticMatrix(gY) : gY in gYs ];
-EX := StandardSymplecticMatrix(gX);
-
-T := VerticalJoin(Rs);
-S := SmithForm(ChangeRing(T, Integers()));
-D := Diagonal(S);
-exps := [ d : d in D ];
-
-EY := DiagonalJoin(EYs);
-test := IsRationalMultiple(Transpose(T)*EY*T, EX);
-degs := [ Abs((R*EX*Transpose(R))[1, 1 + (#Rows(R) div 2)]) : R in Rs ];
-
-return exps, test, degs;
 
 end intrinsic;
 
@@ -349,94 +260,5 @@ for rep in EndoRep do
     Append(~fss, rep cat [* fs *]);
 end for;
 return true, fss;
-
-end intrinsic;
-
-
-function Humanize(desc);
-/* Maketh ye stuffeth readable */
-
-str := "";
-alg := desc[2];
-if #alg ne 1 then
-    str cat:= "Isotypical factors of A:\n";
-end if;
-for fac in alg do
-    m, dimD, pol, discD, dimA := Explode(fac);
-    dimK := #pol - 1;
-    assert (dimD mod dimK) eq 0;
-    indDsq := dimD div dimK;
-    test, indD := IsSquare(indDsq);
-    assert test;
-
-    if m gt 1 then
-        str cat:= (Sprint(m) cat "th power of ");
-    end if;
-    str cat:= ("abelian variety of dimension " cat Sprint(dimA)) cat " ";
-    str cat:= "with endomorphism algebra ";
-    if indD ne 1 then
-        str cat:= ("a division algebra of index " cat Sprint(indD) cat " and discriminant " cat Sprint(discD) cat " over ");
-    end if;
-    if #pol eq 2 then
-        str cat:= "QQ\n";
-    else
-        R<t> := PolynomialRing(Rationals());
-        str cat:= ("the number field defined by " cat Sprint(R ! pol)) cat "\n";
-    end if;
-end for;
-return str;
-
-end function;
-
-
-intrinsic HeuristicEndomorphismDescription(X::. : Geometric := false, CC := false) -> .
-{Returns an encoded description of the endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
-
-assert ISA(Type(X), Crv);
-X := CurveExtra(X);
-if CC then
-    Geometric := true;
-    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
-else
-    GeoEndoRep := GeometricEndomorphismRepresentation(X);
-end if;
-
-if Geometric then
-    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return Humanize(EndoDesc);
-end if;
-if not assigned X`base_endo_rep then
-    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
-    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
-end if;
-EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return Humanize(EndoDesc);
-
-end intrinsic;
-
-
-/* Functions from here on are deprecated and no longer supported */
-intrinsic HeuristicEndomorphismRing(X::. : Geometric := false, CC := false) -> .
-{Returns the abstract endomorphism algebra of X, by default over the base and over QQbar if Geometric is set to true. If CC is set to true, the algebra over QQbar is determined without performing any further algebraization.}
-
-assert ISA(Type(X), Crv);
-X := CurveExtra(X);
-if CC then
-    Geometric := true;
-    GeoEndoRep := GeometricEndomorphismRepresentationCC(X);
-else
-    GeoEndoRep := GeometricEndomorphismRepresentation(X);
-end if;
-
-if Geometric then
-    EndoAlg, EndoDesc := EndomorphismStructure(GeoEndoRep);
-    return Order(Integers(), EndoAlg[2]);
-end if;
-if not assigned X`base_endo_rep then
-    F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep[1][1]));
-    X`base_endo_rep := EndomorphismRepresentation(GeoEndoRep, F, h);
-end if;
-EndoAlg, EndoDesc := EndomorphismStructure(X`base_endo_rep);
-return Order(Integers(), EndoAlg[2]);
 
 end intrinsic;

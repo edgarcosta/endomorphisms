@@ -12,12 +12,9 @@
 
 forward MatricesFromIdempotent;
 forward SplittingIdempotentsAlgebraStepOne;
-forward SplittingIdempotentsAlgebraStepOneSubstep;
 forward SplittingIdempotentsAlgebraStepTwo;
-forward FindIdempotentsStupid;
+forward FindIdempotentsNaive;
 forward IsTrueIdempotent;
-
-// TODO: Autoduality
 
 
 function MatricesFromIdempotent(idem, EndoData)
@@ -41,230 +38,225 @@ return [* idemA, idemR *];
 end function;
 
 
-intrinsic IsotypicalIdempotents(P::., GeoEndoRep::SeqEnum) -> .
-{Returns factors of the Jacobian and a spanning set of idempotents.}
+intrinsic FactorFromIdempotent(P::., idem::List) -> .
+{Returns factor and map corresponding to idempotent idem.}
 
-GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep : CalcPic := false);
-GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
-C := GeoEndoAlg[1]; idemsC := CentralIdempotents(C);
-return [ MatricesFromIdempotent(idemC, GeoEndoData) : idemC in idemsC ];
-
-end intrinsic;
-
-
-// TODO: We should not algebraize again here and remove the subfield
-intrinsic ComponentFromIdempotent(P::., idem::List : CoerceToBase := true, ProjToIdem := true) -> .
-{Returns component and map corresponding to idempotent idem. If CoerceToBase is set to true, this is returned over the smallest possible field.}
-
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Determining component from idempotent, analytic step...";
-L := BaseRing(idem[1]);
-if ProjToIdem then
-    R := idem[2];
-    ACC := TangentRepresentation(R, P, P);
-    //Q, mor := ImgProj([* ACC, R *], P, P);
-    /* TODO: This line is needed because of a segfault issue in later Magma versions */
-    Q, mor := ImgIdemp([* ACC, R *], P);
-else
-    R := 1 - idem[2];
-    ACC := TangentRepresentation(R, P, P);
-    Q, mor := Ker0([* ACC, R *], P, P);
-end if;
+R := idem[2];
+ACC := TangentRepresentation(R, P, P);
+Q, mor := ImgIdemp([* ACC, R *], P);
 BCC := mor[1]; S := mor[2];
-vprint EndoFind, 2 : "done determining component from idempotent analytically.";
 
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Determining component from idempotent, algebraic step...";
-/* Recalculation to algebraize entries */
+L := BaseRing(idem[1]);
 test, B := AlgebraizeMatrixExtra(BCC, L);
 if not test then error "Failed to algebraize map over base field. Try increasing the precision."; end if;
-K, hKL := SubfieldExtra(L, Eltseq(B));
-incdata := [* L, K, hKL *];
-
-if CoerceToBase then B := CoerceToSubfieldMatrix(B, L, K, hKL); end if;
-vprint EndoFind, 2 : "done determining component from idempotent algebraically.";
-return Q, [* B, S *], incdata;
+return Q, [* B, S *];
 
 end intrinsic;
 
 
-intrinsic IsotypicalComponents(P::., EndoRep::SeqEnum : CoerceToBase := true, ProjToIdem := true) -> .
-{Returns isotypical components Q = B^d of the Jacobian with maps. If CoerceToBase is set to true, these are returned over the smallest possible field.}
+intrinsic IsotypicalIdempotentsOverBase(P::., EndoRep::SeqEnum) -> .
+{Returns factors of P and a spanning set of idempotents.}
 
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Determining isotypical components...";
-idems := IsotypicalIdempotents(P, EndoRep);
-comps := [ ];
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
+EndoData := [* EndoRep, EndoAlg, EndoDesc *];
+C := EndoAlg[1]; idemsC := CentralIdempotents(C);
+return [ MatricesFromIdempotent(idemC, EndoData) : idemC in idemsC ];
+
+end intrinsic;
+
+
+intrinsic IsotypicalFactorsOverBase(P::., EndoRep::SeqEnum) -> .
+{Returns isotypical factors Q = B^d of P with maps.}
+
+idems := IsotypicalIdempotentsOverBase(P, EndoRep);
+facs := [ ];
 for idem in idems do
-    Q, mor, incdata := ComponentFromIdempotent(P, idem : CoerceToBase := CoerceToBase, ProjToIdem := ProjToIdem);
-    Append(~comps, [* Q, mor, incdata *]);
+    Q, mor := FactorFromIdempotent(P, idem);
+    Append(~facs, [* Q, mor *]);
 end for;
-vprint EndoFind, 2 : "done determining isotypical components.";
-return comps;
+return facs;
 
 end intrinsic;
 
 
-intrinsic SplittingIdempotents(Q::., mor::., incdata::.) -> .
-{Returns further idempotents over the smallest field where the isotypical component splits as far as possible.}
-// TODO: Now we start over a given base K and recalculate;
-//       we find a place in the lattice between K and L where everything shows up for the first time.
-//       This is perhaps not yet the smallest field of definition of a single factor!
-//       Moreover, all of this should be read off from the lattice description and be made less ad hoc.
+intrinsic IsotypicalField(X::.) -> .
+{Determines the field of definition of the isotypical factors of the Jacobian of X.}
 
-vprint EndoFind, 2 : "";
-vprint EndoFind, 2 : "Finding further splitting...";
-L, K, hKL := Explode(incdata);
-
-// TODO: Superfluous recalculation of endomorphism algebra (costs nothing though)
-GeoEndoRepCC := GeometricEndomorphismRepresentationCC(Q);
-GeoEndoRep := [ ];
-vprint EndoFind, 3 : "";
-vprint EndoFind, 3 : "Algebraizing matrices...";
-for tupCC in GeoEndoRepCC do
-    test, A := AlgebraizeMatrixExtra(tupCC[1], L); R := tupCC[2];
-    Append(~GeoEndoRep, [* A, R *]);
-end for;
-vprint EndoFind, 3 : "done algebraizing matrices.";
-
-vprint EndoFind, 3 : "";
-vprint EndoFind, 3 : "Finding geometric endomorphisms...";
+P := PeriodMatrix(X);
+GeoEndoRep := GeometricEndomorphismRepresentation(X);
 GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep : CalcPic := false);
 GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
-idems_geo := SplittingIdempotentsAlgebra(GeoEndoData);
-vprint EndoFind, 3 : "done finding endomorphisms.";
 
-vprint EndoFind, 3 : "";
-vprint EndoFind, 3 : "Running through lattice...";
-/* Find automorphism group (over QQ for now) */
-Gp, Gf, Gphi := AutomorphismGroupPari(L);
-H := FixedGroupExtra(L, K, hKL);
+idemsiso := IsotypicalIdempotentsOverBase(P, GeoEndoRep);
+L := BaseRing(GeoEndoRep[1][1]);
+Kiso := SubfieldExtra(L, &cat[ Eltseq(idem[1]) : idem in idemsiso ]);
+return Kiso;
 
-/* Find subgroups corresponding to fields between L and K */
-S := Subgroups(H); Js := [ rec`subgroup : rec in S ];
-Js := [ J : J in Js | #J ne 1 ];
-if #Js eq 0 then
-    vprint EndoFind, 3 : "done running through lattice.";
-    vprint EndoFind, 2 : "done finding further splitting.";
-    return idems_geo, [* L, L, CanonicalInclusionMap(L, L) *];
+end intrinsic;
+
+
+intrinsic SplittingIdempotentsOverBase(P::., EndoRep::SeqEnum) -> .
+{Returns an essentially full set of idempotents over the base.}
+
+g := #Rows(P);
+if not g le 4 then error "Genus has to be at most 4 for now"; end if;
+
+EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
+EndoData := [* EndoRep, EndoAlg, EndoDesc *];
+return SplittingIdempotentsAlgebra(EndoData);
+
+end intrinsic;
+
+
+intrinsic SplittingIdempotentsOverClosure(P::., GeoEndoRep::SeqEnum : SmallestField := true) -> .
+{Returns an essentially full set of idempotents over the closure.}
+
+g := #Rows(P);
+if not g le 4 then error "Genus has to be at most 4 for now"; end if;
+
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Finding geometric idempotents...";
+GeoEndoAlg, GeoEndoDesc := EndomorphismStructure(GeoEndoRep : CalcPic := false);
+GeoEndoData := [* GeoEndoRep, GeoEndoAlg, GeoEndoDesc *];
+idemexpsgeo := SplittingIdempotentsAlgebra(GeoEndoData);
+vprint EndoFind, 2 : "done finding geometric idempotents.";
+
+L := BaseRing(GeoEndoRep[1][1]);
+if not SmallestField then
+    vprint EndoFind, 2 : "Return geometric idempotents: SmallestField disabled.";
+    return idemexpsgeo, true, CanonicalInclusionMap(L, L);
 end if;
 
-/* Run through lattice and use smallest field where decomposition occurs */
-for J in Reverse(Js) do
-    gensM := Generators(J); GalM := [* gensM, Gphi *];
-    EndoData, hML := EndomorphismData(GeoEndoRep, GalM : CalcPic := false);
-    idems := SplittingIdempotentsAlgebra(EndoData);
-    M := BaseRing(idems[1][1]);
-    if #idems eq #idems_geo then
-        vprint EndoFind, 3 : "done running through lattice.";
-        vprint EndoFind, 2 : "done finding further splitting.";
-        return idems, [* L, M, hML *];
-    end if;
-end for;
-vprint EndoFind, 3 : "done running through lattice.";
-vprint EndoFind, 2 : "done finding further splitting.";
-return idems_geo, [* L, L, CanonicalInclusionMap(L, L) *];
+if (#idemexpsgeo eq 1) and (idemexpsgeo[1][2] eq 1) then
+    vprint EndoFind, 2 : "Return geometric idempotents: Trivial factorization.";
+    return idemexpsgeo, true, CanonicalInclusionMap(L, L);
+end if;
+
+/* Find automorphism group (over QQ for now) */
+Gp, Gf, Gphi := AutomorphismGroupPari(L);
+/* Trivial case */
+if #Gp eq 1 then
+    vprint EndoFind, 2 : "Return geometric idempotents: Trivial automorphism group.";
+    return idemexpsgeo, true, CanonicalInclusionMap(L, L);
+end if;
+
+vprint EndoFind, 2 : "";
+vprint EndoFind, 2 : "Running through lattice of subgroups..";
+Lat := SubgroupLattice(Gp);
+Hs := [ Lat[#Lat] ]; H0pairs := [ ];
+repeat
+    Hsnew := [ ];
+    for H in Hs do
+        gensH := Generators(H); GalM := [* gensH, Gphi *];
+        EndoData, hML := EndomorphismData(GeoEndoRep, GalM : CalcPic := false);
+        idemexps := SplittingIdempotentsAlgebra(EndoData);
+        if &+[ tup[2] : tup in idemexps ] eq &+[ tupgeo[2] : tupgeo in idemexpsgeo ] then
+            Append(~H0pairs, [* H, idemexps, hML *]);
+        else
+            Hsnew cat:= [ rec`subgroup : rec in MaximalSubgroups(H) ];
+        end if;
+    end for;
+    Hs := [ H : H in Set(Hsnew) ];
+until #Hs eq 0;
+vprint EndoFind, 2 : "done running through lattice of subgroups.";
+
+max, ind := Maximum([ #tup[1] : tup in H0pairs ]);
+Hmax := H0pairs[ind][1]; idemexps := H0pairs[ind][2]; hML := H0pairs[ind][3];
+test := IsNormal(Gp, Hmax) and &and[ tup[1] meet Hmax eq tup[1] : tup in H0pairs  ];
+return idemexps, test, hML;
 
 end intrinsic;
 
 
 intrinsic SplittingIdempotentsAlgebra(EndoData::.) -> .
-{Returns further decomposition of the algebra defined by EndoData.}
-// TODO: Same conditions as in Structure.
-//       Moreover, do this per isotypical component only.
+{Returns an essentially full set of idempotents.}
 
-/* Assert small dimension */
-g := #Rows(EndoData[1][1][1]);
-assert g le 7;
-
-/* Try successively more complicated methods */
-test1, idems := SplittingIdempotentsAlgebraStepOne(EndoData);
-if test1 then
-    return [ MatricesFromIdempotent(idem, EndoData) : idem in idems ];
-end if;
-test2, idems := SplittingIdempotentsAlgebraStepTwo(EndoData);
-if test2 then
-    return [ MatricesFromIdempotent(idem, EndoData) : idem in idems ];
-end if;
-print "All known cases in SplittingIdempotentsAlgebra fell through, returning unit element.";
-return [ MatricesFromIdempotent(EndoData[2][1] ! 1, EndoData) : idem in idems ];
+C := EndoData[2][1];
+dec := DirectSumDecomposition(C); idemexps := [ ];
+for D in dec do
+    done := false;
+    test1, idemexpsD := SplittingIdempotentsAlgebraStepOne(D, C, EndoData);
+    if test1 then
+        done := true;
+        idemexps cat:= [ [* C ! idemexp[1], idemexp[2] *] : idemexp in idemexpsD ];
+    else
+        test2, idemspowD := SplittingIdempotentsAlgebraStepTwo(D, C, EndoData);
+        if test2 then
+            done := true;
+            idemexps cat:= [ [* C ! idemexp[1], idemexp[2] *] : idemexp in idemexpsD ];
+        end if;
+    end if;
+    if not done then
+        error "All known cases in SplittingIdempotentsAlgebra fell through.";
+    end if;
+end for;
+return [ [* MatricesFromIdempotent(idemexp[1], EndoData), idemexp[2] *] : idemexp in idemexps ];
 
 end intrinsic;
 
 
-function SplittingIdempotentsAlgebraStepOne(EndoData)
-// TODO: Same conditions as in Structure.
-//       Moreover, do this per isotypical component only.
+function SplittingIdempotentsAlgebraStepOne(D, C, EndoData)
+/* Covers reduced dimension up to 2 */
 
-C := EndoData[2][1];
-idems := [ ];
-for D in DirectSumDecomposition(C) do
-    test, idemsD := SplittingIdempotentsAlgebraStepOneSubstep(D);
-    if not test then return false, [ ]; end if;
-    idems cat:= [ C ! idem : idem in idemsD ];
-end for;
-return true, idems;
-
-end function;
-
-
-function SplittingIdempotentsAlgebraStepOneSubstep(C)
-// TODO: Same conditions as in Structure.
-//       Moreover, do this per isotypical component only.
-
-E1, f1 := AlgebraOverCenter(C);
+E1, f1 := AlgebraOverCenter(D);
 
 /* Fields have no idempotents */
-if IsCommutative(E1) then return true, [ C ! 1 ]; end if;
+if IsCommutative(E1) then
+   return true, [ [* D ! 1, 1 *] ];
+end if;
 
 /* Central algebras of dimension 4 */
-// TODO: Unify with next using methods in Structure.m
 test_dim, d := IsSquare(Dimension(E1));
 if d eq 2 then
     test_quat, Q, f3 := IsQuaternionAlgebra(E1);
     test_mat, M, f4 := IsMatrixRing(Q : Isomorphism := true);
     if not test_mat then
-        return true, [ C ! 1 ];
+        return true, [ [* D ! 1,  1 *] ];
     end if;
     f := f1 * f3 * f4;
     invf := Inverse(f);
-    return true, [ C ! invf(M ! [1,0,0,0]), C ! invf(M ! [0,0,0,1]) ];
+    return true, [ [* D ! invf(M ! [1,0,0,0]), 2 *] ];
 end if;
+
 return false, [ ];
 
 end function;
 
 
-function SplittingIdempotentsAlgebraStepTwo(EndoData);
-// TODO: Same conditions as in Structure.
-//       Moreover, do this per isotypical component only.
-/* Catches M3 over QQ or CM, M4 over ZZ or CM, M2 over quaternion algebra */
+function SplittingIdempotentsAlgebraStepTwo(D, C, EndoData);
+/* Covers M3 over QQ or CM, M4 over ZZ or CM, M2 over quaternion algebra */
 
-C := EndoData[2][1]; d := Dimension(C);
-dim := 0; goal := 0;
+d := Dimension(D);
+dim := 0; exp := 0;
 if d in { 9, 18 } then
-    dim := 1; goal := 3;
+    /* M3 over QQ or CM */
+    dim := 1; exp := 3;
 elif d in { 32 } then
-    dim := 1; goal := 4;
+    /* M4 over CM */
+    dim := 1; exp := 4;
 elif d in { 16 } then
+    /* M4 over ZZ or M2 over quaternion algebra */
     disc := Abs(Discriminant(MaximalOrder(C)));
     if disc eq 2^32 then
-        dim := 1; goal := 4;
+        dim := 1; exp := 4;
     else
-        dim := 2; goal := 2;
+        dim := 2; exp := 2;
     end if;
 end if;
+
+/* Run naive search if applicable */
 if dim ne 0 then
-    return true, FindIdempotentsStupid(EndoData, dim, goal);
+    idems := FindIdempotentsNaive(D, C, EndoData, dim, 1);
+    return true, [ [* idems[1], exp *] ];
 end if;
 return false, [ ];
 
 end function;
 
 
-function FindIdempotentsStupid(EndoData, dim, goal)
+function FindIdempotentsNaive(D, C, EndoData, dim, exp)
 
-C := EndoData[2][1]; d := Dimension(C);
+d := Dimension(D);
 Bmin := 0; Bmax := 0; counter := 0; idems := [ ];
 
 while true do
@@ -279,7 +271,8 @@ while true do
         test_mult, lambda := IsRationalMultiple(v2, v);
         if test_mult and (lambda ne 0) then
             idem := (1/lambda)*c;
-            test_true, idem := IsTrueIdempotent(EndoData, dim, idem);
+            assert idem^2 eq idem;
+            test_true, idem := IsTrueIdempotent(idem, C, EndoData, dim);
             if test_true then
                 test_seen := MatrixInBasis(idem, idems);
                 if not test_seen then
@@ -288,7 +281,7 @@ while true do
             end if;
 
             /* Return when enough idempotents were found */
-            if #idems eq goal then
+            if #idems eq exp then
                 return idems;
             end if;
         end if;
@@ -298,10 +291,10 @@ end while;
 end function;
 
 
-function IsTrueIdempotent(EndoData, dim, idem)
+function IsTrueIdempotent(idem, C, EndoData, dim)
 /* Only accept idempotents whose homology representation has right dimension */
 
-A, R := Explode(MatricesFromIdempotent(idem, EndoData));
+A, R := Explode(MatricesFromIdempotent(C ! idem, EndoData));
 if Rank(R) eq 2*dim then
     return true, R;
 elif Rank(1 - R) eq 2*dim then
@@ -312,350 +305,139 @@ return false;
 end function;
 
 
-intrinsic RootsOfIsotypicalComponent(Q::., mor::., incdata::. : ProjToIdem := true) -> .
-{Returns components along with maps over smallest possible field.}
-/* We emphatically do not want a single component and multiple maps for it,
- * because that causes us to miss factors that become isogenous only later */
+intrinsic SplittingFactorsOverBase(P::., EndoRep::SeqEnum) -> .
+{Returns an essentially full set of factors over the base.}
 
-idems, incdataroot := SplittingIdempotents(Q, mor, incdata);
-
-comps := [ ];
-for idem in idems do
-    Qroot, morroot, _ := ComponentFromIdempotent(Q, idem : CoerceToBase := false, ProjToIdem := ProjToIdem);
-    Append(~comps, [* Qroot, morroot, incdataroot *]);
+idemexps := SplittingIdempotentsOverBase(P, EndoRep);
+facs := [ ];
+for idemexp in idemexps do
+    B, mor := FactorFromIdempotent(P, idemexp[1]);
+    Append(~facs, [* B, mor, idemexp[2] *]);
 end for;
-return comps;
+return facs;
 
 end intrinsic;
 
 
-// TODO: More logical version: all over given field?
-intrinsic SplitComponents(P::., GeoEndoRep::SeqEnum : AllIdems := false, ProjToIdem := true) -> .
-{Returns maximal possible splitting of the Jacobian P over the smallest field over which this occurs, plus corresponding projections.}
+intrinsic SplittingFactorsOverClosure(P::., EndoRep::SeqEnum : SmallestField := true) -> .
+{Returns an essentially full set of factors over the closure.}
 
-L := BaseRing(GeoEndoRep[1][1]);
-comps := [ ];
-vprint EndoFind : "";
-vprint EndoFind : "Determining isotypical components...";
-// We do not coerce here as this may go too far down
-comps_iso := IsotypicalComponents(P, GeoEndoRep : CoerceToBase := false, ProjToIdem := ProjToIdem);
-vprint EndoFind : "done determining isotypical components.";
-for comp_iso in comps_iso do
-    vprint EndoFind : "";
-    vprint EndoFind : "Determining isomorphic component...";
-    Q, mor, incdata := Explode(comp_iso);
-    A, R := Explode(mor);
-    comp_roots := RootsOfIsotypicalComponent(Q, mor, incdata : ProjToIdem := ProjToIdem);
+idemexps, test, hML := SplittingIdempotentsOverClosure(P, EndoRep : SmallestField := SmallestField);
+facs := [ ];
+for idemexp in idemexps do
+    B, mor := FactorFromIdempotent(P, idemexp[1]);
+    Append(~facs, [* B, mor, idemexp[2] *]);
+end for;
+return facs, test, hML;
 
-    if not AllIdems then N := 1; else N := #comp_roots; end if;
-    comptup := [ ];
-    for i in [1..N] do
-        comp_root := comp_roots[i];
-        Qroot, morroot, incdataroot := Explode(comp_root);
-        L, K, hKL := Explode(incdataroot);
-        A0 := CoerceToSubfieldMatrix(A, L, K, hKL);
-        Aroot, Rroot := Explode(morroot);
-        if ProjToIdem then
-            morcomp := [* Aroot*A0, Rroot*R *];
-        else
-            morcomp := [* A0*Aroot, R*Rroot *];
-        end if;
+end intrinsic;
 
-        /* TODO: Remove this sanity check before the Append statement at some point */
-        Atest := morcomp[1]; Rtest := morcomp[2];
-        ACCtest := EmbedMatrixExtra(Atest); CC := BaseRing(ACCtest);
-        if ProjToIdem then
-            assert Maximum([ Abs(c) : c in Eltseq(ACCtest*P - Qroot*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
-        else
-            assert Maximum([ Abs(c) : c in Eltseq(ACCtest*Qroot - P*ChangeRing(Rtest, CC)) ]) le CC`epscomp;
-        end if;
 
-        Append(~comptup, [* Qroot, morcomp, incdataroot *]);
+intrinsic DecompositionOverBase(P::., EndoRep::SeqEnum : Base := true) -> .
+{Returns an essentially full set of factors over the base, along with corresponding curves if they exist. Setting Base to false allows curves over an extension of the base field of EndoRep to describe the factors.}
+
+facs := SplittingFactorsOverBase(P, EndoRep);
+if (#facs eq 1) and (facs[1][3] eq 1) then
+    return [ [ #Rows(P), 1 ] ], [ ], [ ];
+end if;
+
+decbasedesc := [ ]; decbasefacts := [ ]; decbaseeqs := [ ];
+for fac in facs do
+    B, mor, exp := Explode(fac);
+    desc := [ #Rows(B), exp ];
+    Append(~decbasedesc, desc);
+    fact := [* B, mor *];
+    Append(~decbasefacts, fact);
+    eqn := ReconstructionFromFactor(P, B, mor : Base := Base);
+    Append(~decbaseeqs, eqn);
+end for;
+return decbasedesc, decbasefacts, decbaseeqs;
+
+end intrinsic;
+
+
+function ReduceToClasses(S, E)
+// Given a list of objects S and an equivalence relation E on S, returns orbits under E.
+
+if #S eq 0 then return []; end if;
+if #S eq 1 then return [[S[1]]]; end if;
+if #S eq 2 then return E(S[1],S[2]) select [S] else [[S[1]],[S[2]]]; end if;
+Ts:=[[S[1]]];
+for i:=2 to #S do
+    s:=S[i]; sts := true;
+    for j:=#Ts to 1 by -1 do // check most recently added entries first in case adjacent objects in S are more likely to be equivalent     (often true)
+        if E(s,Ts[j][1]) then Append(~Ts[j],i); sts:=false; break; end if;
     end for;
-
-    if not AllIdems then Append(~comps, comptup[1]); else Append(~comps, comptup); end if;
-    vprint EndoFind : "";
-    vprint EndoFind : "done determining isomorphic component.";
+    if sts then Append(~Ts,[i]); end if;
 end for;
-return comps;
-
-end intrinsic;
-
-
-// TODO: Some hacks coming up
-import "Structure.m": EndomorphismAlgebraQQ;
-
-
-function ComponentFromIdempotentHack(P, idem);
-// Returns over CC
-
-R := idem[2];
-ACC := TangentRepresentation(R, P, P);
-Q, mor := ImgIdemp([* ACC, R *], P);
-BCC := mor[1]; S := mor[2];
-return Q, [* BCC, S *];
+return Ts;
 
 end function;
 
 
-intrinsic DecompositionOverBase(X::.) -> .
-{Describes decomposition over base as a sequence [ dimension, exponent ] followed by corresponding curves. All is done over the base field. For now the genus is supposed to be at most 3.}
+function IsIsogenousSimpleCC(Q1, Q2)
 
-F := BaseRing(X); P := PeriodMatrix(X); g := #Rows(P);
-EndoRep := HeuristicEndomorphismRepresentation(X);
-EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
-EndoData := [* EndoRep, EndoAlg, EndoDesc *];
-C, GensC := Explode(EndoAlg);
-EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
-
-/* Boring case: Single factor that is not a power */
-if #EndoDescQQ eq 1 then
-    e, _, _, _, dim := Explode(EndoDescQQ[1]);
-    if e eq 1 then return [ [ dim, e ] ], [ ]; end if;
-end if;
-
-facs := [ ]; eqs := [* *];
-for i := 1 to #EndoDescQQ do
-    /* Get factor analytically */
-    tup := EndoDescQQ[i];
-    idem := idems[i]; idemAR := MatricesFromIdempotent(idem, EndoData);
-    e, _, _, _, dim := Explode(tup);
-    Q, morQ := ComponentFromIdempotentHack(P, idemAR);
-    Append(~facs, [ dim, e ]);
-
-    /* Reconstruction of single elliptic curve factor */
-    if (dim eq 1) and (e eq 1) then
-        Qp := Q;
-        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
-            Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
-        end if;
-        Ep := ReconstructCurve(Qp, F : Base := true);
-        Append(~eqs, Ep);
-        continue;
-    end if;
-
-    /* Reconstruction of single genus-2 factor */
-    if (dim eq 2) and (e eq 1) then
-        A, R := Explode(morQ);
-        EQ := InducedPolarization(StandardSymplecticMatrix(g), R);
-        Ts := IsogenousPPLattices(EQ : ProjToPP := true);
-
-        for T in Ts do
-            Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
-            Yp, _, test := ReconstructCurve(Qp, F : Base := true);
-            if test then Append(~eqs, Yp); break; end if;
-        end for;
-        continue;
-    end if;
-
-    /* Larger exponent up to 3 */
-    if (e eq 2) or (e eq 3) then
-        GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, F);
-        F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRepQ[1][1]));
-        EndoRepQ := EndomorphismRepresentation(GeoEndoRepQ, F, h);
-        EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ : CalcPic := false);
-        EndoDataQ := [* EndoRepQ, EndoAlgQ, EndoDescQ *];
-        idemsQ := SplittingIdempotentsAlgebra(EndoDataQ);
-
-        Qp := ComponentFromIdempotentHack(Q, idemsQ[1]);
-        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
-            Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
-        end if;
-        Ep := ReconstructCurve(Qp, F : Base := true);
-        Append(~eqs, Ep);
-        continue;
-    end if;
-
-    error "DecompositionOverBase failed to terminate correctly.";
-end for;
-
-return facs, eqs;
-
-end intrinsic;
-
-
-intrinsic IsotypicalField(X::.) -> .
-{Determines the field of definition of the isotypical components of the Jacobian of X. For now the genus is supposed to be at most 3.}
-
-EndoRep := GeometricEndomorphismRepresentation(X);
-EndoAlg, EndoDesc := EndomorphismStructure(EndoRep : CalcPic := false);
-EndoData := [* EndoRep, EndoAlg, EndoDesc *];
-C, GensC := Explode(EndoAlg);
-EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
-
-idemsAR := [ MatricesFromIdempotent(idem, EndoData) : idem in idems ];
-L := BaseRing(idemsAR[1][1]);
-return SubfieldExtra(L, &cat[ Eltseq(idemAR[1]) : idemAR in idemsAR ]);
-
-end intrinsic;
-
-
-intrinsic FullDecompositionField(X::.) -> .
-{Returns a field over which the Jacobian of X splits completely. For now the genus is supposed to be at most 3.}
-
-/* First find group corresponding to isotypical field */
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
-L := BaseRing(GeoEndoRep[1][1]);
-K, h := IsotypicalField(X);
-Gp, Gf, Gphi := AutomorphismGroupPari(L);
-G := FixedGroupExtra(L, K, h);
-
-/* For all subgroups of H we write down the sum of the corresponding exponents
- * in the decomposition */
-Hs := [ rec`subgroup : rec in Subgroups(G) ];
-expsums := [ ];
-for i in [1..#Hs] do
-    H := Hs[i]; gensH := Generators(H);
-    Gal := [* gensH, Gphi *];
-    EndoData := EndomorphismData(GeoEndoRep, Gal); EndoDesc := EndoData[3];
-    Append(~expsums, &+[ tup[1] : tup in EndoDesc[2] ]);
-end for;
-
-max := Maximum(expsums);
-Hs := [ Hs[i] : i in [1..#Hs] | expsums[i] eq max ];
-H0 := Hs[#Hs];
-/* Test whether there is a smallest total decomposition field (there may not be) */
-test := &and[ (H0 meet H) eq H : H in Hs ];
-/* H0 is the intersection of the maximal groups in the lattice Hs */
-Hsmax := [ Hmax : Hmax in Hs | &and[ not (((Hmax meet H) eq Hmax) and (Hmax ne H)) : H in Hs ] ];
-H0 := &meet(Hsmax);
-
-/* Take fixed field corresponding to H0 */
-gensH0 := Generators(H0);
-K0, h0 := FixedFieldExtra(L, [ Gphi(gen) : gen in gensH0 ]);
-return K0, h0, test;
-
-end intrinsic;
-
-
-intrinsic ReduceToReps (S::[], E::UserProgram) -> SeqEnum
-{ Given a list of objects S and an equivalence relation E on S returns a maximal sublist of inequivalent objects. }
-    if #S le 1 then return S; end if;
-    if #S eq 2 then return E(S[1],S[2]) select [S[1]] else S; end if;
-    T:=[S[1]];
-    for i:=2 to #S do
-        s:=S[i]; sts:=true;
-        for j:=#T to 1 by -1 do // check most recently added entries first in case adjacent objects in S are more likely to be equivalent (often true)
-            if E(s,T[j]) then sts:=false; break; end if;
-        end for;
-        if sts then T:=Append(T,s); end if;
-    end for;
-    return T;
-end intrinsic;
-
-
-intrinsic ReduceToClasses (S::[], E::UserProgram) -> SeqEnum
-{ Given a list of objects S and an equivalence relation E on S returns orbits under E. }
-    if #S eq 0 then return []; end if;
-    if #S eq 1 then return [S[1]]; end if;
-    if #S eq 2 then return E(S[1],S[2]) select [S] else [[S[1]],[S[2]]]; end if;
-    Ts:=[[S[1]]];
-    for i:=2 to #S do
-        s:=S[i]; sts := true;
-        for j:=#Ts to 1 by -1 do // check most recently added entries first in case adjacent objects in S are more likely to be equivalent (often true)
-            if E(s,Ts[j][1]) then Append(~Ts[j],i); sts:=false; break; end if;
-        end for;
-        if sts then Append(~Ts,[i]); end if;
-    end for;
-    return Ts;
-end intrinsic;
-
-
-function IsIsogenousCC(Q1, Q2)
-// Test if elliptic curves are isogenous
+if #Rows(Q1) ne #Rows(Q2) then return false; end if;
 GeoHomRep := GeometricHomomorphismRepresentationCC(Q1, Q2);
 return #GeoHomRep ne 0;
+
 end function;
 
 
-intrinsic DecompositionOverClosure(X::.) -> .
-{Describes decomposition over smallest decomposition field as a sequence [ dimension, exponent ] followed by corresponding curves. All is done over the base field. For now the genus is supposed to be at most 3.}
+intrinsic DecompositionOverClosure(P::., GeoEndoRep::SeqEnum : Base := true, SmallestField := true) -> .
+{Returns an essentially full set of factors over the closure, along with corresponding curves if they exist. Setting Base to false allows curves over an extension to describe the factors.}
 
-P := PeriodMatrix(X); g := #Rows(P);
-GeoEndoRep := GeometricEndomorphismRepresentation(X);
 L := BaseRing(GeoEndoRep[1][1]);
-Gp, Gf, Gphi := AutomorphismGroupPari(L);
+idemsiso := IsotypicalIdempotentsOverBase(P, GeoEndoRep);
+Kiso := SubfieldExtra(L, &cat[ Eltseq(idem[1]) : idem in idemsiso ]);
 
-K, h := FullDecompositionField(X);
-EndoData := EndomorphismData(GeoEndoRep, K, h);
-EndoRep, EndoAlg, EndoDesc := Explode(EndoData);
-C, GensC := Explode(EndoAlg);
-EndoAlgQQ, EndoDescQQ, idems := EndomorphismAlgebraQQ(C, GensC, EndoRep : SortResult := false);
+facs, test, hML := SplittingFactorsOverClosure(P, GeoEndoRep : SmallestField := SmallestField);
+Kdec := Domain(hML);
+Kdecinfo := [* Kdec, test *];
 
-/* Boring case: Single factor that is not a power */
-if #EndoDescQQ eq 1 then
-    e, _, _, _, dim := Explode(EndoDescQQ[1]);
-    if e eq 1 then return [ [ dim, e ] ], [ ], [ ]; end if;
+if (#facs eq 1) and (facs[1][3] eq 1) then
+    return [ [ #Rows(P), 1 ] ], [ ], [ ], Kiso, Kdecinfo, [ ];
 end if;
 
-facs := [ ]; eqs := [* *]; Qps := [* *];
-for i := 1 to #EndoDescQQ do
-    /* Get factor analytically */
-    tup := EndoDescQQ[i];
-    idem := idems[i]; idemAR := MatricesFromIdempotent(idem, EndoData);
-    e, _, _, _, dim := Explode(tup);
-    Q, morQ := ComponentFromIdempotentHack(P, idemAR);
-    Append(~facs, [ dim, e ]);
-
-    /* Reconstruction of single elliptic curve factor */
-    if (dim eq 1) and (e eq 1) then
-        Qp := Q;
-        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
-            Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
-        end if;
-        Append(~Qps, Qp);
-        E := ReconstructCurve(Qp, K : Base := true);
-        Append(~eqs, E);
-        continue;
-    end if;
-
-    /* Reconstruction of single genus-2 factor */
-    if (dim eq 2) and (e eq 1) then
-        A, R := Explode(morQ);
-        EQ := InducedPolarization(StandardSymplecticMatrix(g), R);
-        Ts := IsogenousPPLattices(EQ : ProjToPP := true);
-
-        for T in Ts do
-            Qp := Q*ChangeRing(Transpose(T), BaseRing(Q));
-            Yp, _, test := ReconstructCurve(Qp, K : Base := true);
-            if test then
-                Append(~Qps, Qp);
-                Append(~eqs, Yp);
-                break;
-            end if;
-        end for;
-        continue;
-    end if;
-
-    /* Larger exponent up to 3 */
-    if (e eq 2) or (e eq 3) then
-        GeoEndoRepQ := GeometricEndomorphismRepresentation(Q, L);
-        EndoRepQ := EndomorphismRepresentation(GeoEndoRepQ, K, h);
-        EndoAlgQ, EndoDescQ := EndomorphismStructure(EndoRepQ : CalcPic := false);
-        EndoDataQ := [* EndoRepQ, EndoAlgQ, EndoDescQ *];
-        idemsQ := SplittingIdempotentsAlgebra(EndoDataQ);
-
-        Qp := ComponentFromIdempotentHack(Q, idemsQ[1]);
-        if Im(Qp[1,1]/Qp[1,2]) lt 0 then
-            Qp := Matrix([ [ Qp[1,2], Qp[1,1] ] ]);
-        end if;
-        Append(~Qps, Qp);
-        Ep := ReconstructCurve(Qp, K : Base := true);
-        Append(~eqs, Ep);
-        continue;
-    end if;
-
-    error "DecompositionOverBase failed to terminate correctly.";
+decgeodesc := [ ]; decgeofacts := [ ]; decgeoeqs := [ ];
+for fac in facs do
+    B, mor, exp := Explode(fac);
+    desc := [ #Rows(B), exp ];
+    Append(~decgeodesc, desc);
+    fact := [* B, mor *];
+    Append(~decgeofacts, fact);
+    eqn := ReconstructionFromFactor(P, B, mor : Base := Base);
+    Append(~decgeoeqs, eqn);
 end for;
 
-if &and[ #Rows(Qp) eq 1 : Qp in Qps ] then
-    inds := [ i : i in [1..#Qps] ];
-    function redfunc(i, j); return IsIsogenousCC(Qps[i], Qps[j]); end function;
-    indss := Sort(ReduceToClasses(inds, redfunc));
+if SmallestField then
+    merging := [ ];
 else
-    indss := [ [ i ] : i in [1..#Qps ] ];
+    inds := [1..#decgeofacts];
+    function redfunc(i, j); return IsIsogenousSimpleCC(decgeofacts[i][1], decgeofacts[j][1]); end function;
+    merging := Sort(ReduceToClasses(inds, redfunc));
 end if;
 
-return facs, eqs, indss;
+return decgeodesc, decgeofacts, decgeoeqs, Kiso, Kdecinfo, merging;
+
+end intrinsic;
+
+
+intrinsic DecompositionOverBase(X::. : Base := true) -> .
+{Returns root factors B of the Jacobian of X with maps, along with corresponding curves if they exist. Setting Base to false allows curves over an extension of the base field of X to describe the factors.}
+
+P := PeriodMatrix(X);
+EndoRep := HeuristicEndomorphismRepresentation(X);
+return DecompositionOverBase(P, EndoRep);
+
+end intrinsic;
+
+
+intrinsic DecompositionOverClosure(X::. : Base := true, SmallestField := false) -> .
+{Returns root factors B of the Jacobian of X with maps, along with corresponding curves if they exist. Setting Base to false allows curves over an extension of the endomorphism field of X to describe the factors.}
+
+P := PeriodMatrix(X);
+GeoEndoRep := GeometricEndomorphismRepresentation(X);
+return DecompositionOverClosure(P, GeoEndoRep : SmallestField := SmallestField);
 
 end intrinsic;

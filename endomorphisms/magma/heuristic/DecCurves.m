@@ -10,80 +10,68 @@
  */
 
 
-function ReconstructionFromComponentG1(P, Q, mor : AllPPs := false, ProjToIdem := true, ProjToPP := true, Base := false)
+function ReconstructionFromFactorG1(P, Q, mor : Base := true)
 
 A, R := Explode(mor); K := BaseRing(A);
-Rnew := R;
 if not IsBigPeriodMatrix(Q) then
     Q := Matrix([ [ Q[1,2], Q[1,1] ] ]);
-    T := Matrix(Rationals(), [[0, 1],[1, 0]]);
-    CorrectMap := ProjToIdem eq ProjToPP;
-    Rnew := R;
-    if CorrectMap then
-        if ProjToPP then Rnew := T*R; else Rnew := R*T; end if;
-    end if;
+    T := Matrix(Rationals(), [[0, 1], [1, 0]]);
 end if;
 assert IsBigPeriodMatrix(Q);
 E, h := ReconstructCurve(Q, K : Base := Base);
 E`period_matrix := Q;
 
-Anew := ConjugateMatrix(h, A);
-if not AllPPs then return [* E, [* Anew, Rnew *] *]; end if;
-return [ [* E, [* Anew, Rnew *] *] ];
+Anew := ConjugateMatrix(h, A); Rnew := R;
+return [* E, [* Anew, Rnew *] *];
 
 end function;
 
 
-function ReconstructionFromComponentG2(P, Q, mor : AllPPs := false, ProjToPP := true, ProjToIdem := true, Base := false)
+function ReconstructionFromFactorG2(P, Q, mor : AllPPs := false, Base := true)
 
 gP := #Rows(P);
 A, R := Explode(mor); K := BaseRing(A);
-EQ := InducedPolarization(StandardSymplecticMatrix(gP), R : ProjToIdem := ProjToIdem);
-E0, _ := FrobeniusFormAlternatingAlt(EQ);
+EQ := InducedPolarization(StandardSymplecticMatrix(gP), R);
+assert IsPolarization(EQ, Q);
 
+E0, _ := FrobeniusFormAlternatingAlt(EQ);
 vprint CurveRec: "";
 vprint CurveRec: "Frobenius form of induced polarization:";
 vprint CurveRec: E0;
 
 Ts := IsogenousPPLattices(EQ);
-if not AllPPs then N := 1; else N := #Ts; end if;
-
 facs := [ ];
-for T in Ts[1..N] do
-    CorrectMap := ProjToIdem eq ProjToPP;
-    Qnew := Q*ChangeRing(Transpose(T), BaseRing(Q));
-    Rnew := R;
-    if CorrectMap then
-        if ProjToPP then Rnew := T*R; else Rnew := R*T^(-1); end if;
-    end if;
+for T in Ts do
+    Qnew := Q*ChangeRing(Transpose(T), BaseRing(Q)); Rnew := Transpose(T)^(-1)*R;
     assert IsBigPeriodMatrix(Qnew);
-    Y, h := ReconstructCurve(Qnew, K : Base := Base);
-    Y`period_matrix := Qnew;
 
-    vprint CurveRec: "";
-    vprint CurveRec: "Reconstructed curve found!";
-    vprint CurveRec: Y;
+    Y, h, test := ReconstructCurve(Qnew, K : Base := Base);
+    if test then
+        vprint CurveRec: "";
+        vprint CurveRec: "Reconstructed curve found!";
+        vprint CurveRec: Y;
 
-    Anew := ConjugateMatrix(h, A);
-    Append(~facs, [* Y, [* Anew, Rnew *] *]);
+        Y`period_matrix := Qnew;
+        Anew := ConjugateMatrix(h, A);
+        if not AllPPs then
+            return [* Y, [* Anew, Rnew *] *];
+        end if;
+        Append(~facs, [* Y, [* Anew, Rnew *] *]);
+    end if;
 end for;
-
-if not AllPPs then return facs[1]; end if;
-return facs;
+if not AllPPs then return [* *]; else return [ ]; end if;
 
 end function;
 
 
-intrinsic ReconstructionFromComponent(P::., Q::., mor::. : AllPPs := false, ProjToPP := true, ProjToIdem := true) -> .
-{Given a factor (Q, mor) of the Jacobian, finds corresponding curves along with morphisms to them.}
+intrinsic ReconstructionFromFactor(P::., Q::., mor::. : AllPPs := false, Base := true) -> .
+{Given a factor (Q, mor) of the Jacobian, finds a corresponding curve along with a morphism to it.}
 
 gQ := #Rows(Q);
 if gQ eq 1 then
-    recs := ReconstructionFromComponentG1(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-    return recs;
+    return ReconstructionFromFactorG1(P, Q, mor : Base := Base);
 elif gQ eq 2 then
-    recs := ReconstructionFromComponentG2(P, Q, mor : AllPPs := AllPPs, ProjToIdem := ProjToIdem, ProjToPP := ProjToPP);
-    return recs;
+    return ReconstructionFromFactorG2(P, Q, mor : AllPPs := AllPPs, Base := Base);
 else
     error "Finding factors not yet implemented for genus larger than 2";
 end if;
