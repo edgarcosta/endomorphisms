@@ -3,6 +3,7 @@ intrinsic RootsPari(f::RngUPolElt, K::Fld) -> .
 
   assert BaseRing(f) eq Rationals();
   assert BaseRing(K) eq Rationals();
+  rts := [];
   try
     g := DefiningPolynomial(K);
     cmd := Sprintf(
@@ -10,17 +11,16 @@ intrinsic RootsPari(f::RngUPolElt, K::Fld) -> .
     Coefficients(f), Coefficients(g));
     s := Pipe("gp -q -D timer=0", cmd);
     rts := [ K ! rt : rt in eval(s) ];
-    return [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
+    rts := [ rt : rt in rts | Evaluate(f, rt) eq 0 ];
   catch e
     vprintf EndoFind : "WARNING: Need gp at command line for RootsPari!\n";
-    rts := [];
     for pair in Roots(f, K) do
       for i in [1..pair[2]] do
         Append(~rts, pair[1]);
       end for;
     end for;
-    return rts;
   end try;
+  return rts;
 
 end intrinsic;
 
@@ -38,6 +38,7 @@ intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
 
   assert BaseRing(f) eq Rationals();
   assert BaseRing(K) eq Rationals();
+  facs := [ ];
   try
   g := DefiningPolynomial(K);
   cmd := Sprintf(
@@ -48,16 +49,15 @@ intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
   R := PolynomialRing(K);
   seqs := eval(s);
   facs := [ &+[ (K ! seq[i])*R.1^(i - 1) : i in [1..#seq] ] : seq in seqs ];
-  return facs;
   catch e
     vprintf EndoFind : "WARNING: Need gp at command line for FactorizationPari!\n";
-    rts := [ ];
     for pair in Factorization(f, K) do
       for i in [1..pair[2]] do
-        Append(~rts, pair[1]);
+        Append(~facs, pair[1]);
       end for;
     end for;
   end try;
+  return facs;
 end intrinsic;
 
 
