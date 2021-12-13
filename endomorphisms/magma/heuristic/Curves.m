@@ -117,9 +117,18 @@ elif IsGHCurve(X) then
     XL := GHCurve(qL, fL);
     XL`ghpols := [qL, fL];
     return XL;
+else
+	eqns := DefiningPolynomials(X);
+	L := Codomain(h);
+	S := PolynomialRing(L, Rank(Parent(eqns[1])));
+	new_eqns := [];
+	for FK in eqns do
+	    FL := &+[ h(MonomialCoefficient(FK, mon)) * Monomial(S, Exponents(mon))
+		      : mon in Monomials(FK)];
+	    Append(~new_eqns, FL);
+	end for;
+	return Curve(Proj(S), new_eqns);
 end if;
-error "Function not available for general curves";
-
 end intrinsic;
 
 
