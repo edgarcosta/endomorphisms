@@ -29,7 +29,7 @@ if IsQQ(F) then
     return ChangeRingCurve(X, h);
 end if;
 
-K := NumberFieldExtra(DefiningPolynomial(F) : prec := 100);
+K := NumberFieldExtra(DefiningPolynomial(F) : prec := prec);
 test, h := IsIsomorphic(F, K);
 assert test;
 return ChangeRingCurve(X, h);
