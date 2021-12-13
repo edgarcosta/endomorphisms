@@ -13,6 +13,7 @@
 * manipulations, and the inclusion of the base is remembered by specifying an
 * image of its generator */
 
+declare attributes FldQuad : base, base_gen, CC, iota, aut;
 declare attributes FldNum : base, base_gen, CC, iota, aut;
 declare attributes FldRat : base, base_gen, CC, iota, aut;
 
@@ -460,6 +461,12 @@ intrinsic NumberFieldExtra(f::RngUPolElt : prec:= 100) -> .
 {Given polynomial f, finds extension as NumberFieldExtra.}
 
 K := BaseRing(f);
+// if f in Z[x], cast it to Q[x]
+if Type(K) eq RngInt then
+    f := ChangeRing(f, Rationals());
+    K := BaseRing(f);
+end if;
+
 if not assigned K`base then
     /* We deliberately ignore furnishing relative extensions... for now */
     assert IsQQ(K);
