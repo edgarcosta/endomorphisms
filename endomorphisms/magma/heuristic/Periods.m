@@ -51,8 +51,10 @@ end function;
 
 function PeriodMatrixRetryQQ(f, g, CC);
 T := IdentityMatrix(Rationals(), g);
+i := 0;
 while true do
     try
+        vprintf "Trying to compute BigPeriodMatrix, attempt = %o", i;
         RS := RiemannSurface(f : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
         TCC := ChangeRing(T, BaseRing(P));
@@ -63,6 +65,7 @@ while true do
         F := TransformForm(F, T);
         X := PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
+        i + := 1;
     end try;
 end while;
 end function;
@@ -70,8 +73,10 @@ end function;
 
 function PeriodMatrixRetryNF(f, g, sigma, CC);
 T := IdentityMatrix(Rationals(), g);
+i := 0;
 while true do
     try
+        vprintf "Trying to compute BigPeriodMatrix, attempt = %o", i;
         RS := RiemannSurface(f, sigma : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
         TCC := ChangeRing(T, BaseRing(P));
@@ -83,6 +88,7 @@ while true do
         F := TransformForm(F, T);
         X := PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
+        i + := 1;
     end try;
 end while;
 end function;

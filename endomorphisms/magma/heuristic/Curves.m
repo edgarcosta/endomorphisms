@@ -202,7 +202,13 @@ intrinsic PlaneModel(X::Crv) -> .
 if assigned X`plane_model then return X`plane_model; end if;
 if Type(X) eq CrvHyp or Type(X) eq CrvPln then X`plane_model := X; return X`plane_model; end if;
 
-F := DefiningPolynomial(AlgorithmicFunctionField(FunctionField(X)));
+AFF := AlgorithmicFunctionField(FunctionField(X));
+
+// We need to ensure that the given extension of function fields is absolute
+// over a rational function field.
+RER := RationalExtensionRepresentation(AFF);
+
+F := DefiningPolynomial(RER);
 L := Parent(F); K := BaseRing(L);
 
 R := PolynomialRing(BaseRing(K));
