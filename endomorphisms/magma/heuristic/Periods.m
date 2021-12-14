@@ -54,7 +54,7 @@ T := IdentityMatrix(Rationals(), g);
 i := 0;
 while true do
     try
-        vprintf "Trying to compute BigPeriodMatrix, attempt = %o", i;
+        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o", i;
         RS := RiemannSurface(f : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
         TCC := ChangeRing(T, BaseRing(P));
@@ -76,7 +76,7 @@ T := IdentityMatrix(Rationals(), g);
 i := 0;
 while true do
     try
-        vprintf "Trying to compute BigPeriodMatrix, attempt = %o", i;
+        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o", i;
         RS := RiemannSurface(f, sigma : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
         TCC := ChangeRing(T, BaseRing(P));
