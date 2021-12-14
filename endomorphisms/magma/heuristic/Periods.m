@@ -65,7 +65,7 @@ while true do
         F := TransformForm(F, T);
         X := PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
-        i + := 1;
+        i +:= 1;
     end try;
 end while;
 end function;
@@ -88,7 +88,7 @@ while true do
         F := TransformForm(F, T);
         X := PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
-        i + := 1;
+        i +:= 1;
     end try;
 end while;
 end function;
