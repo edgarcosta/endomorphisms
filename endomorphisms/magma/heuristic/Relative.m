@@ -91,8 +91,8 @@ intrinsic EmbedExtra(r::. : iota := 0) -> .
 
 F := Parent(r);
 if Type(iota) eq RngIntElt then iota := F`iota; end if;
-seq := Eltseq(r);
-return &+[ seq[i]*iota^(i - 1) : i in [1..#seq] ];
+seq := Eltseq(Numerator(r));
+return &+[ seq[i]*iota^(i - 1) : i in [1..#seq] ]/Denominator(r);
 
 end intrinsic;
 
@@ -105,14 +105,14 @@ return Matrix([ [ EmbedExtra(r : iota := iota) : r in Eltseq(row) ] : row in Row
 end intrinsic;
 
 
-intrinsic EmbedPolynomialExtra(f::RngUPolElt) -> RngUPolElt
+intrinsic EmbedPolynomialExtra(f::RngUPolElt : iota := 0) -> RngUPolElt
 {Embeds the polynomial f via the infinite place of its base.}
 
 K := BaseRing(f);
 RCC := PolynomialRing(Parent(K`iota));
 if IsZero(f) then return RCC ! 0; end if;
 mons := Monomials(f);
-return &+[ EmbedExtra(MonomialCoefficient(f, mon)) * RCC.1^Degree(mon) : mon in mons ];
+return &+[ EmbedExtra(MonomialCoefficient(f, mon) : iota := iota) * RCC.1^Degree(mon) : mon in mons ];
 
 end intrinsic;
 
