@@ -54,7 +54,7 @@ T := IdentityMatrix(Rationals(), g);
 i := 0;
 while true do
     try
-        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o", i;
+        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o\n", i;
         RS := RiemannSurface(f : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
         TCC := ChangeRing(T, BaseRing(P));
@@ -76,7 +76,7 @@ T := IdentityMatrix(Rationals(), g);
 i := 0;
 while true do
     try
-        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o", i;
+        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o\n", i;
         RS := RiemannSurface(f, sigma : Precision := Precision(CC));
         P := ChangeRing(BigPeriodMatrix(RS), CC);
         TCC := ChangeRing(T, BaseRing(P));
@@ -121,9 +121,12 @@ if CurveType(X) eq "hyp" then
 end if;
 
 if CurveType(X) in [ "plane", "gen" ] then
+    vprintf EndoFind, 3 : "Computing plane model...";
     Y := PlaneModel(X);
+    vprintf EndoFind, 3 : "Done\n";
 
     /* Determine correct embedding */
+    vprintf EndoFind, 3 : "Determining correct embedding...";
     if not Type(F) eq FldRat then
         sigmas := InfinitePlaces(F);
         for sigmatry in sigmas do
@@ -138,9 +141,12 @@ if CurveType(X) in [ "plane", "gen" ] then
         end for;
         assert found;
     end if;
+    vprintf EndoFind, 3 : "Done\n";
 
     f := DefiningPolynomial(AffinePatch(Y, 1));
+    vprintf EndoFind, 3 : "Computing the genus...";
     g := Genus(X);
+    vprintf EndoFind, 3 : "Done g = %o\n", g;
     if Type(F) eq FldRat then
         P, RS := PeriodMatrixRetryQQ(f, g, CC);
     else
