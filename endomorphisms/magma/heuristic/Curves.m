@@ -96,6 +96,8 @@ end intrinsic;
 intrinsic ChangeRingCurve(X::Crv, h::.) -> Crv
 {Returns X base changed by a morphism h whose domain is the base ring of X.}
 
+require Domain(h) eq BaseRing(X): "the domain of the map and the base ring of the curve must be equal";
+
 if Type(X) eq CrvHyp then
     fK, hK := HyperellipticPolynomials(X);
     L := Codomain(h); S := PolynomialRing(L);

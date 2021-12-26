@@ -222,18 +222,27 @@ end intrinsic;
 
 
 intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree := false, Al := "Cantor") -> .
-{Given curves X and Y, finds a correspondence with tangent representation A if it exists. Base points P and Q can be specified: otherwise these are found automatically over some extension.}
+{Given curves X and Y, finds a correspondence with tangent representation A if it exists.
+Base points P and Q can be specified: otherwise these are found automatically over some extension.}
 
-A := mor[1]; R := mor[2]; F := BaseRing(X);
-KY := BaseRing(Y);         _, hFKY := InclusionOfBaseExtra(KY);
-KA := BaseRing(Parent(A)); _, hFKA := InclusionOfBaseExtra(KA);
+A := mor[1];
+R := mor[2];
+KX := BaseRing(X);
+KY := BaseRing(Y);
+FX, hFKX := InclusionOfBaseExtra(KX);
+FY, hFKY := InclusionOfBaseExtra(KY);
+require FY eq FX: "different bases for KX and KY";
+KA := BaseRing(Parent(A));
+FA, hFKA := InclusionOfBaseExtra(KA);
+require FA eq FX: "different bases for KX and KA";
 
 /* Use or find point on X */
 if Type(P) ne RngIntElt then
     assert not IsWeierstrassPlace(Place(X ! P));
-    hFKP := CanonicalInclusionMap(F, F);
+    hKXKP := CanonicalInclusionMap(KX, KX);
+    KP := KX;
 else
-    P, hFKP := Explode(SmallBasePoint(X));
+    P, hKXKP := Explode(SmallBasePoint(X));
     KP := BaseRing(Curve(P));
 end if;
 
@@ -241,6 +250,7 @@ end if;
 if Type(Q) ne RngIntElt then
     assert not IsWeierstrassPlace(Place(Y ! Q));
     hKYKQ := CanonicalInclusionMap(KY, KY);
+    KQ := KY;
 else
     Q, hKYKQ := Explode(SmallBasePoint(Y));
     KQ := BaseRing(Curve(Q));
@@ -252,10 +262,11 @@ KAP, hKAKAP, hKPKAP := CompositumExtra(KA, KP);
 KAPQ, hKAPKAPQ, hKQKAPQ := CompositumExtra(KAP, KQ);
 hFKAPQ := hFKQ*hKQKAPQ;
 hKPKAPQ := hKPKAP*hKAPKAPQ;
+hKXKAPQ := hKXKP*hKPKAPQ;
 hKYKAPQ := hKYKQ*hKQKAPQ;
 hKAKAPQ := hKAKAP*hKAPKAPQ;
 
-XKAPQ := ChangeRingCurve(X, hFKAPQ);
+XKAPQ := ChangeRingCurve(X, hKXKAPQ);
 PKAPQ := XKAPQ ! [ hKPKAPQ(c) : c in Eltseq(P) ];
 YKAPQ := ChangeRingCurve(Y, hKYKAPQ);
 QKAPQ := YKAPQ ! [ hKQKAPQ(c) : c in Eltseq(Q) ];
