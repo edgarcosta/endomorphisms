@@ -1,4 +1,4 @@
-intrinsic Polredabs(f::RngUPolElt : Best := true) -> RngUPolElt, SeqEnum, BoolElt
+intrinsic Polredabs(f::RngUPolElt : Best := false) -> RngUPolElt, SeqEnum, BoolElt
   { A smallest generating polynomial of the number field, using pari. }
 
   vprint EndoFind, 3 : "Starting polredabs...";
@@ -36,22 +36,18 @@ end intrinsic;
 intrinsic Polredbestabs(f::RngUPolElt) -> RngUPolElt, SeqEnum, BoolElt
   {A smallest generating polynomial of the number field, using pari.  First polredbest, then polredabs.}
 
-  K := NumberField(f);
-  return f, Eltseq(K.1), true;
-
+  K := (Degree(f) ne 1) select NumberField(f) else RationalsAsNumberField();
   fbest, fbest_root := Polredabs(f : Best := true);
-  fredabs, fredabs_root, bl := Polredabs(fbest);
-
-  K := NumberField(f);
-  Kbest := NumberField(fbest);
+  fredabs, fredabs_root, bl := Polredabs(fbest : Best := false);
+  Kbest := (Degree(fbest) ne 1) select NumberField(fbest) else RationalsAsNumberField();
   iotabest := hom<K -> Kbest | fbest_root>;
-  Kredabs := NumberField(fredabs);
+  Kredabs := (Degree(fredabs) ne 1) select NumberField(fredabs) else RationalsAsNumberField();
   iotaredabs := hom<Kbest -> Kredabs | fredabs_root>;
   iota := iotabest*iotaredabs;  // functional composition is backwards in Magma, for some reason
   return fredabs, Eltseq(iota(K.1)), bl;
 end intrinsic;
 
-intrinsic Polredabs(K::Fld : Best := true) -> FldNum, Map, BoolElt
+intrinsic Polredabs(K::Fld : Best := false) -> FldNum, Map, BoolElt
   { A smallest generating polynomial of the number field, using pari. }
 
   if Type(K) eq FldRat then
