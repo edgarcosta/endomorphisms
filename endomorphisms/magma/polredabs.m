@@ -1,6 +1,7 @@
 intrinsic Polred(f::RngUPolElt : Best:="dynamic") -> RngUPolElt, SeqEnum, BoolElt
   { A smallest generating polynomial of the number field, using polredabs/polredbest in pari. }
 
+  require &or[ Best cmpeq elt : elt in [* "dynamic", false, true *]]: "Best must be in [\"dynamic\", false, true]";
   if Best cmpeq "dynamic" then
     Best := Degree(f) gt 8;
   end if;
