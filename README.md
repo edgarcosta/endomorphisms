@@ -3,26 +3,35 @@ Description
 
 This repository contains a mix of Magma, Pari and SageMath code for calculating the endomorphism algebras and rings of Jacobian varieties of curves over number fields and finite fields.
 
-PLEASE NOTE: The current version of the repository uses Magma version 2.25, which includes the period algorithms by Molin--Neurohr mentioned below. If you have an earlier version of Magma, please try checking out commit `7433e5` and following the instructions on including the period functionality for old versions that is described below.
+PLEASE NOTE: The current version of the repository uses Magma version 2.25, which includes the period algorithms by Molin--Neurohr mentioned below.
+If you have an earlier version of Magma, please try checking out commit `7433e5` and following the instructions on including the period functionality for old versions that is described below.
 
 Prerequisites
 --
-An installation of Magma, Pari and (optionally) SageMath, so that all of these are available on the command line, is required to run all of the code. Most of the algorithms are written in Magma, whose algebro-geometric and numerical capabilities are essential. Some of the heavy lifting in the creation of number fields and the recognition of complex numbers as algebraic numbers is outsourced to Pari, whose performance when working with number fields is better than that of Magma. Finally, SageMath is mainly used for the calculation of Frobenius endomorphisms and as a wrapper, because its Python substrate allows for easier creation and manipulation of data structures.
+This package depends on [`edgarcosta/MagmaPolred`](https://github.com/edgarcosta/MagmaPolred).
+The bundle [`edgarcosta/CHIMP`](https://github.com/edgarcosta/) includes all the dependencies and optional packages.
 
-For optimal results, set your Pari stack size to a decent size by for example adding
-```
-parisize = "4096M"
-```
-to your `~/.gprc` file. This is an optional improvement.
+An installation of Magma, Pari and (optionally) SageMath, so that all of these are available on the command line, is required to run all of the code.
+
+Most of the algorithms are written in Magma, whose algebro-geometric and numerical capabilities are essential.
+Some of the heavy lifting in the creation of number fields and the recognition of complex numbers as algebraic numbers is outsourced to Pari via [`edgarcosta/MagmaPolred`](https://github.com/edgarcosta/MagmaPolred), whose performance when working with number fields is better than that of Magma.
+Finally, SageMath is mainly used for the calculation of Frobenius endomorphisms and as a wrapper, because its Python substrate allows for easier creation and manipulation of data structures.
+
 
 In order to decompose Jacobians, you will need to similarly install and attach [`JRSijsling/curve_reconstruction`](https://github.com/JRSijsling/curve_reconstruction) and its dependencies.
 
+
+Old magma versions
+---
+
+Older than 2.25
+----
 If your Magma version predates 2.25, then you should also install [`pascalmolin/hcperiods`](https://github.com/pascalmolin/hcperiods) and include the path to its spec file in your `.magmarc` file, using `AttachSpec` in the same way as in the section on the Magma installation below (but with a different target spec file). This is not an optimal improvement; the package will not run without it. At any rate Molin--Neurohr's code makes numerical integration on curves far more stable and reliable, so you will want to install it.
 
 The same holds for code by Christian Neurohr that enables the computation of period matrices of plane curves. It is available via the dependency [`JRSijsling/RiemannSurfaces`](https://github.com/JRSijsling/RiemannSurfaces), a fork containing small modifications of the magnificent original version at [`christianneurohr/RiemannSurfaces`](https://github.com/christianneurohr/RiemannSurfaces).
 
-Additional prerequisite for older Magma versions
---
+Older than 2.23
+---
 In older version of Magma the file `magma/package/Algebra/AlgQuat/interface.m` had the following as line 145:
 ```
 c := [Trace(theta), Norm(theta)];
@@ -34,11 +43,15 @@ assert Degree(cpol) eq 2;
 c := [Coefficient(cpol,1), Coefficient(cpol, 0)];
 ```
 
-Magma installation 
+Magma installation
 --
 
+We highly recommend this package via the bundle [`edgarcosta/CHIMP`](https://github.com/edgarcosta/).
+This will include the right dependencies.
+
 The subdirectory `endomorphisms/magma/` includes code that can be run purely within Magma.
-You can enable the functionality of this code in Magma by attaching the `endomorphisms/endomorphisms/magma/spec` file with `AttachSpec`. To make this independent of the directory in which you find yourself, and to active this on startup by default, you may want to indicate the relative path in your `~/.magmarc` file, by adding the line
+You can enable the functionality of this code in Magma by attaching the `endomorphisms/endomorphisms/magma/spec` file with `AttachSpec`.
+To make this independent of the directory in which you find yourself, and to active this on startup by default, you may want to indicate the relative path in your `~/.magmarc` file, by adding the line
 ```
 AttachSpec("~/Programs/endomorphisms/endomorphisms/magma/spec");
 ```
