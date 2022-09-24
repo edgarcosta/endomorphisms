@@ -78,8 +78,8 @@ RR`height_bound := RR ! height_bound;
 end intrinsic;
 
 
-intrinsic AlmostEqual(rcc::FldComElt, r::.) -> BoolElt
-{ return if rcc is an approximation of r }
-    require assigned Parent(rcc)`epscomp: "the first argument must have as a parent a ComplexFieldExtra";
-    return Abs(rcc - EmbedExtra(r))/(r eq 0 select 1 else Abs(r)) lt Parent(rcc)`epscomp;
+intrinsic AlmostEqual(approx::FldComElt, alg::.) -> BoolElt
+{ return if approx is an approximation of r }
+    require assigned Parent(approx)`epscomp: "the first argument must have as a parent a ComplexFieldExtra";
+    return Abs(approx - EmbedExtra(alg))/(alg eq 0 select 1 else Abs(alg)) lt Parent(approx)`epscomp;
 end intrinsic;
