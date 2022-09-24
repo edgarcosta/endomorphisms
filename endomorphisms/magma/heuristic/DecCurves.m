@@ -18,7 +18,13 @@ if not IsBigPeriodMatrix(Q) then
     T := Matrix(Rationals(), [[0, 1], [1, 0]]);
 end if;
 assert IsBigPeriodMatrix(Q);
-E, h := ReconstructCurve(Q, K : Base := Base);
+E, h, test := ReconstructCurve(Q, K : Base := Base);
+if not test then
+    error "Failed to algebraize one of g4 and g6. Try increasing the precision.";
+end if;
+vprint CurveRec: "";
+vprint CurveRec: "Reconstructed curve found!";
+vprint CurveRec: E;
 E`period_matrix := Q;
 
 Anew := ConjugateMatrix(h, A); Rnew := R;
