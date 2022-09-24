@@ -177,7 +177,7 @@ row := Rows(Ker)[1]; den := row[#Eltseq(row)];
 /* There is no height test in this case: Be aware of the corresponding risk */
 if den ne 0 then
     a := &+[ row[i + 1]*genK^i : i in [0..(degK - 1)] ] / den;
-    if Abs(EmbedExtra(a) - aCC) le CCK`epscomp then
+    if AlmostEqual(aCC, a) then
         vprint EndoFind, 3 : a;
         vprint EndoFind, 3 : "done algebraizing element.";
         return true, a;
@@ -199,7 +199,7 @@ Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then return Rationals() ! 0, false; end if;
 
 q := Ker[1,1] / Ker[1,2];
-if (RR ! Abs(q - aCC)) le RR`epscomp then
+if AlmostEqual(aCC, q) then
     return q, true;
 else
     return Rationals() ! 0, false;
@@ -218,7 +218,7 @@ K, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then return Rationals() ! 0, false; end if;
 
 q := K[1,1] / K[1,2];
-if (RR ! Abs(q - aRR)) le RR`epscomp then
+if AlmostEqual(aRR, q) then
     return q, true;
 else
     return Rationals() ! 0, false;
@@ -256,8 +256,7 @@ intrinsic RationalReconstruction(r::FldComElt) ->  BoolElt, FldRatElt
         i +:= 5; best := b; b := BestApproximation(r1, 10^i);
     end while;
     if b ne best then return false, 0; end if;
-    test := Abs(r - b) lt Parent(r)`epscomp;
-    return test, b;
+    return AlmostEqual(r, b), b;
 end intrinsic;
 
 
@@ -276,7 +275,7 @@ rts := RootsPari(minpol, K);
 vprint EndoFind, 3 : rts;
 vprint EndoFind, 3 : "done finding roots in field with Pari.";
 
-for rt in rts do if Abs(EmbedExtra(rt) - aCC) le CCK`epscomp then return true, rt; end if; end for;
+for rt in rts do if AlmostEqual(aCC, rt) then return true, rt; end if; end for;
 return false, 0;
 
 end intrinsic;
