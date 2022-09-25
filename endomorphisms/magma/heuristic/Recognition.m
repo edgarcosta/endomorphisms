@@ -177,7 +177,7 @@ row := Rows(Ker)[1]; den := row[#Eltseq(row)];
 /* There is no height test in this case: Be aware of the corresponding risk */
 if den ne 0 then
     a := &+[ row[i + 1]*genK^i : i in [0..(degK - 1)] ] / den;
-    if Abs(EmbedExtra(a) - aCC) le CCK`epscomp then
+    if AlmostEqual(aCC, a) then
         vprint EndoFind, 3 : a;
         vprint EndoFind, 3 : "done algebraizing element.";
         return true, a;
@@ -199,7 +199,7 @@ Ker, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then return Rationals() ! 0, false; end if;
 
 q := Ker[1,1] / Ker[1,2];
-if (RR ! Abs(q - aCC)) le RR`epscomp then
+if AlmostEqual(aCC, q) then
     return q, true;
 else
     return Rationals() ! 0, false;
@@ -218,7 +218,7 @@ K, test_ker := IntegralLeftKernel(M : CalcAlg := true);
 if not test_ker then return Rationals() ! 0, false; end if;
 
 q := K[1,1] / K[1,2];
-if (RR ! Abs(q - aRR)) le RR`epscomp then
+if AlmostEqual(aRR, q) then
     return q, true;
 else
     return Rationals() ! 0, false;
@@ -246,7 +246,8 @@ return Matrix(rows_alg), test;
 end intrinsic;
 
 
-function RationalReconstruction(r);
+intrinsic RationalReconstruction(r::FldComElt) ->  BoolElt, FldRatElt
+{ Returns an approximation of the complex number r as an element of QQ }
     CC := Parent(r); r1 := Real(r); r2 := Imaginary(r); p := Precision(r2);
     if r2 ne Parent(r2) ! 0 then e := Log(AbsoluteValue(r2)); else e := -p; end if;
     if -e lt p/2 then return false, 0; end if;
@@ -255,9 +256,8 @@ function RationalReconstruction(r);
         i +:= 5; best := b; b := BestApproximation(r1, 10^i);
     end while;
     if b ne best then return false, 0; end if;
-    test := Abs(r - b) lt Parent(r)`epscomp;
-    return test, b;
-end function;
+    return AlmostEqual(r, b), b;
+end intrinsic;
 
 
 intrinsic AlgebraizeElementExtra(aCC::FldComElt, K::Fld : UseRatRec := true, UseQQ := false, UpperBound := 16, DegreeDivides := Infinity()) -> .
@@ -269,14 +269,13 @@ if not UseQQ then return AlgebraizeElementLLL(aCC, K); end if;
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
 minpol := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
-
 vprint EndoFind, 3 : "";
 vprint EndoFind, 3 : "Finding roots in field with Pari...";
 rts := RootsPari(minpol, K);
 vprint EndoFind, 3 : rts;
 vprint EndoFind, 3 : "done finding roots in field with Pari.";
 
-for rt in rts do if Abs(EmbedExtra(rt) - aCC) le CCK`epscomp then return true, rt; end if; end for;
+for rt in rts do if AlmostEqual(aCC, rt) then return true, rt; end if; end for;
 return false, 0;
 
 end intrinsic;
