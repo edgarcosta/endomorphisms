@@ -471,7 +471,7 @@ if not assigned K`base then
     /* We deliberately ignore furnishing relative extensions... for now */
     assert IsQQ(K);
     K := RationalsExtra(prec); R := PolynomialRing(K); f := R ! f;
-    return NumberFieldExtra(f);
+    return NumberFieldExtra(f : prec:=prec);
 end if;
 
 if Degree(f) eq 1 then
