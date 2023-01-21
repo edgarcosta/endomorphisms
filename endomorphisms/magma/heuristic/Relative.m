@@ -467,7 +467,7 @@ if Type(K) eq RngInt then
     K := BaseRing(f);
 end if;
 
-if not assigned K`base or Precision(K`base`CC) ne prec then
+if not assigned K`base or (not assigned K`base`CC or Precision(K`base`CC) ne prec) then
     /* We deliberately ignore furnishing relative extensions... for now */
     assert IsQQ(K);
     K := RationalsExtra(prec); R := PolynomialRing(K); f := R ! f;
