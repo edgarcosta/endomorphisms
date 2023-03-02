@@ -64,14 +64,14 @@ return EndoDesc, EndoAlg[1], EndoAlg[2];
 end intrinsic;
 
 
-function Humanize(desc);
+function HumanizeAlt(desc);
 /* Make stuff readable */
+
+R<t> := PolynomialRing(Rationals());
 
 str := "";
 alg := desc[2];
-if #alg ne 1 then
-    str cat:= "Isotypical factors of A:\n";
-end if;
+str cat:= "Endomorphism algebra (one entry per isotypical factor):\n";
 for fac in alg do
     m, dimD, pol, discD, dimA := Explode(fac);
     dimK := #pol - 1;
@@ -91,10 +91,112 @@ for fac in alg do
     if #pol eq 2 then
         str cat:= "QQ\n";
     else
-        R<t> := PolynomialRing(Rationals());
         str cat:= ("the number field defined by " cat Sprint(R ! pol)) cat "\n";
     end if;
 end for;
+
+ind, test := Explode(desc[3]);
+str cat:= "\n";
+str cat:= "Endomorphism ring:\n";
+if test eq -1 then
+    str cat:= "A subring of index " cat Sprint(ind) cat " in the maximal order of the endomorphism algebra\n";
+elif test eq 0 then
+    str cat:= "A non-Eichler order of index " cat Sprint(ind) cat " in the maximal order of the endomorphism algebra\n";
+elif test eq 1 then
+    str cat:= "An Eichler order of index " cat Sprint(ind) cat " in the maximal order of the endomorphism algebra\n";
+end if;
+
+algRR := desc[1];
+str cat:= "\n";
+str cat:= "Endomorphism algebra tensored with RR:\n";
+descs := [ "RR", "CC", "undef", "HH" ];
+for i := 1 to #algRR do
+    fac := algRR[i];
+    m, desc := Explode(fac);
+    if m eq 1 then
+        str cat:= Sprint(descs[desc]);
+    else
+        str cat:= "M_" cat Sprint(m) cat " (" cat Sprint(descs[desc]) cat ")";
+    end if;
+    if i ne #algRR then
+        str cat:= " x ";
+    end if;
+end for;
+
+return str;
+
+end function;
+
+
+function Humanize(desc);
+/* Make stuff readable */
+
+R<t> := PolynomialRing(Rationals());
+
+str := "";
+alg := desc[2];
+str cat:= "Endomorphism algebra:\n";
+for i := 1 to #alg do
+    fac := alg[i];
+    m, dimD, pol, discD, dimA := Explode(fac);
+    dimK := #pol - 1;
+    assert (dimD mod dimK) eq 0;
+    indDsq := dimD div dimK;
+    test, indD := IsSquare(indDsq);
+    assert test;
+
+    if m gt 1 then
+        str cat:= "M_" cat Sprint(m) cat " (";
+    end if;
+    if indD ne 1 then
+        assert indD eq 2;
+        str cat:= "B_" cat Sprint(discD) cat " (";
+    end if;
+    if #pol eq 2 then
+        str cat:= "QQ";
+    else
+        str cat:= "QQ [t] / (" cat Sprint(R ! pol) cat ")";
+    end if;
+    if indD ne 1 then
+        str cat:= ")";
+    end if;
+    if m gt 1 then
+        str cat:= ")";
+    end if;
+
+    if i ne #alg then
+        str cat:= " x ";
+    end if;
+end for;
+
+ind, test := Explode(desc[3]);
+str cat:= "\n";
+str cat:= "Endomorphism ring:\n";
+if test eq -1 then
+    str cat:= "A subring of index " cat Sprint(ind) cat " in the maximal order of the endomorphism algebra";
+elif test eq 0 then
+    str cat:= "A non-Eichler order of index " cat Sprint(ind) cat " in the maximal order of the endomorphism algebra";
+elif test eq 1 then
+    str cat:= "An Eichler order of index " cat Sprint(ind) cat " in the maximal order of the endomorphism algebra";
+end if;
+
+algRR := desc[1];
+str cat:= "\n";
+str cat:= "Endomorphism algebra tensored with RR:\n";
+descs := [ "RR", "CC", "undef", "HH" ];
+for i := 1 to #algRR do
+    fac := algRR[i];
+    m, desc := Explode(fac);
+    if m eq 1 then
+        str cat:= Sprint(descs[desc]);
+    else
+        str cat:= "M_" cat Sprint(m) cat " (" cat Sprint(descs[desc]) cat ")";
+    end if;
+    if i ne #algRR then
+        str cat:= " x ";
+    end if;
+end for;
+
 return str;
 
 end function;
@@ -154,27 +256,51 @@ return EndomorphismLattice(GeoEndoRep);
 end intrinsic;
 
 
-intrinsic HeuristicIsGL2(X::. : Definition := "Generalized", UpperBound := 16, DegreeDivides := Infinity()) -> .
-{Returns whether or not the Jacobian of X is of GL_2-type in the generalized sense (by default) or in the sense of Ribet (if Definition is set to "Ribet").}
+intrinsic HeuristicEndomorphismLatticeDescription(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
+{Returns a description of the endomorphism lattice of the Jacobian of X.}
 
 assert ISA(Type(X), Crv);
-assert Definition in [ "Generalized", "Ribet" ];
+X := CurveExtra(X);
+GeoEndoRep := GeometricEndomorphismRepresentation(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
+Lat := EndomorphismLattice(GeoEndoRep)[3];
+R<t> := PolynomialRing(Rationals());
+
+str := "";
+for i := 1 to #Lat do
+    entry := Lat[i];
+    str cat:= "========\n";
+    if entry[2] eq [-1, 1] then
+        str cat:= "Over QQ:\n";
+    else
+        str cat:= "Over QQ [t] / (" cat Sprint(R ! entry[2]) cat "):\n";
+    end if;
+    str cat:= "--------\n";
+    str cat:= Humanize(< entry[3], entry[4], entry[5] >);
+    if i ne #Lat then
+        str cat:= "\n";
+    end if;
+end for;
+return str;
+
+end intrinsic;
+
+
+intrinsic HeuristicIsGL2(X::. : Geometric := false, Definition := "Exact", UpperBound := 16, DegreeDivides := Infinity()) -> .
+{Returns whether or not the Jacobian of X is of GL_2-type in the exact sense (by default) or in the general sense (if Definition is set to "General"; this option is specific to genus 2 for the moment). By default, this question is posed over the base ring, but setting "Geometric" to "true" switches to the algebraic closure}
+
+assert ISA(Type(X), Crv);
+assert Definition in [ "Exact", "General" ];
 X := CurveExtra(X); g := Genus(X);
-if Definition eq "Generalized" then
-    desc, A := HeuristicEndomorphismAlgebra(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
+if Definition eq "Exact" then
+    desc, A := HeuristicEndomorphismAlgebra(X : Geometric := Geometric, UpperBound := UpperBound, DegreeDivides := DegreeDivides);
     if not Dimension(A) eq g then
         return false;
     end if;
     return Center(A) eq A;
-elif Definition eq "Ribet" then
-    desc, A := HeuristicEndomorphismAlgebra(X : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
-    if not Dimension(A) eq g then
-        return false;
-    end if;
-    if not Center(A) eq A then
-        return false;
-    end if;
-    return #CentralIdempotents(A) eq 1;
+elif Definition eq "General" then
+    assert g eq 2;
+    desc, A := HeuristicEndomorphismAlgebra(X : Geometric := Geometric, UpperBound := UpperBound, DegreeDivides := DegreeDivides);
+    return Dimension(A) mod g eq 0;
 end if;
 
 end intrinsic;
@@ -199,20 +325,10 @@ return [* Kiso, Kdecinfo, [* decbasedesc, decbaseeqs *], [* decgeodesc, decgeoeq
 end intrinsic;
 
 
-intrinsic EndRROverQQbar(X::.) -> .
-{Returns a description of End_RR (Jac (Xbar)). This is a list of tuples [ <n, d> ], a single factor of which corresponds to a factor of Mat_n (A_d), where A_d is the unique skew field over RR of dimension d. So for example [ <1, 1>, <2, 4> ] would correspond to the real algebra RR x M_2 (HH).}
+intrinsic HeuristicDecompositionFactors(X::. : UpperBound := 16, DegreeDivides := Infinity(), SmallestField := true) -> .
+{Returns the factors of the Jacobian of X over the smallest field where they all appear.}
 
-EndoDesc := HeuristicEndomorphismAlgebra(X : CC := true);
-return EndoDesc[1];
-
-end intrinsic;
-
-
-intrinsic EndRROverQQ(X::. : UpperBound := 16, DegreeDivides := Infinity()) -> .
-{Returns a description of End_RR (Jac (Xbar)). This is a list of tuples [ <n, d> ], a single factor of which corresponds to a factor of Mat_n (A_d), where A_d is the unique skew field over RR of dimension d. So for example [ <1, 1>, <2, 4> ] would correspond to the real algebra RR x M_2 (HH).}
-
-EndoDesc := HeuristicEndomorphismAlgebra(X : UpperBound := 16, DegreeDivides := Infinity());
-return EndoDesc[1];
+return [ tup[1] : tup in HeuristicDecomposition(X)[3][2] ];
 
 end intrinsic;
 
