@@ -12,6 +12,7 @@
 forward SubgroupGeneratorsUpToConjugacy;
 
 
+// FIXME: Sachi and Edgar: this should be called Homomorphism....
 intrinsic EndomorphismRepresentation(GeoEndoRep::SeqEnum, GalK::List) -> SeqEnum
 {Given a geometric representation GeoEndoRep and a list of automorphisms GalK of
 their field of definition, returns a basis of the endomorphisms defined over
