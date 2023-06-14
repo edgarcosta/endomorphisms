@@ -29,6 +29,17 @@ return ChangeRing(E, Rationals());
 
 end intrinsic;
 
+intrinsic AdjugateMatrix(M::AlgMatElt) -> AlgMatElt
+{The adjugate matrix, i.e., Adj(A)*A = det(A) = A*Adj(A)}
+    return Matrix(BaseRing(M), [[Cofactor(M, j, i) : j in [1..Ncols(M)]] : i in [1..Nrows(M)]]);
+end intrinsic;
+
+intrinsic PrincipalMinors(M::ModMatFldElt) -> SeqEnum[FldElt]
+{Return the principal minors of M}
+    require Nrows(M) eq Ncols(M): "the matrix needs to be square";
+    return [Minor(M, I, I) where I := [j..n] : j  in [1..n]] where n:=Nrows(M);
+end intrinsic;
+
 
 intrinsic PolarizationBasis(P::ModMatFldElt) -> SeqEnum
 {Determines a basis of the alternating forms giving rise to a polarization on the period matrix P.}
@@ -97,7 +108,142 @@ end if;
 end intrinsic;
 
 
-intrinsic SomePrincipalPolarization(P::ModMatFldElt : B := 2) -> SeqEnum
+function RealPolynomial(f)
+    coeff, mon := CoefficientsAndMonomials(f);
+    return &+[Real(c)*mon[i] : i->c in coeff];
+end function;
+
+
+
+function PfaffianAndMinors(Es, P)
+    CC<I> := BaseRing(P);
+    n := #Es;
+    R<[x]> := PolynomialRing(Integers(), n);
+    RCC<[y]> := PolynomialRing(CC, n);
+    ER := &+[R.i * ChangeRing(Ei, R) : i->Ei in Es];
+    pf := Pfaffian(ER);
+    PRCC := ChangeRing(P, RCC);
+    PRCC_star := ChangeRing(Conjugate(Transpose(P)), RCC);
+    ERCC_inverse := ChangeRing(AdjugateMatrix(ER), RCC);
+    M := I*PRCC*ERCC_inverse*PRCC_star;
+    minors := PrincipalMinors(M);
+    return pf, [RealPolynomial(elt) : elt in minors];
+end function;
+
+function _IsPolarization(coord, pf, minors : Principal:=false)
+// Tests whether or not &+[ coord[i]*Es[i] : i in [1..n] ] defines a polarization on P.
+
+// check determinant
+det := Evaluate(pf, coord)^2;
+if det eq 0 or (Principal and det ne 1) then
+    return false;
+end if;
+// check positivity
+CC := BaseRing(Parent(minors[1]));
+for m in minors do
+    if Evaluate(m, coord) lt CC`epsinv then
+        return false;
+    end if;
+end for;
+
+return true;
+end function;
+
+
+intrinsic SomePolarization(P::ModMatFldElt : B:=2, Principal:=false) -> AlgMatElt
+{Tries to return some polarization for P.}
+
+P := MatrixExtra(P);
+Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
+pf, minors := PfaffianAndMinors(Es, P);
+
+counter := 0;
+while true do
+    counter +:= 1;
+    test_power, exp := IsPowerOf(counter, 2);
+    if test_power and exp ge 15 then
+        B +:= 1;
+    end if;
+    if test_power and exp eq 25 then
+        return false, 0;
+    end if;
+    D := [ -B..B ];
+
+    CP := CartesianPower(D, n);
+    tup := Random(CP);
+    E := &+[ tup[i]*Es[i] : i in [1..n] ];
+    if _IsPolarization(tup, pf, minors : Principal:=Principal) then
+        return true, &+[ tup[i]*Es[i] : i in [1..n] ];
+    end if;
+end while;
+
+end intrinsic;
+
+intrinsic SomePrincipalPolarization(P::ModMatFldElt : B := 2) -> AlgMatElt
+{Tries to return some principal polarization for P.}
+    return SomePolarization(P : B:=B, Principal:=true);
+end intrinsic;
+
+intrinsic SomePolarizations(P::ModMatFldElt : D:=[-2..2], Principal:=false) -> SeqEnum
+{Tries to return some principal polarization for P.}
+/* TODO: Implement Narasimhan--Nori if possible */
+
+P := MatrixExtra(P);
+Es := PolarizationBasis(P); CC := BaseRing(P);
+n := #Es; CP := CartesianPower(D, n);
+pf, minors := PfaffianAndMinors(Es, P);
+
+
+Es0 := [ ];
+for tup in CP do
+    E := &+[ tup[i]*Es[i] : i in [1..n] ];
+    if _IsPolarization(tup, pf, minors : Principal:=Principal) then
+        if E in Es0 then
+            Append(~Es0, E);
+        end if;
+    end if;
+end for;
+return Es0;
+
+end intrinsic;
+
+intrinsic SomePrincipalPolarizations(P::ModMatFldElt : B := 2) -> AlgMatElt
+{Tries to return some principal polarization for P.}
+    return SomePolarizations(P : B:=B, Principal:=true);
+end intrinsic;
+
+
+intrinsic SomePolarizationOld(P::ModMatFldElt : B := 2) -> AlgMatElt
+{Tries to return some polarization for P.}
+
+P := MatrixExtra(P);
+Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
+
+counter := 0;
+while true do
+    counter +:= 1;
+    test_power, exp := IsPowerOf(counter, 2);
+    if test_power and exp ge 15 then
+        B +:= 1;
+    end if;
+    if test_power and exp eq 25 then
+        return false, 0;
+    end if;
+    D := [ -B..B ];
+
+    CP := CartesianPower(D, n);
+    tup := Random(CP);
+    E := &+[ tup[i]*Es[i] : i in [1..n] ];
+    if Determinant(E) ne 0 then
+        test := IsPolarization(E, P);
+        if test then
+            return true, E;
+        end if;
+    end if;
+end while;
+end intrinsic;
+
+intrinsic SomePrincipalPolarizationOld(P::ModMatFldElt : B := 2) -> AlgMatElt
 {Tries to return some principal polarization for P.}
 
 P := MatrixExtra(P);
@@ -129,39 +275,8 @@ end while;
 end intrinsic;
 
 
-intrinsic SomePolarization(P::ModMatFldElt : B := 2) -> SeqEnum
-{Tries to return some polarization for P.}
 
-P := MatrixExtra(P);
-Es := PolarizationBasis(P); CC := BaseRing(P); n := #Es;
-
-counter := 0;
-while true do
-    counter +:= 1;
-    test_power, exp := IsPowerOf(counter, 2);
-    if test_power and exp ge 15 then
-        B +:= 1;
-    end if;
-    if test_power and exp eq 25 then
-        return false, 0;
-    end if;
-    D := [ -B..B ];
-
-    CP := CartesianPower(D, n);
-    tup := Random(CP);
-    E := &+[ tup[i]*Es[i] : i in [1..n] ];
-    if Determinant(E) ne 0 then
-        test := IsPolarization(E, P);
-        if test then
-            return true, E;
-        end if;
-    end if;
-end while;
-
-end intrinsic;
-
-
-intrinsic SomePrincipalPolarizations(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
+intrinsic SomePolarizationsOld(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
 {Tries to return some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori if possible */
 
@@ -172,7 +287,7 @@ n := #Es; CP := CartesianPower(D, n);
 Es0 := [ ];
 for tup in CP do
     E := &+[ tup[i]*Es[i] : i in [1..n] ];
-    if Abs(Determinant(E)) eq 1 then
+    if Determinant(E) ne 0 then
         test := IsPolarization(E, P);
         if test and not E in Es0 then
             Append(~Es0, E);
@@ -184,7 +299,7 @@ return Es0;
 end intrinsic;
 
 
-intrinsic SomePolarizations(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
+intrinsic SomePrincipalPolarizationsOld(P::ModMatFldElt : D := [-2..2]) -> SeqEnum
 {Tries to return some principal polarization for P.}
 /* TODO: Implement Narasimhan--Nori if possible */
 
@@ -195,7 +310,7 @@ n := #Es; CP := CartesianPower(D, n);
 Es0 := [ ];
 for tup in CP do
     E := &+[ tup[i]*Es[i] : i in [1..n] ];
-    if Determinant(E) ne 0 then
+    if Abs(Determinant(E)) eq 1 then
         test := IsPolarization(E, P);
         if test and not E in Es0 then
             Append(~Es0, E);
