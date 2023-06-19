@@ -75,6 +75,7 @@ end intrinsic;
 intrinsic IsPolarization(E::., P::.) -> .
 {Tests whether or not E defines a polarization on P.}
 
+if IsSingular(E) then return false; end if;
 P := MatrixExtra(P);
 CC := BaseRing(P);
 /* Test Hermitian property */
