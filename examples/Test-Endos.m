@@ -9,7 +9,7 @@ Xs := [* *];
 R<t> := PolynomialRing(Rationals());
 F<r> := BaseNumberFieldExtra(t^2 - 5, prec);
 R<x> := PolynomialRing(F);
-f := x^6 + r;
+f := x^6 + Sqrt(F!5);
 X := HyperellipticCurve(f); Append(~Xs, X);
 
 // More examples over an extension

@@ -21,3 +21,5 @@ test_gl2 := HeuristicIsGL2(X);
 assert not test_gl2;
 dec := HeuristicDecomposition(X);
 assert dec eq [* Rationals(), [* L, true *], [* [ [ 2, 1 ] ], [] *], [* [ [ 2, 1 ] ], [], [] *] *];
+
+assert [] eq HeuristicDecompositionFactors(X);
