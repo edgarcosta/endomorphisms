@@ -2,7 +2,7 @@
 if assigned filename then
   tests := [filename];
 else
-  tests := Split(Pipe("ls Tests", ""), "\n");
+  tests := Split(Pipe("ls tests", ""), "\n");
 end if;
 AttachSpec("spec");
 failed := [];
