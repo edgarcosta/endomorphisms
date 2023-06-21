@@ -15,15 +15,15 @@ forward GeometricEndomorphismRepresentationGH;
 
 geo_hom_rep_CC := NewStore();
 
-intrinsic CacheClearGeometricHomorphismRepresentationCC()
-{Clear the internal cache for GeometricHomorphismRepresentationCC}
+intrinsic CacheClearGeometricHomomorphismRepresentationCC()
+{Clear the internal cache for GeometricHomomorphismRepresentationCC}
     // We need to save and restore the id, otherwise horrific things might
     // happen
     StoreClear(geo_hom_rep_CC);
     StoreSet(geo_hom_rep_CC, "cache", AssociativeArray());
 end intrinsic;
 
-intrinsic CacheGeometricHomorphismRepresentationCCCC() -> Assoc
+intrinsic CacheGeometricHomomorphismRepresentationCC() -> Assoc
 {Clear the internal cache for GeometricHomomorphismRepresentationCC}
     // We need to save and restore the id, otherwise horrific things might
     // happen
@@ -142,7 +142,7 @@ if not bool then
 end if;
 precP := Precision(BaseRing(P));
 precQ := Precision(BaseRing(Q));
-k1 := [gP, precP, gQ, precQ];
+k1 := <gP, precP, gQ, precQ>;
 require Ncols(P) eq 2*gP: "P sould be a g x 2g matrix";
 require Ncols(Q) eq 2*gQ: "Q sould be a g x 2g matrix";
 
@@ -188,7 +188,7 @@ intrinsic GeometricEndomorphismRepresentationCC(P::ModMatFldElt : s0 := []) -> .
 of the corresponding abelian variety. These are returned as pairs of a complex
 tangent representation A and a homology representation R for which A P = P R.}
 
-    return GeometricHomomorphismRepresentationCC(P, P : s0 := []);
+return GeometricHomomorphismRepresentationCC(P, P : s0 := []);
 
 end intrinsic;
 
