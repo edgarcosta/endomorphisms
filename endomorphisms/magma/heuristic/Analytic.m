@@ -160,26 +160,22 @@ tangent representation A and a homology representation R for which A P = P R.}
 bool, cache := StoreIsDefined(geo_endo_rep_CC, "cache");
 if not bool then
     cache := AssociativeArray();
-    StoreSet(geo_endo_rep_CC, "cache", cache);
 end if;
 g := Nrows(P);
 prec := Precision(BaseRing(P));
 k1 := <g, prec>;
 require Ncols(P) eq 2*g: "P sould be a g x 2g matrix";
-bool, v1 := IsDefined(cache, k1);
-if not bool then
-    v1 := AssociativeArray();
-    cache[k1] := v1;
+
+if not IsDefined(cache, k1) then
+    cache[k1] := AssociativeArray();
 end if;
 
-
-bool, v2 := IsDefined(v1, P);
-if not bool then
-    v2 := GeometricHomomorphismRepresentationCC(P, P : s0 := []);
-    v1[P] := v2;
+if not IsDefined(cache[k1], P) then
+    cache[k1][P] := GeometricHomomorphismRepresentationCC(P, P : s0 := []);
+    StoreSet(geo_endo_rep_CC, "cache", cache);
 end if;
 
-return v2;
+return cache[k1][P];
 
 end intrinsic;
 
