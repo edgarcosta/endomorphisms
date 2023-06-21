@@ -13,9 +13,6 @@ import "Recognition.m": MinimalPolynomialLLL;
 forward GeometricEndomorphismRepresentationGH;
 /* TODO: Algebraization is not completely a superstep of the complex calculation */
 
-declare attributes ModMatFldElt:
-  geo_endo_rep_CC; // List caching the call of GeometricEndomorphismRepresentationCC
-
 
 intrinsic ComplexStructure(P::ModMatFldElt) -> AlgMatElt
 {Returns the complex structure that corresponds to the period matrix P. It is
@@ -151,10 +148,7 @@ intrinsic GeometricEndomorphismRepresentationCC(P::ModMatFldElt : s0 := []) -> .
 of the corresponding abelian variety. These are returned as pairs of a complex
 tangent representation A and a homology representation R for which A P = P R.}
 
-if not assigned P`geo_endo_rep_CC then
-    P`geo_endo_rep_CC :=  GeometricHomomorphismRepresentationCC(P, P : s0 := []);
-end if;
-return P`geo_endo_rep_CC;
+return GeometricHomomorphismRepresentationCC(P, P : s0 := []);
 
 end intrinsic;
 
@@ -277,8 +271,13 @@ P := PeriodMatrix(X); g := #Rows(P); F := BaseRing(X);
 if not CC and assigned X`geo_endo_rep then
     return X`geo_endo_rep;
 end if;
+if CC and assigned X`geo_endo_rep_CC then
+    return X`geo_endo_rep_CC;
+end if;
+
 if CC then
-    return GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
+    X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
+    return X`geo_endo_rep_CC;
 end if;
 X`geo_endo_rep := GeometricEndomorphismRepresentation(P, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides, s0 := [1..g]);
 return X`geo_endo_rep;
