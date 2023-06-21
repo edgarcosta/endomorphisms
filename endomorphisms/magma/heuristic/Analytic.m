@@ -13,7 +13,7 @@ import "Recognition.m": MinimalPolynomialLLL;
 forward GeometricEndomorphismRepresentationGH;
 /* TODO: Algebraization is not completely a superstep of the complex calculation */
 
-declare attributes ModMatRngElt:
+declare attributes ModMatFldElt:
   geo_endo_rep_CC; // List caching the call of GeometricEndomorphismRepresentationCC
 
 
