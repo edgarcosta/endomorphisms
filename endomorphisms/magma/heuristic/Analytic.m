@@ -160,6 +160,7 @@ tangent representation A and a homology representation R for which A P = P R.}
 bool, cache := StoreIsDefined(geo_endo_rep_CC, "cache");
 if not bool then
     cache := AssociativeArray();
+    StoreSet(geo_endo_rep_CC, "cache", cache);
 end if;
 g := Nrows(P);
 prec := Precision(BaseRing(P));
