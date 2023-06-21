@@ -13,6 +13,15 @@ import "Recognition.m": MinimalPolynomialLLL;
 forward GeometricEndomorphismRepresentationGH;
 /* TODO: Algebraization is not completely a superstep of the complex calculation */
 
+geo_endo_rep_CC := NewStore();
+
+intrinsic CacheClearGeometricEndomorphismRepresentationCC()
+{Clear the internal cache for GeometricEndomorphismRepresentationCC}
+    // We need to save and restore the id, otherwise horrific things might
+    // happen
+    StoreClear(geo_endo_rep_CC);
+    StoreSet(geo_endo_rep_CC, "cache", AssociativeArray());
+end intrinsic;
 
 intrinsic ComplexStructure(P::ModMatFldElt) -> AlgMatElt
 {Returns the complex structure that corresponds to the period matrix P. It is
@@ -148,7 +157,28 @@ intrinsic GeometricEndomorphismRepresentationCC(P::ModMatFldElt : s0 := []) -> .
 of the corresponding abelian variety. These are returned as pairs of a complex
 tangent representation A and a homology representation R for which A P = P R.}
 
-return GeometricHomomorphismRepresentationCC(P, P : s0 := []);
+bool, cache := StoreIsDefined(geo_endo_rep_CC, "cache");
+if not bool then
+    cache := AssociativeArray();
+end if;
+g := Nrows(P);
+prec := Precision(BaseRing(P));
+k1 := <g, prec>;
+require Ncols(P) eq 2*g: "P sould be a g x 2g matrix";
+bool, v1 := IsDefined(cache, k1);
+if not bool then
+    v1 := AssociativeArray();
+    cache[k1] := v1;
+end if;
+
+
+bool, v2 := IsDefined(v1, P);
+if not bool then
+    v2 := GeometricHomomorphismRepresentationCC(P, P : s0 := []);
+    v1[P] := v2;
+end if;
+
+return v2;
 
 end intrinsic;
 
