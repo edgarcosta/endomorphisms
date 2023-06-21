@@ -10,7 +10,7 @@
  *  See LICENSE.txt for license details.
  */
 
-declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep_CC, geo_endo_rep, base_endo_rep, base_point, ghpols;
+declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep, base_endo_rep, base_point, ghpols;
 forward Homogenize;
 
 
