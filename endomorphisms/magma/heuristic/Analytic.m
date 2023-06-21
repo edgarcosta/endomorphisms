@@ -13,14 +13,24 @@ import "Recognition.m": MinimalPolynomialLLL;
 forward GeometricEndomorphismRepresentationGH;
 /* TODO: Algebraization is not completely a superstep of the complex calculation */
 
-geo_endo_rep_CC := NewStore();
+geo_hom_rep_CC := NewStore();
 
-intrinsic CacheClearGeometricEndomorphismRepresentationCC()
-{Clear the internal cache for GeometricEndomorphismRepresentationCC}
+intrinsic CacheClearGeometricHomorphismRepresentationCC()
+{Clear the internal cache for GeometricHomorphismRepresentationCC}
     // We need to save and restore the id, otherwise horrific things might
     // happen
-    StoreClear(geo_endo_rep_CC);
-    StoreSet(geo_endo_rep_CC, "cache", AssociativeArray());
+    StoreClear(geo_hom_rep_CC);
+    StoreSet(geo_hom_rep_CC, "cache", AssociativeArray());
+end intrinsic;
+
+intrinsic CacheGeometricHomorphismRepresentationCCCC() -> Assoc
+{Clear the internal cache for GeometricHomomorphismRepresentationCC}
+    // We need to save and restore the id, otherwise horrific things might
+    // happen
+    if not StoreIsDefined(geo_hom_rep_CC, "cache") then
+        StoreSet(geo_hom_rep_CC, "cache", AssociativeArray());
+    end if;
+    return StoreGet(geo_hom_rep_CC, "cache");
 end intrinsic;
 
 intrinsic ComplexStructure(P::ModMatFldElt) -> AlgMatElt
@@ -122,32 +132,53 @@ homomorphisms between the corresponding abelian varieties. These are returned
 as pairs of a complex tangent representation A and a homology representation R
 for which A P = Q R.}
 
+
 /* Basic invariants */
 gP := #Rows(P); gQ := #Rows(Q);
-JP := ComplexStructure(P); JQ := ComplexStructure(Q);
 
-/* Determination of approximate endomorphisms by LLL */
-vprint EndoFind : "";
-vprint EndoFind : "Finding geometric homomorphisms...";
-M := RationalHomomorphismEquations(JP, JQ);
-Ker, test := IntegralLeftKernel(M);
-vprint EndoFind : "done finding geometric homomorphisms.";
-if not test then
-    return [ ];
+bool, cache := StoreIsDefined(geo_hom_rep_CC, "cache");
+if not bool then
+    cache := AssociativeArray();
+end if;
+precP := Precision(BaseRing(P));
+precQ := Precision(BaseRing(Q));
+k1 := [gP, precP, gQ, precQ];
+require Ncols(P) eq 2*gP: "P sould be a g x 2g matrix";
+require Ncols(Q) eq 2*gQ: "Q sould be a g x 2g matrix";
+
+if not IsDefined(cache, k1) then
+    cache[k1] := AssociativeArray();
 end if;
 
-/* Deciding which rows to keep */
-CC := BaseRing(P); RR := BaseRing(JP); gens := [ ];
-for r in Rows(Ker) do
-    R := Matrix(Rationals(), 2*gQ, 2*gP, Eltseq(r));
-    /* Culling the correct transformations from holomorphy condition */
-    Comm := ChangeRing(R, RR) * JP - JQ * ChangeRing(R, RR);
-    if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
-        A, s0 := TangentRepresentation(R, P, Q : s0 := s0);
-        Append(~gens, [* A, R *]);
+k2 := <P, Q>;
+if not IsDefined(cache[k1], k2) then
+    JP := ComplexStructure(P); JQ := ComplexStructure(Q);
+
+    /* Determination of approximate endomorphisms by LLL */
+    vprint EndoFind : "";
+    vprint EndoFind : "Finding geometric homomorphisms...";
+    M := RationalHomomorphismEquations(JP, JQ);
+    Ker, test := IntegralLeftKernel(M);
+    vprint EndoFind : "done finding geometric homomorphisms.";
+    if not test then
+        return [ ];
     end if;
-end for;
-return gens;
+
+    /* Deciding which rows to keep */
+    CC := BaseRing(P); RR := BaseRing(JP); gens := [ ];
+    for r in Rows(Ker) do
+        R := Matrix(Rationals(), 2*gQ, 2*gP, Eltseq(r));
+        /* Culling the correct transformations from holomorphy condition */
+        Comm := ChangeRing(R, RR) * JP - JQ * ChangeRing(R, RR);
+        if &and([ (RR ! Abs(c)) lt RR`epscomp : c in Eltseq(Comm) ]) then
+            A, s0 := TangentRepresentation(R, P, Q : s0 := s0);
+            Append(~gens, [* A, R *]);
+        end if;
+    end for;
+    cache[k1][k2] := gens;
+    StoreSet(geo_hom_rep_CC, "cache", cache);
+end if;
+return cache[k1][k2];
 
 end intrinsic;
 
@@ -157,25 +188,7 @@ intrinsic GeometricEndomorphismRepresentationCC(P::ModMatFldElt : s0 := []) -> .
 of the corresponding abelian variety. These are returned as pairs of a complex
 tangent representation A and a homology representation R for which A P = P R.}
 
-bool, cache := StoreIsDefined(geo_endo_rep_CC, "cache");
-if not bool then
-    cache := AssociativeArray();
-end if;
-g := Nrows(P);
-prec := Precision(BaseRing(P));
-k1 := <g, prec>;
-require Ncols(P) eq 2*g: "P sould be a g x 2g matrix";
-
-if not IsDefined(cache, k1) then
-    cache[k1] := AssociativeArray();
-end if;
-
-if not IsDefined(cache[k1], P) then
-    cache[k1][P] := GeometricHomomorphismRepresentationCC(P, P : s0 := []);
-    StoreSet(geo_endo_rep_CC, "cache", cache);
-end if;
-
-return cache[k1][P];
+    return GeometricHomomorphismRepresentationCC(P, P : s0 := []);
 
 end intrinsic;
 
