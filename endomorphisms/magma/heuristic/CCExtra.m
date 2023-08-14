@@ -78,26 +78,30 @@ RR`height_bound := RR ! height_bound;
 end intrinsic;
 
 
-intrinsic AlmostEqual(approx::., alg::. : iota:=0) -> BoolElt
+intrinsic AlmostEqual(approx::., alg::. : iota:=0) -> BoolElt, .
 { return if approx is floating point approximation of alg. The second return value is the relative error }
     R := Parent(approx);
     require assigned R`epscomp: "the parent of the first argument must be a {Real,Complex}FieldExtra";
     Ralg := Parent(alg);
     if Type(Ralg) in [FldCom, FldRe] then // the alg is also a floating point approximation
-        eps := Minimum(R`epscomp, Ralg`epscomp);
+        eps := assigned Ralg`epscomp select Minimum(R`epscomp, Ralg`epscomp) else R`epscomp;
         maxnorm := Maximum(Abs(approx), Abs(alg));
         normalizer := maxnorm lt eps select 1 else maxnorm;
         algapprox := alg;
     else
-        eps := Minimum(R`epscomp, Ralg`CC`epscomp);
-        algapprox := EmbedExtra(alg : iota:=iota);
+        eps := (assigned Ralg`CC and assigned Ralg`CC`epscomp) select Minimum(R`epscomp, Ralg`CC`epscomp) else R`epscomp;
+        if Type(Ralg) in [FldRat, RngInt] then
+            algapprox := R!alg;
+        else
+            algapprox := EmbedExtra(alg : iota:=iota);
+        end if;
         normalizer := alg eq 0 select 1 else Abs(algapprox);
     end if;
     err := Abs(approx - algapprox)/normalizer;
     return err lt eps, err;
 end intrinsic;
 
-intrinsic AlmostEqualMatrix(approx::., alg::. : iota:=0) -> BoolElt
+intrinsic AlmostEqualMatrix(approx::., alg::. : iota:=0) -> BoolElt, .
 { return if approx is an approximation of r }
     require assigned BaseRing(approx)`epscomp: "the base ring of th first argument must be RealFieldExtra or ComplexFieldExtra";
     require forall{ f : f in [Nrows, Ncols] | f(approx) eq f(alg) } : "the matrices must have the same dimension";
