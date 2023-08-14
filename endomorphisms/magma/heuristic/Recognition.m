@@ -249,11 +249,21 @@ end intrinsic;
 intrinsic RationalReconstruction(r::FldComElt) ->  BoolElt, FldRatElt
 { Returns an approximation of the complex number r as an element of QQ }
     CC := Parent(r); r1 := Real(r); r2 := Imaginary(r); p := Precision(r2);
-    if r2 ne Parent(r2) ! 0 then e := Log(AbsoluteValue(r2)); else e := -p; end if;
-    if -e lt p/2 then return false, 0; end if;
-    best := 0; i := p div 10; b := BestApproximation(r1, 10^i);
+    if r2 ne Parent(r2) ! 0 then
+        e := Log(AbsoluteValue(r2));
+    else
+        e := -p;
+    end if;
+    if -e lt p/2 then
+        return false, 0;
+    end if;
+    best := 0;
+    i := p div 10;
+    b := BestApproximation(r1, 10^i);
     while b ne best and i le p do
-        i +:= 5; best := b; b := BestApproximation(r1, 10^i);
+        i +:= 5;
+        best := b;
+        b := BestApproximation(r1, 10^i);
     end while;
     if b ne best then return false, 0; end if;
     return AlmostEqual(r, b), b;
