@@ -89,7 +89,7 @@ intrinsic AlmostEqual(approx::., alg::. : iota:=0) -> BoolElt, .
         normalizer := maxnorm lt eps select 1 else maxnorm;
         algapprox := alg;
     else
-        eps := (assigned Ralg`CC and assigned Ralg`CC`epscomp) select Minimum(R`epscomp, Ralg`CC`epscomp) else R`epscomp;
+        eps := (Type(Ralg) in [FldQuad, FldNum, FldRat] and assigned Ralg`CC and assigned Ralg`CC`epscomp) select Minimum(R`epscomp, Ralg`CC`epscomp) else R`epscomp;
         if Type(Ralg) in [FldRat, RngInt] then
             algapprox := R!alg;
         else
