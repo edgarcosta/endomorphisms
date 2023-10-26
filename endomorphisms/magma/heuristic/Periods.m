@@ -97,7 +97,10 @@ end function;
 intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
 {Returns the period matrix of X.}
 
-F := BaseRing(X); CC := Parent(F`iota);
+
+F := BaseRing(X);
+require assigned F`iota : "Curve expected to be given with an embedding to the complex numbers, i.e., over RationalsExtra or NumberFieldExtra";
+CC := Parent(F`iota);
 vprint EndoFind : "";
 vprint EndoFind : "Calculating period matrix...";
 if assigned X`period_matrix then
