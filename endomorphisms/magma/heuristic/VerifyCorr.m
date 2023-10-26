@@ -281,7 +281,7 @@ vprint EndoCheck : "Chosen base point on Y:";
 vprint EndoCheck : Q;
 
 assert Al in [ "Cantor", "Divisor" ];
-if (#Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
+if (ISA(Type(R), Mtrx) and #Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
     return true, "Multiplication by an integer";
 else
     if Al eq "Cantor" then
