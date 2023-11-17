@@ -171,7 +171,12 @@ end function;
 
 
 intrinsic DivisorFromMatrixAmbientGlobal(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity()) -> BoolElt, .
-{Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
+{Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials (all over the same base ring), returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
+
+require BaseRing(X) eq BaseRing(Y) : "Expected both curves to be defined over the same ring";
+require BaseRing(X) eq BaseRing(M) : "Expected the tangent represeantion to be defined over the same ring as the curves";
+require X eq Curve(P0) : "The point P0 is supposed to be a point in X";
+require Y eq Curve(Q0) : "The point Q0 is supposed to be a point in Y";
 
 /* The order below matters because of our initialization conventions */
 InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
@@ -197,8 +202,13 @@ end intrinsic;
 
 
 intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
-{Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding divisor (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
+{Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials (all over the same base ring), returns a corresponding divisor (if it exists), constructed via a CRT approach.
+    The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
+require BaseRing(X) eq BaseRing(Y) : "Expected both curves to be defined over the same ring";
+require BaseRing(X) eq BaseRing(M) : "Expected the tangent represeantion to be defined over the same ring as the curves, consider using Correspondence with Al:=\"Divisor\"";
+require X eq Curve(P0) : "The point P0 is supposed to be a point in X";
+require Y eq Curve(Q0) : "The point Q0 is supposed to be a point in Y";
 /* The order below matters because of our initialization conventions */
 InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
