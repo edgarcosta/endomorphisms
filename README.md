@@ -9,7 +9,7 @@ If you have an earlier version of Magma, please try checking out commit `7433e5`
 Prerequisites
 --
 This package depends on [`edgarcosta/MagmaPolred`](https://github.com/edgarcosta/MagmaPolred).
-The bundle [`edgarcosta/CHIMP`](https://github.com/edgarcosta/) includes all the dependencies and optional packages.
+The bundle [`edgarcosta/CHIMP`](https://github.com/edgarcosta/CHIMP) includes all the dependencies and optional packages.
 
 An installation of Magma, Pari and (optionally) SageMath, so that all of these are available on the command line, is required to run all of the code.
 
