@@ -225,6 +225,7 @@ intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree :=
 {Given curves X and Y, finds a correspondence with tangent representation A if it exists.
 Base points P and Q can be specified: otherwise these are found automatically over some extension.}
 
+assert Al in [ "Cantor", "Divisor" ];
 A := mor[1];
 R := mor[2];
 KX := BaseRing(X);
@@ -280,7 +281,6 @@ vprint EndoCheck : P;
 vprint EndoCheck : "Chosen base point on Y:";
 vprint EndoCheck : Q;
 
-assert Al in [ "Cantor", "Divisor" ];
 if (ISA(Type(R), Mtrx) and #Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
     return true, "Multiplication by an integer";
 else
