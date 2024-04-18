@@ -65,7 +65,11 @@ gY := #rowsM; gX := #Eltseq(rowsM[1]);
 exps := [ ];
 for i in [1..gY] do
     row := Eltseq(rowsM[i]);
-    j0 := Minimum([ j : j in [1..gX] | row[j] ne 0 ]);
+    js := [ j : j in [1..gX] | row[j] ne 0 ];
+    if #js eq 0 then
+        continue;
+    end if;
+    j0 := Minimum(js);
     exp := echelon_exps[j0]/i;
     Append(~exps, exp);
 end for;
