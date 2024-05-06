@@ -1,8 +1,8 @@
 intrinsic RootsPari(f::RngUPolElt, K::Fld) -> .
 {Given a polynomial f and a field K, finds all roots of f in K.}
 
-  assert BaseRing(f) eq Rationals();
-  assert BaseRing(K) eq Rationals();
+  assert Type(BaseRing(f)) in [FldRat, RngInt];
+  assert Type(BaseRing(K)) in [FldRat, RngInt];
   rts := [];
   try
     g := DefiningPolynomial(K);
@@ -36,8 +36,8 @@ end intrinsic;
 intrinsic FactorizationPari(f::RngUPolElt, K::Fld) -> .
 {Given a polynomial f and a field K, finds the factorization of f over K.}
 
-  assert BaseRing(f) eq Rationals();
-  assert BaseRing(K) eq Rationals();
+  assert Type(BaseRing(f)) in [FldRat, RngInt];
+  assert Type(BaseRing(K)) in [FldRat, RngInt];
   facs := [ ];
   try
   g := DefiningPolynomial(K);
