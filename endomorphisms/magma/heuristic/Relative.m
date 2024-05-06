@@ -471,6 +471,7 @@ if Type(K) eq RngInt then
     K := BaseRing(f);
 end if;
 
+// checking if we need call RationalsExtra(prec), and make f to have that base ring
 if not assigned K`base or not assigned K`base`CC or prec cmpne false then
     /* We deliberately ignore furnishing relative extensions... for now */
     assert IsQQ(K);
