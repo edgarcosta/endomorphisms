@@ -139,9 +139,11 @@ end intrinsic;
 
 intrinsic RationalsExtra(prec::RngIntElt) -> FldNum
 {Returns the rationals with itself as base and an infinite place with the given precision.}
-
-K := Rationals();
-K`base := K; K`base_gen := K ! 1; K`CC := ComplexFieldExtra(prec); K`iota := InfinitePlacesExtra(K)[1];
+  K := Rationals();
+  K`base := K;
+  K`base_gen := K ! 1;
+  K`CC := ComplexFieldExtra(prec);
+  K`iota := InfinitePlacesExtra(K)[1];
 return K;
 
 end intrinsic;
@@ -149,11 +151,13 @@ end intrinsic;
 
 intrinsic RationalsExtra() -> FldNum
 {Default RationalsExtra with precision 100.}
-
-return RationalsExtra(100);
-
+  return RationalsExtra(100);
 end intrinsic;
 
+intrinsic RationalsExtra(b::BoolElt) -> FldNum
+{ " } //"
+  return RationalsExtra();
+end intrinsic;
 
 intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
 {Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
@@ -178,9 +182,9 @@ end intrinsic;
 
 
 intrinsic BaseNumberFieldExtra(f::RngUPolElt) -> FldNum
-{Default BaseNumberFieldExtra defined by f with precision 100.}
+{Default BaseNumberFieldExtra defined by f with default precision.}
 
-return BaseNumberFieldExtra(f, 100);
+return BaseNumberFieldExtra(f, false);
 
 end intrinsic;
 
@@ -457,7 +461,7 @@ error "Failed to extend relative number field";
 end function;
 
 
-intrinsic NumberFieldExtra(f::RngUPolElt : prec:= 100) -> .
+intrinsic NumberFieldExtra(f::RngUPolElt : prec:=false) -> .
 {Given polynomial f, finds extension as NumberFieldExtra.}
 
 K := BaseRing(f);
@@ -467,7 +471,8 @@ if Type(K) eq RngInt then
     K := BaseRing(f);
 end if;
 
-if not assigned K`base or (not assigned K`base`CC or Precision(K`base`CC) ne prec) then
+// checking if we need call RationalsExtra(prec), and make f to have that base ring
+if not assigned K`base or not assigned K`base`CC or prec cmpne false then
     /* We deliberately ignore furnishing relative extensions... for now */
     assert IsQQ(K);
     K := RationalsExtra(prec); R := PolynomialRing(K); f := R ! f;
@@ -497,7 +502,7 @@ return L0, hLL0(L ! r), hKL * hLL0;
 end intrinsic;
 
 
-intrinsic SplittingFieldExtra(f::RngUPolElt : prec:= 100) -> .
+intrinsic SplittingFieldExtra(f::RngUPolElt : prec:=false) -> .
 {Given polynomial f, finds splitting field as NumberFieldExtra.}
 
 K := BaseRing(f);
