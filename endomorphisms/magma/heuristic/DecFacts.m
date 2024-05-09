@@ -150,7 +150,7 @@ repeat
         gensH := Generators(H); GalM := [* gensH, Gphi *];
         EndoData, hML := EndomorphismData(GeoEndoRep, GalM : CalcPic := false);
         idemexps := SplittingIdempotentsAlgebra(EndoData);
-        if &+[ tup[2] : tup in idemexps ] eq &+[ tupgeo[2] : tupgeo in idemexpsgeo ] then
+        if &+[Integers() | tup[2] : tup in idemexps ] eq &+[Integers() | tupgeo[2] : tupgeo in idemexpsgeo ] then
             Append(~H0pairs, [* H, idemexps, hML *]);
         else
             Hsnew cat:= [ rec`subgroup : rec in MaximalSubgroups(H) ];
