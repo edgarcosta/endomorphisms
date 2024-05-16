@@ -159,7 +159,7 @@ intrinsic RationalsExtra(b::BoolElt) -> FldNum
   return RationalsExtra();
 end intrinsic;
 
-intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt) -> FldNum
+intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt : simplify:=true) -> FldNum
 {Returns the number field defined by f with itself as base and an infinite place with the given precision. The univariate polynomial f should be defined over QQ.}
 
 K := BaseRing(f);
@@ -174,9 +174,12 @@ Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
 L`base := L; L`base_gen := L.1; L`CC := ComplexFieldExtra(prec); L`iota := InfinitePlacesExtra(L)[1];
 hKL := hom< K -> L | >;
 
-/* Final improvement step before returning root */
-L0, hLL0 := ImproveFieldExtra(L);
-return L0, hLL0(L ! r), hKL * hLL0;
+if simplify then
+  /* Final improvement step before returning root */
+  L0, hLL0 := ImproveFieldExtra(L);
+  return L0, hLL0(L ! r), hKL * hLL0;
+end if;
+return L, L!r, hKL;
 
 end intrinsic;
 
@@ -461,7 +464,7 @@ error "Failed to extend relative number field";
 end function;
 
 
-intrinsic NumberFieldExtra(f::RngUPolElt : prec:=false) -> .
+intrinsic NumberFieldExtra(f::RngUPolElt : prec:=false, simplify:=true) -> .
 {Given polynomial f, finds extension as NumberFieldExtra.}
 
 K := BaseRing(f);
@@ -478,7 +481,7 @@ if not assigned K`base or not assigned K`base`CC or prec cmpne false then
   K := RationalsExtra(prec);
   R := PolynomialRing(K); f := R ! f;
   // since K already has precision, we can do false
-  return NumberFieldExtra(f : prec:=false);
+  return NumberFieldExtra(f : prec:=false, simplify:=simplify);
 end if;
 
 if Degree(f) eq 1 then
@@ -497,14 +500,17 @@ else
 end if;
 L`iota := AscendInfinitePlace(K, L, hKL);
 
-/* Final improvement step before returning */
-L0, hLL0 := ImproveFieldExtra(L);
-return L0, hLL0(L ! r), hKL * hLL0;
+if simplify then
+  /* Final improvement step before returning */
+  L0, hLL0 := ImproveFieldExtra(L);
+  return L0, hLL0(L ! r), hKL * hLL0;
+end if;
+return L, L!r, hKL;
 
 end intrinsic;
 
 
-intrinsic SplittingFieldExtra(f::RngUPolElt : prec:=false) -> .
+intrinsic SplittingFieldExtra(f::RngUPolElt : prec:=false, simplify:=true) -> .
 {Given polynomial f, finds splitting field as NumberFieldExtra.}
 
 K := BaseRing(f);
@@ -533,10 +539,13 @@ else
 end if;
 L`iota := AscendInfinitePlace(K, L, hKL);
 
-/* Final improvement step before returning */
-L0, hLL0 := ImproveFieldExtra(L);
-rts := [ hLL0(rt) : rt in rts ];
-return L0, hLL0(L ! r), hKL * hLL0, rts;
+if simplify then
+  /* Final improvement step before returning */
+  L0, hLL0 := ImproveFieldExtra(L);
+  rts := [ hLL0(rt) : rt in rts ];
+  return L0, hLL0(L ! r), hKL * hLL0, rts;
+end if;
+return L, L!r, hKL, rts;
 
 end intrinsic;
 
