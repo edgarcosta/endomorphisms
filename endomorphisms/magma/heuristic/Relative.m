@@ -467,21 +467,23 @@ intrinsic NumberFieldExtra(f::RngUPolElt : prec:=false) -> .
 K := BaseRing(f);
 // if f in Z[x], cast it to Q[x]
 if Type(K) eq RngInt then
-    f := ChangeRing(f, Rationals());
-    K := BaseRing(f);
+  f := ChangeRing(f, Rationals());
+  K := BaseRing(f);
 end if;
 
 // checking if we need call RationalsExtra(prec), and make f to have that base ring
 if not assigned K`base or not assigned K`base`CC or prec cmpne false then
-    /* We deliberately ignore furnishing relative extensions... for now */
-    assert IsQQ(K);
-    K := RationalsExtra(prec); R := PolynomialRing(K); f := R ! f;
-    return NumberFieldExtra(f : prec:=prec);
+  /* We deliberately ignore furnishing relative extensions... for now */
+  assert IsQQ(K);
+  K := RationalsExtra(prec);
+  R := PolynomialRing(K); f := R ! f;
+  // since K already has precision, we can do false
+  return NumberFieldExtra(f : prec:=false);
 end if;
 
 if Degree(f) eq 1 then
-    L := K; r := Roots(f)[1][1]; hKL := CanonicalInclusionMap(K, L);
-    return L, r, hKL;
+  L := K; r := Roots(f)[1][1]; hKL := CanonicalInclusionMap(K, L);
+  return L, r, hKL;
 end if;
 
 Lrel<r> := NumberField(f); L := AbsoluteField(Lrel);
@@ -489,9 +491,9 @@ L`base := K`base; L`base_gen := L ! Lrel ! K`base_gen; L`CC := K`CC;
 
 /* Inclusion map */
 if IsQQ(K) then
-    hKL := hom< K -> L | >;
+  hKL := hom< K -> L | >;
 else
-    hKL := hom< K -> L | L ! Lrel ! K.1 >;
+  hKL := hom< K -> L | L ! Lrel ! K.1 >;
 end if;
 L`iota := AscendInfinitePlace(K, L, hKL);
 
