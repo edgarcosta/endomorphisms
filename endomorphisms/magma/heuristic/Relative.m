@@ -159,7 +159,7 @@ intrinsic RationalsExtra(b::BoolElt) -> FldNum
   return RationalsExtra();
 end intrinsic;
 
-intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt : Simplify:=true) -> FldNum
+intrinsic BaseNumberFieldExtra(f::RngUPolElt, prec::RngIntElt : Simplify:=false) -> FldNum
 {
     Returns the number field defined by f with itself as base and an infinite place with the given precision.
     The univariate polynomial f should be defined over QQ.
