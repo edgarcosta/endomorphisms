@@ -98,7 +98,7 @@ def endomorphisms_upper_bound(frob_list, eta_char0 = None):
             message += " If the upper bound for eta indeed is eta, then the number of factors is a strict upper bound";
             return False, message, eta_char0, t, None, None
         for x, y, hpj in endo:
-            # endo[j] = mpj, mpj*deg(hpj), hpj
+            # endo[j] = m_{p,j}, m_{p,j}*deg(h_{p,j}), h_{p,j}
             frob_factors[(x,y)][i].append( polredabs(hpj) );
 
 
