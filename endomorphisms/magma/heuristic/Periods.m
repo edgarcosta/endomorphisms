@@ -94,18 +94,24 @@ end while;
 end function;
 
 
-intrinsic PeriodMatrix(X::Crv) -> ModMatFldElt
-{Returns the period matrix of X.}
+intrinsic PeriodMatrix(X::Crv : prec:=false) -> ModMatFldElt
+{Returns the period matrix of X. The optional parameter prec is only used if the curve is not given over RationalsExtra/NumberFieldExtra}
 
 
 F := BaseRing(X);
-require assigned F`iota : "Curve expected to be given with an embedding to the complex numbers, i.e., over RationalsExtra or NumberFieldExtra";
+if not assigned F`iota then
+    // converts a curve to be over a NumberFieldExtra if it is not given in that way
+    X := CurveExtra(X : prec:=prec);
+else
+    require prec cmpeq false: "The optional parameter prec can only used if the curve is not given over RationalsExtra/NumberFieldExtra";
+end if;
+assert assigned F`iota;
 CC := Parent(F`iota);
 vprint EndoFind : "";
 vprint EndoFind : "Calculating period matrix...";
-if assigned X`period_matrix then
+if assigned X`period_matrix and Precision(BaseRing(X`period_matrix)) ge Precision(CC) then
     vprint EndoFind : "using stored period matrix.";
-    return X`period_matrix;
+    return ChangeRing(X`period_matrix, CC);
 end if;
 
 if CurveType(X) eq "genhyp" then
