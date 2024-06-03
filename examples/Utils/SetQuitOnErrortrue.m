@@ -1,0 +1,1 @@
+SetQuitOnError(true);

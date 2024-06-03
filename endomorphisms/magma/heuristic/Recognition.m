@@ -323,18 +323,25 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : Alg := false, UseQQ := true, UpperBound := 16, DegreeDivides := Infinity()) -> .
-{Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K. The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari. This minimal polynomial over QQ is the second return value.}
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : Alg:=false, UseQQ:=true, UpperBound:=16, DegreeDivides:=Infinity()) -> .
+{
+    Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K.
+    The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari.
+    This minimal polynomial over QQ is the second return value.
+}
 
 if Alg then
-    test, a := AlgebraizeElementExtra(aCC, K : UseQQ := UseQQ, UpperBound := UpperBound, DegreeDivides := DegreeDivides);
-    if test then R := PolynomialRing(K); return R.1 - a, 0; end if;
+    test, a := AlgebraizeElementExtra(aCC, K : UseQQ:=UseQQ, UpperBound:=UpperBound, DegreeDivides:=DegreeDivides);
+    if test then
+        R := PolynomialRing(K);
+        return R.1 - a, 0;
+    end if;
 end if;
-if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound := UpperBound, DegreeDivides := DegreeDivides), 0; end if;
+if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound:=UpperBound, DegreeDivides:=DegreeDivides), 0; end if;
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
-gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound := UpperBound, DegreeDivides := Degree(K)*DegreeDivides);
+gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound:=UpperBound, DegreeDivides:=Degree(K)*DegreeDivides);
 //return gQQ;
 if Degree(gQQ) eq 1 then return ChangeRing(gQQ, K), gQQ; end if;
 
