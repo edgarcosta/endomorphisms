@@ -26,7 +26,7 @@ function TransformForm(f, T : co := true, contra := false)
     R := Parent(f);
     vars := Matrix([ [ mon ] : mon in MonomialsOfDegree(R, 1) ]);
     if (not co) or contra then
-        return Evaluate(f, Eltseq(ChangeRing(Transpose(T)^(-1), R) * vars));
+        T := Transpose(T)^(-1);
     end if;
     return Evaluate(f, Eltseq(ChangeRing(T, R) * vars));
 end function;
@@ -49,50 +49,37 @@ return S ! g;
 end function;
 
 
-function PeriodMatrixRetryQQ(f, g, CC);
-T := IdentityMatrix(Rationals(), g);
-i := 0;
-while true do
+function PeriodMatrixRetry(f, g, CC: sigma:=false)
+  if sigma cmpeq false then
+    surface := func<f | RiemannSurface(f : Precision := Precision(CC))>;
+  else
+    surface := func<f | RiemannSurface(f, sigma : Precision := Precision(CC))>;
+  end if;
+  T := IdentityMatrix(Rationals(), g);
+  i := 0;
+  while true do
+    i +:= 1;
+    vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o\n", i;
     try
-        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o\n", i;
-        RS := RiemannSurface(f : Precision := Precision(CC));
-        P := ChangeRing(BigPeriodMatrix(RS), CC);
-        TCC := ChangeRing(T, BaseRing(P));
-        return TCC*P, RS;
+      RS := surface(f);
+      BPM := BigPeriodMatrix(RS);
+      P := ChangeRing(BigPeriodMatrix(RS), CC);
+      break;
     catch e
-        F := PolHom(f);
-        T := RandomInvertibleMatrix(g, 2);
-        F := TransformForm(F, T);
-        X := PlaneCurve(F);
-        f := DefiningPolynomial(AffinePatch(X, 1));
-        i +:= 1;
+      vprintf EndoFind, 3 : "Failed %o\n", e;
     end try;
-end while;
-end function;
-
-
-function PeriodMatrixRetryNF(f, g, sigma, CC);
-T := IdentityMatrix(Rationals(), g);
-i := 0;
-while true do
-    try
-        vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o\n", i;
-        RS := RiemannSurface(f, sigma : Precision := Precision(CC));
-        P := ChangeRing(BigPeriodMatrix(RS), CC);
-        TCC := ChangeRing(T, BaseRing(P));
-        return TCC*P, RS;
-    catch e
+    // FIXME: we need the original curve, and instead of just trying to homogenizing it
         F := PolHom(f);
         T := RandomInvertibleMatrix(g, 2);
         T := ChangeRing(T, BaseRing(Parent(f)));
         F := TransformForm(F, T);
         X := PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
-        i +:= 1;
-    end try;
-end while;
+  end while;
+  P := ChangeRing(BPM, CC);
+  TCC := ChangeRing(T, BaseRing(P));
+  return TCC*P, RS;
 end function;
-
 
 intrinsic PeriodMatrix(X::Crv : prec:=false) -> ModMatFldElt
 {Returns the period matrix of X. The optional parameter prec is only used if the curve is not given over RationalsExtra/NumberFieldExtra}
@@ -154,12 +141,13 @@ if CurveType(X) in [ "plane", "gen" ] then
 
     f := DefiningPolynomial(AffinePatch(Y, 1));
     vprintf EndoFind, 3 : "Computing the genus...";
+    vtime EndoFind, 3:
     g := Genus(X);
     vprintf EndoFind, 3 : "Done g = %o\n", g;
     if Type(F) eq FldRat then
-        P, RS := PeriodMatrixRetryQQ(f, g, CC);
+        P, RS := PeriodMatrixRetry(f, g, CC);
     else
-        P, RS := PeriodMatrixRetryNF(f, g, sigma, CC);
+        P, RS := PeriodMatrixRetry(f, g, CC : sigma:=sigma);
         /* Conjugate if needed */
         if cc then
             P := Matrix(CC, [ [ ComplexConjugate(c) : c in Eltseq(row) ] : row in Rows(P) ]);
