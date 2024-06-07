@@ -202,7 +202,15 @@ intrinsic PlaneModel(X::Crv) -> .
 {Returns a plane model for more complicated curves.}
 
 if assigned X`plane_model then return X`plane_model; end if;
-if Type(X) eq CrvHyp or Type(X) eq CrvPln then X`plane_model := X; return X`plane_model; end if;
+if Type(X) eq CrvHyp or Type(X) eq CrvPln then
+  X`plane_model := X;
+  return X`plane_model;
+end if;
+b, Xpln := IsPlaneCurve(X);
+if b then
+  X`plane_model := Xpln;
+  return X`plane_model;
+end if;
 
 AFF := AlgorithmicFunctionField(FunctionField(X));
 
