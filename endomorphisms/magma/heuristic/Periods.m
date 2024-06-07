@@ -53,6 +53,7 @@ function PeriodMatrixRetry(X, CC: sigma:=false)
   end if;
   F := DefiningPolynomial(X);
   f := DefiningPolynomial(AffinePatch(X, 1));
+  f *:= LCM([Denominator(elt) : elt in Coefficients(f)]);
 
   T := IdentityMatrix(Rationals(), 3);
   i := 0;
@@ -69,6 +70,7 @@ function PeriodMatrixRetry(X, CC: sigma:=false)
     T := ChangeRing(RandomInvertibleMatrix(3, 2), K);
     newX := PlaneCurve(TransformForm(F, T));
     f := DefiningPolynomial(AffinePatch(newX, 1));
+    f *:= LCM([Denominator(elt) : elt in Coefficients(f)]);
   end while;
   BPM := BigPeriodMatrix(RS);
   P := ChangeRing(BPM, CC);
