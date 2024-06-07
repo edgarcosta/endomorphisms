@@ -32,53 +32,53 @@ function TransformForm(f, T : co := true, contra := false)
 end function;
 
 
-function RandomInvertibleMatrix(g, B)
-D := [ -B..B ];
-repeat
-    T := Matrix(Rationals(), g,g, [ Random(D) : i in [1..g^2] ]);
-until Determinant(T) eq 1;
-return T;
+function RandomInvertibleMatrix(n, B)
+  D := [ -B..B ];
+  repeat
+    T := Matrix(Rationals(), n, n, [ Random(D) : i in [1..n^2] ]);
+  until Determinant(T) eq 1;
+  return T;
 end function;
 
-
-function PolHom(f)
-R := Parent(f);
-S := PolynomialRing(BaseRing(R), 3);
-g := (S.3^Degree(f))*Evaluate(f, [S.1/S.3, S.2/S.3]);
-return S ! g;
-end function;
-
-
-function PeriodMatrixRetry(f, g, CC: sigma:=false)
+function PeriodMatrixRetry(X, CC: sigma:=false)
+  P2 := AmbientSpace(X);
+  K := BaseRing(P2);
+  assert Dimension(P2) eq 2 and IsProjective(P2); // we expected P2 for the ambient sapce
   if sigma cmpeq false then
-    surface := func<f | RiemannSurface(f : Precision := Precision(CC))>;
-  else
-    surface := func<f | RiemannSurface(f, sigma : Precision := Precision(CC))>;
+    assert Type(K) eq FldRat;
+    K := RationalsAsNumberField();
+	  X := ChangeRing(X, K);
+    P2 := AmbientSpace(X);
+	  sigma := InfinitePlaces(K)[1];
   end if;
-  T := IdentityMatrix(Rationals(), g);
+  F := DefiningPolynomial(X);
+  f := DefiningPolynomial(AffinePatch(X, 1));
+
+  T := IdentityMatrix(Rationals(), 3);
   i := 0;
   while true do
     i +:= 1;
     vprintf EndoFind, 3 : "Trying to compute BigPeriodMatrix, attempt = %o\n", i;
+    vtime EndoFind, 3:
     try
-      RS := surface(f);
-      BPM := BigPeriodMatrix(RS);
-      P := ChangeRing(BigPeriodMatrix(RS), CC);
+      RS := RiemannSurface(f, sigma : Precision := Precision(CC));
       break;
     catch e
       vprintf EndoFind, 3 : "Failed %o\n", e;
     end try;
-    // FIXME: we need the original curve, and instead of just trying to homogenizing it
-        F := PolHom(f);
-        T := RandomInvertibleMatrix(g, 2);
-        T := ChangeRing(T, BaseRing(Parent(f)));
-        F := TransformForm(F, T);
-        X := PlaneCurve(F);
-        f := DefiningPolynomial(AffinePatch(X, 1));
+    T := ChangeRing(RandomInvertibleMatrix(3, 2), K);
+    newX := PlaneCurve(TransformForm(F, T));
+    f := DefiningPolynomial(AffinePatch(newX, 1));
   end while;
+  BPM := BigPeriodMatrix(RS);
   P := ChangeRing(BPM, CC);
-  TCC := ChangeRing(T, BaseRing(P));
-  return TCC*P, RS;
+  // is there a point to keep track of the change of basis on omega_X
+  // for genus > 3?
+  // if, so why not just look at RS`DFF ?
+  if Nrows(P) eq 3 then
+    P := ChangeRing(T, BaseRing(P)) * P;
+  end if;
+  return P, RS;
 end function;
 
 intrinsic PeriodMatrix(X::Crv : prec:=false) -> ModMatFldElt
@@ -117,12 +117,10 @@ if CurveType(X) eq "hyp" then
 end if;
 
 if CurveType(X) in [ "plane", "gen" ] then
-    vprintf EndoFind, 3 : "Computing plane model...";
-    Y := PlaneModel(X);
-    vprintf EndoFind, 3 : "Done\n";
 
     /* Determine correct embedding */
     vprintf EndoFind, 3 : "Determining correct embedding...";
+    vtime EndoFind, 3:
     if not Type(F) eq FldRat then
         sigmas := InfinitePlaces(F);
         for sigmatry in sigmas do
@@ -136,22 +134,19 @@ if CurveType(X) in [ "plane", "gen" ] then
             end if;
         end for;
         assert found;
-    end if;
-    vprintf EndoFind, 3 : "Done\n";
-
-    f := DefiningPolynomial(AffinePatch(Y, 1));
-    vprintf EndoFind, 3 : "Computing the genus...";
-    vtime EndoFind, 3:
-    g := Genus(X);
-    vprintf EndoFind, 3 : "Done g = %o\n", g;
-    if Type(F) eq FldRat then
-        P, RS := PeriodMatrixRetry(f, g, CC);
     else
-        P, RS := PeriodMatrixRetry(f, g, CC : sigma:=sigma);
-        /* Conjugate if needed */
-        if cc then
-            P := Matrix(CC, [ [ ComplexConjugate(c) : c in Eltseq(row) ] : row in Rows(P) ]);
-        end if;
+      sigma := false;
+      cc := false;
+    end if;
+
+    vprintf EndoFind, 3 : "Computing plane model...";
+    vtime EndoFind, 3:
+    Y := PlaneModel(X);
+
+    P, RS := PeriodMatrixRetry(Y, CC : sigma:=sigma);
+    /* Conjugate if needed */
+    if cc then
+      P := Matrix(CC, [ [ ComplexConjugate(c) : c in Eltseq(row) ] : row in Rows(P) ]);
     end if;
 end if;
 
