@@ -5,7 +5,7 @@ SetMemoryLimit(32*10^9);
 // Example 8
 // Interesting because of degrees involved
 R<t> := PolynomialRing(Rationals());
-f := x^6 + 42*x^4 + 441*x^2 + 784;
+f := t^6 + 42*t^4 + 441*t^2 + 784;
 F<s> := NumberField(f);
 R<x> := PolynomialRing(F);
 //R<x> := PolynomialRing(Rationals());
