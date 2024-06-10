@@ -23,12 +23,18 @@ end function;
 
 
 function TransformForm(f, T : co := true, contra := false)
-    R := Parent(f);
-    vars := Matrix([ [ mon ] : mon in MonomialsOfDegree(R, 1) ]);
-    if (not co) or contra then
-        T := Transpose(T)^(-1);
-    end if;
-    return Evaluate(f, Eltseq(ChangeRing(T, R) * vars));
+  R := Parent(f);
+  vars := Matrix([ [ mon ] : mon in MonomialsOfDegree(R, 1) ]);
+  if (not co) or contra then
+    T := Transpose(T)^(-1);
+  end if;
+  return Evaluate(f, Eltseq(ChangeRing(T, R) * vars));
+end function;
+
+function TransformCurve(X, T : co := true, contra := false)
+  A := AmbientSpace(X);
+  new_eqns := [TransformForm(e, T: co:=co, contra:=contra) : e in Equations(X)];
+  return Curve(A, new_eqns);
 end function;
 
 
@@ -39,6 +45,12 @@ function RandomInvertibleMatrix(n, B)
   until Determinant(T) eq 1;
   return T;
 end function;
+
+
+//function RandomPlaneModel(X, B)
+//  
+//end function;
+
 
 function PeriodMatrixRetry(X, CC: sigma:=false)
   P2 := AmbientSpace(X);
@@ -51,7 +63,6 @@ function PeriodMatrixRetry(X, CC: sigma:=false)
     P2 := AmbientSpace(X);
 	  sigma := InfinitePlaces(K)[1];
   end if;
-  F := DefiningPolynomial(X);
   f := DefiningPolynomial(AffinePatch(X, 1));
 
   T := IdentityMatrix(Rationals(), 3);
@@ -67,7 +78,7 @@ function PeriodMatrixRetry(X, CC: sigma:=false)
       vprintf EndoFind, 3 : "Failed %o\n", e;
     end try;
     T := ChangeRing(RandomInvertibleMatrix(3, 2), K);
-    newX := PlaneCurve(TransformForm(F, T));
+    newX := TransformCurve(X, T);
     f := DefiningPolynomial(AffinePatch(newX, 1));
   end while;
   BPM := BigPeriodMatrix(RS);
