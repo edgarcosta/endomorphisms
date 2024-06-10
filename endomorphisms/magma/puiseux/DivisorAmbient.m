@@ -179,7 +179,12 @@ require X eq Curve(P0) : "The point P0 is supposed to be a point in X";
 require Y eq Curve(Q0) : "The point Q0 is supposed to be a point in Y";
 
 /* The order below matters because of our initialization conventions */
-InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
+vprintf EndoCheck, 3: "InitializeCurve(Y, Q0 : AssertNonWP := true)...";
+vtime EndoCheck, 3:
+InitializeCurve(Y, Q0 : AssertNonWP := true);
+vprintf EndoCheck, 3: "InitializeCurve(X, P0)...";
+vtime EndoCheck, 3:
+InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
 /* Correct for echelonization */
@@ -210,17 +215,23 @@ require BaseRing(X) eq BaseRing(M) : "Expected the tangent represeantion to be d
 require X eq Curve(P0) : "The point P0 is supposed to be a point in X";
 require Y eq Curve(Q0) : "The point Q0 is supposed to be a point in Y";
 /* The order below matters because of our initialization conventions */
-InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
+vprintf EndoCheck, 3: "InitializeCurve(Y, Q0 : AssertNonWP := true)...";
+vtime EndoCheck, 3:
+InitializeCurve(Y, Q0 : AssertNonWP := true);
+vprintf EndoCheck, 3: "InitializeCurve(X, P0)...";
+vtime EndoCheck, 3:
+InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
 /* Correct for echelonization */
 NormM := Y`T * NormM * (X`T)^(-1);
 
 /* Some global elements needed below */
-F := X`F; OF := X`OF;
+F := X`F;
+OF := X`OF;
 Rprod := PolynomialRing(X`F, 4, "lex");
 Iterator, f := InitializedIterator(X, Y, NormM, X`g + 3);
-P := Iterator[1]; Qs := Iterator[2];
+P, Qs := Explode(Iterator);
 
 prs := [ ]; DEss_red := [* *];
 I := ideal<X`OF | 1>;

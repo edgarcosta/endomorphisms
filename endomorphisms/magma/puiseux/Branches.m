@@ -23,7 +23,6 @@ forward DevelopPoint;
 
 forward InitializeLift;
 forward CreateLiftIteratorFunction;
-forward InitializedIterator;
 forward IterateIterator;
 
 
@@ -208,7 +207,8 @@ function InitializeLift(X, Y, M)
  *          branches Q_j. Note that this result can contain some superfluous terms.
  */
 
-P0 := X`P0; Q0 := Y`P0;
+P0 := X`P0;
+Q0 := Y`P0;
 tjs0, f := InitializeImageBranch(M, X`echelon_exps);
 PR := Parent(tjs0[1]);
 
