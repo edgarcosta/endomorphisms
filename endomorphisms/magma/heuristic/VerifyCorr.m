@@ -243,7 +243,7 @@ if Type(P) ne RngIntElt then
     hKXKP := CanonicalInclusionMap(KX, KX);
     KP := KX;
 else
-    P, hKXKP := Explode(SmallBasePoint(X));
+P, hKXKP := Explode(SmallBasePoint(X : NW:=true));
     KP := BaseRing(Curve(P));
 end if;
 
@@ -253,7 +253,7 @@ if Type(Q) ne RngIntElt then
     hKYKQ := CanonicalInclusionMap(KY, KY);
     KQ := KY;
 else
-    Q, hKYKQ := Explode(SmallBasePoint(Y));
+Q, hKYKQ := Explode(SmallBasePoint(Y : NW:=true));
     KQ := BaseRing(Curve(Q));
 end if;
 hFKQ := hFKY*hKYKQ;
