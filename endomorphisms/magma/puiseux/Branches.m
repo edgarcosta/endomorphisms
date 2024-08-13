@@ -130,9 +130,10 @@ end for;
 S := Scheme(A, eqs);
 
 
-vprintf EndoCheck, 4: "InitializeImageBranch: GroebnerBasis of eqs...";
+I := ideal<RA | eqs>;
+vprintf EndoCheck, 4: "InitializeImageBranch: GroebnerBasis of %o...", I;
 vtime EndoCheck, 4:
-G := GroebnerBasis(ideal<RA | eqs>);
+G := GroebnerBasis(I);
 RF := PolynomialRing(F);
 hc := [ RF ! 0 : i in [1..gY] ]; hc[#hc] := RF.1; h := hom<RA -> RF | hc>;
 /* By symmetry, this extension always suffices */
