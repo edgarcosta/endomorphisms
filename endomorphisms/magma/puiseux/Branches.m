@@ -141,7 +141,11 @@ vprintf EndoCheck, 4: "InitializeImageBranch: SplittingField...";
 vtime EndoCheck, 4:
 K := SplittingField(h(G[#G]));
 vprintf EndoCheck, 4: "InitializeImageBranch: SplittingField = %o", K;
+vprintf EndoCheck, 4: "InitializeImageBranch: Base extend S = %o...", S;
+vtime EndoCheck, 4:
 SK := BaseExtend(S, K);
+vprintf EndoCheck, 4: "InitializeImageBranch: Points(SK)...", S;
+vtime EndoCheck, 4:
 P := Eltseq(Points(SK)[1]);
 
 r := Eltseq(Rows(M)[1]);
