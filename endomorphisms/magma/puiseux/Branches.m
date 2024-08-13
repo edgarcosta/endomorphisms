@@ -102,6 +102,7 @@ function InitializeImageBranch(M, echelon_exps)
  */
 /* NOTE: This needs genericity assumptions */
 
+vprint EndoCheck, 4: "InitializeImageBranch: Begin";
 /* Recovering old invariants: */
 F := Parent(M[1,1]);
 gY := #Rows(M);
@@ -128,16 +129,23 @@ for n in [1..gY] do
 end for;
 S := Scheme(A, eqs);
 
+
+vprintf EndoCheck, 4: "InitializeImageBranch: GroebnerBasis of eqs...";
+vtime EndoCheck, 4:
 G := GroebnerBasis(ideal<RA | eqs>);
 RF := PolynomialRing(F);
 hc := [ RF ! 0 : i in [1..gY] ]; hc[#hc] := RF.1; h := hom<RA -> RF | hc>;
 /* By symmetry, this extension always suffices */
+vprintf EndoCheck, 4: "InitializeImageBranch: SplittingField...";
+vtime EndoCheck, 4:
 K := SplittingField(h(G[#G]));
+vprintf EndoCheck, 4: "InitializeImageBranch: SplittingField = %o", K;
 SK := BaseExtend(S, K);
 P := Eltseq(Points(SK)[1]);
 
 r := Eltseq(Rows(M)[1]);
 PK := PuiseuxSeriesRing(K, #r + 1); wK := PK.1^exp;
+vprint EndoCheck, 4: "InitializeImageBranch: End";
 return [ P[i] * wK : i in [1..gY] ], h(G[#G]);
 
 end function;
@@ -207,8 +215,10 @@ function InitializeLift(X, Y, M)
  *          branches Q_j. Note that this result can contain some superfluous terms.
  */
 
+vprint EndoCheck, 4: "InitializeLift: Begin";
 P0 := X`P0;
 Q0 := Y`P0;
+vtime EndoCheck, 4:
 tjs0, f := InitializeImageBranch(M, X`echelon_exps);
 PR := Parent(tjs0[1]);
 
@@ -227,14 +237,21 @@ end for;
 Qs := [ [ PR ! c : c in DevelopPoint(Y, Qj, X`g + 3) ] : Qj in Qs ];
 
 /* Fill out small terms */
+vtime EndoCheck, 4:
 IterateLift := CreateLiftIteratorFunction(X, Y, M);
+i := 1;
 while true do
+    vprint EndoCheck, 4: "InitializeLift: Fill out small terms: i = %o", i;
+    i +:= 1;
+    vprint EndoCheck, 4: "InitializeLift: IterateLift...";
+    vtime EndoCheck, 4:
     Pnew, Qsnew := IterateLift(P, Qs, X`g + 3);
     if Pnew eq P and Qsnew eq Qs then
         P := Pnew; Qs := Qsnew; break;
     end if;
     P := Pnew; Qs := Qsnew;
 end while;
+vprint EndoCheck, 4: "InitializeLift: End";
 return P, Qs, f;
 
 end function;
@@ -246,7 +263,7 @@ function CreateLiftIteratorFunction(X, Y, M)
  * Output:  An iterator that refines the Puiseux expansion upon application.
  */
 // NOTE: It is not absolutely necessary to use normalized differentials here.
-
+vprint EndoCheck, 4: "CreateLiftIteratorFunction: Begin";
 fX := X`DEs[1]; dfX := Derivative(fX, X`RA.2); BX := X`NormB; gX := X`g;
 fY := Y`DEs[1]; dfY := Derivative(fY, Y`RA.2); BY := Y`NormB; gY := Y`g;
 e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
@@ -316,6 +333,7 @@ e := Denominator(PuiseuxLeadingExponent(M, X`echelon_exps));
 
     end function;
 
+vprint EndoCheck, 4: "CreateLiftIteratorFunction: End";
 return IterateLift;
 
 end function;

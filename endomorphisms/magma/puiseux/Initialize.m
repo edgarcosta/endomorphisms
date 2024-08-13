@@ -23,7 +23,7 @@ declare attributes Crv : cantor_eqs;
 declare attributes Crv : RRgens, globgens;
 declare attributes Crv : initialized;
 
-declare verbose EndoCheck, 3;
+declare verbose EndoCheck, 4;
 
 
 forward OurAffinePatch;
