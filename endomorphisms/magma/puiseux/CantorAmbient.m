@@ -201,7 +201,8 @@ vprint EndoCheck, 2: NormM;
 F := X`F; OF := X`OF; RA := X`RA; KA := X`KA;
 
 vprint EndoCheck, 2 : "";
-vprint EndoCheck, 2 : "Initializing iterator...";
+vprintf EndoCheck, 2 : "Initializing iterator...";
+vtime EndoCheck, 2:
 Iterator, f := InitializedIterator(X, Y, NormM, X`g + 3);
 P := Iterator[1]; Qs := Iterator[2];
 vprint EndoCheck, 2 : "done.";
@@ -212,6 +213,7 @@ I := ideal<X`OF | 1>;
 d := LowerBound;
 while true do
     repeat
+        vprintf EndoCheck, 3 : "Searching for split prime...";
         pr, h := RandomSplitPrime(f, B);
     until not pr in prs;
     Append(~prs, pr); I *:= pr;
