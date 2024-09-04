@@ -38,7 +38,7 @@ det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
     fext := PowerCharacteristicPolynomial(f, fieldext);
 
     endo := Sort([
-        <power, power * factor.degree(), factor>
+        <power, power * Degree(factor), factor>
         where factor, power := Explode(factorpower)
         : factorpower in Factorization(fext)]);
 
