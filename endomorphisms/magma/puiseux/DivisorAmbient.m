@@ -102,14 +102,14 @@ function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := 2^4)
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
 prec := Precision(Parent(P[1]));
 vprintf EndoCheck, 3 : "Build M...";
-SetProfile(true);
+//SetProfile(true);
 vtime EndoCheck, 3:
 M := [ &cat[ _PuiseuxCoefficients(ev, e, range)
     where ev := Evaluate(f, PQ) : PQ  in PQs] : f in fs]
     where PQs := [ExtractPoints(P, Q) : Q in Qs]
     where range:=[0 .. prec - 1 - Margin];
-SetProfile(false);
-ProfilePrintByTotalTime(ProfileGraph());
+//SetProfile(false);
+//ProfilePrintByTotalTime(ProfileGraph());
 /* 
 M := [ ];
 for f in fs do
