@@ -68,6 +68,26 @@ return divs;
 
 end function;
 
+function _PuiseuxCoefficients(f, e, range)
+    return [ Coefficient(f, i/e) : i in range ];
+    // Q[i] == Coefficient(f, (v + i - 1)/d);
+    Q, v, d := Coefficients(f);
+    coeffs := [
+        jd mod e ne 0 select 0 else (
+            (idx ge 1 and idx le L) select Q[idx] else 0 where idx:=jd div e + 1 - v)
+        where jd := j*d
+                                                              :  j in range]
+    where L := #Q;
+    return coeffs;
+end function;
+    /*
+    if slow ne coeffs then
+        slow;
+        coeffs;
+        assert false;
+    end if;
+    assert slow eq coeffs;
+    */
 
 function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := 2^4)
 /*
@@ -81,29 +101,50 @@ function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := 2^4)
 /* Recovering a linear system */
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
 prec := Precision(Parent(P[1]));
+vprintf EndoCheck, 3 : "Build M...";
+SetProfile(true);
+vtime EndoCheck, 3:
+M := [ &cat[ _PuiseuxCoefficients(ev, e, range)
+    where ev := Evaluate(f, PQ) : PQ  in PQs] : f in fs]
+    where PQs := [ExtractPoints(P, Q) : Q in Qs]
+    where range:=[0 .. prec - 1 - Margin];
+SetProfile(false);
+ProfilePrintByTotalTime(ProfileGraph());
+/* 
 M := [ ];
 for f in fs do
     r := [ ];
     for Q in Qs do
         seq := ExtractPoints(X, Y, P, Q);
-        ev := Evaluate(f, seq);
+        ev := Evaluate(f, ExtractPoints(X, Y, P, Q));
         r cat:= [ Coefficient(ev, i/e) : i in [0..prec - 1 - Margin] ];
     end for;
     Append(~M, r);
 end for;
+*/
+vprintf EndoCheck, 2 : "Really Solving linear system %o x %o...", #M, #M[1];
+vtime EndoCheck, 2:
 B := Basis(Kernel(Matrix(M)));
 /* Coerce back to ground field (possible because of echelon form) */
+vprintf EndoCheck, 3 : "Coerce back to ground field...";
+vtime EndoCheck, 3:
 B := [ [ X`F ! c : c in Eltseq(b) ] : b in B ];
 
 /* Corresponding equations */
-hX, hY, hxs, hxsinv, hys, hysinv := ExtractHomomorphismsRing(X, Y);
+vprintf EndoCheck, 3 : "ExtractHomomorphismsRing...";
+vtime EndoCheck, 3:
+hX, hY, hxs, hxsinv := ExtractHomomorphismsRing(X, Y);
 Rprod := Codomain(hX);
+vprintf EndoCheck, 3 : "eqs1...";
+vtime EndoCheck, 3:
 eqs := [ Rprod ! (&+[ b[i] * fs[i] : i in [1..#fs] ]) : b in B ];
+vprintf EndoCheck, 3 : "eqs2...";
+vtime EndoCheck, 3:
 eqs := eqs cat [ hX(DE) : DE in X`DEs ] cat [ hY(DE) : DE in Y`DEs ];
 
 if X`is_hyperelliptic and Y`is_hyperelliptic then
     Iprod := ideal< Rprod | eqs >;
-    varord := VariableOrder();
+    varord := VariableOrder;
     Bxs := Basis(EliminationIdeal(Iprod, { varord[1], varord[3] }));
     if (#Bxs ne 0) then
         gcdx := hxsinv(GCD([ hxs(b) : b in Bxs ]));
@@ -127,8 +168,7 @@ vprint EndoCheck, 3 : "";
 vprint EndoCheck, 3 : "Check approximations zero:";
 for DE in DEs do
     for Q in Qs do
-        seq := ExtractPoints(X, Y, P, Q);
-        ev := Evaluate(DE, seq);
+        ev := Evaluate(DE, ExtractPoints(P, Q));
         vprint EndoCheck, 3 : ev;
         if not IsWeaklyZero(ev) then
             return false;
@@ -150,7 +190,7 @@ function CheckIrreducibleComponent(X, Y, I)
 A4 := Ambient(I); R4 := CoordinateRing(A4);
 R2 := PolynomialRing(X`F, 2); A2 := AffineSpace(R2);
 seq := [ X`P0[1], X`P0[2], R2.1, R2.2 ];
-varord := VariableOrder();
+varord := VariableOrder;
 seq := [ seq[varord[i]] : i in [1..#varord] ];
 h := hom< R4 -> R2 | seq >;
 eqs2 := [ h(eq4) : eq4 in DefiningEquations(I) ];
@@ -197,10 +237,10 @@ while true do
     if found then
         return true, S;
     end if;
-    d +:= 1;
-    if d gt UpperBound then
+    if d ge UpperBound then
         return false, [];
     end if;
+    d := Max(2*d, UpperBound);
 end while;
 
 end intrinsic;
@@ -259,10 +299,10 @@ while true do
         if found then
             break;
         end if;
-        d +:= 1;
-        if d gt UpperBound then
+        if d ge UpperBound then
             return false, [];
         end if;
+        d := Max(2*d, UpperBound);
     end while;
     Append(~DEss_red, DefiningEquations(S_red));
 
@@ -332,6 +372,7 @@ vprint EndoCheck, 2 : "done.";
 
 /* Fit a divisor to it */
 vprint EndoCheck, 2 : "Solving linear system...";
+vtime EndoCheck, 2:
 ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := Margin div 2);
 vprint EndoCheck, 2 : "done.";
 
@@ -339,10 +380,12 @@ for S in ICs do
     DEs := DefiningEquations(S);
     vprint EndoCheck, 2 : "Checking:";
     vprint EndoCheck, 2 : "Step 1...";
+    vtime EndoCheck, 2:
     test1 := CheckEquations(X, Y, P, Qs, DEs);
     vprint EndoCheck, 2 : "done.";
     if test1 then
         vprint EndoCheck, 2 : "Step 2...";
+        vtime EndoCheck, 2:
         test2 := CheckIrreducibleComponent(X, Y, S);
         vprint EndoCheck, 2 : "done.";
         if test2 then
