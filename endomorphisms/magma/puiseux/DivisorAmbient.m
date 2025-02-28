@@ -101,13 +101,19 @@ function IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := 2^4)
 /* Recovering a linear system */
 e := Maximum(&cat[ [ ExponentDenominator(c) : c in Q ] : Q in Qs ]);
 prec := Precision(Parent(P[1]));
-vprintf EndoCheck, 3 : "Build M...";
+range := [0 .. prec - 1 - Margin];
+PQs := [ExtractPoints(P, Q) : Q in Qs];
 //SetProfile(true);
+vprintf EndoCheck, 3 : "Build ev PQs = %o fs = %o...", #PQs, #fs;
 vtime EndoCheck, 3:
-M := [ &cat[ _PuiseuxCoefficients(ev, e, range)
-    where ev := Evaluate(f, PQ) : PQ  in PQs] : f in fs]
-    where PQs := [ExtractPoints(P, Q) : Q in Qs]
-    where range:=[0 .. prec - 1 - Margin];
+evs := [ [Evaluate(f, PQ) : PQ  in PQs] : f in fs];
+vprintf EndoCheck, 3 : "Build M from ev...";
+vtime EndoCheck, 3:
+M := [ &cat[ _PuiseuxCoefficients(ev, e, range) : ev in evrow] : evrow in evs];
+//vprintf EndoCheck, 3 : "Build M...";
+//vtime EndoCheck, 3:
+//M := [ &cat[ _PuiseuxCoefficients(ev, e, range)
+//    where ev := Evaluate(f, PQ) : PQ  in PQs] : f in fs];
 //SetProfile(false);
 //ProfilePrintByTotalTime(ProfileGraph());
 /* 
@@ -240,7 +246,7 @@ while true do
     if d ge UpperBound then
         return false, [];
     end if;
-    d := Max(2*d, UpperBound);
+    d := Min(2*d, UpperBound);
 end while;
 
 end intrinsic;
@@ -302,7 +308,7 @@ while true do
         if d ge UpperBound then
             return false, [];
         end if;
-        d := Max(2*d, UpperBound);
+        d := Min(2*d, UpperBound);
     end while;
     Append(~DEss_red, DefiningEquations(S_red));
 
