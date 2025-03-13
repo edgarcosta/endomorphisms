@@ -15,10 +15,10 @@ det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
     end if;
     require Coefficient(f, 0) eq 1: "f is not a Weil polynomial";
     d := Degree(f);
-    genus := Integers()!(Degree(f)/2);
+    genus := d div 2;
     b, p, ga := IsPower(Coefficient(f, d));
     require b: "f is not a Weil polynomial";
-    q := p^(Integers()!(ga/genus));
+    q := p^(ga div genus);
     T := Parent(f).1;
     fof := TensorCharacteristicPolynomial(f,f);
     g := Evaluate(fof, T/q);
