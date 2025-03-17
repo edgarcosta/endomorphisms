@@ -27,7 +27,7 @@ intrinsic AlternatingSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
     assert IsOne(Denominator(g));
     bool, res := IsSquare(Parent(f)!g);
     assert bool;
-    assert Degree(res) eq d(d-1)/2;
+    assert Degree(res) eq d(d-1) div 2;
     return res;
 end intrinsic;
 
@@ -36,14 +36,14 @@ intrinsic SymmetricSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
     // we will do this by dividing by the factor corresponding to the alternating square
     fof := TensorCharacteristicPolynomial(f, f);
     f2 := PowerCharacteristicPolynomial(f, 2);
-    g := fof/g;
+    g := fof/f2;
     assert IsOne(Denominator(g));
     bool, altsquaref := IsSquare(Parent(f)!g);
     assert bool;
-    assert Degree(altsquaref) eq d(d-1)/2;
+    assert Degree(altsquaref) eq d*(d-1) div 2;
     res := Parent(f)! fof/ altsquaref;
     assert IsOne(Denominator(res));
-    assert Degree(res) eq d(d+1)/2;
+    assert Degree(res) eq d*(d+1) div 2;
     return res;
 end intrinsic;
 
