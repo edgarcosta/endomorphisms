@@ -34,6 +34,7 @@ end intrinsic;
 intrinsic SymmetricSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
     {return the characteristic polynomial of the induced linear transformation on the symmetric square}
     // we will do this by dividing by the factor corresponding to the alternating square
+    d := Degree(f);
     fof := TensorCharacteristicPolynomial(f, f);
     f2 := PowerCharacteristicPolynomial(f, 2);
     g := fof/f2;
