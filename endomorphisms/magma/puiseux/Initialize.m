@@ -137,8 +137,24 @@ elif X`is_plane_quartic then
     return [ X`KA ! (n / Derivative(f, v)) : n in [u, v, 1] ];
 
 else
-    x := X`KU ! (X`RU).1;
-    return [ X`KA ! (b / Differential(x)) : b in BasisOfDifferentialsFirstKind(X`U) ];
+    if assigned X`riesrf then
+    	vprint EndoCheck : "Using differentials from Riemann Surface";
+        // get rid of rationals as number field
+        fRS := hom<Parent(f_og) -> X`RA | [X`RA.1, X`RA.2]>(f_og) where f_og := DefiningPolynomial(X`riesrf);
+        // recreate the function field ala RiemannSurface
+        // this will give us the same differentials used to compute the period matrix
+        FFRS := FunctionField(fRS : SeparatingElement:=Parent(fRS).2);
+
+        FFU := FunctionField(X`U);
+        // not always true, as sometimes we project randomly to get the period matrix to work
+        // but for the time being we will survive with this hack
+        assert DefiningPolynomial(X`U) eq fRS;
+        h := hom<FFRS -> FFU | [FFU.1, FFU.2]>;
+        return [ X`KA ! h(b / Differential(FFRS.1)) : b in BasisOfDifferentialsFirstKind(FFRS)];
+    else
+        x := X`KU ! (X`RU).1;
+        return [ X`KA ! (b / Differential(x)) : b in BasisOfDifferentialsFirstKind(X`U) ];
+    end if;
 end if;
 
 end function;
@@ -210,15 +226,10 @@ end if;
 X`A := Ambient(X`U); RA<u,v> := CoordinateRing(X`A); X`RA := RA; X`KA := FieldOfFractions(RA);
 X`RU := CoordinateRing(X`U); X`KU := FunctionField(X`U); X`F := BaseRing(X`RU);
 
-vprint EndoCheck, 3 : "";
-vprint EndoCheck, 3 : "Index of affine patch:";
-vprint EndoCheck, 3 : X`patch_index;
-vprint EndoCheck, 3 : "Index of uniformizer:";
-vprint EndoCheck, 3 : X`unif_index;
-vprint EndoCheck, 3 : "Affine patch:";
-vprint EndoCheck, 3 : X`U;
-vprint EndoCheck, 3 : "Base point:";
-vprint EndoCheck, 3 : X`P0;
+vprintf EndoCheck, 3 : "Index of affine patch: %o\n",  X`patch_index;
+vprintf EndoCheck, 3 : "Index of uniformizer: %o\n", X`unif_index;
+vprintf EndoCheck, 3 : "Affine patch: %o\n", X`U;
+vprintf EndoCheck, 3 : "Base point: %o\n", X`P0;
 
 /* Construct equation order */
 if Type(X`F) eq FldRat then
