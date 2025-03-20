@@ -170,7 +170,6 @@ end function;
 
 function CheckEquations(X, Y, P, Qs, DEs)
 
-vprint EndoCheck, 3 : "";
 vprint EndoCheck, 3 : "Check approximations zero:";
 for DE in DEs do
     for Q in Qs do
@@ -312,9 +311,9 @@ while true do
     end while;
     Append(~DEss_red, DefiningEquations(S_red));
 
-    vprint EndoCheck : "";
-    vprint EndoCheck : "Fractional CRT...";
+    vprintf EndoCheck : "Fractional CRT...";
     DEs := [ ];
+    vtime EndoCheck:
     for i:=1 to #DEss_red[1] do
         DE := Rprod ! 0;
         for mon in Monomials(DEss_red[1][i]) do
@@ -324,26 +323,24 @@ while true do
                 Rprod_red := Parent(DEss_red[j][1]);
                 Append(~rs, MonomialCoefficient(DEss_red[j][i], Monomial(Rprod_red, exp)));
             end for;
+            // vtime EndoCheck, 2:
             DE +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(Rprod, exp);
         end for;
         Append(~DEs, DE);
     end for;
-    vprint EndoCheck : "done.";
 
-    vprint EndoCheck : "";
     vprint EndoCheck : "Checking:";
-    vprint EndoCheck : "Step 1... ";
+    vprintf EndoCheck : "Step 1: CheckEquations... ";
     /* Note that P and Qs are calculated at the beginning of this function */
+    vtime EndoCheck :
     test1 := CheckEquations(X, Y, P, Qs, DEs);
-    vprint EndoCheck : "done.";
 
     if test1 then
-        vprint EndoCheck : "Step 2...";
+        vprintf EndoCheck : "Step 2: CheckIrreducibleComponent...";
         S := Scheme(AffineSpace(Rprod), DEs);
+        vtime EndoCheck :
         test2 := CheckIrreducibleComponent(X, Y, S);
-        vprint EndoCheck : "done.";
         if test2 then
-            vprint EndoCheck : "";
             vprint EndoCheck : "Divisor found!";
             return true, S;
         end if;
@@ -361,7 +358,8 @@ fs := CandidateDivisors(X, Y, d);
 n := #fs + Margin;
 vprint EndoCheck, 2 : "Number of terms in expansion:", n;
 
-vprint EndoCheck, 2 : "Expanding branches...";
+vprintf EndoCheck, 2 : "Expanding branches...";
+vtime EndoCheck, 2:
 while true do
     P, Qs, _, _ := Explode(Iterator); Pold := P; Qsold := Qs;
     prec := Precision(Parent(Qs[1][1]));
@@ -374,26 +372,22 @@ while true do
     assert &and[ IsWeaklyZero(P[j] - Pold[j]) : j in [1..#P] ];
     assert &and[ &and[ IsWeaklyZero(Qs[i][j] - Qsold[i][j]) : j in [1..#Qs[i] ] ] : i in [1..#Qs] ];
 end while;
-vprint EndoCheck, 2 : "done.";
 
 /* Fit a divisor to it */
 vprint EndoCheck, 2 : "Solving linear system...";
 vtime EndoCheck, 2:
 ICs := IrreducibleComponentsFromBranches(X, Y, fs, P, Qs : Margin := Margin div 2);
-vprint EndoCheck, 2 : "done.";
 
 for S in ICs do
     DEs := DefiningEquations(S);
     vprint EndoCheck, 2 : "Checking:";
-    vprint EndoCheck, 2 : "Step 1...";
+    vprintf EndoCheck, 2 : "Step 1: CheckEquations...";
     vtime EndoCheck, 2:
     test1 := CheckEquations(X, Y, P, Qs, DEs);
-    vprint EndoCheck, 2 : "done.";
     if test1 then
-        vprint EndoCheck, 2 : "Step 2...";
+        vprintf EndoCheck, 2 : "Step 2: CheckIrreducibleComponent...";
         vtime EndoCheck, 2:
         test2 := CheckIrreducibleComponent(X, Y, S);
-        vprint EndoCheck, 2 : "done.";
         if test2 then
             vprint EndoCheck, 2 : "Divisor found!";
             return true, S, Iterator;

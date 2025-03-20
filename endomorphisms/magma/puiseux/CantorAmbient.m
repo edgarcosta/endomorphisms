@@ -90,21 +90,23 @@ for f_approx in fs_approx do
     evs := ev_dens cat ev_nums;
     /* Note that floor here is need because precision may still be non-integral */
     prec := Floor(Minimum([ AbsolutePrecision(ev) : ev in evs ]));
-    M := Matrix([ [ X`F ! Coefficient(ev, i) : i in [0..(prec - 1)] ] : ev in evs ]);
-    Ker := Kernel(M);
+    M := Matrix([ [ X`F |  Coefficient(ev, i) : i in [0..(prec - 1)] ] : ev in evs ]);
+    vprintf EndoCheck, 2 : "Rank of M %o x %o...", Nrows(M), Ncols(M);
+    vtime EndoCheck, 2:
+    rk := Rank(M);
 
-    if Dimension(Ker) eq 0 then
-        return false, [ ];
-
-    else
-        B := Basis(Ker);
-        for b in B do
-            v := Eltseq(b);
-            f := &+[ v[i + #dens]*nums[i] : i in [1..#nums] ] / &+[ v[i]*dens[i] : i in [1..#dens] ];
-            Append(~fs, X`KA ! f);
-            break;
-        end for;
+    if rk eq Nrows(M) then
+        return false, [];
     end if;
+    vprintf EndoCheck, 2 : "Kernel of M %o x %o with rank = %o...", Nrows(M), Ncols(M), rk;
+    vtime EndoCheck, 2:
+    Ker := Kernel(M);
+    for b in Basis(Ker) do
+        v := Eltseq(b);
+        f := &+[ v[i + #dens]*nums[i] : i in [1..#nums] ] / &+[ v[i]*dens[i] : i in [1..#dens] ];
+        Append(~fs, X`KA ! f);
+        break;
+    end for;
 end for;
 return true, fs;
 
@@ -116,7 +118,6 @@ function CheckApproximation(X, Y, P, Qs, fs)
 
 g := Y`g;
 as := fs[1..g]; bs := fs[(g + 1)..(2*g)];
-vprint EndoCheck, 3 : "";
 vprint EndoCheck, 3 : "Check approximations zero:";
 
 for Q in Qs do
@@ -169,10 +170,10 @@ while true do
     if found then
         return true, ChangeFunctions(X, Y, fs);
     end if;
-    d +:= 1;
-    if d gt UpperBound then
+    if d ge UpperBound then
         return false, [];
     end if;
+    d := Min(2*d, UpperBound);
 end while;
 
 end intrinsic;
@@ -182,7 +183,8 @@ intrinsic CantorFromMatrixAmbientSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : M
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
 
 /* The order below matters because of our initialization conventions */
-InitializeCurve(Y, Q0 : AssertNonWP := true); InitializeCurve(X, P0);
+InitializeCurve(Y, Q0 : AssertNonWP := true);
+InitializeCurve(X, P0);
 /* Correct for patches and uniformization indices */
 NormM := ChangeTangentAction(X, Y, M);
 /* Correct for echelonization */
@@ -233,16 +235,17 @@ while true do
         if found then
             break;
         end if;
-        d +:= 1;
-        if d gt UpperBound then
+        if d ge UpperBound then
             return false, [];
         end if;
+        d := Min(2*d, UpperBound);
     end while;
     Append(~fss_red, fs_red);
 
     vprint EndoCheck : "";
-    vprint EndoCheck : "Fractional CRT... ";
     fs := [ ];
+    vprintf EndoCheck : "Fractional CRT... ";
+    vtime EndoCheck:
     for i:=1 to #fss_red[1] do
         num := RA ! 0;
         /* Because we took a large prime, the monomials that show up there will suffice */
@@ -259,20 +262,18 @@ while true do
         end for;
         Append(~fs, KA ! (num / den));
     end for;
-    vprint EndoCheck : "done.";
 
     vprint EndoCheck : "";
     vprint EndoCheck : "Checking:";
-    vprint EndoCheck : "Step 1... ";
+    vprintf EndoCheck : "Step 1: CheckApproximation... ";
+    vtime EndoCheck :
     test1 := CheckApproximation(X, Y, P, Qs, fs);
-    vprint EndoCheck : "done.";
 
     if test1 then
-        vprint EndoCheck : "Step 2... ";
+        vprintf EndoCheck : "Step 2: CheckCantor...";
+        vtime EndoCheck :
         test2 := CheckCantor(X, Y, fs);
-        vprint EndoCheck : "done.";
         if test2 then
-            vprint EndoCheck : "";
             vprint EndoCheck : "Functions found!";
             return true, ChangeFunctions(X, Y, fs);
         end if;
@@ -292,7 +293,8 @@ e := ExponentDenominator(Iterator[2][1][1]);
 vprint EndoCheck, 2 : "Number of digits in expansion:", n*e;
 
 /* Take non-zero image branch */
-vprint EndoCheck, 2 : "Expanding branches...";
+vprintf EndoCheck, 2 : "Expanding branches...";
+vtime EndoCheck, 2:
 while true do
     P, Qs, _, _ := Explode(Iterator); Pold := P; Qsold := Qs;
     prec := Precision(Parent(Qs[1][1]));
@@ -305,24 +307,22 @@ while true do
     assert &and[ IsWeaklyZero(P[j] - Pold[j]) : j in [1..#P] ];
     assert &and[ &and[ IsWeaklyZero(Qs[i][j] - Qsold[i][j]) : j in [1..#Qs[i] ] ] : i in [1..#Qs] ];
 end while;
-vprint EndoCheck, 2 : "done.";
 
 /* Fit a Cantor morphism to it */
-vprint EndoCheck, 2 : "Solving linear system... ";
+vprintf EndoCheck, 2 : "Solving linear system... ";
+vtime EndoCheck, 2:
 test, fs := FunctionsFromApproximations(X, Y, P, Qs, d : Margin := Margin div 2);
-vprint EndoCheck, 2 : "done.";
 
 if test then
     vprint EndoCheck, 2 : "Checking:";
-    vprint EndoCheck, 2 : "Step 1... ";
+    vprint EndoCheck, 2 : "Step 1 : CheckApproximation... ";
+    vtime EndoCheck, 2:
     test1 := CheckApproximation(X, Y, P, Qs, fs);
-    vprint EndoCheck, 2 : "done.";
     if test1 then
-        vprint EndoCheck, 2 : "Step 2...";
+        vprint EndoCheck, 2 : "Step 2 : CheckCantor...";
+        vtime EndoCheck, 2:
         test2 := CheckCantor(X, Y, fs);
-        vprint EndoCheck, 2 : "done.";
         if test2 then
-            vprint EndoCheck, 2 : "";
             vprint EndoCheck, 2 : "Functions found!";
             return true, fs, Iterator;
         end if;
