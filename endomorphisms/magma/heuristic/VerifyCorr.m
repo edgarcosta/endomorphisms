@@ -221,7 +221,7 @@ return X`base_point;
 end intrinsic;
 
 
-intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree := false, Al := "Cantor") -> .
+intrinsic Correspondence(X::Crv, Y::Crv, mor::. : P := 0, Q := 0, CheckDegree := false, Al := "Cantor", B := 300) -> .
 {Given curves X and Y, finds a correspondence with tangent representation A if it exists.
 Base points P and Q can be specified: otherwise these are found automatically over some extension.}
 
@@ -285,7 +285,7 @@ if (ISA(Type(R), Mtrx) and #Rows(R) eq #Rows(Transpose(R))) and IsScalar(R) then
     return true, "Multiplication by an integer";
 else
     if Al eq "Cantor" then
-        test, fs := CantorFromMatrixAmbientSplit(X, P, Y, Q, A);
+	test, fs := CantorFromMatrixAmbientSplit(X, P, Y, Q, A : B := B );
         if Genus(Y) eq 1 then
             if test and (not CorrespondenceVerifyG1(X, Y, A, fs : CheckDegree := CheckDegree)) then
                 error "Pullback incorrect";
@@ -293,7 +293,7 @@ else
         end if;
         return test, fs;
     elif Al eq "Divisor" then
-        test, D := DivisorFromMatrixAmbientSplit(X, P, Y, Q, A);
+        test, D := DivisorFromMatrixAmbientSplit(X, P, Y, Q, A : B := B);
         return test, D;
     end if;
 end if;
