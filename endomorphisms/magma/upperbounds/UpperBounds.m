@@ -21,7 +21,7 @@ det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
     q := p^(Integers()!(ga/genus));
     T := Parent(f).1;
     fof := TensorCharacteristicPolynomial(f,f);
-    g := Evaluate(fof, T/q);
+    g := Evaluate(fof, ChangeRing(T, Rationals())/q);
 
     dimtotal := 0;
     fieldext := 1;
