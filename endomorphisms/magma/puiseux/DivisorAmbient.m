@@ -251,7 +251,7 @@ end while;
 end intrinsic;
 
 
-function DivisorFromMatrixAmbientSplitRed(X, Y, h, d, UpperBound)
+function DivisorFromMatrixAmbientSplitRed(X, Y, NormM, h, d, UpperBound, Margin)
     /* Add corresponding data */
     X_red := ReduceCurveSplit(X, h);
     Y_red := ReduceCurveSplit(Y, h);
@@ -308,7 +308,7 @@ prs := [ ]; DEss_red := [* *];
 I := ideal<X`OF | 1>;
 
 d := LowerBound;
-while true do
+for notused:=1 to 10^10 do
     /* Find new prime */
     repeat
         // we should loop over the roots!
@@ -318,10 +318,8 @@ while true do
     vprint EndoCheck : "";
     vprint EndoCheck : "Split prime over", #Codomain(h);
 
-    b, S_red, d := DivisorFromMatrixAmbientSplitRed(X, Y, h, d, UpperBound);
+    b, S_red, d := DivisorFromMatrixAmbientSplitRed(X, Y, NormM, h, d, UpperBound, Margin);
     if not b then return false, []; end if;
-
-    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, X`g + 3);
     Append(~DEss_red, DefiningEquations(S_red));
 
     vprintf EndoCheck : "Fractional CRT...";
@@ -338,6 +336,7 @@ while true do
             end for;
             // vtime EndoCheck, 2:
             b, c := FractionalCRTSplit(rs, prs : I := I);
+            if not b then continue notused; end if;
             assert b; // FIXME we should keep going on the while loop
             DE +:= c * Monomial(Rprod, exp);
         end for;
@@ -360,7 +359,7 @@ while true do
             return true, S;
         end if;
     end if;
-end while;
+end for;
 
 end intrinsic;
 
