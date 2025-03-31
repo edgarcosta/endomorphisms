@@ -337,7 +337,6 @@ for notused:=1 to 10^10 do
             // vtime EndoCheck, 2:
             b, c := FractionalCRTSplit(rs, prs : I := I);
             if not b then continue notused; end if;
-            assert b; // FIXME we should keep going on the while loop
             DE +:= c * Monomial(Rprod, exp);
         end for;
         Append(~DEs, DE);
