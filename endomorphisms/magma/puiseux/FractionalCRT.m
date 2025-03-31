@@ -24,6 +24,16 @@ forward ReduceBasisOfDifferentialsSplit;
 forward ReduceAffinePatchSplit;
 forward ReduceCurveSplit;
 
+intrinsic Dimensions(P::AlgMat) -> RngIntElt, RngIntElt
+{ the dimensions of the matrices of its elements }
+    return Degree(P), Degree(P);
+end intrinsic;
+
+intrinsic Dimensions(P::ModMatRng) -> RngIntElt, RngIntElt
+{ the dimensions of the matrices of its elements }
+    return Rank(Domain(P)), Rank(Codomain(P));
+end intrinsic;
+
 
 function RandomSplitPrime(f, B)
 /*
@@ -60,20 +70,40 @@ end while;
 
 end function;
 
+function FractionalCRTQQMatrix(rs, ps : I := 0)
+    /* rs is a set of remainders at the set of primes ps */
+    ps := [ Norm(p) : p in ps ];
+    if Type(I) eq RngIntElt then if I eq 0 then I := &*ps; end if; end if;
+    I := Norm(I);
+    // coerce rs to the integers
+    printf "%m\n", Universe(rs);
+    n, m := Dimensions(Universe(rs));
+    rs := [ RMatrixSpace(IntegerRing(), n, m) | r : r in rs ];
+    x := CRT(rs, ps);
+    nb, db := x, x where x := Isqrt(I div 2);
+    xQQ := RationalReconstruction(x, I, nb, db, Rationals(), <1, 1>);
+    if Type(xQQ) eq RngIntElt then
+        assert xQQ eq 0;
+        return false, _;
+    end if;
+    return true, xQQ;
+end function;
 
 function FractionalCRTQQ(rs, ps : I := 0)
 /* rs is a set of remainders at the set of primes ps */
-
-ps := [ Norm(p) : p in ps ];
-if Type(I) eq RngIntElt then if I eq 0 then I := &*ps; end if; end if;
-rs := [ Integers() ! r : r in rs ];
-M := Matrix([ [ 1, CRT(rs, ps), Norm(I) ] ]);
-Lat := Lattice(Kernel(Transpose(M)));
-/* Fast way of finding shortest vector */
-v := Basis(LLL(Lat))[1];
-return -v[1]/v[2];
-
+    rs := [ Matrix(Integers(), [[r]]) : r in rs ];
+    b, r := FractionalCRTQQMatrix(rs, ps : I := I);
+    if b then
+        return true, r[1,1];
+    else
+        return false, _;
+    end if;
 end function;
+
+function FractionalCRTSplitMatrix(rs, ps : I := 0)
+    return false;
+end function;
+
 
 
 function FractionalCRTSplit(rs, ps : I := 0);
@@ -86,6 +116,7 @@ if Type(K) eq FldRat or Degree(K) eq 1 then return FractionalCRTQQ(rs, ps : I :=
 if Type(I) eq RngIntElt then I := &*ps; end if;
 BOK := Basis(OK); BI := Basis(I);
 
+// By the 3rd isomorphism theorem, we can work in Z/N = (Z[x]/f(x))/(<N, x - r>/f(x)) where f(r) = 0 mod N and N = &*||p||
 /* Find n that works */
 n := CRT([ Integers() ! r : r in rs ], [ Norm(p) : p in ps ]);
 /* Same approach as in previous function generalized */
@@ -98,6 +129,9 @@ end if;
 error "Division by zero";
 
 end function;
+
+
+
 
 
 function ReduceConstantSplit(x, h)
