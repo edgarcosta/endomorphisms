@@ -252,13 +252,17 @@ while true do
         for mon in Monomials(Numerator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Numerator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            num +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RA, exp);
+            b, c := FractionalCRTSplit(rs, prs : I := I);
+            assert b; // FIXME we should keep going on the while loop
+            num +:= c * Monomial(RA, exp);
         end for;
         den := RA ! 0;
         for mon in Monomials(Denominator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Denominator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            den +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(RA, exp);
+            b, c := FractionalCRTSplit(rs, prs : I := I);
+            assert b; // FIXME we should keep going on the while loop
+            den +:= c * Monomial(RA, exp);
         end for;
         Append(~fs, KA ! (num / den));
     end for;

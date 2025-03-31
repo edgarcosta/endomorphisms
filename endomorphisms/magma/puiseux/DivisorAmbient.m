@@ -251,6 +251,32 @@ end while;
 end intrinsic;
 
 
+function DivisorFromMatrixAmbientSplitRed(X, Y, h, d, UpperBound)
+    /* Add corresponding data */
+    X_red := ReduceCurveSplit(X, h);
+    Y_red := ReduceCurveSplit(Y, h);
+    NormM_red := ReduceMatrixSplit(NormM, h);
+
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, X`g + 3);
+
+     while true do
+        found, S_red, Iterator_red := DivisorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
+        /* If that does not work, give up and try higher degree. Note that
+         * d is initialized in the outer loop, so that we keep the degree that
+         * works. */
+        if found then
+            break;
+        end if;
+        if d ge UpperBound then
+            return false, [], _;
+        end if;
+        d := Min(2*d, UpperBound);
+    end while;
+
+    return true, S_red, d;
+end function;
+
+
 intrinsic DivisorFromMatrixAmbientSplit(X::Crv, P0::Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials (all over the same base ring), returns a corresponding divisor (if it exists), constructed via a CRT approach.
     The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
@@ -285,30 +311,17 @@ d := LowerBound;
 while true do
     /* Find new prime */
     repeat
+        // we should loop over the roots!
         pr, h := RandomSplitPrime(f, B);
     until not pr in prs;
     Append(~prs, pr); I *:= pr;
     vprint EndoCheck : "";
     vprint EndoCheck : "Split prime over", #Codomain(h);
 
-    /* Add corresponding data */
-    X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
-    NormM_red := ReduceMatrixSplit(NormM, h);
+    b, S_red, d := DivisorFromMatrixAmbientSplitRed(X, Y, h, d, UpperBound);
+    if not b then return false, []; end if;
 
     Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, X`g + 3);
-    while true do
-        found, S_red, Iterator_red := DivisorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
-        /* If that does not work, give up and try one degree higher. Note that
-         * d is initialized in the outer loop, so that we keep the degree that
-         * works. */
-        if found then
-            break;
-        end if;
-        if d ge UpperBound then
-            return false, [];
-        end if;
-        d := Min(2*d, UpperBound);
-    end while;
     Append(~DEss_red, DefiningEquations(S_red));
 
     vprintf EndoCheck : "Fractional CRT...";
@@ -324,7 +337,9 @@ while true do
                 Append(~rs, MonomialCoefficient(DEss_red[j][i], Monomial(Rprod_red, exp)));
             end for;
             // vtime EndoCheck, 2:
-            DE +:= FractionalCRTSplit(rs, prs : I := I) * Monomial(Rprod, exp);
+            b, c := FractionalCRTSplit(rs, prs : I := I);
+            assert b; // FIXME we should keep going on the while loop
+            DE +:= c * Monomial(Rprod, exp);
         end for;
         Append(~DEs, DE);
     end for;
