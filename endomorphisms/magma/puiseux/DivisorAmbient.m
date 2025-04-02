@@ -13,7 +13,7 @@
 /* TODO: These algorithms will be redundant soon */
 import "Branches.m": InitializeImageBranch, DevelopPoint;
 import "Conventions.m": ExtractHomomorphismsRing, VariableOrder, ExtractPoints;
-import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
+import "FractionalCRT.m": RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit, FractionalCRTSplitPolynomials;
 import "Initialize.m": InitializeCurve, ChangeTangentAction;
 import "RiemannRoch.m": RRBasis, RREvaluations, ProductEvaluations, GlobalProductBasis, GlobalProductBasisAlt;
 
@@ -323,24 +323,11 @@ for notused:=1 to 10^10 do
     Append(~DEss_red, DefiningEquations(S_red));
 
     vprintf EndoCheck : "Fractional CRT...";
-    DEs := [ ];
     vtime EndoCheck:
-    for i:=1 to #DEss_red[1] do
-        DE := Rprod ! 0;
-        for mon in Monomials(DEss_red[1][i]) do
-            exp := Exponents(mon);
-            rs := [* *];
-            for j:=1 to #DEss_red do
-                Rprod_red := Parent(DEss_red[j][1]);
-                Append(~rs, MonomialCoefficient(DEss_red[j][i], Monomial(Rprod_red, exp)));
-            end for;
-            // vtime EndoCheck, 2:
-            b, c := FractionalCRTSplit(rs, prs : I := I);
-            if not b then continue notused; end if;
-            DE +:= c * Monomial(Rprod, exp);
-        end for;
-        Append(~DEs, DE);
-    end for;
+    b, DEs := FractionalCRTSplitPolynomials(DEss_red, prs);
+    if not b then continue notused; end if;
+    // making sure we work with Rprod
+    ChangeUniverse(~DEs, Rprod);
 
     vprint EndoCheck : "Checking:";
     vprintf EndoCheck : "Step 1: CheckEquations... ";

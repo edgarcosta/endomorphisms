@@ -12,7 +12,7 @@
 
 import "Branches.m": PuiseuxLeadingExponent, InitializeImageBranch;
 import "Initialize.m": InitializeCurve, ChangeTangentAction;
-import "FractionalCRT.m": FractionalCRTQQ, RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit;
+import "FractionalCRT.m": FractionalCRTQQ, RandomSplitPrime, FractionalCRTSplit, ReduceMatrixSplit, ReduceCurveSplit, FractionalCRTSplitPolynomials;
 
 
 forward CandidateFunctions;
@@ -178,6 +178,28 @@ end while;
 
 end intrinsic;
 
+function CantorFromMatrixAmbientSplitRed(X, Y, NormM, h, d, UpperBound, Margin)
+    X_red := ReduceCurveSplit(X, h);
+    Y_red := ReduceCurveSplit(Y, h);
+    NormM_red := ReduceMatrixSplit(NormM, h);
+
+    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, X`g + 3);
+    while true do
+        found, fs_red, Iterator_red := CantorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
+        /* If that does not work, give up and try one degree higher. Note that
+         * d is initialized in the outer loop, so that we keep the degree that
+         * works. */
+        if found then
+            break;
+        end if;
+        if d ge UpperBound then
+            return false, [], _;
+        end if;
+        d := Min(2*d, UpperBound);
+    end while;
+    return true, fs_red, d;
+end function;
+
 
 intrinsic CantorFromMatrixAmbientSplit(X::Crv, P0:: Pt, Y::Crv, Q0::Pt, M::. : Margin := 2^5, LowerBound := 1, UpperBound := Infinity(), B := 300) -> BoolElt, .
 {Given two pointed curves (X, P0) and (Y, Q0) along with a tangent representation of a projection morphism on the standard basis of differentials, returns a corresponding Cantor morphism (if it exists). The parameter Margin specifies how many potentially superfluous terms are used in the development of the branch, the parameter LowerBound specifies at which degree one starts to look for a divisor, and the parameter UpperBound specifies where to stop.}
@@ -213,7 +235,7 @@ prs := [ ]; fss_red := [* *];
 I := ideal<X`OF | 1>;
 
 d := LowerBound;
-while true do
+for notused:=1 to 10^10 do
     repeat
         vprintf EndoCheck, 3 : "Searching for split prime...";
         pr, h := RandomSplitPrime(f, B);
@@ -222,37 +244,22 @@ while true do
     vprint EndoCheck : "";
     vprint EndoCheck : "Split prime over", #Codomain(h);
 
-    /* Add corresponding data */
-    X_red := ReduceCurveSplit(X, h); Y_red := ReduceCurveSplit(Y, h);
-    NormM_red := ReduceMatrixSplit(NormM, h);
-
-    Iterator_red := InitializedIterator(X_red, Y_red, NormM_red, X`g + 3);
-    while true do
-        found, fs_red, Iterator_red := CantorFromMatrixByDegree(X_red, Y_red, Iterator_red, d : Margin := Margin);
-        /* If that does not work, give up and try one degree higher. Note that
-         * d is initialized in the outer loop, so that we keep the degree that
-         * works. */
-        if found then
-            break;
-        end if;
-        if d ge UpperBound then
-            return false, [];
-        end if;
-        d := Min(2*d, UpperBound);
-    end while;
+    b, fs_red, d := CantorFromMatrixAmbientSplitRed(X, Y, NormM, h, d, UpperBound, Margin);
+    if not b then return false, []; end if;
     Append(~fss_red, fs_red);
 
     vprint EndoCheck : "";
     fs := [ ];
     vprintf EndoCheck : "Fractional CRT... ";
     vtime EndoCheck:
+    if false then
     for i:=1 to #fss_red[1] do
         num := RA ! 0;
         /* Because we took a large prime, the monomials that show up there will suffice */
         for mon in Monomials(Numerator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Numerator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            b, c := FractionalCRTSplit(rs, prs : I := I);
+            b, c := FractionalCRTSplit(rs, prs);
             assert b; // FIXME we should keep going on the while loop
             num +:= c * Monomial(RA, exp);
         end for;
@@ -260,12 +267,23 @@ while true do
         for mon in Monomials(Denominator(fss_red[1][i])) do
             exp := Exponents(mon);
             rs := [* MonomialCoefficient(Denominator(fss_red[j][i]), exp) : j in [1..#fss_red] *];
-            b, c := FractionalCRTSplit(rs, prs : I := I);
+            b, c := FractionalCRTSplit(rs, prs);
             assert b; // FIXME we should keep going on the while loop
             den +:= c * Monomial(RA, exp);
         end for;
         Append(~fs, KA ! (num / den));
     end for;
+    else
+        numerators_red:= [* [Numerator(f) : f in fs] : fs in fss_red *];
+        b, nums := FractionalCRTSplitPolynomials(numerators_red, prs);
+        if not b then continue notused; end if;
+        denominators_red := [* [Denominator(f) : f in fs] : fs in fss_red *];
+        b, dens := FractionalCRTSplitPolynomials(denominators_red, prs);
+        if not b then continue notused; end if;
+        ChangeUniverse(~nums, RA);
+        ChangeUniverse(~dens, RA);
+        fs := [ KA! n/dens[i] : i->n in nums ];
+    end if;
 
     vprint EndoCheck : "";
     vprint EndoCheck : "Checking:";
@@ -282,7 +300,7 @@ while true do
             return true, ChangeFunctions(X, Y, fs);
         end if;
     end if;
-end while;
+end for;
 
 end intrinsic;
 

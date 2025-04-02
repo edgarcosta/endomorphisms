@@ -1,5 +1,5 @@
 AttachSpec("../../endomorphisms/magma/spec");
-SetVerbose("EndoCheck", 1);
+SetVerbose("EndoCheck", 4);
 SetMemoryLimit(32*10^9);
 
 // Example 8

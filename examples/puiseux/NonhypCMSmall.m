@@ -1,5 +1,5 @@
 AttachSpec("../../endomorphisms/magma/spec");
-SetVerbose("EndoCheck", 3);
+SetVerbose("EndoCheck", 2);
 
 QQ := Rationals();
 R<t> := PolynomialRing(QQ);
@@ -40,8 +40,8 @@ print "Tangent representation:";
 print M;
 
 print "Calculating divisor...";
-//time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, M : LowerBound := 9, Margin := 2^8);
-time test, D := DivisorFromMatrixRRSplit(X, P0, X, P0, M : LowerBound := 1, Margin := 2^8);
+time test, D := DivisorFromMatrixAmbientSplit(X, P0, X, P0, M : LowerBound := 9, Margin := 2^8);
+//time test, D := DivisorFromMatrixRRSplit(X, P0, X, P0, M : LowerBound := 1, Margin := 2^8);
 print D;
 
 exit;

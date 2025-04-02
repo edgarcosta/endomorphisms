@@ -35,6 +35,24 @@ intrinsic Dimensions(P::ModMatRng) -> RngIntElt, RngIntElt
 end intrinsic;
 
 
+intrinsic RationalReconstruction(x::RngOrdElt, I::RngOrdIdl) -> BoolElt, FldElt
+{
+    Given an element x modulu I, attempts to rational reconstruct via LLL.
+    Returns true and the field element if succeeds, otherwise false.
+}
+    O := Order(I);
+    K := NumberField(O);
+    d := Degree(O);
+    M := Matrix(Integers(), [[0] cat Eltseq(b) : b in Basis(I) ] cat [[1] cat Eltseq(x)]);
+    v := Basis(LLL(Lattice(M)))[1];
+    if v[1] eq 0 then return false, _; end if;
+    n := &+[ v[i+1] * b : i->b in Basis(O) ];
+    d := v[1];
+    assert d*x - n in I;
+    return true, K!(1/d)*n;
+end intrinsic;
+
+
 function RandomSplitPrime(f, B)
 /*
  * Input:  A polynomial f over K and a positive integer B
@@ -70,13 +88,12 @@ end while;
 
 end function;
 
-function FractionalCRTQQMatrix(rs, ps : I := 0)
+function FractionalCRTQQMatrix(rs, ps)
     /* rs is a set of remainders at the set of primes ps */
     ps := [ Norm(p) : p in ps ];
-    if Type(I) eq RngIntElt then if I eq 0 then I := &*ps; end if; end if;
+    I := &*ps;
     I := Norm(I);
     // coerce rs to the integers
-    printf "%m\n", Universe(rs);
     n, m := Dimensions(Universe(rs));
     rs := [ RMatrixSpace(IntegerRing(), n, m) | r : r in rs ];
     x := CRT(rs, ps);
@@ -89,10 +106,10 @@ function FractionalCRTQQMatrix(rs, ps : I := 0)
     return true, xQQ;
 end function;
 
-function FractionalCRTQQ(rs, ps : I := 0)
+function FractionalCRTQQ(rs, ps)
 /* rs is a set of remainders at the set of primes ps */
     rs := [ Matrix(Integers(), [[r]]) : r in rs ];
-    b, r := FractionalCRTQQMatrix(rs, ps : I := I);
+    b, r := FractionalCRTQQMatrix(rs, ps);
     if b then
         return true, r[1,1];
     else
@@ -100,21 +117,45 @@ function FractionalCRTQQ(rs, ps : I := 0)
     end if;
 end function;
 
-function FractionalCRTSplitMatrix(rs, ps : I := 0)
-    return false;
+function FractionalCRTSplitMatrix(rs, ps)
+    OK := Order(ps[1]);
+    K := NumberField(OK);
+    norms := [Norm(p) : p in ps];
+    // expect all prime fields
+    assert &and [IsPrime(np) : np in norms];
+    if Type(K) eq FldRat or Degree(K) eq 1 then
+        // FIXME I might need to do some conversion in the later case
+        return FractionalCRTQQMatrix(rs, ps);
+    end if;
+    I := &*ps;
+
+    // By the 3rd isomorphism theorem, we can work in Z/N = (Z[x]/f(x))/(<N, x - r>/f(x))
+    // where f(r) = 0 mod N and N = &*||p||
+    assert #SequenceToSet(norms) eq #norms; // to be generalized later
+    rN := ChangeRing(CRT(rs, norms), OK);
+    n, m := Nrows(rN), Ncols(rN);
+    res := ZeroMatrix(K, n, m);
+    for i in [1..n], j in [1..m] do
+        b, res[i,j] := RationalReconstruction(rN[i,j], I);
+        if not b then
+            return false, _;
+        end if;
+    end for;
+    return true, res;
 end function;
 
 
 
-function FractionalCRTSplit(rs, ps : I := 0);
+function FractionalCRTSplit(rs, ps);
 /* rs is a set of remainders at the set of split primes ps
  * The product of these primes equals I: it can be passed as an argument to
  * avoid recalculation */
 
 OK := Order(ps[1]); K := NumberField(OK);
-if Type(K) eq FldRat or Degree(K) eq 1 then return FractionalCRTQQ(rs, ps : I := I); end if;
-if Type(I) eq RngIntElt then I := &*ps; end if;
-BOK := Basis(OK); BI := Basis(I);
+if Type(K) eq FldRat or Degree(K) eq 1 then return FractionalCRTQQ(rs, ps); end if;
+I := &*ps;
+BOK := Basis(OK);
+BI := Basis(I);
 
 // By the 3rd isomorphism theorem, we can work in Z/N = (Z[x]/f(x))/(<N, x - r>/f(x)) where f(r) = 0 mod N and N = &*||p||
 /* Find n that works */
@@ -124,13 +165,33 @@ M := Matrix(Integers(), [ [ b[i] : b in BOK ] cat [ KroneckerDelta(1, i)*n ] cat
 Lat := Lattice(Kernel(Transpose(M)));
 v := Basis(LLL(Lat))[1];
 if v[#BOK + 1] ne 0 then
-    return K ! ( (-1/v[#BOK + 1]) * &+[ v[i] * BOK[i] : i in [1..#BOK] ] );
+    return true, K ! ( (-1/v[#BOK + 1]) * &+[ v[i] * BOK[i] : i in [1..#BOK] ] );
 end if;
-error "Division by zero";
+return false, _;
 
 end function;
 
 
+function FractionalCRTSplitPolynomials(reductions, primes)
+    // expect the same number polynomials at each prime
+    assert #{#rs : rs in reductions} eq 1;
+    // expect the same number of variables at each prime
+    assert #{Rank(Universe(rs)) : rs in reductions} eq 1;
+    // and the same type
+    assert #{Type(Universe(rs)) : rs in reductions} eq 1;
+    exps := {@ Exponents(m) : m in Monomials(r), r in rs, rs in reductions @};
+    coeffs := [
+        Matrix(Integers(), [[ MonomialCoefficient(r, exp) : exp in exps] : r in rs])
+        : rs in reductions ];
+    b, rr := FractionalCRTSplitMatrix(coeffs, primes);
+    if not b then
+        return false, _;
+    end if;
+    // this creates the (uni)multivariate polynomial
+    Rprod := ChangeRing(Universe(reductions[1]), BaseRing(rr));
+    res := [ &+[Rprod |  Monomial(Rprod, exp)*rr[i,j] : j->exp in exps ] : i->_ in reductions[1] ];
+    return true, res;
+end function;
 
 
 
