@@ -53,4 +53,13 @@
     CantorAmbient.m
     DivisorAmbient.m
   }
+  finitefields
+  {
+    utils.m
+  }
+  upperbounds
+  {
+    UpperBounds.m
+    utils.m
+  }
 }

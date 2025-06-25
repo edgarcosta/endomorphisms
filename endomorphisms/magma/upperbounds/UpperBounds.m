@@ -45,12 +45,12 @@ det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
     return dimtotal, fieldext, endo;
 end intrinsic;
 
-
+/* Needs to be fixed
 // exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false) -> Tup
   {given a list of Frobenius polynomials return a Tuple ...}
-  degrees := {Degree(f) : f in frob_list*};
-  require #degrees eq 1, "the Frobenius should have all degree 2*genus";
+  degrees := {Degree(f) : f in frob_list};
+  require #degrees eq 1: "the Frobenius should have all degree 2*genus";
   g := Integers()!(Degree(frob_list[1])/2);
 
   if eta_char0 cmpeq false then
@@ -115,6 +115,7 @@ intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_cha
 
 
   // FIXME
-  return "a", "b"
+  return "a", "b";
 
 end intrinsic;
+*/
