@@ -14,7 +14,7 @@ declare attributes Crv : plane_model, period_matrix, riesrf, geo_endo_rep_CC, ge
 forward Homogenize;
 
 
-intrinsic PlaneCurve(F::RngMPolElt) -> Crv
+intrinsic _PlaneCurve(F::RngMPolElt) -> Crv
 {Returns the plane curve defined by F, which can be given affinely or
 projectively.}
 
@@ -109,7 +109,7 @@ elif Type(X) eq CrvPln then
     FK := DefiningPolynomials(X)[1];
     L := Codomain(h); S := PolynomialRing(L, 3);
     FL := &+[ h(MonomialCoefficient(FK, mon))*Monomial(S, Exponents(mon)) : mon in Monomials(FK) ];
-    return PlaneCurve(FL);
+    return _PlaneCurve(FL);
 
 elif IsGHCurve(X) then
     _, qK, fK := IsGHCurve(X);
@@ -222,7 +222,7 @@ for i in [1..#coeffs] do
     F0 +:= h(R ! coeffs[i])*S.2^(i - 1);
 end for;
 
-X`plane_model := PlaneCurve(F0);
+X`plane_model := _PlaneCurve(F0);
 return X`plane_model;
 
 end intrinsic;
@@ -244,6 +244,6 @@ intrinsic PlaneCurveExtra(F::RngMPolElt, prec::RngIntElt) -> Crv
 which can be given affinely or projectively. Only relevant in the Sage interface.}
 
 QQ := RationalsExtra(prec); RQQ := PolynomialRing(QQ, #GeneratorsSequence(Parent(F)));
-return PlaneCurve(RQQ ! F);
+return _PlaneCurve(RQQ ! F);
 
 end intrinsic;
