@@ -33,7 +33,7 @@ R<x,y,z> := PolynomialRing(F, 3);
 fs := [ ];
 f := x^4 - x^3*y + 2*x^3*z + 2*x^2*y*z + 2*x^2*z^2 - 2*x*y^2*z + 4*x*y*z^2 - y^3*z + 3*y^2*z^2 + 2*y*z^3 + z^4; Append(~fs, f);
 for f in fs do
-    X := PlaneCurve(f); Append(~Xs, X);
+    X := _PlaneCurve(f); Append(~Xs, X);
 end for;
 
 // General curve

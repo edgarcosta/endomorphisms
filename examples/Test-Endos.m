@@ -51,7 +51,7 @@ f := x^3*z + 2*x^2*y^2 + x^2*y*z + 3*x^2*z^2 - 4*x*y^3 - x*y^2*z + 5*x*y*z^2 + x
 f := 2*x^4 + 3*x^3*y + 4*x^3*z + 6*x^2*y^2 + 4*x^2*y*z + 7*x^2*z^2 + 4*x*y^3 + 4*x*y^2*z + 7*x*y*z^2 + 4*x*z^3 + 3*y^4 + 2*y^3*z + 3*y^2*z^2 + 5*y*z^3 + 2*z^4; Append(~fs, f);
 f := x^4 - x^3*y + 2*x^3*z + 2*x^2*y*z + 2*x^2*z^2 - 2*x*y^2*z + 4*x*y*z^2 - y^3*z + 3*y^2*z^2 + 2*y*z^3 + z^4; Append(~fs, f);
 for f in fs do
-    X := PlaneCurve(f); Append(~Xs, X);
+    X := _PlaneCurve(f); Append(~Xs, X);
 end for;
 
 // General curve

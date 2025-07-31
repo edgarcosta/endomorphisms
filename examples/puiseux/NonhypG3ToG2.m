@@ -5,11 +5,11 @@ F := Rationals();
 P2<x,y,z> := ProjectiveSpace(F, 2);
 /*
 fX := -x^4 + x^3*z - 4*x^2*z^2 - x*y^2*z + 3*x*z^3 + y^4 - 3*z^4;
-X := PlaneCurve(fX);
+X := _PlaneCurve(fX);
 P0 := X ! [1, 1, 0];
 */
 fX := -z^4 + z^3*y - 4*z^2*y^2 - z*x^2*y + 3*z*y^3 + x^4 - 3*y^4;
-X := PlaneCurve(fX);
+X := _PlaneCurve(fX);
 P0 := X ! [1, 0, 1];
 
 S<t> := PolynomialRing(F);
