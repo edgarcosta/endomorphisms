@@ -26,7 +26,7 @@ x^4+3*x^3*z+6*x^2*z^2+10*x*z^3+y^4+8*z^4
 
 for f in fs do
     print f;
-    X := PlaneCurve(f);
+    X := _PlaneCurve(f);
     L := HeuristicEndomorphismFieldOfDefinition(X);
     print L;
 end for;

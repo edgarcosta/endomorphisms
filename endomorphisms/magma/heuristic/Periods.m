@@ -73,7 +73,7 @@ function PeriodMatrixRetry(f, g, CC: sigma:=false)
         T := RandomInvertibleMatrix(g, 2);
         T := ChangeRing(T, BaseRing(Parent(f)));
         F := TransformForm(F, T);
-        X := PlaneCurve(F);
+        X := _PlaneCurve(F);
         f := DefiningPolynomial(AffinePatch(X, 1));
   end while;
   P := ChangeRing(BPM, CC);

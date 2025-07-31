@@ -73,7 +73,7 @@ R<x,y,z> := PolynomialRing(F, 3);
 D := [-5..5];
 f := &+[ Random(D)*mon : mon in MonomialsOfDegree(R, 4) ];
 f := f - Evaluate(f, [0, 0, 1])*z^4;
-X := PlaneCurve(f);
+X := _PlaneCurve(f);
 P0 := X ! [0, 0, 1];
 time InitializeCurve(X, P0);
 
