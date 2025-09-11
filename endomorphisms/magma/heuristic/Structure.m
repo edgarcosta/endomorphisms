@@ -145,7 +145,7 @@ for i in [1..#Ds] do
     /* Some relative dimensions */
     mdimfac := Rank(MatrixFromIdempotent(C, GensC, idem, EndoRep)) div 2;
     // TODO: This assumption is a bit too strong
-    assert mdimfac le 7;
+    // assert mdimfac le 7;
     m2reldimalg := Dimension(E1); test, sqrtm2reldimalg := IsSquare(m2reldimalg);
 
     DescFactorQQ := < >;
