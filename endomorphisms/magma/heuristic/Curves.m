@@ -223,6 +223,10 @@ for i in [1..#coeffs] do
 end for;
 
 X`plane_model := _PlaneCurve(F0);
+if IsAffine(X`plane_model) then
+    X`plane_model := ProjectiveClosure(X`plane_model);
+end if;
+
 return X`plane_model;
 
 end intrinsic;
