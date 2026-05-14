@@ -251,4 +251,16 @@ assert rr_only eq [["M_2(RR)"]];
 ok_f, _, _, _, _, _ := EndomorphismAlgebraUpperBound([F3, F7, F13] : eta_char0 := 1);
 assert not ok_f;
 
+// ----- Curve-level overloads -----
+// Compose LPolynomials with the frob_list form. Genus-2 example: a curve known
+// (LMFDB 169.a.169.1) to be the geom-Jacobian of E^2 -> factorsRR_geom = [M_2(RR)].
+// Curve: y^2 = x^5 + x^4 (this is the historical genus2_hyperelliptic[169] case).
+C169 := HyperellipticCurve(x^5 + x^4, x^3 + x + 1);
+ok_c, _, _, _, output_c, total_dim_c := EndomorphismAlgebraUpperBound(C169, 30);
+assert ok_c;
+assert total_dim_c eq 4;
+assert #output_c eq 1;
+assert output_c[1][4] eq ["M_2(RR)"];
+assert RealRepresentationBound(C169, 30) eq [["M_2(RR)"]];
+
 print "Test-UpperBounds: all assertions passed.";

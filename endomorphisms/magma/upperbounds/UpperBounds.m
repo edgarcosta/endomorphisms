@@ -185,6 +185,21 @@ intrinsic RealRepresentationBound(frob_list::SeqEnum[RngUPolElt]) -> SeqEnum
     return [tup[4] : tup in output];
 end intrinsic;
 
+intrinsic EndomorphismAlgebraUpperBound(C::Crv, B::RngIntElt : eta_char0 := false)
+    -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum, RngIntElt
+{Curve-level overload: build the L-polynomial list for primes up to B with
+ good reduction, then call the SeqEnum form. Convention matches Sage's
+ hyperelliptic_endomorphisms_upper_bound but is curve-type agnostic.}
+    frob_list := [pair[2] : pair in LPolynomials(C, B)];
+    return EndomorphismAlgebraUpperBound(frob_list : eta_char0 := eta_char0);
+end intrinsic;
+
+intrinsic RealRepresentationBound(C::Crv, B::RngIntElt) -> SeqEnum
+{Curve-level overload of RealRepresentationBound.}
+    frob_list := [pair[2] : pair in LPolynomials(C, B)];
+    return RealRepresentationBound(frob_list);
+end intrinsic;
+
 /* Needs to be fixed
 // exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false) -> Tup
