@@ -48,3 +48,28 @@ intrinsic SymmetricSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
     return res;
 end intrinsic;
 
+intrinsic RealRepresentationString(g::RngIntElt, K::FldNum, d::RngIntElt) -> SeqEnum[MonStgElt]
+    {Encode End(A^n) tensor RR as a list of strings, one per simple component.
+     g is the dimension of the simple factor, K its center, d the dimension of
+     the endomorphism algebra over K. Port of the Sage RR_representation routine
+     in endomorphisms/UpperBounds/utils.py. See Section 7 of the paper.}
+    if HasComplexConjugate(K) and not IsTotallyReal(K) then
+        n := Degree(K) div 2;
+        KRR := "CC";
+    else
+        KRR := "RR";
+        n := Degree(K);
+        if d mod 2 eq 0 and g mod 2 eq 0 and g gt 3 then
+            // Type II/III ambiguity: type III is excluded for g <= 3.
+            KRR := "M_2(RR) or HH";
+            d := d div 2;
+        end if;
+    end if;
+    if d gt 1 then
+        out := Sprintf("M_%o(%o)", d, KRR);
+    else
+        out := KRR;
+    end if;
+    return [out : i in [1..n]];
+end intrinsic;
+
