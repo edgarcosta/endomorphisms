@@ -68,4 +68,38 @@ for pair in lpolys_pl do
     assert Coefficient(Lp, 0) eq 1;
 end for;
 
+// ----- EndomorphismAlgebraEtaBound -----
+// Port of the eta/t narrowing step from Sage upper_bounds.py:55-78.
+// Sage docstring example: F3, F7, F13 are Frobenius polys for a genus-2 AV
+// that is geometrically isogenous to E^2 (so eta(A) = 4, t = 1).
+// Coefficients are over Z (matches the L-polynomials emitted by LPolynomials).
+
+ZZT<T> := PolynomialRing(Integers());
+F3 := 1 - T^2 + 9*T^4;
+F7 := 1 + 4*T^2 + 49*T^4;
+F13 := 1 - 8*T^2 + 169*T^4;
+
+ok, msg, eta_char0, t, eta_lower := EndomorphismAlgebraEtaBound([F3, F7, F13]);
+assert ok;
+assert eta_char0 eq 4;
+assert t eq 1;
+assert #eta_lower eq 3;
+// Every entry of eta_lower should be a length-t endo factorization.
+for endo in eta_lower do
+    assert #endo eq t;
+end for;
+
+// User-provided eta_char0 hint: if the hint is correct (4), result should
+// match. Internally eta := 2 * eta_char0 = 8.
+ok2, _, eta_char0_2, t2, _ := EndomorphismAlgebraEtaBound([F3, F7, F13] : eta_char0 := 4);
+assert ok2;
+assert eta_char0_2 eq 4;
+assert t2 eq 1;
+
+// User-provided eta_char0 hint that is too small: no prime hits eta(A_p) = 2*eta(A),
+// so we return success=false with eta_lower empty.
+ok3, msg3, _, _, eta_lower3 := EndomorphismAlgebraEtaBound([F3, F7, F13] : eta_char0 := 1);
+assert not ok3;
+assert #eta_lower3 eq 0;
+
 print "Test-UpperBounds: all assertions passed.";

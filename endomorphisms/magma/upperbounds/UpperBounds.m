@@ -38,11 +38,56 @@ det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
     fext := PowerCharacteristicPolynomial(f, fieldext);
 
     endo := Sort([
-        <power, power * factor.degree(), factor>
+        <power, power * Degree(factor), factor>
         where factor, power := Explode(factorpower)
         : factorpower in Factorization(fext)]);
 
     return dimtotal, fieldext, endo;
+end intrinsic;
+
+// exposes some of the functionality mentioned in Section 7.3 and Section 7.4
+intrinsic EndomorphismAlgebraEtaBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false)
+    -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum
+{The eta and t narrowing step from Section 7.3. Given a list of Frobenius
+ polynomials (one per prime), return <success, message, eta_char0, t, eta_lower>
+ where eta_lower lists the per-prime endomorphism factorizations from primes
+ that minimize both eta(A_p) and the number of factors. Port of the first half
+ of Sage endomorphisms_upper_bound.}
+    require #frob_list ne 0: "frob_list must not be empty";
+    g := Degree(frob_list[1]) div 2;
+    if eta_char0 cmpeq false then
+        eta := 4 * g * g;
+    else
+        eta := 2 * eta_char0;
+    end if;
+
+    t := g;
+    eta_lower := [];
+    for f in frob_list do
+        dimtotal, _, endo := EndomorphismAlgebra(f);
+        if dimtotal lt eta then
+            eta := dimtotal;
+            t := #endo;
+            eta_lower := [];
+        end if;
+        if dimtotal eq eta then
+            if #endo lt t then
+                t := #endo;
+                eta_lower := [];
+            end if;
+            if #endo eq t then
+                Append(~eta_lower, endo);
+            end if;
+        end if;
+    end for;
+
+    if #eta_lower eq 0 then
+        return false,
+               "We did not manage to find any prime where eta(A_p) = 2 * eta(A)",
+               0, 0, [];
+    end if;
+
+    return true, "", eta div 2, t, eta_lower;
 end intrinsic;
 
 /* Needs to be fixed
