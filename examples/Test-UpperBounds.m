@@ -195,4 +195,36 @@ assert result[1][2] eq [x];
 assert result[2][1] eq x;
 assert result[2][2] eq [x];
 
+// ----- EndomorphismAlgebraCenterBounds -----
+// Port of Sage upper_bounds.py:82-125. Takes (eta, t, eta_lower) from EtaBound,
+// checks multiset agreement across primes, and applies FieldIntersectionMatrix
+// to bound the centers of each simple factor.
+
+// Sage F3/F7/F13 example: drives the full output structure.
+ZZT<T> := PolynomialRing(Integers());
+F3 := 1 - T^2 + 9*T^4;
+F7 := 1 + 4*T^2 + 49*T^4;
+F13 := 1 - 8*T^2 + 169*T^4;
+_, _, eta_c, t, eta_lower := EndomorphismAlgebraEtaBound([F3, F7, F13]);
+
+ok, msg, output, total_dim := EndomorphismAlgebraCenterBounds(2 * eta_c, t, eta_lower);
+assert ok;
+assert total_dim eq 4;
+assert #output eq 1;
+ejnj, njdimAj, Lj, RRj := Explode(output[1]);
+assert ejnj eq 2;
+assert njdimAj eq 2;
+assert RRj eq ["M_2(RR)"];
+// The center is Q (intersection of three distinct imaginary quadratic fields).
+assert Degree(Lj[2][#Lj[2]]) eq 1;
+
+// Multiset disagreement case: build a synthetic eta_lower where the second
+// prime has a different multiset shape. Should return success=false.
+fake := [
+    [<2, 4, T^2 + 1>],   // prime 1: one factor pair (2, 4)
+    [<1, 2, T^2 + 1>, <1, 2, T^2 + 1>]  // prime 2: two factor pairs (1, 2)
+];
+ok2, msg2, _, _ := EndomorphismAlgebraCenterBounds(8, 1, fake);
+assert not ok2;
+
 print "Test-UpperBounds: all assertions passed.";

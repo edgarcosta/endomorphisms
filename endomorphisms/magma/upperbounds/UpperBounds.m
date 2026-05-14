@@ -90,6 +90,72 @@ intrinsic EndomorphismAlgebraEtaBound(frob_list::SeqEnum[RngUPolElt] : eta_char0
     return true, "", eta div 2, t, eta_lower;
 end intrinsic;
 
+intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lower::SeqEnum)
+    -> BoolElt, MonStgElt, SeqEnum, RngIntElt
+{The center-bounding step from Section 7.3-7.4. Verify the multiset of factor
+ shapes (m_p, m_p * deg(h_p)) agrees across all primes in eta_lower; if so,
+ apply FieldIntersectionMatrix per factor pair to bound the center of each
+ simple component. Returns <success, message, output, total_dim> where output
+ is a sequence of <ejnj, njdimAj, Lj, RRj> tuples (Lj from FieldIntersectionMatrix,
+ RRj from RealRepresentationString). Port of the second half of Sage
+ endomorphisms_upper_bound.}
+    require #eta_lower gt 0: "eta_lower must not be empty";
+    QQT := PolynomialRing(Rationals());
+
+    // Step 1: build the canonical multiset of (m, m*deg(h)) shapes from the
+    // first prime; assert every other prime gives the same multiset.
+    multiset0 := Sort([<x, y> where x, y, _ := Explode(elt) : elt in eta_lower[1]]);
+    for endo in eta_lower do
+        ms := Sort([<x, y> where x, y, _ := Explode(elt) : elt in endo]);
+        if ms ne multiset0 then
+            return false,
+                   "We only managed to find an upper bound for eta. If the upper bound for eta indeed is eta, then the number of factors is a strict upper bound",
+                   [], 0;
+        end if;
+    end for;
+
+    // Step 2: group factor polynomials by (m, m*deg(h)) pair, indexed by prime.
+    // Coerce to Q[T] but skip Polredabs at this stage: SubfieldsPolynomials
+    // applies it internally where it matters, and the Polredabs fallback (used
+    // when PARI/gp is unavailable) destroys integer coefficients here.
+    pair_set := SequenceToSet(multiset0);
+    frob_factors := AssociativeArray();
+    for pair in pair_set do
+        frob_factors[pair] := [[QQT |] : i in [1..#eta_lower]];
+    end for;
+    for i in [1..#eta_lower] do
+        for elt in eta_lower[i] do
+            x, y, hpj := Explode(elt);
+            Append(~frob_factors[<x, y>][i], QQT ! hpj);
+        end for;
+    end for;
+
+    // Step 3: for each pair, bound the center via FieldIntersectionMatrix and
+    // assemble the output tuple.
+    output := [];
+    total_dim := 0;
+    for pair in pair_set do
+        ejnj := pair[1];
+        njdimAj := pair[2] div 2;
+        L := FieldIntersectionMatrix(frob_factors[pair]);
+        for Lj in L do
+            Ljmax_poly := Lj[2][#Lj[2]];
+            if Degree(Ljmax_poly) eq 1 then
+                Ljmax := RationalsAsNumberField();
+            else
+                Ljmax := NumberField(Ljmax_poly);
+            end if;
+            RRj := RealRepresentationString(njdimAj, Ljmax, ejnj);
+            Append(~output, <ejnj, njdimAj, Lj, RRj>);
+            total_dim +:= ejnj^2 * Degree(Ljmax);
+        end for;
+    end for;
+
+    return true,
+           "We have putatively computed eta and t. Under this assumption, we bounded the corresponding centers.",
+           output, total_dim;
+end intrinsic;
+
 /* Needs to be fixed
 // exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false) -> Tup
