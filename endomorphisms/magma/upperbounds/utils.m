@@ -48,6 +48,28 @@ intrinsic SymmetricSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
     return res;
 end intrinsic;
 
+intrinsic LPolynomials(C::Crv, B::RngIntElt) -> SeqEnum
+{Return a sequence of <p, L_p> tuples for primes p < B where C has good reduction,
+ with L_p the L-polynomial of the reduction at p (constant term 1, degree 2*Genus(C)).
+ Port of Sage get_frob_list_HyperellipticCurve, curve-type-agnostic.}
+    g := Genus(C);
+    out := [];
+    p := 2;
+    while p lt B do
+        try
+            Cp := ChangeRing(C, GF(p));
+            Lp := LPolynomial(Cp);
+            if Degree(Lp) eq 2 * g then
+                Append(~out, <p, Lp>);
+            end if;
+        catch e
+            ;
+        end try;
+        p := NextPrime(p);
+    end while;
+    return out;
+end intrinsic;
+
 intrinsic RealRepresentationString(g::RngIntElt, K::FldNum, d::RngIntElt) -> SeqEnum[MonStgElt]
     {Encode End(A^n) tensor RR as a list of strings, one per simple component.
      g is the dimension of the simple factor, K its center, d the dimension of

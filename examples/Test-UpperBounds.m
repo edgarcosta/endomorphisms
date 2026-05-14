@@ -30,4 +30,42 @@ assert RealRepresentationString(2, K, 2) eq ["M_2(RR)", "M_2(RR)"];
 K := NumberField(x^2 - 2);
 assert RealRepresentationString(4, K, 2) eq ["M_2(RR) or HH", "M_2(RR) or HH"];
 
+// ----- LPolynomials -----
+// Port of Sage get_frob_list_HyperellipticCurve, curve-type-agnostic.
+// Returns [<p, L_p> : p < B with good reduction].
+
+// Hyperelliptic genus 2: y^2 = x^5 + x + 1
+C := HyperellipticCurve(x^5 + x + 1);
+g := Genus(C);
+lpolys := LPolynomials(C, 20);
+assert #lpolys gt 0;
+for pair in lpolys do
+    p, Lp := Explode(pair);
+    assert IsPrime(p);
+    assert p lt 20;
+    assert Degree(Lp) eq 2 * g;
+    assert Coefficient(Lp, 0) eq 1;
+    assert Coefficient(Lp, 2 * g) eq p^g;
+end for;
+
+// Cross-check: every (p, Lp) in the output must equal LPolynomial of the
+// base-changed curve. Catches argument shuffling / convention errors.
+for pair in lpolys do
+    p, Lp := Explode(pair);
+    assert Lp eq LPolynomial(ChangeRing(C, GF(p)));
+end for;
+
+// Plane quartic genus 3: a smooth plane quartic.
+P2<X, Y, Z> := ProjectiveSpace(Rationals(), 2);
+Cpl := Curve(P2, X^4 + Y^4 + Z^4 + X*Y*Z*(X+Y+Z));
+gpl := Genus(Cpl);
+assert gpl eq 3;
+lpolys_pl := LPolynomials(Cpl, 12);
+assert #lpolys_pl gt 0;
+for pair in lpolys_pl do
+    p, Lp := Explode(pair);
+    assert Degree(Lp) eq 2 * gpl;
+    assert Coefficient(Lp, 0) eq 1;
+end for;
+
 print "Test-UpperBounds: all assertions passed.";
