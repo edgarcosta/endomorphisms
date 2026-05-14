@@ -156,6 +156,35 @@ intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lowe
            output, total_dim;
 end intrinsic;
 
+intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false)
+    -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum, RngIntElt
+{Top-level upper-bound orchestrator. Calls EndomorphismAlgebraEtaBound, then
+ (on success) EndomorphismAlgebraCenterBounds. Returns the bundled 6-tuple
+ <success, message, eta_char0, t, output, total_dim> mirroring Sage's
+ endomorphisms_upper_bound. See Section 7 of the paper.}
+    ok, msg, eta_c, t, eta_lower := EndomorphismAlgebraEtaBound(
+        frob_list : eta_char0 := eta_char0);
+    if not ok then
+        return false, msg, 0, 0, [], 0;
+    end if;
+    ok2, msg2, output, total_dim := EndomorphismAlgebraCenterBounds(2 * eta_c, t, eta_lower);
+    if not ok2 then
+        return false, msg2, eta_c, t, [], 0;
+    end if;
+    return true, msg2, eta_c, t, output, total_dim;
+end intrinsic;
+
+intrinsic RealRepresentationBound(frob_list::SeqEnum[RngUPolElt]) -> SeqEnum
+{Convenience wrapper extracting just the RR-representation strings for each
+ simple factor. Returns an empty sequence when the upper bound cannot be
+ established. Mirrors Sage's RR_upper_bound.}
+    ok, _, _, _, output, _ := EndomorphismAlgebraUpperBound(frob_list);
+    if not ok then
+        return [];
+    end if;
+    return [tup[4] : tup in output];
+end intrinsic;
+
 /* Needs to be fixed
 // exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false) -> Tup

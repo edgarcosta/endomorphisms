@@ -227,4 +227,28 @@ fake := [
 ok2, msg2, _, _ := EndomorphismAlgebraCenterBounds(8, 1, fake);
 assert not ok2;
 
+// ----- EndomorphismAlgebraUpperBound + RealRepresentationBound (frob_list) -----
+// Top-level wrappers. Sage docstring example must round-trip:
+//   endomorphisms_upper_bound([[3,F3],[7,F7],[13,F13]]) ==
+//     (True, 'We have...', 4, 1, [(2, 2, [T, [T]], ['M_2(RR)'])], 4)
+
+ok, msg, eta_c2, t2, output2, total_dim2 := EndomorphismAlgebraUpperBound([F3, F7, F13]);
+assert ok;
+assert eta_c2 eq 4;
+assert t2 eq 1;
+assert total_dim2 eq 4;
+assert #output2 eq 1;
+ej, nj, Lj, RR := Explode(output2[1]);
+assert ej eq 2;
+assert nj eq 2;
+assert RR eq ["M_2(RR)"];
+
+// RealRepresentationBound returns just the RRj lists.
+rr_only := RealRepresentationBound([F3, F7, F13]);
+assert rr_only eq [["M_2(RR)"]];
+
+// Failure passthrough: the eta_char0 = 1 path that EtaBound rejects.
+ok_f, _, _, _, _, _ := EndomorphismAlgebraUpperBound([F3, F7, F13] : eta_char0 := 1);
+assert not ok_f;
+
 print "Test-UpperBounds: all assertions passed.";
