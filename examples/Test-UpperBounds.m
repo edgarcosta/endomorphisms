@@ -3,6 +3,7 @@
 // Assumes MAGMA_USER_SPEC points at CHIMP/CHIMP.spec, or attach manually.
 
 AttachSpec("../endomorphisms/magma/spec");
+AttachSpec("/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec");
 
 SetVerbose("EndoFind", 0);
 
@@ -101,5 +102,97 @@ assert t2 eq 1;
 ok3, msg3, _, _, eta_lower3 := EndomorphismAlgebraEtaBound([F3, F7, F13] : eta_char0 := 1);
 assert not ok3;
 assert #eta_lower3 eq 0;
+
+// ----- SubfieldsPolynomials -----
+// Port of Sage subfields_polynomials. Returns polredabs'd defining polynomials
+// of every subfield of NumberField(f), Q included. Already-canonical inputs
+// are used so the test passes even without PARI/gp installed.
+
+// Q(sqrt 5): subfields are Q and Q(sqrt 5).
+sf := SubfieldsPolynomials(x^2 - 5);
+assert #sf eq 2;
+assert x in sf;
+assert (x^2 - 5) in sf;
+
+// Q(2^(1/4)): subfields are Q, Q(sqrt 2), Q(2^(1/4)).
+sf := SubfieldsPolynomials(x^4 - 2);
+assert #sf eq 3;
+assert x in sf;
+assert (x^2 - 2) in sf;
+assert (x^4 - 2) in sf;
+
+// ----- FieldIntersection -----
+// Largest common subfield as a defining polynomial. Port of Sage
+// field_intersection in endomorphisms/UpperBounds/utils.py.
+
+// Isomorphic case: returns absolute polynomial of L (NOT polredabs'd; matches
+// Sage). Q(sqrt 5) ~ Q(sqrt 5).
+L := NumberField(x^2 - 5);
+assert FieldIntersection(L, L) eq x^2 - 5;
+
+// Linearly disjoint: Q(sqrt 2) and Q(sqrt 3) share only Q.
+L := NumberField(x^2 - 2);
+K := NumberField(x^2 - 3);
+assert FieldIntersection(L, K) eq x;
+
+// Nested: Q(sqrt 2) is a subfield of Q(2^(1/4)). Intersection is Q(sqrt 2).
+L := NumberField(x^4 - 2);
+K := NumberField(x^2 - 2);
+assert FieldIntersection(L, K) eq x^2 - 2;
+
+// ----- FieldIntersectionList -----
+// Iterative intersection across a list of polynomials. Port of Sage
+// field_intersection_list in endomorphisms/UpperBounds/utils.py.
+
+// Singleton: intersection is the field itself.
+assert FieldIntersectionList([x^2 - 5]) eq x^2 - 5;
+
+// Linearly disjoint: only Q in common.
+assert FieldIntersectionList([x^2 - 2, x^2 - 3]) eq x;
+
+// Same field, two different defining polynomials.
+assert FieldIntersectionList([x^2 - 2, x^2 - 8]) eq x^2 - 2;
+
+// Any degree-1 polynomial collapses the intersection to Q.
+assert FieldIntersectionList([x, x^2 - 3]) eq x;
+
+// ----- FieldIntersectionMatrix -----
+// Port of Sage field_intersection_matrix. For each column, compute the common
+// subfields across rows (each row contributes the union of subfields of its
+// polynomials). Output structure: <A_k, B_k> per column, where B_k is the
+// sorted list of common-subfield defining polynomials and A_k is the maximal
+// common subfield polynomial when uniquely determined (else the zero polynomial).
+
+// Single-column shortcut: returns full subfield list of the intersection field.
+M := [[x^2 - 5]];
+result := FieldIntersectionMatrix(M);
+assert #result eq 1;
+assert result[1][1] eq x^2 - 5;
+assert SequenceToSet(result[1][2]) eq {x, x^2 - 5};
+
+// Single-column, linearly disjoint rows: intersection is Q.
+M := [[x^2 - 2], [x^2 - 3]];
+result := FieldIntersectionMatrix(M);
+assert #result eq 1;
+assert result[1][1] eq x;
+assert result[1][2] eq [x];
+
+// Multi-column, all rows agree.
+M := [[x, x^2 - 2], [x, x^2 - 2]];
+result := FieldIntersectionMatrix(M);
+assert #result eq 2;
+assert result[1][1] eq x;
+assert result[1][2] eq [x];
+assert result[2][1] eq x^2 - 2;
+assert SequenceToSet(result[2][2]) eq {x, x^2 - 2};
+
+// Multi-column, rows totally disagree: every column collapses to Q.
+M := [[x^2 - 2, x^2 - 3], [x^2 - 5, x^2 - 7]];
+result := FieldIntersectionMatrix(M);
+assert #result eq 2;
+assert result[1][1] eq x;
+assert result[1][2] eq [x];
+assert result[2][1] eq x;
+assert result[2][2] eq [x];
 
 print "Test-UpperBounds: all assertions passed.";

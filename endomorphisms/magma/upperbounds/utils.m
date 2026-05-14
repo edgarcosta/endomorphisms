@@ -48,6 +48,160 @@ intrinsic SymmetricSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
     return res;
 end intrinsic;
 
+intrinsic FieldIntersection(L::FldNum, K::FldNum) -> RngUPolElt
+{Defining polynomial of the largest common subfield of L and K. Returns the
+ polynomial x (defining Q) when L and K share only the rationals. Port of
+ Sage field_intersection in endomorphisms/UpperBounds/utils.py.}
+    if IsIsomorphic(L, K) then
+        return DefiningPolynomial(AbsoluteField(L));
+    end if;
+    // Magma's Subfields(K) returns K-and-proper-subfields excluding Q.
+    // Sort ascending by absolute degree so we can iterate large-to-small.
+    Ksubs := [s[1] : s in Subfields(K)];
+    Lsubs := [s[1] : s in Subfields(L)];
+    Sort(~Ksubs, func<a, b | Degree(AbsoluteField(a)) - Degree(AbsoluteField(b))>);
+    Sort(~Lsubs, func<a, b | Degree(AbsoluteField(a)) - Degree(AbsoluteField(b))>);
+    Kupper := #Ksubs;
+    for i := #Lsubs to 1 by -1 do
+        sL := Lsubs[i];
+        dL := Degree(AbsoluteField(sL));
+        for j := Kupper to 1 by -1 do
+            sK := Ksubs[j];
+            dK := Degree(AbsoluteField(sK));
+            if dK eq dL then
+                if IsIsomorphic(sL, sK) then
+                    return Polredabs(DefiningPolynomial(AbsoluteField(sL)));
+                end if;
+            elif dK lt dL then
+                break;
+            else
+                Kupper -:= 1;
+            end if;
+        end for;
+    end for;
+    // No non-trivial common subfield: return the polynomial defining Q.
+    return Parent(DefiningPolynomial(L)).1;
+end intrinsic;
+
+intrinsic FieldIntersectionMatrix(M::SeqEnum[SeqEnum[RngUPolElt]]) -> SeqEnum
+{For each column k of M, compute the set of common subfields across rows
+ (each row contributes the union of subfields of its polynomials). Return a
+ sequence of <A_k, B_k> tuples: B_k is the sorted list of polynomials defining
+ the common subfields, A_k is the maximal common subfield polynomial when
+ uniquely determined or the zero polynomial otherwise. Port of Sage
+ field_intersection_matrix in endomorphisms/UpperBounds/utils.py.}
+    require #M gt 0: "matrix must have at least one row";
+    require #M[1] gt 0: "matrix must have at least one column";
+    R := Parent(M[1][1]);
+
+    // Single-column shortcut: collapse to FieldIntersectionList.
+    if #M[1] eq 1 then
+        f := FieldIntersectionList([row[1] : row in M]);
+        return [<f, SubfieldsPolynomials(f)>];
+    end if;
+
+    // Pick the row with the smallest discriminant-GCD as the working row.
+    Di := 1;
+    Dmin := 0;
+    for i in [1..#M] do
+        D := 0;
+        for poly in M[i] do
+            D := Gcd(D, Integers() ! Discriminant(poly));
+        end for;
+        if Dmin eq 0 or D lt Dmin then
+            Dmin := D;
+            Di := i;
+        end if;
+        if Dmin eq 1 then break; end if;
+    end for;
+
+    working_row := M[Di];
+    subfields_union := [SequenceToSet([R | ]) : i in [1..#M]];
+    subfields_cached := [false : i in [1..#M]];
+    output := [];
+    for k in [1..#working_row] do
+        f := working_row[k];
+        Lsub := SequenceToSet(SubfieldsPolynomials(f));
+        for i in [1..#M] do
+            if i ne Di then
+                if not subfields_cached[i] then
+                    U := SequenceToSet([R | ]);
+                    for g in M[i] do
+                        U := U join SequenceToSet(SubfieldsPolynomials(g));
+                    end for;
+                    subfields_union[i] := U;
+                    subfields_cached[i] := true;
+                end if;
+                Lsub := Lsub meet subfields_union[i];
+                if #Lsub eq 1 then break; end if;
+            end if;
+        end for;
+        Lsub_list := Sort(SetToSequence(Lsub),
+                          func<a, b | Degree(a) - Degree(b)>);
+        Ak := R ! 0;
+        if #Lsub_list eq 1 then
+            Ak := R.1;
+        elif Degree(Lsub_list[#Lsub_list]) ne Degree(Lsub_list[#Lsub_list - 1]) then
+            // Unique largest subfield: verify it actually contains all the others.
+            maxsubs := Sort(SubfieldsPolynomials(Lsub_list[#Lsub_list]),
+                            func<a, b | Degree(a) - Degree(b)>);
+            if maxsubs eq Lsub_list then
+                Ak := Lsub_list[#Lsub_list];
+            end if;
+        end if;
+        Append(~output, <Ak, Lsub_list>);
+    end for;
+    return output;
+end intrinsic;
+
+intrinsic FieldIntersectionList(polys::SeqEnum[RngUPolElt]) -> RngUPolElt
+{Defining polynomial of the intersection of NumberField(f) over all f in polys.
+ Returns x (defining Q) when the intersection is just the rationals. Port of
+ Sage field_intersection_list in endomorphisms/UpperBounds/utils.py.}
+    require #polys gt 0: "polys must not be empty";
+    R := Parent(polys[1]);
+    // Any degree-1 polynomial defines Q, so the intersection is forced to Q.
+    if exists{f : f in polys | Degree(f) eq 1} then
+        return R.1;
+    end if;
+    // Fast path: GCD of discriminants of the first ~1000 polynomials.
+    // If it is 1 the fields are linearly disjoint over Q.
+    D := 0;
+    for i in [1..Min(#polys, 1000)] do
+        D := Gcd(D, Integers() ! Discriminant(polys[i]));
+        if D eq 1 then
+            return R.1;
+        end if;
+    end for;
+    // Iterative intersection.
+    L := NumberField(polys[1]);
+    for f in polys do
+        K := NumberField(f);
+        inter := FieldIntersection(L, K);
+        if Degree(inter) eq 1 then
+            return R.1;
+        end if;
+        L := NumberField(inter);
+    end for;
+    return Polredabs(DefiningPolynomial(AbsoluteField(L)));
+end intrinsic;
+
+intrinsic SubfieldsPolynomials(f::RngUPolElt) -> SeqEnum[RngUPolElt]
+{Return polredabs'd defining polynomials of every subfield of NumberField(f),
+ including the rational subfield Q (defined by the polynomial x). Port of
+ Sage subfields_polynomials in endomorphisms/UpperBounds/utils.py.}
+    R := Parent(f);
+    if Degree(f) eq 1 then
+        return [Polredabs(R.1)];
+    end if;
+    out := [Polredabs(R.1)];
+    K := NumberField(f);
+    for sub in Subfields(K) do
+        Append(~out, Polredabs(DefiningPolynomial(AbsoluteField(sub[1]))));
+    end for;
+    return out;
+end intrinsic;
+
 intrinsic LPolynomials(C::Crv, B::RngIntElt) -> SeqEnum
 {Return a sequence of <p, L_p> tuples for primes p < B where C has good reduction,
  with L_p the L-polynomial of the reduction at p (constant term 1, degree 2*Genus(C)).
