@@ -13,6 +13,21 @@ import "OverField.m": SubgroupGeneratorsUpToConjugacy;
 forward SatoTateGroupG2QQ;
 forward SatoTateShorthand;
 forward SatoTateShorthandG2;
+forward DescRRShorthand;
+
+function DescRRShorthand(EndoDescRR)
+    descs := [ "RR", "CC", "undef", "HH" ];
+    out := [];
+    for fac in EndoDescRR do
+        m, code := Explode(fac);
+        if m eq 1 then
+            Append(~out, descs[code]);
+        else
+            Append(~out, "M_" cat Sprint(m) cat " (" cat descs[code] cat ")");
+        end if;
+    end for;
+    return out;
+end function;
 
 
 intrinsic SatoTateGroup(EndoStructBase::List, GeoEndoRep::SeqEnum, GalK::List : Shorthand := "") -> MonStgElt
@@ -103,7 +118,7 @@ if Shorthand eq "" then
     GeoEndoStructBase := EndomorphismData(GeoEndoRep, GalL);
     Shorthand := SatoTateShorthandG2(GeoEndoStructBase);
 end if;
-descRR := EndoStructBase[3][3];
+descRR := DescRRShorthand(EndoStructBase[3][1]);
 K := FixedFieldExtra(L, [ Gphi(gen) : gen in gensH ]);
 
 /* Usually the shorthand and endomorphism structure of the base field determine
@@ -179,7 +194,7 @@ elif Shorthand eq "F" then
             gensH_prime := Generators(H_prime);
             GalK_prime := [* gensH_prime, Gphi *];
             EndoStruct_prime := EndomorphismData(GeoEndoRep, GalK_prime);
-            descRR_prime := EndoStruct_prime[3][3];
+            descRR_prime := DescRRShorthand(EndoStruct_prime[3][1]);
             if descRR_prime eq ["M_2 (RR)"] then
                 return "D_{6,1}";
             elif descRR_prime eq ["HH"] then
@@ -221,7 +236,7 @@ elif Shorthand eq "F" then
             gensH_prime := Generators(H_prime);
             GalK_prime := [* gensH_prime, Gphi *];
             EndoStruct_prime := EndomorphismData(GeoEndoRep, GalK_prime);
-            descRR_prime := EndoStruct_prime[3][3];
+            descRR_prime := DescRRShorthand(EndoStruct_prime[3][1]);
             if descRR_prime eq ["M_2 (RR)"] then
                 return "C_{6,1}";
             elif descRR_prime eq ["HH"] then
@@ -303,7 +318,7 @@ function SatoTateShorthandG2(GeoEndoStructBase)
 // Sato-Tate group corresponding to GeoEndoStructBase. Assumes that the genus
 // equals 2.
 
-descRR := GeoEndoStructBase[3][3];
+descRR := DescRRShorthand(GeoEndoStructBase[3][1]);
 case descRR:
     when ["RR"]:       return "A";
     when ["RR", "RR"]: return "B";
