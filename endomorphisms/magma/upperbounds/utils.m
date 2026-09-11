@@ -109,13 +109,9 @@ intrinsic FieldIntersectionMatrix(M::SeqEnum[SeqEnum[RngUPolElt]]) -> SeqEnum
     require #M[1] gt 0: "matrix must have at least one column";
     R := Parent(M[1][1]);
 
-    // When every row is a single entry, each candidate embeds into every entry,
-    // so a candidate other than Q is ramified at a prime (Minkowski) dividing
-    // every entry's field discriminant, hence dividing the gcd below. A trivial
-    // gcd therefore settles the column without a Subfields or Polredabs call,
-    // which is what the removed shortcut used to buy. With several columns a row
-    // contributes the union of its entries, a candidate need not embed into every
-    // entry, and this sieve does not apply.
+    // One entry per row: a candidate above Q is ramified somewhere (Minkowski),
+    // so it divides the gcd below. Trivial gcd settles the column with no
+    // Subfields or Polredabs call. Several columns take unions, so it cannot apply.
     if forall{row : row in M | #row eq 1} then
         if Abs(Gcd([Integers() | integral_discriminant(row[1]) : row in M])) eq 1 then
             return [<R.1, [R.1]>];

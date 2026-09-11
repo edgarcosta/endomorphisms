@@ -10,20 +10,9 @@ SetVerbose("EndoFind", 0);
 R<x> := PolynomialRing(Rationals());
 
 // ----- AlternatingSquare / SymmetricSquare CharacteristicPolynomial -----
-// These are the exterior/symmetric square constructions of CMSV
-// (arXiv:1705.09248) Section 7. The defining identity is
-// TensorCharacteristicPolynomial(f, f) = alt^2 * f2 (f2 the char poly of the
-// square), so alt has degree d*(d-1)/2 and the symmetric square Tensor/alt has
-// degree d*(d+1)/2. A wrong degree here is exactly what the missing product in
-// the degree assertion of AlternatingSquareCharacteristicPolynomial hid.
-
-// f = (1 + x + 2x^2)^2 is the square of the Frobenius polynomial of an elliptic
-// curve over F_2 with a_2 = -1. Writing 1 + x + 2x^2 = (1 - a x)(1 - b x), so
-// a + b = -1 and a b = 2, the input has reciprocal roots a, a, b, b and its
-// alternating square has reciprocal roots a^2, b^2 and a b with multiplicity 4.
-// Since a^2 + b^2 = -3 and a^2 b^2 = 4, that product is
-// (1 + 3x + 4x^2)(1 - 2x)^4, expanded below. The literal is therefore derived
-// from the elementary symmetric functions of the input, not from the intrinsic.
+// CMSV (arXiv:1705.09248) Section 7. Tensor(f,f) = alt^2 * f2, so alt has degree
+// d*(d-1)/2. The literals below come from the elementary symmetric functions of
+// f = (1 - a x)^2 (1 - b x)^2 with a + b = -1, a b = 2, not from the intrinsic.
 procedure test_alternating_and_symmetric_square_degree_4()
     fsq := (1 + x + 2*x^2)^2;
     altsq := AlternatingSquareCharacteristicPolynomial(fsq);
@@ -115,23 +104,16 @@ for pair in lpolys_pl do
 end for;
 
 // ----- EndomorphismAlgebra over prime fields -----
-// The leading coefficient of a Weil polynomial normalised to constant term 1
-// is q^genus, so genus 1 over a prime field needs the exact 1st root; asking
-// for a nontrivial perfect power rejects every genus-1 Weil polynomial over a
-// prime field. The two genus-1 inputs are the Frobenius polynomials of CLV
-// (arXiv:1906.02803) Example 5.5, elliptic curve 11.a2 at p = 2 and p = 3,
-// where the paper records M(2) = Q(sqrt(-1)) and M(3) = Q(sqrt(-11)).
+// A Weil polynomial with constant term 1 has leading coefficient q^genus, so
+// genus 1 needs the exact first root. Inputs are CLV (arXiv:1906.02803)
+// Example 5.5: 11.a2 at p = 2, 3, where M(2) = Q(i) and M(3) = Q(sqrt(-11)).
 
 ZZTe<Te> := PolynomialRing(Integers());
 QTe<TQ> := PolynomialRing(Rationals());
 
-// p = 2: a_2 = -2 is even, so 11.a2 is supersingular at 2 and End(Abar) is a
-// quaternion algebra, of dimension 4 over Q. The paper's M(2) = Q(sqrt(-1))
-// pins Frobenius as alpha = -1 + i up to conjugacy; alpha^2 = -2i is irrational
-// while alpha^4 = -4 is rational, so all endomorphisms first appear over
-// F_(2^4) and det(1 - T Frob^4 | H^1) = (1 + 4T)^2. That is one factor
-// <m, m * deg c, c> with m = 2 and c = 4T + 1, computed from the paper's field
-// rather than read off the intrinsic.
+// p = 2: supersingular, so End(Abar) is a quaternion algebra of dimension 4.
+// M(2) = Q(i) pins Frobenius as -1 + i, whose fourth power is first rational,
+// so endomorphisms appear over F_(2^4) and c = 4T + 1 with multiplicity 2.
 procedure test_endomorphism_algebra_supersingular_prime_field()
     dim, fext, endo := EndomorphismAlgebra(1 + 2*Te + 2*Te^2);
     assert dim eq 4;
@@ -141,11 +123,9 @@ end procedure;
 
 test_endomorphism_algebra_supersingular_prime_field();
 
-// p = 3: a_3 = -1 is prime to 3, so 11.a2 is ordinary at 3, Abar stays simple,
-// and End(Abar) is the imaginary quadratic field the paper records as
-// M(3) = Q(sqrt(-11)), of dimension 2 over Q and already defined over F_3.
-// The returned factor c is compared to Q(sqrt(-11)) as a field rather than to
-// a particular defining polynomial: the paper fixes the field, not the model.
+// p = 3: ordinary, so End(Abar) is M(3) = Q(sqrt(-11)), dimension 2, already
+// defined over F_3. c is compared as a field, since the paper fixes the field
+// and not a defining polynomial.
 procedure test_endomorphism_algebra_ordinary_prime_field()
     dim, fext, endo := EndomorphismAlgebra(1 + Te + 3*Te^2);
     assert dim eq 2;
@@ -310,28 +290,9 @@ assert result[2][1] eq x;
 assert result[2][2] eq [x];
 
 // ----- One entry per row: the whole candidate family, not a pairwise fold -----
-// A_k is used as a center bound, so every member of B_k must embed into it, and
-// B_k must therefore be the complete family of common subfields. A single-column
-// matrix used to be answered by folding FieldIntersection pairwise, which keeps
-// one common subfield of greatest degree per step and drops the alternatives, so
-// it could name an A_k that other candidates do not embed into (issue
-// endomorphisms-0t4).
-//
-// Witnesses: N = Q(2^(1/4), i, sqrt 3) is Galois over Q with group D_4 x C_2.
-// Writing s for complex conjugation, r for the order-4 rotation in D_4 and c for
-// the generator of C_2, the index-4 subgroups <s, c> and <s, r^2 c> are not
-// conjugate, so the quartic fields Q(2^(1/4)) and Q(18^(1/4)), with
-// 18^(1/4) = sqrt3 * 2^(1/4), are non-isomorphic; they are also incomparable,
-// since Q(sqrt 2) is the only quadratic subfield of Q(2^(1/4)) and 18^(1/4)
-// there would force sqrt 3 in as well. Their compositum is Q(2^(1/4), sqrt 3)
-// for one embedding and Q(2^(1/4), sqrt -3) for the other, so those two octic
-// fields share both quartics and nothing above them. That non-unique compositum
-// is what makes a family of common subfields lack a greatest member, and degree 8
-// is the smallest degree where it happens.
-//
-// Fields are compared through their Polredabs polynomials, so these scenarios
-// need PARI/gp on PATH: with the non-canonical fallback no two rows agree on a
-// name for the same field.
+// A_k bounds a centre, so every candidate must embed into it. Q(2^(1/4)) and
+// Q(18^(1/4)) are non-isomorphic, incomparable, and share two distinct composita,
+// so their common subfields have no greatest member. Needs gp for canonical names.
 function d4c2_octic_pair()
     K := NumberField(x^4 - 2);
     return R ! DefiningPolynomial(AbsoluteField(ext<K | Polynomial([K | -3, 0, 1])>)),
@@ -352,12 +313,9 @@ procedure test_field_intersection_matrix_incomparable_candidates()
     error if not IsZero(Ak),
         Sprintf("expected the no-greatest-candidate marker 0, got %o (gp on PATH?)", Ak);
 
-    // A third row equal to one of the two quartics resolves the family to that
-    // quartic: it embeds in both octic fields and the other quartic does not
-    // embed in it, so it is the greatest candidate whatever order the rows come
-    // in. The pairwise fold keeps whichever quartic it meets first and then
-    // collapses to Q(sqrt 2), which the center need not embed into, so it gets
-    // some of these four matrices right and the others wrong.
+    // A third row equal to one quartic makes it the greatest candidate in every
+    // row order. The pairwise fold keeps whichever it meets first, then collapses
+    // to Q(sqrt 2), so it gets some of these four matrices wrong.
     for J in [x^4 - 2, x^4 - 18] do
         for M in [[[fX], [fY], [J]], [[J], [fX], [fY]]] do
             Ak, Bk := Explode(FieldIntersectionMatrix(M)[1]);
@@ -404,15 +362,9 @@ fake := [
 ok2, msg2, _, _ := EndomorphismAlgebraCenterBounds(8, 1, fake);
 assert not ok2;
 
-// A factor whose candidates have no greatest member has no center bound at all:
-// CMSV Lemma 7.4.2 requires the true center to embed in the reported field, and
-// a candidate incomparable to it does not bound it. One factor per prime, of
-// shape <m, m * deg(h)> = <1, 8>, is the one-entry-per-row case; the pairwise
-// fold used to report whichever of the two quartics it met first as the center,
-// with real representation [RR, RR, RR, RR] and dimension 4. The entries are the
-// field-theoretic
-// witnesses above rather than Weil polynomials, since degree 8 is out of reach
-// of a Frobenius factor below genus 4.
+// No greatest candidate means no centre bound: CMSV Lemma 7.4.2 needs the true
+// centre to embed in the reported field. Degree 8 is out of reach of a Frobenius
+// factor below genus 4, so the entries are field-theoretic rather than Weil.
 procedure test_center_bounds_refuses_incomparable_candidates()
     fX, fY := d4c2_octic_pair();
     ok, _, output, total_dim := EndomorphismAlgebraCenterBounds(
@@ -479,15 +431,9 @@ end procedure;
 
 test_curve_level_overloads_without_good_reduction_prime();
 // ----- Quartic CM stratum: the center bound is the CM field -----
-// Pins which common subfield is selected as the center of a geometrically
-// simple genus-2 Jacobian with quartic CM. The bound must name the quartic CM
-// field, whose real representation is [CC, CC]; naming its real quadratic
-// subfield instead reports [RR, RR] and halves the dimension bound. Expected
-// values come from LMFDB factorsRR_geom for the labels below, an oracle
-// independent of this implementation; the dimension 4 is the degree of the CM
-// field, which for a simple CM abelian surface is the whole geometric
-// endomorphism algebra. Background: CMSV arXiv:1705.09248 Section 7 and CLV
-// arXiv:1906.02803.
+// Naming the CM field's real quadratic subfield instead reports [RR, RR] and
+// halves the dimension. Expected values are LMFDB factorsRR_geom, independent
+// of this implementation.
 procedure test_upper_bound_quartic_cm_center()
     // LMFDB 3125.a.3125.1: y^2 + y = x^5, with CM by Q(zeta_5).
     C := HyperellipticCurve(x^5, R ! 1);

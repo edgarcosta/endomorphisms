@@ -59,14 +59,10 @@ for entry in corpus do
         Sprintf("%o: expected %o, got %o", label, Sort(expected), Sort(&cat bound));
 end for;
 
-// Known limitation (endomorphisms-3nn.12): geometrically-simple genus-2 curves
-// with quartic CM defined only over an extension of Q. The extra endomorphisms
-// are invisible to prime-field Frobenius, so the bound under-detects them: it
-// returns [["RR"],["RR"]] although LMFDB factorsRR_geom = ["CC","CC"]. Because
-// eta = min_p eta(A_p), a larger B does not help (checked to B = 500). We pin
-// the documented, non-sharp output so a future fix to the limitation trips here.
+// Geometrically simple quartic CM: the centre bound must name the CM field, not
+// its real quadratic subfield, which would report [RR, RR] and halve the bound.
 C3125 := HyperellipticCurve(x^5, R ! 1);  // 3125.a.3125.1: y^2 + y = x^5, CM by Q(zeta_5)
-error if Sort(&cat RealRepresentationBound(C3125, 200)) ne ["RR", "RR"],
-    "3125.a.3125.1: limitation case changed; expected the non-sharp [RR, RR]";
+error if Sort(&cat RealRepresentationBound(C3125, 200)) ne ["CC", "CC"],
+    "3125.a.3125.1: LMFDB factorsRR_geom is [CC, CC]";
 
-printf "Test-UpperBounds-LMFDB: %o curves + 1 limitation case passed.\n", #corpus;
+printf "Test-UpperBounds-LMFDB: %o curves + 1 quartic CM case passed.\n", #corpus;

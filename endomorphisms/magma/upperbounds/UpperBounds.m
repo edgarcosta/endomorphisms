@@ -1,6 +1,5 @@
 // Section references throughout this file are to Costa, Mascot, Sijsling,
-// Voight, "Rigorous computation of the endomorphism ring of a Jacobian",
-// Math. Comp. 88 (2019) 1303-1339, arXiv:1705.09248.
+// Voight, arXiv:1705.09248, Math. Comp. 88 (2019) 1303-1339.
 // exposes some of Honda--Tate theory necessary to produce tight upper bounds
 // For more details see Section 7.2
 
