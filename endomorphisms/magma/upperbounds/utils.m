@@ -49,9 +49,13 @@ intrinsic SymmetricSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
 end intrinsic;
 
 intrinsic FieldIntersection(L::FldNum, K::FldNum) -> RngUPolElt
-{Defining polynomial of the largest common subfield of L and K. Returns the
- polynomial x (defining Q) when L and K share only the rationals. Port of
- Sage field_intersection in endomorphisms/UpperBounds/utils.py.}
+{Defining polynomial of one common subfield of L and K of greatest degree, or
+ the polynomial x (defining Q) when L and K share only the rationals. Greatest
+ degree is not greatest: when L and K have several incomparable maximal common
+ subfields, the one returned need not contain the others, so it does not bound a
+ field known to embed in both. See also FieldIntersectionMatrix, which computes
+ the whole family. Port of Sage field_intersection in
+ endomorphisms/UpperBounds/utils.py}
     if IsIsomorphic(L, K) then
         return DefiningPolynomial(AbsoluteField(L));
     end if;
@@ -83,21 +87,39 @@ intrinsic FieldIntersection(L::FldNum, K::FldNum) -> RngUPolElt
     return Parent(DefiningPolynomial(L)).1;
 end intrinsic;
 
+// Discriminant of the primitive integral model of f. For an irreducible integral
+// polynomial, monic or not, that discriminant is index^2 times the discriminant
+// of the number field it defines, so every prime ramified in the field divides it.
+function integral_discriminant(f)
+    d := LCM([Integers() | Denominator(Rationals() ! c) : c in Coefficients(f)]);
+    return Discriminant(PrimitivePart(PolynomialRing(Integers()) ! (d * f)));
+end function;
+
 intrinsic FieldIntersectionMatrix(M::SeqEnum[SeqEnum[RngUPolElt]]) -> SeqEnum
-{For each column k of M, compute the set of common subfields across rows
- (each row contributes the union of subfields of its polynomials). Return a
- sequence of <A_k, B_k> tuples: B_k is the sorted list of polynomials defining
- the common subfields, A_k is the maximal common subfield polynomial when
- uniquely determined or the zero polynomial otherwise. Port of Sage
- field_intersection_matrix in endomorphisms/UpperBounds/utils.py.}
+{For each column k of M, the pair <A_k, B_k> describing the common subfields of
+ that column across the rows of M. B_k lists the polynomials defining every field
+ that embeds into the working row's entry k and into some entry of every other
+ row, sorted ascending by degree. A_k defines the greatest member of B_k, the one
+ every other member embeds into, and is the zero polynomial when B_k has no
+ greatest member. Port of Sage field_intersection_matrix in
+ endomorphisms/UpperBounds/utils.py, less its single-column shortcut: that
+ shortcut folds FieldIntersection pairwise, which can drop maximal common
+ subfields and hence report an A_k the true center does not embed into}
     require #M gt 0: "matrix must have at least one row";
     require #M[1] gt 0: "matrix must have at least one column";
     R := Parent(M[1][1]);
 
-    // Single-column shortcut: collapse to FieldIntersectionList.
-    if #M[1] eq 1 then
-        f := FieldIntersectionList([row[1] : row in M]);
-        return [<f, SubfieldsPolynomials(f)>];
+    // When every row is a single entry, each candidate embeds into every entry,
+    // so a candidate other than Q is ramified at a prime (Minkowski) dividing
+    // every entry's field discriminant, hence dividing the gcd below. A trivial
+    // gcd therefore settles the column without a Subfields or Polredabs call,
+    // which is what the removed shortcut used to buy. With several columns a row
+    // contributes the union of its entries, a candidate need not embed into every
+    // entry, and this sieve does not apply.
+    if forall{row : row in M | #row eq 1} then
+        if Abs(Gcd([Integers() | integral_discriminant(row[1]) : row in M])) eq 1 then
+            return [<R.1, [R.1]>];
+        end if;
     end if;
 
     // Pick the row with the smallest discriminant-GCD as the working row.
@@ -142,10 +164,10 @@ intrinsic FieldIntersectionMatrix(M::SeqEnum[SeqEnum[RngUPolElt]]) -> SeqEnum
         if #Lsub_list eq 1 then
             Ak := R.1;
         elif Degree(Lsub_list[#Lsub_list]) ne Degree(Lsub_list[#Lsub_list - 1]) then
-            // Unique largest subfield: verify it actually contains all the others.
-            maxsubs := Sort(SubfieldsPolynomials(Lsub_list[#Lsub_list]),
-                            func<a, b | Degree(a) - Degree(b)>);
-            if maxsubs eq Lsub_list then
+            // Unique largest subfield: verify it actually contains all the
+            // others. Compared as sets, since candidates of equal degree are
+            // ordered arbitrarily on both sides.
+            if SequenceToSet(SubfieldsPolynomials(Lsub_list[#Lsub_list])) eq Lsub then
                 Ak := Lsub_list[#Lsub_list];
             end if;
         end if;
@@ -155,17 +177,22 @@ intrinsic FieldIntersectionMatrix(M::SeqEnum[SeqEnum[RngUPolElt]]) -> SeqEnum
 end intrinsic;
 
 intrinsic FieldIntersectionList(polys::SeqEnum[RngUPolElt]) -> RngUPolElt
-{Defining polynomial of the intersection of NumberField(f) over all f in polys.
- Returns x (defining Q) when the intersection is just the rationals. Port of
- Sage field_intersection_list in endomorphisms/UpperBounds/utils.py.}
+{Defining polynomial of a common subfield of NumberField(f) over all f in polys,
+ obtained by folding FieldIntersection pairwise, or x (defining Q) when that fold
+ reaches the rationals. The fold is greedy and order-dependent: each step keeps
+ one common subfield of greatest degree, so the result need not have greatest
+ degree among the common subfields of all of polys, and need not contain them.
+ See also FieldIntersectionMatrix, which computes the whole family. Port of Sage
+ field_intersection_list in endomorphisms/UpperBounds/utils.py}
     require #polys gt 0: "polys must not be empty";
     R := Parent(polys[1]);
     // Any degree-1 polynomial defines Q, so the intersection is forced to Q.
     if exists{f : f in polys | Degree(f) eq 1} then
         return R.1;
     end if;
-    // Fast path: GCD of discriminants of the first ~1000 polynomials.
-    // If it is 1 the fields are linearly disjoint over Q.
+    // Fast path: GCD of discriminants of the first ~1000 polynomials. If it is 1
+    // the fields have no common subfield beyond Q, which is weaker than being
+    // linearly disjoint.
     D := 0;
     for i in [1..Min(#polys, 1000)] do
         D := Gcd(D, Integers() ! Discriminant(polys[i]));
@@ -189,7 +216,8 @@ end intrinsic;
 intrinsic SubfieldsPolynomials(f::RngUPolElt) -> SeqEnum[RngUPolElt]
 {Return polredabs'd defining polynomials of every subfield of NumberField(f),
  including the rational subfield Q (defined by the polynomial x). Port of
- Sage subfields_polynomials in endomorphisms/UpperBounds/utils.py.}
+ Sage subfields_polynomials in endomorphisms/UpperBounds/utils.py. The list is
+ sorted ascending by degree, so its last entry defines NumberField(f) itself}
     R := Parent(f);
     if Degree(f) eq 1 then
         return [Polredabs(R.1)];
@@ -199,7 +227,9 @@ intrinsic SubfieldsPolynomials(f::RngUPolElt) -> SeqEnum[RngUPolElt]
     for sub in Subfields(K) do
         Append(~out, Polredabs(DefiningPolynomial(AbsoluteField(sub[1]))));
     end for;
-    return out;
+    // Subfields returns no particular order, and callers read the largest
+    // subfield off the end of this list.
+    return Sort(out, func<a, b | Degree(a) - Degree(b)>);
 end intrinsic;
 
 intrinsic LPolynomials(C::Crv, B::RngIntElt) -> SeqEnum
@@ -225,10 +255,12 @@ intrinsic LPolynomials(C::Crv, B::RngIntElt) -> SeqEnum
 end intrinsic;
 
 intrinsic RealRepresentationString(g::RngIntElt, K::FldNum, d::RngIntElt) -> SeqEnum[MonStgElt]
-    {Encode End(A^n) tensor RR as a list of strings, one per simple component.
-     g is the dimension of the simple factor, K its center, d the dimension of
-     the endomorphism algebra over K. Port of the Sage RR_representation routine
-     in endomorphisms/UpperBounds/utils.py. See Section 7 of the paper.}
+    {The list of strings encoding End(A^n) tensor RR, one per simple component.
+     The argument g is the dimension n_j * dim(A_j) of the power, not of the
+     simple factor. The argument K is the center. The argument d is the degree
+     e_j * n_j of the central simple algebra over K; its dimension over K is
+     d^2. Port of the Sage RR_representation routine in
+     endomorphisms/UpperBounds/utils.py. See arXiv:1705.09248, Section 7}
     if HasComplexConjugate(K) and not IsTotallyReal(K) then
         n := Degree(K) div 2;
         KRR := "CC";

@@ -1,15 +1,20 @@
+// Section references throughout this file are to Costa, Mascot, Sijsling,
+// Voight, "Rigorous computation of the endomorphism ring of a Jacobian",
+// Math. Comp. 88 (2019) 1303-1339, arXiv:1705.09248.
 // exposes some of Honda--Tate theory necessary to produce tight upper bounds
 // For more details see Section 7.2
 
 intrinsic EndomorphismAlgebra(f::RngUPolElt) -> Tup
-{Given a Frobenius polynomial  f of an Abelian variety f.
-Return the triple. The first item is dim_Q ( End(Abar ).
-The second item the degree of field ext where all endomorphism are defined.
-The third item, a sorted list [ (m_i, m_i * deg(c_i), c_i) : i in [1..t] ] that represents the geometric isogeny decomposition over an algebraic closure, where
-Abar = (A_1)^n_1 x ... x (A_k)^n_t
-and
-det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
-}
+{The triple attached to the Frobenius polynomial f of an abelian variety A over
+a finite field, where Abar is the base change of A to an algebraic closure.
+The first item is the geometric endomorphism algebra dimension dim_Q End(Abar).
+The second item is the degree of the minimal field extension over which all
+endomorphisms of Abar are defined.
+The third item is a sorted list [ (m_i, m_i * deg(c_i), c_i) : i in [1..t] ]
+representing the geometric isogeny decomposition
+Abar = (A_1)^n_1 x ... x (A_t)^n_t
+where
+det(1 - T Frob^k | H^1((A_i)^n_i)) = c_i(T)^m_i}
     if IsMonic(f) then
         f := Reverse(f);
     end if;
@@ -35,6 +40,9 @@ det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
         end if;
     end for;
 
+    // fieldext is the least extension degree defining all geometric endomorphisms
+    // (CMSV, Lemma 7.2.7(b)); factoring fext therefore gives the geometric
+    // isogeny factors (Remark 7.2.13).
     fext := PowerCharacteristicPolynomial(f, fieldext);
 
     endo := Sort([
@@ -48,11 +56,15 @@ end intrinsic;
 // exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 intrinsic EndomorphismAlgebraEtaBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false)
     -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum
-{The eta and t narrowing step from Section 7.3. Given a list of Frobenius
- polynomials (one per prime), return <success, message, eta_char0, t, eta_lower>
- where eta_lower lists the per-prime endomorphism factorizations from primes
- that minimize both eta(A_p) and the number of factors. Port of the first half
- of Sage endomorphisms_upper_bound.}
+{The eta and t narrowing step from Section 7.3.
+ On success, eta_char0 bounds eta(A^alg), not the endomorphism algebra dimension.
+ CMSV (7.3.16) defines eta = sum_i e_i n_i^2 dim(A_i); the algebra dimension
+ is sum_i n_i^2 e_i^2 [L_i:Q]. A geometrically simple quartic-CM surface
+ has eta = 2 and algebra dimension 4.
+ Given a list of Frobenius polynomials (one per prime), return
+ <success, message, eta_char0, t, eta_lower> where eta_lower lists the per-prime
+ endomorphism factorizations from primes that minimize both eta(A_p) and the
+ number of factors. Port of the first half of Sage endomorphisms_upper_bound}
     require #frob_list ne 0: "frob_list must not be empty";
     g := Degree(frob_list[1]) div 2;
     if eta_char0 cmpeq false then
@@ -98,7 +110,8 @@ intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lowe
  simple component. Returns <success, message, output, total_dim> where output
  is a sequence of <ejnj, njdimAj, Lj, RRj> tuples (Lj from FieldIntersectionMatrix,
  RRj from RealRepresentationString). Port of the second half of Sage
- endomorphisms_upper_bound.}
+ endomorphisms_upper_bound. Fails when some factor has no unique maximal common
+ subfield, since no single field then bounds its center}
     require #eta_lower gt 0: "eta_lower must not be empty";
     QQT := PolynomialRing(Rationals());
 
@@ -139,7 +152,16 @@ intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lowe
         njdimAj := pair[2] div 2;
         L := FieldIntersectionMatrix(frob_factors[pair]);
         for Lj in L do
-            Ljmax_poly := Lj[2][#Lj[2]];
+            // A center-bound candidate must contain every other candidate. With
+            // eta and t correct, CMSV Corollary 7.4.4 puts the true center among
+            // these candidates. Incomparable maximal candidates do not certify a
+            // bound; additional primes may resolve the ambiguity.
+            Ljmax_poly := Lj[1];
+            if IsZero(Ljmax_poly) then
+                return false,
+                       "The common subfields of a factor have no unique maximal element, so its center is not bounded by any single field",
+                       [], 0;
+            end if;
             if Degree(Ljmax_poly) eq 1 then
                 Ljmax := RationalsAsNumberField();
             else
@@ -161,7 +183,12 @@ intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_cha
 {Top-level upper-bound orchestrator. Calls EndomorphismAlgebraEtaBound, then
  (on success) EndomorphismAlgebraCenterBounds. Returns the bundled 6-tuple
  <success, message, eta_char0, t, output, total_dim> mirroring Sage's
- endomorphisms_upper_bound. See Section 7 of the paper.}
+ endomorphisms_upper_bound. See Section 7 of the paper.
+ Factor and center bounds assume eta and t are correct; the eta bound is
+ unconditional when the eta step succeeds (CMSV Corollary 7.3.19(a)). Under
+ those assumptions, total_dim bounds the algebra dimension. Exact centers
+ require suitable primes as in CMSV Hypothesis 7.4.6, supplied under
+ Mumford-Tate by CLV (arXiv:1906.02803), Theorem 1.1(b)}
     ok, msg, eta_c, t, eta_lower := EndomorphismAlgebraEtaBound(
         frob_list : eta_char0 := eta_char0);
     if not ok then
