@@ -27,7 +27,7 @@ intrinsic AlternatingSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
     assert IsOne(Denominator(g));
     bool, res := IsSquare(Parent(f)!g);
     assert bool;
-    assert Degree(res) eq d(d-1) div 2;
+    assert Degree(res) eq d*(d-1) div 2;
     return res;
 end intrinsic;
 

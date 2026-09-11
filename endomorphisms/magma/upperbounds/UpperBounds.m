@@ -16,9 +16,11 @@ det(1 - T Frob^k | H^1(Ai^n_i)) = c_i (T)^m_i
     require Coefficient(f, 0) eq 1: "f is not a Weil polynomial";
     d := Degree(f);
     genus := Integers()!(Degree(f)/2);
-    b, p, ga := IsPower(Coefficient(f, d));
+    // The leading coefficient is q^genus, so we need the exact genus-th root.
+    // IsPower/1 would instead demand a nontrivial perfect power, rejecting
+    // every genus-1 Weil polynomial over a prime field.
+    b, q := IsPower(Coefficient(f, d), genus);
     require b: "f is not a Weil polynomial";
-    q := p^(Integers()!(ga/genus));
     T := Parent(f).1;
     fof := TensorCharacteristicPolynomial(f,f);
     g := Evaluate(fof, ChangeRing(T, Rationals())/q);
@@ -189,14 +191,26 @@ intrinsic EndomorphismAlgebraUpperBound(C::Crv, B::RngIntElt : eta_char0 := fals
     -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum, RngIntElt
 {Curve-level overload: build the L-polynomial list for primes up to B with
  good reduction, then call the SeqEnum form. Convention matches Sage's
- hyperelliptic_endomorphisms_upper_bound but is curve-type agnostic.}
+ hyperelliptic_endomorphisms_upper_bound but is curve-type agnostic. Any
+ B ge 1 is allowed; when no prime below B has good reduction the bound simply
+ fails, per CLV Algorithm 5.1, rather than raising}
     frob_list := [pair[2] : pair in LPolynomials(C, B)];
+    if #frob_list eq 0 then
+        return false,
+               "No prime below the bound has good reduction",
+               0, 0, [], 0;
+    end if;
     return EndomorphismAlgebraUpperBound(frob_list : eta_char0 := eta_char0);
 end intrinsic;
 
 intrinsic RealRepresentationBound(C::Crv, B::RngIntElt) -> SeqEnum
-{Curve-level overload of RealRepresentationBound.}
+{Curve-level overload of RealRepresentationBound. Returns an empty sequence
+ when no prime below B has good reduction, matching the failure convention of
+ the SeqEnum form}
     frob_list := [pair[2] : pair in LPolynomials(C, B)];
+    if #frob_list eq 0 then
+        return [];
+    end if;
     return RealRepresentationBound(frob_list);
 end intrinsic;
 

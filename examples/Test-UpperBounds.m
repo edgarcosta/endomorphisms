@@ -9,6 +9,51 @@ SetVerbose("EndoFind", 0);
 
 R<x> := PolynomialRing(Rationals());
 
+// ----- AlternatingSquare / SymmetricSquare CharacteristicPolynomial -----
+// These are the exterior/symmetric square constructions of CMSV
+// (arXiv:1705.09248) Section 7. The defining identity is
+// TensorCharacteristicPolynomial(f, f) = alt^2 * f2 (f2 the char poly of the
+// square), so alt has degree d*(d-1)/2 and the symmetric square Tensor/alt has
+// degree d*(d+1)/2. A wrong degree here is exactly what the missing product in
+// the degree assertion of AlternatingSquareCharacteristicPolynomial hid.
+
+// f = (1 + x + 2x^2)^2 is the square of the Frobenius polynomial of an elliptic
+// curve over F_2 with a_2 = -1. Writing 1 + x + 2x^2 = (1 - a x)(1 - b x), so
+// a + b = -1 and a b = 2, the input has reciprocal roots a, a, b, b and its
+// alternating square has reciprocal roots a^2, b^2 and a b with multiplicity 4.
+// Since a^2 + b^2 = -3 and a^2 b^2 = 4, that product is
+// (1 + 3x + 4x^2)(1 - 2x)^4, expanded below. The literal is therefore derived
+// from the elementary symmetric functions of the input, not from the intrinsic.
+procedure test_alternating_and_symmetric_square_degree_4()
+    fsq := (1 + x + 2*x^2)^2;
+    altsq := AlternatingSquareCharacteristicPolynomial(fsq);
+    assert Degree(altsq) eq 6;
+    assert altsq eq (1 + 3*x + 4*x^2) * (1 - 2*x)^4;
+    assert altsq eq 64*x^6 - 80*x^5 + 16*x^4 + 8*x^3 + 4*x^2 - 5*x + 1;
+    assert altsq^2 * PowerCharacteristicPolynomial(fsq, 2)
+        eq TensorCharacteristicPolynomial(fsq, fsq);
+
+    symsq := SymmetricSquareCharacteristicPolynomial(fsq);
+    assert Degree(symsq) eq 10;
+    assert altsq * symsq eq TensorCharacteristicPolynomial(fsq, fsq);
+end procedure;
+
+test_alternating_and_symmetric_square_degree_4();
+
+// d = 2: the alternating square is the determinant, a linear factor.
+procedure test_alternating_square_degree_2()
+    assert Degree(AlternatingSquareCharacteristicPolynomial(1 + x + 2*x^2)) eq 1;
+end procedure;
+
+test_alternating_square_degree_2();
+
+// d = 4: a genuine genus-2 Weil polynomial.
+procedure test_alternating_square_genus_2_weil()
+    assert Degree(AlternatingSquareCharacteristicPolynomial(1 - x^2 + 9*x^4)) eq 6;
+end procedure;
+
+test_alternating_square_genus_2_weil();
+
 // ----- RealRepresentationString -----
 // Port of Sage RR_representation in endomorphisms/UpperBounds/utils.py:159-181.
 // Encodes End(A^n) tensor RR as a list of strings, one per simple component.
@@ -68,6 +113,60 @@ for pair in lpolys_pl do
     assert Degree(Lp) eq 2 * gpl;
     assert Coefficient(Lp, 0) eq 1;
 end for;
+
+// ----- EndomorphismAlgebra over prime fields -----
+// The leading coefficient of a Weil polynomial normalised to constant term 1
+// is q^genus, so genus 1 over a prime field needs the exact 1st root; asking
+// for a nontrivial perfect power rejects every genus-1 Weil polynomial over a
+// prime field. The two genus-1 inputs are the Frobenius polynomials of CLV
+// (arXiv:1906.02803) Example 5.5, elliptic curve 11.a2 at p = 2 and p = 3,
+// where the paper records M(2) = Q(sqrt(-1)) and M(3) = Q(sqrt(-11)).
+
+ZZTe<Te> := PolynomialRing(Integers());
+QTe<TQ> := PolynomialRing(Rationals());
+
+// p = 2: a_2 = -2 is even, so 11.a2 is supersingular at 2 and End(Abar) is a
+// quaternion algebra, of dimension 4 over Q. The paper's M(2) = Q(sqrt(-1))
+// pins Frobenius as alpha = -1 + i up to conjugacy; alpha^2 = -2i is irrational
+// while alpha^4 = -4 is rational, so all endomorphisms first appear over
+// F_(2^4) and det(1 - T Frob^4 | H^1) = (1 + 4T)^2. That is one factor
+// <m, m * deg c, c> with m = 2 and c = 4T + 1, computed from the paper's field
+// rather than read off the intrinsic.
+procedure test_endomorphism_algebra_supersingular_prime_field()
+    dim, fext, endo := EndomorphismAlgebra(1 + 2*Te + 2*Te^2);
+    assert dim eq 4;
+    assert fext eq 4;
+    assert endo eq [<2, 2, 4*Te + 1>];
+end procedure;
+
+test_endomorphism_algebra_supersingular_prime_field();
+
+// p = 3: a_3 = -1 is prime to 3, so 11.a2 is ordinary at 3, Abar stays simple,
+// and End(Abar) is the imaginary quadratic field the paper records as
+// M(3) = Q(sqrt(-11)), of dimension 2 over Q and already defined over F_3.
+// The returned factor c is compared to Q(sqrt(-11)) as a field rather than to
+// a particular defining polynomial: the paper fixes the field, not the model.
+procedure test_endomorphism_algebra_ordinary_prime_field()
+    dim, fext, endo := EndomorphismAlgebra(1 + Te + 3*Te^2);
+    assert dim eq 2;
+    assert fext eq 1;
+    assert #endo eq 1;
+    m, dimfactor, c := Explode(endo[1]);
+    assert m eq 1;
+    assert dimfactor eq 2;
+    assert IsIsomorphic(NumberField(QTe!Reverse(c)), QuadraticField(-11));
+end procedure;
+
+test_endomorphism_algebra_ordinary_prime_field();
+
+// Genus-2 control: the exact square root of 9 = 3^2 is still accepted.
+procedure test_endomorphism_algebra_genus_2_square_leading_coefficient()
+    dim, fext := EndomorphismAlgebra(1 - Te^2 + 9*Te^4);
+    assert dim eq 8;
+    assert fext eq 2;
+end procedure;
+
+test_endomorphism_algebra_genus_2_square_leading_coefficient();
 
 // ----- EndomorphismAlgebraEtaBound -----
 // Port of the eta/t narrowing step from Sage upper_bounds.py:55-78.
@@ -262,5 +361,24 @@ assert total_dim_c eq 4;
 assert #output_c eq 1;
 assert output_c[1][4] eq ["M_2(RR)"];
 assert RealRepresentationBound(C169, 30) eq [["M_2(RR)"]];
+
+// No prime below B has good reduction: CLV (arXiv:1906.02803) Algorithm 5.1
+// allows any B ge 1 and prescribes failure rather than an error, so both
+// curve-level overloads must report failure instead of propagating the empty
+// frob_list into the SeqEnum forms. B = 1 admits no primes at all.
+procedure test_curve_level_overloads_without_good_reduction_prime()
+    Cempty := HyperellipticCurve(x^3 + x^2, x^3 + 1);
+    assert LPolynomials(Cempty, 1) eq [];
+    ok, msg, eta, t, output, dim := EndomorphismAlgebraUpperBound(Cempty, 1);
+    assert not ok;
+    assert #msg gt 0;
+    assert eta eq 0;
+    assert t eq 0;
+    assert output eq [];
+    assert dim eq 0;
+    assert RealRepresentationBound(Cempty, 1) eq [];
+end procedure;
+
+test_curve_level_overloads_without_good_reduction_prime();
 
 print "Test-UpperBounds: all assertions passed.";
