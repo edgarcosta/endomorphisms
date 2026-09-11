@@ -5,8 +5,6 @@
 AttachSpec("../endomorphisms/magma/spec");
 AttachSpec("/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec");
 
-SetVerbose("EndoFind", 0);
-
 R<x> := PolynomialRing(Rationals());
 
 // ----- AlternatingSquare / SymmetricSquare CharacteristicPolynomial -----
@@ -454,5 +452,3 @@ procedure test_upper_bound_quartic_cm_center()
 end procedure;
 
 test_upper_bound_quartic_cm_center();
-
-print "Test-UpperBounds: all assertions passed.";

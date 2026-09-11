@@ -23,8 +23,6 @@
 AttachSpec("../endomorphisms/magma/spec");
 AttachSpec("/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec");
 
-SetVerbose("EndoFind", 0);
-
 R<x> := PolynomialRing(Rationals());
 
 if #Pipe("command -v gp || true", "") eq 0 then
@@ -64,5 +62,3 @@ end for;
 C3125 := HyperellipticCurve(x^5, R ! 1);  // 3125.a.3125.1: y^2 + y = x^5, CM by Q(zeta_5)
 error if Sort(&cat RealRepresentationBound(C3125, 200)) ne ["CC", "CC"],
     "3125.a.3125.1: LMFDB factorsRR_geom is [CC, CC]";
-
-printf "Test-UpperBounds-LMFDB: %o curves + 1 quartic CM case passed.\n", #corpus;
