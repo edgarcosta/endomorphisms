@@ -204,16 +204,22 @@ assert #eta_lower3 eq 0;
 
 // ----- SubfieldsPolynomials -----
 // Port of Sage subfields_polynomials. Returns polredabs'd defining polynomials
-// of every subfield of NumberField(f), Q included. Already-canonical inputs
-// are used so the test passes even without PARI/gp installed.
+// of every subfield of NumberField(f), Q included. The subfields themselves are
+// the behavior being pinned; which polynomial names each one is decided by
+// whichever polredabs is available (Polredabs returns a non-canonical fallback
+// when PARI/gp is not on PATH), so subfields are compared up to isomorphism
+// unless their polynomial is a polredabs fixed point.
 
-// Q(sqrt 5): subfields are Q and Q(sqrt 5).
+// Q(sqrt 5): subfields are Q and Q(sqrt 5). Q(sqrt 5) is named by x^2 - x - 1
+// with PARI/gp present and by x^2 - 5 without it.
 sf := SubfieldsPolynomials(x^2 - 5);
 assert #sf eq 2;
 assert x in sf;
-assert (x^2 - 5) in sf;
+assert exists{p : p in sf | Degree(p) eq 2
+                            and IsIsomorphic(NumberField(p), NumberField(x^2 - 5))};
 
-// Q(2^(1/4)): subfields are Q, Q(sqrt 2), Q(2^(1/4)).
+// Q(2^(1/4)): subfields are Q, Q(sqrt 2), Q(2^(1/4)). All three polynomials are
+// polredabs fixed points, so exact equality holds either way.
 sf := SubfieldsPolynomials(x^4 - 2);
 assert #sf eq 3;
 assert x in sf;
@@ -243,8 +249,11 @@ assert FieldIntersection(L, K) eq x^2 - 2;
 // Iterative intersection across a list of polynomials. Port of Sage
 // field_intersection_list in endomorphisms/UpperBounds/utils.py.
 
-// Singleton: intersection is the field itself.
-assert FieldIntersectionList([x^2 - 5]) eq x^2 - 5;
+// Singleton: intersection is the field itself, Q(sqrt 5). The return value is
+// polredabs'd, so pin the field rather than a defining polynomial.
+inter5 := FieldIntersectionList([x^2 - 5]);
+assert Degree(inter5) eq 2;
+assert IsIsomorphic(NumberField(inter5), NumberField(x^2 - 5));
 
 // Linearly disjoint: only Q in common.
 assert FieldIntersectionList([x^2 - 2, x^2 - 3]) eq x;
@@ -263,11 +272,17 @@ assert FieldIntersectionList([x, x^2 - 3]) eq x;
 // common subfield polynomial when uniquely determined (else the zero polynomial).
 
 // Single-column shortcut: returns full subfield list of the intersection field.
+// A_1 and B_1 are polredabs'd, so Q(sqrt 5) is pinned up to isomorphism.
 M := [[x^2 - 5]];
 result := FieldIntersectionMatrix(M);
 assert #result eq 1;
-assert result[1][1] eq x^2 - 5;
-assert SequenceToSet(result[1][2]) eq {x, x^2 - 5};
+assert Degree(result[1][1]) eq 2;
+assert IsIsomorphic(NumberField(result[1][1]), NumberField(x^2 - 5));
+// B_1 is Q and Q(sqrt 5), sorted ascending by degree.
+assert #result[1][2] eq 2;
+assert result[1][2][1] eq x;
+assert Degree(result[1][2][2]) eq 2;
+assert IsIsomorphic(NumberField(result[1][2][2]), NumberField(x^2 - 5));
 
 // Single-column, linearly disjoint rows: intersection is Q.
 M := [[x^2 - 2], [x^2 - 3]];
@@ -293,6 +308,69 @@ assert result[1][1] eq x;
 assert result[1][2] eq [x];
 assert result[2][1] eq x;
 assert result[2][2] eq [x];
+
+// ----- One entry per row: the whole candidate family, not a pairwise fold -----
+// A_k is used as a center bound, so every member of B_k must embed into it, and
+// B_k must therefore be the complete family of common subfields. A single-column
+// matrix used to be answered by folding FieldIntersection pairwise, which keeps
+// one common subfield of greatest degree per step and drops the alternatives, so
+// it could name an A_k that other candidates do not embed into (issue
+// endomorphisms-0t4).
+//
+// Witnesses: N = Q(2^(1/4), i, sqrt 3) is Galois over Q with group D_4 x C_2.
+// Writing s for complex conjugation, r for the order-4 rotation in D_4 and c for
+// the generator of C_2, the index-4 subgroups <s, c> and <s, r^2 c> are not
+// conjugate, so the quartic fields Q(2^(1/4)) and Q(18^(1/4)), with
+// 18^(1/4) = sqrt3 * 2^(1/4), are non-isomorphic; they are also incomparable,
+// since Q(sqrt 2) is the only quadratic subfield of Q(2^(1/4)) and 18^(1/4)
+// there would force sqrt 3 in as well. Their compositum is Q(2^(1/4), sqrt 3)
+// for one embedding and Q(2^(1/4), sqrt -3) for the other, so those two octic
+// fields share both quartics and nothing above them. That non-unique compositum
+// is what makes a family of common subfields lack a greatest member, and degree 8
+// is the smallest degree where it happens.
+//
+// Fields are compared through their Polredabs polynomials, so these scenarios
+// need PARI/gp on PATH: with the non-canonical fallback no two rows agree on a
+// name for the same field.
+function d4c2_octic_pair()
+    K := NumberField(x^4 - 2);
+    return R ! DefiningPolynomial(AbsoluteField(ext<K | Polynomial([K | -3, 0, 1])>)),
+           R ! DefiningPolynomial(AbsoluteField(ext<K | Polynomial([K | 3, 0, 1])>));
+end function;
+
+procedure test_field_intersection_matrix_incomparable_candidates()
+    fX, fY := d4c2_octic_pair();
+    Ak, Bk := Explode(FieldIntersectionMatrix([[fX], [fY]])[1]);
+    // Q, Q(sqrt 2), Q(2^(1/4)) and Q(18^(1/4)) embed in both octic fields.
+    error if [Degree(f) : f in Bk] ne [1, 2, 4, 4],
+        Sprintf("expected candidates of degree [1, 2, 4, 4], got %o", Bk);
+    error if not exists{f : f in Bk | IsIsomorphic(NumberField(f), NumberField(x^4 - 2))},
+        Sprintf("Q(2^(1/4)) is missing from the candidates %o", Bk);
+    error if not exists{f : f in Bk | IsIsomorphic(NumberField(f), NumberField(x^4 - 18))},
+        Sprintf("Q(18^(1/4)) is missing from the candidates %o", Bk);
+    // Neither quartic embeds in the other, so no candidate bounds the rest.
+    error if not IsZero(Ak),
+        Sprintf("expected the no-greatest-candidate marker 0, got %o (gp on PATH?)", Ak);
+
+    // A third row equal to one of the two quartics resolves the family to that
+    // quartic: it embeds in both octic fields and the other quartic does not
+    // embed in it, so it is the greatest candidate whatever order the rows come
+    // in. The pairwise fold keeps whichever quartic it meets first and then
+    // collapses to Q(sqrt 2), which the center need not embed into, so it gets
+    // some of these four matrices right and the others wrong.
+    for J in [x^4 - 2, x^4 - 18] do
+        for M in [[[fX], [fY], [J]], [[J], [fX], [fY]]] do
+            Ak, Bk := Explode(FieldIntersectionMatrix(M)[1]);
+            error if [Degree(f) : f in Bk] ne [1, 2, 4],
+                Sprintf("expected candidates of degree [1, 2, 4] with third field %o, got %o",
+                        J, Bk);
+            error if Degree(Ak) ne 4 or not IsIsomorphic(NumberField(Ak), NumberField(J)),
+                Sprintf("expected the greatest candidate %o, got %o", J, Ak);
+        end for;
+    end for;
+end procedure;
+
+test_field_intersection_matrix_incomparable_candidates();
 
 // ----- EndomorphismAlgebraCenterBounds -----
 // Port of Sage upper_bounds.py:82-125. Takes (eta, t, eta_lower) from EtaBound,
@@ -325,6 +403,26 @@ fake := [
 ];
 ok2, msg2, _, _ := EndomorphismAlgebraCenterBounds(8, 1, fake);
 assert not ok2;
+
+// A factor whose candidates have no greatest member has no center bound at all:
+// CMSV Lemma 7.4.2 requires the true center to embed in the reported field, and
+// a candidate incomparable to it does not bound it. One factor per prime, of
+// shape <m, m * deg(h)> = <1, 8>, is the one-entry-per-row case; the pairwise
+// fold used to report whichever of the two quartics it met first as the center,
+// with real representation [RR, RR, RR, RR] and dimension 4. The entries are the
+// field-theoretic
+// witnesses above rather than Weil polynomials, since degree 8 is out of reach
+// of a Frobenius factor below genus 4.
+procedure test_center_bounds_refuses_incomparable_candidates()
+    fX, fY := d4c2_octic_pair();
+    ok, _, output, total_dim := EndomorphismAlgebraCenterBounds(
+        2, 1, [[<1, 8, fX>], [<1, 8, fY>]]);
+    error if ok,
+        Sprintf("expected no center bound for incomparable candidates, got %o of dimension %o",
+                output, total_dim);
+end procedure;
+
+test_center_bounds_refuses_incomparable_candidates();
 
 // ----- EndomorphismAlgebraUpperBound + RealRepresentationBound (frob_list) -----
 // Top-level wrappers. Sage docstring example must round-trip:
@@ -380,5 +478,35 @@ procedure test_curve_level_overloads_without_good_reduction_prime()
 end procedure;
 
 test_curve_level_overloads_without_good_reduction_prime();
+// ----- Quartic CM stratum: the center bound is the CM field -----
+// Pins which common subfield is selected as the center of a geometrically
+// simple genus-2 Jacobian with quartic CM. The bound must name the quartic CM
+// field, whose real representation is [CC, CC]; naming its real quadratic
+// subfield instead reports [RR, RR] and halves the dimension bound. Expected
+// values come from LMFDB factorsRR_geom for the labels below, an oracle
+// independent of this implementation; the dimension 4 is the degree of the CM
+// field, which for a simple CM abelian surface is the whole geometric
+// endomorphism algebra. Background: CMSV arXiv:1705.09248 Section 7 and CLV
+// arXiv:1906.02803.
+procedure test_upper_bound_quartic_cm_center()
+    // LMFDB 3125.a.3125.1: y^2 + y = x^5, with CM by Q(zeta_5).
+    C := HyperellipticCurve(x^5, R ! 1);
+    ok, _, _, t, output, total_dim := EndomorphismAlgebraUpperBound(C, 200);
+    assert ok;
+    assert t eq 1;
+    rr := &cat [tup[4] : tup in output];
+    error if rr ne ["CC", "CC"],
+        Sprintf("3125.a.3125.1: LMFDB factorsRR_geom is [CC, CC], got %o", rr);
+    error if total_dim ne 4,
+        Sprintf("3125.a.3125.1: CM field has degree 4, got dimension %o", total_dim);
+
+    // LMFDB 28561.a.371293.1: a second curve on the same stratum.
+    C := HyperellipticCurve(R ! [-2, 3, 2, -2, -2], R ! [0, 0, 0, 1]);
+    rr := RealRepresentationBound(C, 200);
+    error if rr ne [["CC", "CC"]],
+        Sprintf("28561.a.371293.1: LMFDB factorsRR_geom is [CC, CC], got %o", rr);
+end procedure;
+
+test_upper_bound_quartic_cm_center();
 
 print "Test-UpperBounds: all assertions passed.";
