@@ -79,13 +79,16 @@ for pair in lpolys do
     assert Degree(Lp) eq 2 * g;
     assert Coefficient(Lp, 0) eq 1;
     assert Coefficient(Lp, 2 * g) eq p^g;
+    // Every kept prime must predict the enumerated point count.
+    assert p + 1 + Coefficient(Lp, 1) eq #Points(ChangeRing(C, GF(p)));
 end for;
 
 // Cross-check: every (p, Lp) in the output must equal LPolynomial of the
-// base-changed curve. Catches argument shuffling / convention errors.
+// base-changed curve. Catches argument shuffling / convention errors. The
+// algorithm is named so the check pins the pairing, not Magma's selection.
 for pair in lpolys do
     p, Lp := Explode(pair);
-    assert Lp eq LPolynomial(ChangeRing(C, GF(p)));
+    assert Lp eq LPolynomial(ChangeRing(C, GF(p)) : Al := "Naive");
 end for;
 
 // Plane quartic genus 3: a smooth plane quartic.
@@ -100,6 +103,31 @@ for pair in lpolys_pl do
     assert Degree(Lp) eq 2 * gpl;
     assert Coefficient(Lp, 0) eq 1;
 end for;
+
+// Magma's default algorithm returns a wrong (though formally valid) Weil
+// polynomial at p = 5 here. That makes 5 the unique minimiser of
+// dim End(Abar_p), so the bound names a quartic CM centre: the baseline read
+// its real quadratic subfield and reported [RR, RR], and naming it now errors.
+procedure test_lpolynomials_exact_at_small_primes()
+    // LMFDB 8788.g.8788.1, geom_end_alg M_2(Q), factorsRR_geom [M_2(RR)].
+    C8788 := HyperellipticCurve(R ! [-5, 10, -20, 19, -15, 6, -2], R ! [1, 1, 1]);
+
+    // Point counts fix L_5 for genus 2, and are computed by enumeration, so
+    // they are an oracle independent of any L-polynomial algorithm.
+    C5 := ChangeRing(C8788, GF(5));
+    assert #Points(C5) eq 6;
+    assert #Points(BaseChange(C5, GF(25))) eq 28;
+    lp5 := [pair[2] : pair in LPolynomials(C8788, 50) | pair[1] eq 5];
+    assert #lp5 eq 1;
+    error if lp5[1] ne 25*x^4 + x^2 + 1,
+        Sprintf("8788.g.8788.1: #C(F_5) = 6 and #C(F_25) = 28 give L_5 = 25x^4 + x^2 + 1, got %o", lp5[1]);
+
+    error if RealRepresentationBound(C8788, 50) ne [["M_2(RR)"]],
+        Sprintf("8788.g.8788.1: LMFDB factorsRR_geom is [M_2(RR)], got %o",
+                RealRepresentationBound(C8788, 50));
+end procedure;
+
+test_lpolynomials_exact_at_small_primes();
 
 // ----- EndomorphismAlgebra over prime fields -----
 // A Weil polynomial with constant term 1 has leading coefficient q^genus, so
@@ -452,3 +480,74 @@ procedure test_upper_bound_quartic_cm_center()
 end procedure;
 
 test_upper_bound_quartic_cm_center();
+
+// ----- Zywina (arXiv:2009.07441) "A CM example": genus 4 -----
+// y^2 = x^9 - 1. The endomorphisms of A_Qbar are defined over Q(zeta_9), so only
+// p = 1 mod 9 sees them all; Shioda's A ~ B x E, with B simple of dimension 3
+// carrying Z[zeta_9] and E elliptic, gives Q(zeta_9) x Q(zeta_3), dimension 8.
+procedure test_upper_bound_zywina_cm_genus_4()
+    C := HyperellipticCurve(x^9 - 1);
+    eligible := [];
+    for pair in LPolynomials(C, 100) do
+        _, fieldext := EndomorphismAlgebra(pair[2]);
+        if fieldext eq 1 then
+            Append(~eligible, pair[1]);
+        end if;
+    end for;
+    error if eligible ne [p : p in PrimesUpTo(100) | p mod 9 eq 1],
+        Sprintf("x^9 - 1: only p = 1 mod 9 defines every endomorphism, got %o", eligible);
+
+    ok, _, _, t, output, total_dim := EndomorphismAlgebraUpperBound(C, 100);
+    assert ok;
+    error if t ne 2, Sprintf("x^9 - 1: A ~ B x E has two factors, got %o", t);
+    error if total_dim ne 8,
+        Sprintf("x^9 - 1: Q(zeta_9) x Q(zeta_3) has dimension 8, got %o", total_dim);
+    assert Sort([tup[2] : tup in output]) eq [1, 3];
+    for tup in output do
+        _, njdimAj, Lj, RRj := Explode(tup);
+        n := njdimAj eq 3 select 9 else 3;
+        error if not IsIsomorphic(NumberField(Lj[1]), CyclotomicField(n)),
+            Sprintf("x^9 - 1: dimension %o factor has center Q(zeta_%o), got %o",
+                    njdimAj, n, Lj[1]);
+        error if RRj ne ["CC" : i in [1..njdimAj]],
+            Sprintf("x^9 - 1: dimension %o factor is CM, got %o", njdimAj, RRj);
+    end for;
+end procedure;
+
+test_upper_bound_zywina_cm_genus_4();
+
+// ----- Zywina (arXiv:2009.07441) "Another example": genus 10 -----
+// y^2 = x(x^20 + 7x^18 - 7x^2 - 1). End(A_Qbar) tensor Q is a definite quaternion
+// algebra over Q: one factor, center Q, dimension 4, and tensor RR equal to HH.
+// Zywina reads HH off explicit automorphisms of C, not off Frobenius data.
+procedure test_upper_bound_zywina_quaternion_genus_10()
+    C := HyperellipticCurve(x*(x^20 + 7*x^18 - 7*x^2 - 1));
+    lpolys := LPolynomials(C, 50);
+    // The set P of Section 1.5 meets [1, 50) in 17 and 41, and there
+    // P_{A,p} = Q_p^2 with Q_p of degree 10 whose discriminant lies in -2 (Q^*)^2.
+    for p in [17, 41] do
+        fac := Factorization([pair[2] : pair in lpolys | pair[1] eq p][1]);
+        error if [<Degree(f[1]), f[2]> : f in fac] ne [<10, 2>],
+            Sprintf("p = %o: L_p should be an irreducible of degree 10, squared; got %o",
+                    p, fac);
+        error if not IsSquare(-Discriminant(fac[1][1]) / 2),
+            Sprintf("p = %o: disc of the degree 10 factor should lie in -2 (Q^*)^2", p);
+    end for;
+
+    ok, _, _, t, output, total_dim := EndomorphismAlgebraUpperBound(
+        [pair[2] : pair in lpolys]);
+    assert ok;
+    error if t ne 1, Sprintf("genus 10: A_Qbar is simple, got %o factors", t);
+    error if total_dim ne 4,
+        Sprintf("genus 10: the quaternion algebra has dimension 4, got %o", total_dim);
+    assert #output eq 1;
+    ejnj, njdimAj, Lj, RRj := Explode(output[1]);
+    assert <ejnj, njdimAj> eq <2, 10>;
+    error if Degree(Lj[1]) ne 1, Sprintf("genus 10: the center is Q, got %o", Lj[1]);
+    // The truth is ["HH"]. Zywina states Frobenius polynomials cannot separate the
+    // two, so the undecided pair is the sharpest sound answer this method can give.
+    error if RRj ne ["M_2(RR) or HH"],
+        Sprintf("genus 10: expected the type II/III ambiguity, got %o", RRj);
+end procedure;
+
+test_upper_bound_zywina_quaternion_genus_10();

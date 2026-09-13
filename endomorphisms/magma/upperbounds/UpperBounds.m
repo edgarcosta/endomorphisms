@@ -4,16 +4,10 @@
 // For more details see Section 7.2
 
 intrinsic EndomorphismAlgebra(f::RngUPolElt) -> Tup
-{The triple attached to the Frobenius polynomial f of an abelian variety A over
-a finite field, where Abar is the base change of A to an algebraic closure.
-The first item is the geometric endomorphism algebra dimension dim_Q End(Abar).
-The second item is the degree of the minimal field extension over which all
-endomorphisms of Abar are defined.
-The third item is a sorted list [ (m_i, m_i * deg(c_i), c_i) : i in [1..t] ]
-representing the geometric isogeny decomposition
-Abar = (A_1)^n_1 x ... x (A_t)^n_t
-where
-det(1 - T Frob^k | H^1((A_i)^n_i)) = c_i(T)^m_i}
+{The geometric endomorphism data of the abelian variety with Frobenius
+ polynomial f over a finite field: the dimension dim_Q End(Abar), the degree of
+ the least field over which all endomorphisms of Abar are defined, and the
+ sorted isogeny decomposition [<m_i, m_i * deg(c_i), c_i>]}
     if IsMonic(f) then
         f := Reverse(f);
     end if;
@@ -57,15 +51,10 @@ end intrinsic;
 // exposes some of the functionality mentioned in Section 7.3 and Section 7.4
 intrinsic EndomorphismAlgebraEtaBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false)
     -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum
-{The eta and t narrowing step from Section 7.3.
- On success, eta_char0 bounds eta(A^alg), not the endomorphism algebra dimension.
- CMSV (7.3.16) defines eta = sum_i e_i n_i^2 dim(A_i); the algebra dimension
- is sum_i n_i^2 e_i^2 [L_i:Q]. A geometrically simple quartic-CM surface
- has eta = 2 and algebra dimension 4.
- Given a list of Frobenius polynomials (one per prime), return
- <success, message, eta_char0, t, eta_lower> where eta_lower lists the per-prime
- endomorphism factorizations from primes that minimize both eta(A_p) and the
- number of factors. Port of the first half of Sage endomorphisms_upper_bound}
+{The eta and t narrowing step of Section 7.3, as
+ <success, message, eta_char0, t, eta_lower> over one Frobenius polynomial per
+ prime. eta_char0 bounds eta = sum_i e_i n_i^2 dim(A_i) of (7.3.16), NOT the
+ algebra dimension sum_i n_i^2 e_i^2 [L_i:Q]; a quartic-CM surface has 2 and 4}
     require #frob_list ne 0: "frob_list must not be empty";
     g := Degree(frob_list[1]) div 2;
     if eta_char0 cmpeq false then
@@ -105,14 +94,10 @@ end intrinsic;
 
 intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lower::SeqEnum)
     -> BoolElt, MonStgElt, SeqEnum, RngIntElt
-{The center-bounding step from Section 7.3-7.4. Verify the multiset of factor
- shapes (m_p, m_p * deg(h_p)) agrees across all primes in eta_lower; if so,
- apply FieldIntersectionMatrix per factor pair to bound the center of each
- simple component. Returns <success, message, output, total_dim> where output
- is a sequence of <ejnj, njdimAj, Lj, RRj> tuples (Lj from FieldIntersectionMatrix,
- RRj from RealRepresentationString). Port of the second half of Sage
- endomorphisms_upper_bound. Fails when some factor has no unique maximal common
- subfield, since no single field then bounds its center}
+{The center-bounding step of Sections 7.3-7.4, as
+ <success, message, output, total_dim> with output a sequence of
+ <ejnj, njdimAj, Lj, RRj>. Fails when a factor has no greatest common subfield,
+ since no single field then bounds its center. See also RealRepresentationBound}
     require #eta_lower gt 0: "eta_lower must not be empty";
     QQT := PolynomialRing(Rationals());
 
@@ -181,15 +166,10 @@ end intrinsic;
 
 intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false)
     -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum, RngIntElt
-{Top-level upper-bound orchestrator. Calls EndomorphismAlgebraEtaBound, then
- (on success) EndomorphismAlgebraCenterBounds. Returns the bundled 6-tuple
- <success, message, eta_char0, t, output, total_dim> mirroring Sage's
- endomorphisms_upper_bound. See Section 7 of the paper.
- Factor and center bounds assume eta and t are correct; the eta bound is
- unconditional when the eta step succeeds (CMSV Corollary 7.3.19(a)). Under
- those assumptions, total_dim bounds the algebra dimension. Exact centers
- require suitable primes as in CMSV Hypothesis 7.4.6, supplied under
- Mumford-Tate by CLV (arXiv:1906.02803), Theorem 1.1(b)}
+{The Section 7 upper bound, as
+ <success, message, eta_char0, t, output, total_dim>. The eta bound is
+ unconditional once the eta step succeeds (Corollary 7.3.19(a)); the factor and
+ center bounds assume eta and t are correct, and exact centers need Mumford-Tate}
     ok, msg, eta_c, t, eta_lower := EndomorphismAlgebraEtaBound(
         frob_list : eta_char0 := eta_char0);
     if not ok then
@@ -215,15 +195,13 @@ end intrinsic;
 
 intrinsic EndomorphismAlgebraUpperBound(C::Crv, B::RngIntElt : eta_char0 := false)
     -> BoolElt, MonStgElt, RngIntElt, RngIntElt, SeqEnum, RngIntElt
-{Curve-level overload: build the L-polynomial list for primes up to B with
- good reduction, then call the SeqEnum form. Convention matches Sage's
- hyperelliptic_endomorphisms_upper_bound but is curve-type agnostic. Any
- B ge 1 is allowed; when no prime below B has good reduction the bound simply
- fails, per CLV Algorithm 5.1, rather than raising}
+{The Section 7 upper bound for the curve C, from the L-polynomials at good
+ primes below B. Any B ge 1 is allowed: with no usable prime below B the bound
+ fails rather than raising, per CLV (arXiv:1906.02803) Algorithm 5.1}
     frob_list := [pair[2] : pair in LPolynomials(C, B)];
     if #frob_list eq 0 then
         return false,
-               "No prime below the bound has good reduction",
+               "No prime below the bound yielded a usable L-polynomial",
                0, 0, [], 0;
     end if;
     return EndomorphismAlgebraUpperBound(frob_list : eta_char0 := eta_char0);

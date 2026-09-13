@@ -1,3 +1,5 @@
+declare verbose UpperBounds, 1;
+
 intrinsic TensorCharacteristicPolynomial(f::RngUPolElt, g::RngUPolElt) -> RngUPolElt
     {given the characteristic polynomials of two linear transformations,
     return the characteristic polynomial of the induced linear transformation on the tensor product}
@@ -49,13 +51,10 @@ intrinsic SymmetricSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
 end intrinsic;
 
 intrinsic FieldIntersection(L::FldNum, K::FldNum) -> RngUPolElt
-{Defining polynomial of one common subfield of L and K of greatest degree, or
- the polynomial x (defining Q) when L and K share only the rationals. Greatest
- degree is not greatest: when L and K have several incomparable maximal common
- subfields, the one returned need not contain the others, so it does not bound a
- field known to embed in both. See also FieldIntersectionMatrix, which computes
- the whole family. Port of Sage field_intersection in
- endomorphisms/UpperBounds/utils.py}
+{Defining polynomial of one common subfield of L and K of greatest degree, or x
+ for Q. Greatest degree is not greatest: with several incomparable maximal
+ common subfields the one returned need not contain the others, so it bounds
+ nothing. See also FieldIntersectionMatrix, which computes the whole family}
     if IsIsomorphic(L, K) then
         return DefiningPolynomial(AbsoluteField(L));
     end if;
@@ -96,15 +95,10 @@ function integral_discriminant(f)
 end function;
 
 intrinsic FieldIntersectionMatrix(M::SeqEnum[SeqEnum[RngUPolElt]]) -> SeqEnum
-{For each column k of M, the pair <A_k, B_k> describing the common subfields of
- that column across the rows of M. B_k lists the polynomials defining every field
- that embeds into the working row's entry k and into some entry of every other
- row, sorted ascending by degree. A_k defines the greatest member of B_k, the one
- every other member embeds into, and is the zero polynomial when B_k has no
- greatest member. Port of Sage field_intersection_matrix in
- endomorphisms/UpperBounds/utils.py, less its single-column shortcut: that
- shortcut folds FieldIntersection pairwise, which can drop maximal common
- subfields and hence report an A_k the true center does not embed into}
+{Per column k of M, the pair <A_k, B_k>: B_k lists every common subfield of that
+ column across the rows, ascending by degree, and A_k defines the greatest member
+ of B_k, or is zero when B_k has none. Unlike the Sage original this takes no
+ single-column shortcut, which could drop maximal candidates from B_k}
     require #M gt 0: "matrix must have at least one row";
     require #M[1] gt 0: "matrix must have at least one column";
     R := Parent(M[1][1]);
@@ -174,12 +168,9 @@ end intrinsic;
 
 intrinsic FieldIntersectionList(polys::SeqEnum[RngUPolElt]) -> RngUPolElt
 {Defining polynomial of a common subfield of NumberField(f) over all f in polys,
- obtained by folding FieldIntersection pairwise, or x (defining Q) when that fold
- reaches the rationals. The fold is greedy and order-dependent: each step keeps
- one common subfield of greatest degree, so the result need not have greatest
- degree among the common subfields of all of polys, and need not contain them.
- See also FieldIntersectionMatrix, which computes the whole family. Port of Sage
- field_intersection_list in endomorphisms/UpperBounds/utils.py}
+ or x for Q. The pairwise fold is greedy and order-dependent, so the result need
+ not have greatest degree among the common subfields, nor contain them. See also
+ FieldIntersectionMatrix, which computes the whole family}
     require #polys gt 0: "polys must not be empty";
     R := Parent(polys[1]);
     // Any degree-1 polynomial defines Q, so the intersection is forced to Q.
@@ -231,16 +222,35 @@ end intrinsic;
 intrinsic LPolynomials(C::Crv, B::RngIntElt) -> SeqEnum
 {Return a sequence of <p, L_p> tuples for primes p < B where C has good reduction,
  with L_p the L-polynomial of the reduction at p (constant term 1, degree 2*Genus(C)).
- Port of Sage get_frob_list_HyperellipticCurve, curve-type-agnostic.}
+ L_p comes from exact point counting where affordable, and is kept only when it
+ predicts #C(F_p). Port of Sage get_frob_list_HyperellipticCurve}
     g := Genus(C);
     out := [];
     p := 2;
     while p lt B do
         try
             Cp := ChangeRing(C, GF(p));
-            Lp := LPolynomial(Cp);
+            // Over small prime fields Magma's default returns a wrong but
+            // formally valid Weil polynomial for some genus-2 curves. Count
+            // points exactly while affordable (cutoff from UseZetaMethod);
+            // LPolynomial caches on Cp and ignores Al after the first call.
+            if p^g le 10^6 then
+                Lp := LPolynomial(Cp : Al := "Naive");
+            else
+                Lp := LPolynomial(Cp);
+            end if;
             if Degree(Lp) eq 2 * g then
-                Append(~out, <p, Lp>);
+                // Enumerating on an untouched reduction gives a trace oracle
+                // owing nothing to either algorithm or to Lp's cache. Dropping
+                // a prime that fails it only weakens the bound, where keeping a
+                // wrong L_p would make it unsound. It checks the trace alone.
+                n1 := #Points(ChangeRing(C, GF(p)));
+                if p + 1 + Coefficient(Lp, 1) eq n1 then
+                    Append(~out, <p, Lp>);
+                else
+                    vprintf UpperBounds: "p = %o dropped: L_p gives %o points, %o counted\n",
+                        p, p + 1 + Coefficient(Lp, 1), n1;
+                end if;
             end if;
         catch e
             ;
@@ -251,12 +261,10 @@ intrinsic LPolynomials(C::Crv, B::RngIntElt) -> SeqEnum
 end intrinsic;
 
 intrinsic RealRepresentationString(g::RngIntElt, K::FldNum, d::RngIntElt) -> SeqEnum[MonStgElt]
-    {The list of strings encoding End(A^n) tensor RR, one per simple component.
-     The argument g is the dimension n_j * dim(A_j) of the power, not of the
-     simple factor. The argument K is the center. The argument d is the degree
-     e_j * n_j of the central simple algebra over K; its dimension over K is
-     d^2. Port of the Sage RR_representation routine in
-     endomorphisms/UpperBounds/utils.py. See arXiv:1705.09248, Section 7}
+    {The strings encoding End(A^n) tensor RR, one per simple component. Here g is
+     the dimension n_j * dim(A_j) of the POWER, not of the simple factor, K is
+     the center, and d is the DEGREE e_j * n_j of the central simple algebra over
+     K, whose dimension over K is d^2. See arXiv:1705.09248, Section 7}
     if HasComplexConjugate(K) and not IsTotallyReal(K) then
         n := Degree(K) div 2;
         KRR := "CC";
