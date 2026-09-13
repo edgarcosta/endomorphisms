@@ -6,9 +6,10 @@ not depend on Magma and Python agreeing on how to sort strings: both sides are
 re-sorted before they are compared.
 
     sharp     the multisets are equal
-    over      dim(got) > dim(expected): a genuine but non-sharp upper bound
+    over      got is a genuine upper bound: expected embeds unitally in got,
+              but the two are not equal
     under     dim(got) < dim(expected)
-    mismatch  equal dimension, different multiset
+    mismatch  equal or larger dimension but structurally incomparable
     error     the Magma driver raised on this curve
 
 'under' is expected in one place. For geometrically simple genus-2 curves whose
@@ -32,16 +33,25 @@ import argparse
 import collections
 import sys
 
-# Dimension over R of each simple real endomorphism algebra.
-DIM = {
-    "RR": 1,
-    "CC": 2,
-    "M_2(RR)": 4,
-    "M_2(CC)": 8,
-    "M_3(RR)": 9,
-    "M_3(CC)": 18,
-    "M_2(RR) or HH": 4,
+# Each simple real endomorphism algebra M_k(D), as (k, dim_R D).
+FACTOR = {
+    "RR": (1, 1),
+    "CC": (1, 2),
+    "HH": (1, 4),
+    "M_2(RR)": (2, 1),
+    "M_2(CC)": (2, 2),
+    "M_3(RR)": (3, 1),
+    "M_3(CC)": (3, 2),
 }
+
+# Tokens the Magma side cannot always separate. Containment is reported when
+# it holds for any resolution, since the favourable case cannot be ruled out.
+AMBIGUOUS = {"M_2(RR) or HH": ("M_2(RR)", "HH")}
+
+# Dimension over R: dim_R M_k(D) = k^2 dim_R D. Both candidates behind the
+# ambiguous token have dimension 4, so it needs no resolution here.
+DIM = dict((tok, k * k * d) for tok, (k, d) in FACTOR.items())
+DIM["M_2(RR) or HH"] = 4
 
 VERDICTS = ("sharp", "over", "under", "mismatch", "error")
 
@@ -58,6 +68,66 @@ def total_dim(items):
     return sum(DIM.get(s, 0) for s in items), unknown
 
 
+def _support_masks(units, target):
+    """Supports, as bitmasks over i, of the solutions in non-negative integers
+    of sum_i c_i * units[i] == target, excluding the all-zero c.
+    """
+    found = set()
+
+    def walk(i, rest, mask):
+        if i == len(units):
+            if rest == 0 and mask:
+                found.add(mask)
+            return
+        for c in range(rest // units[i] + 1):
+            walk(i + 1, rest - c * units[i],
+                 (mask | (1 << i)) if c else mask)
+
+    walk(0, target, 0)
+    return found
+
+
+def _embeds_resolved(exp, obs):
+    """Is there a unital injective R-algebra map prod(exp) -> prod(obs)?
+
+    Per factor M_n(E) of obs: sum_i c_i k_i max(dim D_i, dim E) = n dim E,
+    then no factor of obs left unhit and no factor of exp left unused.
+    """
+    shape = [FACTOR[tok] for tok in exp]
+    reach = set([0])
+    for tok in obs:
+        n, e = FACTOR[tok]
+        masks = _support_masks([k * max(d, e) for k, d in shape], n * e)
+        if not masks:
+            return False
+        reach = set(r | m for r in reach for m in masks)
+    return (1 << len(exp)) - 1 in reach
+
+
+def _resolutions(items):
+    """Every way of replacing each ambiguous token by a definite one."""
+    out = [[]]
+    for tok in items:
+        out = [row + [c] for row in out for c in AMBIGUOUS.get(tok, (tok,))]
+    return out
+
+
+_EMBEDS = {}
+
+
+def embeds(exp, obs):
+    """Does prod(exp) embed unitally in prod(obs), for some resolution of the
+    ambiguous tokens? Both arguments are sorted token lists.
+    """
+    key = (",".join(exp), ",".join(obs))
+    hit = _EMBEDS.get(key)
+    if hit is None:
+        hit = any(_embeds_resolved(e, o)
+                  for e in _resolutions(exp) for o in _resolutions(obs))
+        _EMBEDS[key] = hit
+    return hit
+
+
 def classify(expected, got, status):
     if status != "ok":
         return "error", []
@@ -70,7 +140,7 @@ def classify(expected, got, status):
     unknown = unk_e + unk_g
     if unknown:
         return "mismatch", unknown
-    if dg > de:
+    if embeds(exp, obs):
         return "over", []
     if dg < de:
         return "under", []

@@ -310,13 +310,15 @@ comparing):
 | verdict | meaning |
 | --- | --- |
 | `sharp` | the multisets are equal |
-| `over` | `dim(got) > dim(expected)`: a genuine but non-sharp upper bound |
+| `over` | got is a genuine upper bound: expected embeds unitally in got, but the two are not equal |
 | `under` | `dim(got) < dim(expected)` |
-| `mismatch` | equal dimension, different multiset |
+| `mismatch` | equal or larger dimension but structurally incomparable |
 | `error` | the driver raised on this curve |
 
-Dimensions over R: `RR` 1, `CC` 2, `M_2(RR)` 4, `M_2(CC)` 8, `M_3(RR)` 9,
-`M_3(CC)` 18, `M_2(RR) or HH` 4.
+Dimensions over R: `RR` 1, `CC` 2, `HH` 4, `M_2(RR)` 4, `M_2(CC)` 8,
+`M_3(RR)` 9, `M_3(CC)` 18, `M_2(RR) or HH` 4. Greater total dimension is not
+enough for `over`: `CC,RR` does not embed in `M_2(RR)`, so that pair is a
+`mismatch`.
 
 `over` and `mismatch` are the ones a larger `B` can move. `under` is not: it
 means the bound missed endomorphisms that are really there.
