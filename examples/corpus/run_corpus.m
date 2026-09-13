@@ -195,15 +195,16 @@ for line in lines do
     t0 := Cputime();
     status := "ok";
     got := "";
+    Bused := 0;
     try
         C := BuildCurve(kind, data);
-        bound := RealRepresentationBound(C, B);
-        if #bound eq 0 then
-            // The upper bound could not be established; report it as an empty
-            // multiset rather than an error, and let report.py classify it.
-            flat := [Strings() | ];
-        else
-            flat := &cat bound;
+        // Climb B against the known truth instead of pinning one B: CORPUS_B is
+        // the cap. Bused is the rung reached, and "unsound" means the truth did
+        // not embed, which is a bug rather than a loose bound.
+        flat, Bused, st := RealRepresentationBound(C, Split(expected, ",")
+                                                   : Bmax := B);
+        if st eq "unsound" then
+            status := "unsound";
         end if;
         got := Join([Strings() | Flatten1Line(s) : s in flat], ",");
     catch e
@@ -213,7 +214,7 @@ for line in lines do
     elapsed := Cputime(t0);
 
     PrintFile(output_path, Sprintf("%o\t%o\t%o\t%o\t%o\t%.3o\t%o",
-                                   id, kind, B, expected, got, elapsed, status));
+                                   id, kind, Bused, expected, got, elapsed, status));
     ndone +:= 1;
 end for;
 
