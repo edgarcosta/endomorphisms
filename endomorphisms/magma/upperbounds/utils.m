@@ -224,10 +224,20 @@ intrinsic LPolynomials(C::Crv, B::RngIntElt) -> SeqEnum
  with L_p the L-polynomial of the reduction at p (constant term 1, degree 2*Genus(C)).
  L_p comes from exact point counting where affordable, and is kept only when it
  predicts #C(F_p). Port of Sage get_frob_list_HyperellipticCurve}
+    return LPolynomials(C, 2, B);
+end intrinsic;
+
+intrinsic LPolynomials(C::Crv, Blow::RngIntElt, Bhigh::RngIntElt) -> SeqEnum
+{Range form of LPolynomials: the <p, L_p> tuples for the good primes p with
+ Blow <= p < Bhigh. A caller climbing a ladder of bounds can accumulate the
+ tuples rung by rung and count points at each prime exactly once}
     g := Genus(C);
     out := [];
-    p := 2;
-    while p lt B do
+    p := Max(Blow, 2);
+    if not IsPrime(p) then
+        p := NextPrime(p);
+    end if;
+    while p lt Bhigh do
         try
             Cp := ChangeRing(C, GF(p));
             // Over small prime fields Magma's default returns a wrong but

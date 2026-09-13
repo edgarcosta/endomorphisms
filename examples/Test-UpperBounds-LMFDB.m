@@ -11,8 +11,8 @@
 // there is no per-row B any more; we assert it reports "sharp".
 //
 // That pins two things at once: the bound is reached, and it is never
-// contradicted. Status "unsound" means the truth does not embed in the
-// computed bound, which the theorem forbids, so it stops the climb.
+// contradicted. Status "unsound" means the last rung to produce a bound failed
+// to contain the truth; lower rungs may miss it, the bounds being conditional.
 //
 // Requires PARI/gp on PATH: the center-field detection (FieldIntersection ->
 // SubfieldsPolynomials -> Polredabs) needs it, and without it the CM strata

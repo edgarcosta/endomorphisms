@@ -140,18 +140,29 @@ end intrinsic;
 intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 200)
     -> SeqEnum, RngIntElt, MonStgElt
 {Climbs B over 10, 20, 50, 100, 200 until the flattened bound for C equals the
- known truth target. Returns <bound, B, status>, status one of "sharp",
- "unsound" (target does not embed in the bound, so a bug in the code or in
- target) and "exhausted" (tightest bound seen). Stops at the first match}
+ known truth target. Returns <bound, B, status>: "sharp" on a match, "exhausted"
+ with the tightest bound that contained target, and "unsound" only when the last
+ rung to produce a bound failed to contain it, earlier rungs being conditional}
     sorted := Sort(target);
     best := [];
     bestB := 0;
     bestdim := -1;
+    bad := [];
+    badB := 0;
+    lastbad := false;
+    frobs := [];
+    prev := 2;
     for B in [10, 20, 50, 100, 200] do
         if B gt Bmax then
             break;
         end if;
-        raw := RealRepresentationBound(C, B);
+        // Refolds eta/centre per rung, not accumulating as CLV: a known cost.
+        frobs cat:= [pair[2] : pair in LPolynomials(C, prev, B)];
+        prev := B;
+        if #frobs eq 0 then
+            continue;
+        end if;
+        raw := RealRepresentationBound(frobs);
         // An empty bound means no prime below B was usable, not a failure.
         if #raw eq 0 then
             continue;
@@ -161,8 +172,16 @@ intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 200)
             continue;
         end if;
         if not RealRepresentationEmbeds(sorted, bound) then
-            return bound, B, "unsound";
+            // The factor and centre bounds hold only if eta and t are right,
+            // which a handful of primes does not give, so a low rung may
+            // legitimately miss the truth. Keep climbing; only the last rung
+            // with a bound decides, and never record it as the tightest one.
+            bad := bound;
+            badB := B;
+            lastbad := true;
+            continue;
         end if;
+        lastbad := false;
         if bound eq sorted then
             return bound, B, "sharp";
         end if;
@@ -174,5 +193,8 @@ intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 200)
             bestdim := dim;
         end if;
     end for;
+    if lastbad then
+        return bad, badB, "unsound";
+    end if;
     return best, bestB, "exhausted";
 end intrinsic;
