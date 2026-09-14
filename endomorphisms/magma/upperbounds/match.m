@@ -137,12 +137,12 @@ intrinsic RealRepresentationEmbeds(target::SeqEnum, bound::SeqEnum) -> BoolElt
     return false;
 end intrinsic;
 
-intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 200)
+intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 800)
     -> SeqEnum, RngIntElt, MonStgElt
-{Climbs B over 10, 20, 50, 100, 200 until the flattened bound for C equals the
- known truth target. Returns <bound, B, status>: "sharp" on a match, "exhausted"
- with the tightest bound that contained target, and "unsound" only when the last
- rung to produce a bound failed to contain it, earlier rungs being conditional}
+{Climbs B over 10, 20, 50, 100, 200, 400, 800, capped at Bmax (default 800),
+ until the flattened bound for C equals the known truth target. Returns
+ <bound, B, status>: "sharp" on a match, "exhausted" with the tightest bound
+ containing target, "unsound" only if the last rung with a bound missed it}
     sorted := Sort(target);
     best := [];
     bestB := 0;
@@ -152,7 +152,9 @@ intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 200)
     lastbad := false;
     frobs := [];
     prev := 2;
-    for B in [10, 20, 50, 100, 200] do
+    // Ends at 800: on a curve that needs them B = 200 costs 0.7 s, 400 1.7 s and
+    // 800 9.5 s, while 1500 costs 112 s for no case we have ever seen need it.
+    for B in [10, 20, 50, 100, 200, 400, 800] do
         if B gt Bmax then
             break;
         end if;

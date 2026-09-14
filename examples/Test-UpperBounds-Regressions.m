@@ -38,17 +38,17 @@ error if status ne "sharp" or B ne 20,
 
 // ----- Bug endomorphisms-6qm (fixed in 88e7375), 2 of 2 -----
 // Counterpart of the fix above: with an unsound rung made non-fatal, "unsound"
-// must still fire at the top of the ladder, where the ~44 primes below 200 make
-// a non-containment a real defect. Guards it against never firing at all.
+// must still fire at the top of the ladder, where the ~130 usable primes below
+// 800 make a non-containment a real defect. Guards it against never firing.
 
 // 256.a.512.1, truly M_2(RR), fed the false target [CC, RR]: C x R has no unital
 // injection into M_2(R), as the two central idempotents would be complementary
 // and rank one, forcing the C summand into P M_2(R) P = R. No rung can match, so
-// the climb must run the whole ladder and report unsound at B = 200.
+// the climb must run the whole ladder and report unsound at its top rung, 800.
 C256 := HyperellipticCurve(R ! [0,-1,1,1,-3,2], R ! [1]);
 bound, B, status := RealRepresentationBound(C256, ["CC", "RR"]);
-error if status ne "unsound" or B ne 200,
-    Sprintf("256.a.512.1 with false target [CC, RR]: expected unsound at B = 200, got %o at B = %o with bound %o",
+error if status ne "unsound" or B ne 800,
+    Sprintf("256.a.512.1 with false target [CC, RR]: expected unsound at B = 800, got %o at B = %o with bound %o",
             status, B, bound);
 
 // The same curve with its true target still resolves, so the case above pins a
@@ -81,6 +81,27 @@ for entry in embeds do
     error if got ne expected,
         Sprintf("RealRepresentationEmbeds(%o, %o): expected %o, got %o",
                 target, bnd, expected, got);
+end for;
+
+// ----- Ladder capped at B = 200 (fixed by appending the 400 and 800 rungs) -----
+// The only three curves in all 3,420,837 non-trivial genus-2 curves that
+// exhausted the old ladder. Each returns [CC, RR] at B = 200: sound, as R x R
+// embeds in C x R, but not sharp, one factor's centre coming out as an
+// imaginary quadratic field where the truth is Q. All three are sharp at 400.
+
+exhausted200 := [*
+    <"177674.e1",  [0,49,-37,143,47,81],        [0,1,1]>,
+    <"203056.bc1", [-381,388,-58,464,139,44,8], []>,
+    <"406112.o1",  [95,-97,14,-116,-35,-11,-2], [1,0,1]>
+*];
+
+for entry in exhausted200 do
+    label, fc, hc := Explode(entry);
+    C := HyperellipticCurve(R ! fc, R ! hc);
+    bound, B, status := RealRepresentationBound(C, ["RR", "RR"]);
+    error if status ne "sharp" or B ne 400,
+        Sprintf("%o: expected sharp at B = 400, got %o at B = %o with bound %o",
+                label, status, B, bound);
 end for;
 
 // ----- Coverage of the B = 200 tail, NOT regressions -----

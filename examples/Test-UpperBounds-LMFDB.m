@@ -7,8 +7,8 @@
 //
 // Each row hands its factorsRR_geom to the escalating overload
 //   RealRepresentationBound(C::Crv, target::SeqEnum) -> bound, B, status
-// which climbs B over 10, 20, 50, 100, 200 and stops at the first match, so
-// there is no per-row B any more; we assert it reports "sharp".
+// which climbs B over 10, 20, 50, 100, 200, 400, 800 and stops at the first
+// match, so there is no per-row B any more; we assert it reports "sharp".
 //
 // That pins two things at once: the bound is reached, and it is never
 // contradicted. Status "unsound" means the last rung to produce a bound failed
