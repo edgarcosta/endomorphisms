@@ -139,3 +139,28 @@ for entry in tail do
         Sprintf("%o: sharp at B = %o, above the recorded max %o (bound %o)",
                 label, B, maxB, bound);
 end for;
+
+// ----- Coverage of the field intersection, NOT regressions -----
+// Row count does not predict cost: 850950.n1 has the corpus maximum 24 rows and
+// is the cheapest here, while 840693.b1 has 11 and is 5x slower. Cost tracks the
+// rows the walk visits before the running intersection collapses to Q.
+coverageVerified := [*
+    <"840693.b1",  [-40334,-100506,434601,-314128,-15833,-220,-1], [],        200, ["CC","RR"]>,
+    <"486717.d1",  [-183425,73312,-86101,25984,-14007,1218,-406], [],        200, ["CC","RR"]>,
+    <"850950.n1",  [-158720,0,-37871,0,-2717,0,-61], [0,0,1],               200, ["RR","RR"]>,
+    <"121680.el3", [0,-39,97,-30,-28,-1], [0,1,0,1],                         200, ["RR","RR"]>,
+    <"409600.bh1", [0,2,0,1,-1,-1,-1], [],                                  50, ["RR","RR"]>,
+    <"422500.v1",  [20,-90,-434,-218,316,210,20], [0,1,1],                   50, ["M_2(RR)"]>
+*];
+
+for entry in coverageVerified do
+    label, fc, hc, maxB, expected := Explode(entry);
+    C := HyperellipticCurve(R ! fc, R ! hc);
+    bound, B, status := RealRepresentationBound(C, expected : Bmax := maxB);
+    error if status ne "sharp",
+        Sprintf("%o: expected sharp, got %o at B = %o with bound %o, truth %o",
+                label, status, B, bound, Sort(expected));
+    error if B gt maxB,
+        Sprintf("%o: sharp at B = %o, above the recorded max %o (bound %o)",
+                label, B, maxB, bound);
+end for;
