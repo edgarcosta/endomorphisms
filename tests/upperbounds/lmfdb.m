@@ -1,36 +1,34 @@
 // LMFDB genus-2 corpus for the upperbounds Magma port.
-//
+
 // Curves pulled from the LMFDB (g2c_curves joined to g2c_endomorphisms), a
 // small-discriminant batch per geometric real-endomorphism-algebra stratum.
 // The LMFDB minimal model eqn = [[f-coeffs], [h-coeffs]] is low->high, for
 // y^2 + h(x) y = f(x), and decodes as HyperellipticCurve(f, h).
-//
+
 // Each row hands its factorsRR_geom to the escalating overload
 //   RealRepresentationBound(C::Crv, target::SeqEnum) -> bound, B, status
 // which climbs B over 10, 20, 50, 100, 200, 400, 800 and stops at the first
 // match, so there is no per-row B any more; we assert it reports "sharp".
-//
+
 // That pins two things at once: the bound is reached, and it is never
 // contradicted. Status "unsound" means the last rung to produce a bound failed
 // to contain the truth; lower rungs may miss it, the bounds being conditional.
-//
+
 // Requires PARI/gp on PATH: the center-field detection (FieldIntersection ->
 // SubfieldsPolynomials -> Polredabs) needs it, and without it the CM strata
 // collapse (e.g. ["RR","CC"] -> ["RR","RR"]). If gp is not found we print a
 // notice and skip rather than report spurious failures.
-//
+
 // Sage ships a usable gp; e.g. run with
 //   PATH="$(dirname $(sage -sh -c 'command -v gp')):$PATH".
-//
+
 // Silent on success. Set ENDO_TEST_VERBOSE to a non-empty value to print the
 // minimal sharp B per curve.
-//
-// Run via: magma -b Utils/SetQuitOnErrortrue.m Test-UpperBounds-LMFDB.m Utils/Exit.m
-// (kept separate from Test-UpperBounds.m, whose helper assertions pin
-//  non-polredabs polynomial forms and so are written for the gp-free path.)
 
-AttachSpec("../endomorphisms/magma/spec");
-AttachSpec("/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec");
+// Run from the repository root via: ./tests/run.sh lmfdb
+
+AttachSpec("../../endomorphisms/magma/spec");
+AttachSpec(GetEnv("POLRED_SPEC"));
 
 SetVerbose("EndoFind", 0);
 

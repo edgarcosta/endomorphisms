@@ -2,16 +2,16 @@
 // actually made and fixed, so that bug cannot come back. Every case here must
 // fail on the pre-fix code; one that passes both ways belongs in another suite.
 // New bugs get new cases here, each naming the bug it guards.
-//
+
 // Requires PARI/gp on PATH: the center-field detection (FieldIntersection ->
 // SubfieldsPolynomials -> Polredabs) needs it. If gp is missing we print a
 // notice and exit rather than report spurious failures.
-//
-// Silent on success. Run via:
-//   magma -b Utils/SetQuitOnErrortrue.m Test-UpperBounds-Regressions.m Utils/Exit.m
 
-AttachSpec("../endomorphisms/magma/spec");
-AttachSpec("/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec");
+// Silent on success. Run via:
+//   ./tests/run.sh regressions (from the repository root)
+
+AttachSpec("../../endomorphisms/magma/spec");
+AttachSpec(GetEnv("POLRED_SPEC"));
 
 SetVerbose("EndoFind", 0);
 
@@ -84,10 +84,9 @@ for entry in embeds do
 end for;
 
 // ----- Ladder capped at B = 200 (fixed by appending the 400 and 800 rungs) -----
-// The only three curves in all 3,420,837 non-trivial genus-2 curves that
-// exhausted the old ladder. Each returns [CC, RR] at B = 200: sound, as R x R
-// embeds in C x R, but not sharp, one factor's centre coming out as an
-// imaginary quadratic field where the truth is Q. All three are sharp at 400.
+// Only three of 3,420,837 curves exhausted the old ladder: each returns [CC, RR]
+// at B = 200, sound since R x R embeds in C x R, but not sharp. One centre
+// appears imaginary quadratic instead of Q; all three become sharp at 400.
 
 exhausted200 := [*
     <"177674.e1",  [0,49,-37,143,47,81],        [0,1,1]>,

@@ -1,9 +1,8 @@
 // Tests for the upperbounds Magma port.
-// Run via: magma -b Utils/SetQuitOnErrortrue.m Test-UpperBounds.m Utils/Exit.m
-// Assumes MAGMA_USER_SPEC points at CHIMP/CHIMP.spec, or attach manually.
+// Run from the repository root via: ./tests/run.sh unit
 
-AttachSpec("../endomorphisms/magma/spec");
-AttachSpec("/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec");
+AttachSpec("../../endomorphisms/magma/spec");
+AttachSpec(GetEnv("POLRED_SPEC"));
 
 R<x> := PolynomialRing(Rationals());
 
@@ -176,9 +175,8 @@ test_endomorphism_algebra_genus_2_square_leading_coefficient();
 
 // ----- EndomorphismAlgebraEtaBound -----
 // Port of the eta/t narrowing step from Sage upper_bounds.py:55-78.
-// Sage docstring example: F3, F7, F13 are Frobenius polys for a genus-2 AV
-// that is geometrically isogenous to E^2 (so eta(A) = 4, t = 1).
-// Coefficients are over Z (matches the L-polynomials emitted by LPolynomials).
+// F3, F7, F13 are Frobenius polynomials for a genus-2 AV geometrically
+// isogenous to E^2 (eta(A) = 4, t = 1), over Z as emitted by LPolynomials.
 
 ZZT<T> := PolynomialRing(Integers());
 F3 := 1 - T^2 + 9*T^4;
@@ -209,12 +207,9 @@ assert not ok3;
 assert #eta_lower3 eq 0;
 
 // ----- SubfieldsPolynomials -----
-// Port of Sage subfields_polynomials. Returns polredabs'd defining polynomials
-// of every subfield of NumberField(f), Q included. The subfields themselves are
-// the behavior being pinned; which polynomial names each one is decided by
-// whichever polredabs is available (Polredabs returns a non-canonical fallback
-// when PARI/gp is not on PATH), so subfields are compared up to isomorphism
-// unless their polynomial is a polredabs fixed point.
+// Port of Sage subfields_polynomials: every subfield of NumberField(f), Q included.
+// Polredabs falls back to non-canonical names without gp, so compare fields up
+// to isomorphism unless their defining polynomial is a polredabs fixed point.
 
 // Q(sqrt 5): subfields are Q and Q(sqrt 5). Q(sqrt 5) is named by x^2 - x - 1
 // with PARI/gp present and by x^2 - 5 without it.
@@ -271,11 +266,9 @@ assert FieldIntersectionList([x^2 - 2, x^2 - 8]) eq x^2 - 2;
 assert FieldIntersectionList([x, x^2 - 3]) eq x;
 
 // ----- FieldIntersectionMatrix -----
-// Port of Sage field_intersection_matrix. For each column, compute the common
-// subfields across rows (each row contributes the union of subfields of its
-// polynomials). Output structure: <A_k, B_k> per column, where B_k is the
-// sorted list of common-subfield defining polynomials and A_k is the maximal
-// common subfield polynomial when uniquely determined (else the zero polynomial).
+// Port of Sage field_intersection_matrix. Each row contributes a union of
+// subfields; B_k lists their common fields across rows, sorted by degree.
+// A_k names the greatest common field when one exists, else it is zero.
 
 // Single-column shortcut: returns full subfield list of the intersection field.
 // A_1 and B_1 are polredabs'd, so Q(sqrt 5) is pinned up to isomorphism.
