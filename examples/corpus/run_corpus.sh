@@ -152,8 +152,31 @@ harvest() {
             printf '%s\n' "$RESULT_HEADER"
             # The status check also drops a line truncated by a failed write,
             # so that id is simply re-run on the next pass.
-            awk -F'\t' 'NF == 7 && ($7 == "ok" || $7 == "error") && !seen[$1 FS $2 FS $3]++' \
-                "$OUTPUT" "$batch"
+            # For duplicate keys, status precedence is ok > unsound > error.
+            # A later ok repairs either failure, while a later error cannot
+            # erase unsound; equal statuses keep the first row.
+            awk -F'\t' '
+                function rank(status) {
+                    if (status == "ok") return 3
+                    if (status == "unsound") return 2
+                    if (status == "error") return 1
+                    return 0
+                }
+                NF == 7 {
+                    priority = rank($7)
+                    if (priority == 0) next
+                    key = $1 FS $2 FS $3
+                    if (!(key in position)) {
+                        position[key] = ++count
+                        keys[count] = key
+                    }
+                    if (!(key in priorities) || priority > priorities[key]) {
+                        rows[key] = $0
+                        priorities[key] = priority
+                    }
+                }
+                END { for (i = 1; i <= count; i++) print rows[keys[i]] }
+            ' "$OUTPUT" "$batch"
         } > "$tmp" || ok=0
     fi
 
@@ -203,13 +226,13 @@ if [[ -n "$IDS" ]]; then
     [[ -r "$IDS" ]] || { echo "run_corpus.sh: cannot read $IDS" >&2; exit 66; }
     awk -F'\t' -v want="$IDS" -v bound="$B" '
         BEGIN { while ((getline line < want) > 0) { sub(/\r$/, "", line); if (line != "") keep[line] = 1 } }
-        FNR == NR { if (FNR > 1 && NF >= 7) done[$1 SUBSEP $3] = 1; next }
+        FNR == NR { if (FNR > 1 && NF >= 7 && $7 != "error") done[$1 SUBSEP $3] = 1; next }
         FNR == 1 && $1 == "id" { next }
         ($1 in keep) && !(($1 SUBSEP bound) in done)
     ' "$OUTPUT" "$INPUT" > "$PENDING"
 else
     awk -F'\t' -v bound="$B" '
-        FNR == NR { if (FNR > 1 && NF >= 7) done[$1 SUBSEP $3] = 1; next }
+        FNR == NR { if (FNR > 1 && NF >= 7 && $7 != "error") done[$1 SUBSEP $3] = 1; next }
         FNR == 1 && $1 == "id" { next }
         !(($1 SUBSEP bound) in done)
     ' "$OUTPUT" "$INPUT" > "$PENDING"
@@ -217,7 +240,7 @@ fi
 
 TOTAL=$(wc -l < "$PENDING")
 DONE_ALREADY=$(awk -F'\t' -v bound="$B" \
-    'FNR > 1 && NF >= 7 && $3 == bound { n++ } END { print n + 0 }' "$OUTPUT")
+    'FNR > 1 && NF >= 7 && $3 == bound && $7 != "error" { n++ } END { print n + 0 }' "$OUTPUT")
 echo "run_corpus.sh: $DONE_ALREADY already done at B=$B, $TOTAL to run on $JOBS jobs"
 
 if [[ "$TOTAL" -eq 0 ]]; then
@@ -258,7 +281,7 @@ harvest
 
 FINAL=$(( $(wc -l < "$OUTPUT") - 1 ))
 MISSING=$(awk -F'\t' -v bound="$B" '
-    FNR == NR { if (FNR > 1 && NF >= 7) done[$1 SUBSEP $3] = 1; next }
+    FNR == NR { if (FNR > 1 && NF >= 7 && $7 != "error") done[$1 SUBSEP $3] = 1; next }
     FNR == 1 && $1 == "id" { next }
     !(($1 SUBSEP bound) in done) { n++ }
     END { print n + 0 }
