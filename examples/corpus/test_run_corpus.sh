@@ -34,7 +34,33 @@ if [[ ! -r "$TARGET" ]]; then
     exit 1
 fi
 
-ROOT="$(mktemp -d "${TMPDIR:-/tmp}/test-run-corpus.XXXXXX")"
+# Match tests/run.sh so this test exercises the real Magma driver with the
+# same PARI/gp and Polredabs setup as the upperbounds suite.
+if [[ $(declare -p PATH) != "declare -x "* ]]; then
+    PATH=/home/sage/sage-10.8/local/bin:/usr/local/bin:/usr/bin:/bin
+fi
+export PATH
+export POLRED_SPEC="${POLRED_SPEC-/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec}"
+
+if ! command -v gp >/dev/null 2>&1; then
+    printf 'PARI/gp is required: add the directory containing gp to PATH.\n' >&2
+    exit 1
+fi
+if ! command -v magma >/dev/null 2>&1; then
+    printf 'Magma is required: add the directory containing magma to PATH.\n' >&2
+    exit 1
+fi
+if [[ ! -f "$POLRED_SPEC" || ! -r "$POLRED_SPEC" ]]; then
+    printf 'POLRED_SPEC must name a readable MagmaPolred spec file: %s\n' "$POLRED_SPEC" >&2
+    exit 1
+fi
+if [[ "$POLRED_SPEC" != /* ]]; then
+    export POLRED_SPEC="$PWD/$POLRED_SPEC"
+fi
+
+SCRATCH_PARENT="${TMPDIR:-$HERE/../../artifacts}"
+mkdir -p "$SCRATCH_PARENT"
+ROOT="$(mktemp -d "$SCRATCH_PARENT/test-run-corpus.XXXXXX")"
 trap 'rm -rf "$ROOT"' EXIT
 RUNNER="$ROOT/run_corpus.sh"
 cp "$TARGET" "$RUNNER"
@@ -142,5 +168,38 @@ if [[ -e "$guard_dir/work/output.tsv" ]]; then
     fail "output guard: created an output file inside the work directory"
 fi
 assert_empty "output guard" "$guard_dir/record"
+
+# This drives both rows through the real Magma driver and the shell harvester.
+# 529.a1 is sharp at B = 10 with [RR, RR]; HH cannot embed in that bound.
+real_dir="$ROOT/real-unsound"
+mkdir -p "$real_dir/work"
+printf '%s\n' $'id\tkind\tdata\texpected\tmeta' \
+    $'false-529\tg2\t[[0,1,0,-1,0,-1],[1,0,1,1]]\tHH\tRM' \
+    $'true-529\tg2\t[[0,1,0,-1,0,-1],[1,0,1,1]]\tRR,RR\tRM' \
+    > "$real_dir/input.tsv"
+real_rc=0
+ENDO_SPEC="$HERE/../../endomorphisms/magma/spec" \
+    "$RUNNER" -i "$real_dir/input.tsv" -o "$real_dir/output.tsv" \
+    -w "$real_dir/work" -B 10 -j 1 -c 2 > "$real_dir/run.log" 2>&1 || real_rc=$?
+if [[ "$real_rc" -ne 0 ]]; then
+    fail "real unsound run: exited $real_rc"
+    sed 's/^/  /' "$real_dir/run.log" >&2
+fi
+
+assert_status() {
+    local label="$1" file="$2" id="$3" status="$4"
+    if [[ ! -f "$file" ]]; then
+        fail "$label: missing $file"
+    elif ! awk -F'\t' -v id="$id" -v status="$status" '
+        $1 == id { found++; if ($7 != status) bad = 1 }
+        END { exit !(found == 1 && !bad) }
+    ' "$file"; then
+        fail "$label: expected id $id with status $status"
+        sed 's/^/  /' "$file" >&2
+    fi
+}
+
+assert_status "real unsound harvest" "$real_dir/output.tsv" "false-529" "unsound"
+assert_status "real normal harvest" "$real_dir/output.tsv" "true-529" "ok"
 
 [[ "$failures" -eq 0 ]] || exit 1
