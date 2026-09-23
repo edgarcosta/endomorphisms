@@ -4,11 +4,10 @@
 #
 #   ./run_corpus.sh -i g2.tsv -o results/g2.tsv -B 1024 -j 8
 #
-# Resumable: results are appended one flushed line at a time by run_corpus.m,
-# and every invocation first harvests whatever the previous one left in the
-# work directory, then runs only the ids that have no row yet at this B.
-# Killing the run (or a chunk hitting its timeout) costs at most the curves in
-# flight; re-running the same output file at a larger B runs the pass again.
+# Results are appended one flushed line at a time by run_corpus.m, and every
+# invocation first harvests whatever the previous one left in the work
+# directory. For escalating runs, restart with --ids: result rows record the
+# rung reached, while the planner below still keys on the requested cap.
 #
 # Requires a working PARI/gp on PATH; see README.md. The preflight below
 # refuses to start without one, because a missing gp does not fail loudly, it
@@ -216,10 +215,9 @@ fi
 rm -f "$WORKDIR/preflight.out"
 
 # ---------------------------------------------------------------------------
-# Plan: everything in $INPUT that does not already have a row in $OUTPUT AT
-# THIS B. Keying the done set on the id alone would make a second pass at a
-# larger B into a silent no-op on any output file that already holds the cheap
-# rows, and would disagree with harvest(), which dedups on (id, kind, B).
+# Plan: everything in $INPUT that does not already have a row in $OUTPUT at the
+# requested cap. Result rows record the rung reached, so escalating restarts
+# must pass --ids until the planner distinguishes rung from cap.
 # ---------------------------------------------------------------------------
 PENDING="$WORKDIR/pending.tsv"
 if [[ -n "$IDS" ]]; then
