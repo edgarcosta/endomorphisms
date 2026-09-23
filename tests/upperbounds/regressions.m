@@ -27,28 +27,28 @@ end if;
 // bound missed the target. The factor and centre bounds are conditional on eta
 // and t (UpperBounds.m:167), so a low rung can legitimately miss the truth.
 
-// 10368.ba1, truth [CC, CC]: B = 10 has only 2 surviving primes and yields
-// [M_2(RR), RR], which misses [CC, CC]; B = 20 has 6 primes and is sharp.
-// Pre-fix this returned "unsound" at B = 10 and never reached B = 20.
+// 10368.ba1, truth [CC, CC]: B = 8 yields [M_2(RR), RR], which misses
+// [CC, CC]; B = 16 is sharp. Pre-fix this returned "unsound" at B = 8 and
+// never reached B = 16.
 C10368 := HyperellipticCurve(R ! [0,0,3,0,9,0,4], R ! [1]);
 bound, B, status := RealRepresentationBound(C10368, ["CC", "CC"]);
-error if status ne "sharp" or B ne 20,
-    Sprintf("10368.ba1: expected sharp at B = 20, got %o at B = %o with bound %o",
+error if status ne "sharp" or B ne 16,
+    Sprintf("10368.ba1: expected sharp at B = 16, got %o at B = %o with bound %o",
             status, B, bound);
 
 // ----- Bug endomorphisms-6qm (fixed in 88e7375), 2 of 2 -----
 // Counterpart of the fix above: with an unsound rung made non-fatal, "unsound"
-// must still fire at the top of the ladder, where the ~130 usable primes below
-// 800 make a non-containment a real defect. Guards it against never firing.
+// must still fire at the top of the ladder, where the many usable primes below
+// the cap make a non-containment a real defect. Guards it against never firing.
 
 // 256.a.512.1, truly M_2(RR), fed the false target [CC, RR]: C x R has no unital
 // injection into M_2(R), as the two central idempotents would be complementary
 // and rank one, forcing the C summand into P M_2(R) P = R. No rung can match, so
-// the climb must run the whole ladder and report unsound at its top rung, 800.
+// the climb must run the whole ladder and report unsound at its top rung, 1024.
 C256 := HyperellipticCurve(R ! [0,-1,1,1,-3,2], R ! [1]);
 bound, B, status := RealRepresentationBound(C256, ["CC", "RR"]);
-error if status ne "unsound" or B ne 800,
-    Sprintf("256.a.512.1 with false target [CC, RR]: expected unsound at B = 800, got %o at B = %o with bound %o",
+error if status ne "unsound" or B ne 1024,
+    Sprintf("256.a.512.1 with false target [CC, RR]: expected unsound at B = 1024, got %o at B = %o with bound %o",
             status, B, bound);
 
 // The same curve with its true target still resolves, so the case above pins a
@@ -83,10 +83,11 @@ for entry in embeds do
                 target, bnd, expected, got);
 end for;
 
-// ----- Ladder capped at B = 200 (fixed by appending the 400 and 800 rungs) -----
+// ----- Ladder capped before the three hard curves became sharp -----
 // Only three of 3,420,837 curves exhausted the old ladder: each returns [CC, RR]
-// at B = 200, sound since R x R embeds in C x R, but not sharp. One centre
-// appears imaginary quadratic instead of Q; all three become sharp at 400.
+// at the penultimate rung, sound since R x R embeds in C x R, but not sharp.
+// One centre appears imaginary quadratic instead of Q; all three become sharp
+// at B = 256.
 
 exhausted200 := [*
     <"177674.e1",  [0,49,-37,143,47,81],        [0,1,1]>,
@@ -98,33 +99,33 @@ for entry in exhausted200 do
     label, fc, hc := Explode(entry);
     C := HyperellipticCurve(R ! fc, R ! hc);
     bound, B, status := RealRepresentationBound(C, ["RR", "RR"]);
-    error if status ne "sharp" or B ne 400,
-        Sprintf("%o: expected sharp at B = 400, got %o at B = %o with bound %o",
+    error if status ne "sharp" or B ne 256,
+        Sprintf("%o: expected sharp at B = 256, got %o at B = %o with bound %o",
                 label, status, B, bound);
 end for;
 
-// ----- Coverage of the B = 200 tail, NOT regressions -----
-// Measured hard cases; only 0.09 percent of the corpus reaches B = 200. Each
+// ----- Coverage of the expensive tail, NOT regressions -----
+// Measured hard cases. Each
 // asserts sharp and a rung no larger than the one recorded, so a change needing
 // more primes fails here while an improvement needing fewer still passes.
 
 // <label, f-coeffs, h-coeffs, truth tokens, max expected rung>.
 tail := [*
-    <"1000377.e1",  [0,16,88,-39,-264,144], [],        ["RR","RR"], 200>,
-    <"136500.bc4",  [312523400,910850700,-913084905,-123883730,-206492181,-180183612,3299858], [0,0,1,1], ["RR","RR"], 200>,
-    <"245700.ee6",  [-32426971668000,0,-1041100665919,0,31878491585,0,89504640], [0,1], ["RR","RR"], 200>,
-    <"362624.c1",   [-28,60,11,-80,21,20,-4], [],      ["RR","RR"], 200>,
-    <"142002.m1",   [-96312,-69027,119,-1676,17,-9], [0,1,1], ["CC","RR"], 200>,
-    <"199969.b1",   [378,378,693,392,339,92,43], [],   ["CC","RR"], 200>,
-    <"486717.d1",   [-183425,73312,-86101,25984,-14007,1218,-406], [], ["CC","RR"], 200>,
-    // Intersection-starvation witness: at B = 50 only p = 31 and 37 reach
+    <"1000377.e1",  [0,16,88,-39,-264,144], [],        ["RR","RR"], 256>,
+    <"136500.bc4",  [312523400,910850700,-913084905,-123883730,-206492181,-180183612,3299858], [0,0,1,1], ["RR","RR"], 128>,
+    <"245700.ee6",  [-32426971668000,0,-1041100665919,0,31878491585,0,89504640], [0,1], ["RR","RR"], 128>,
+    <"362624.c1",   [-28,60,11,-80,21,20,-4], [],      ["RR","RR"], 128>,
+    <"142002.m1",   [-96312,-69027,119,-1676,17,-9], [0,1,1], ["CC","RR"], 128>,
+    <"199969.b1",   [378,378,693,392,339,92,43], [],   ["CC","RR"], 128>,
+    <"486717.d1",   [-183425,73312,-86101,25984,-14007,1218,-406], [], ["CC","RR"], 128>,
+    // Intersection-starvation witness: below B = 64 only p = 31 and 37 reach
     // eta_lower and both carry the discriminant pair {-11,-3}, so the
-    // intersection is a no-op; p = 59 at B = 100 breaks it and gives [CC, RR].
-    <"1000912.l1",  [82,0,203,0,77,0,-77], [1],        ["CC","RR"], 100>,
-    <"259840.bm3",  [-255,1774,-1271,156,-106,-28], [], ["CC","RR"], 100>,
-    <"153664.cq5",  [168,0,126,0,693,0,168], [],       ["CC","CC"], 50>,
-    <"165888.f1",   [-1,-5,6,44,6,-5,-1], [1,1,1,1],   ["CC","CC"], 20>,
-    <"20736.bm3",   [2,0,-6,0,12,0,-8], [],            ["CC","CC"], 20>
+    // intersection is a no-op; p = 59 breaks it and gives [CC, RR].
+    <"1000912.l1",  [82,0,203,0,77,0,-77], [1],        ["CC","RR"], 64>,
+    <"259840.bm3",  [-255,1774,-1271,156,-106,-28], [], ["CC","RR"], 64>,
+    <"153664.cq5",  [168,0,126,0,693,0,168], [],       ["CC","CC"], 32>,
+    <"165888.f1",   [-1,-5,6,44,6,-5,-1], [1,1,1,1],   ["CC","CC"], 16>,
+    <"20736.bm3",   [2,0,-6,0,12,0,-8], [],            ["CC","CC"], 16>
 *];
 
 for entry in tail do
@@ -144,12 +145,12 @@ end for;
 // is the cheapest here, while 840693.b1 has 11 and is 5x slower. Cost tracks the
 // rows the walk visits before the running intersection collapses to Q.
 coverageVerified := [*
-    <"840693.b1",  [-40334,-100506,434601,-314128,-15833,-220,-1], [],        200, ["CC","RR"]>,
-    <"486717.d1",  [-183425,73312,-86101,25984,-14007,1218,-406], [],        200, ["CC","RR"]>,
-    <"850950.n1",  [-158720,0,-37871,0,-2717,0,-61], [0,0,1],               200, ["RR","RR"]>,
-    <"121680.el3", [0,-39,97,-30,-28,-1], [0,1,0,1],                         200, ["RR","RR"]>,
-    <"409600.bh1", [0,2,0,1,-1,-1,-1], [],                                  50, ["RR","RR"]>,
-    <"422500.v1",  [20,-90,-434,-218,316,210,20], [0,1,1],                   50, ["M_2(RR)"]>
+    <"840693.b1",  [-40334,-100506,434601,-314128,-15833,-220,-1], [],        128, ["CC","RR"]>,
+    <"486717.d1",  [-183425,73312,-86101,25984,-14007,1218,-406], [],        128, ["CC","RR"]>,
+    <"850950.n1",  [-158720,0,-37871,0,-2717,0,-61], [0,0,1],               128, ["RR","RR"]>,
+    <"121680.el3", [0,-39,97,-30,-28,-1], [0,1,0,1],                         256, ["RR","RR"]>,
+    <"409600.bh1", [0,2,0,1,-1,-1,-1], [],                                  32, ["RR","RR"]>,
+    <"422500.v1",  [20,-90,-434,-218,316,210,20], [0,1,1],                   32, ["M_2(RR)"]>
 *];
 
 for entry in coverageVerified do

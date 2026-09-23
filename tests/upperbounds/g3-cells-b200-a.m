@@ -20,15 +20,15 @@ end function;
 
 
 cells := [*
-    <"3538944.3", 200, ["CC","CC","RR"], "x^3*y + x^3*z + x^2*y^2 + 2*x^2*y*z + x^2*z^2 + 2*x*y^3 + 2*x*z^3 + y^4 + z^4">,
-    <"41600.1", 200, ["RR","RR","RR"], "x^3*z + x^2*y*z + x*y^3 - 2*x*y^2*z - x*y*z^2 - 2*x*z^3 - y^4 - y^3*z - 2*y^2*z^2 - y*z^3 - z^4">
+    <"3538944.3", 128, ["CC","CC","RR"], "x^3*y + x^3*z + x^2*y^2 + 2*x^2*y*z + x^2*z^2 + 2*x*y^3 + 2*x*z^3 + y^4 + z^4">,
+    <"41600.1", 256, ["RR","RR","RR"], "x^3*z + x^2*y*z + x*y^3 - 2*x*y^2*z - x*y*z^2 - 2*x*z^3 - y^4 - y^3*z - 2*y^2*z^2 - y*z^3 - z^4">
 *];
 
 for entry in cells do
     label, maxB, expected, data := Explode(entry);
     C := BuildCurve(data);
     bound, B, status := RealRepresentationBound(C, expected : Bmax := maxB);
-    error if status ne "sharp" or B gt maxB,
-        Sprintf("%o: expected sharp at B <= %o; got %o at B = %o with bound %o",
+    error if status ne "sharp" or B ne maxB,
+        Sprintf("%o: expected sharp at B = %o; got %o at B = %o with bound %o",
                 label, maxB, status, B, bound);
 end for;

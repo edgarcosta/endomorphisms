@@ -5,7 +5,7 @@
 //
 //   CORPUS_INPUT   prepared TSV chunk (id, kind, data, expected[, meta])
 //   CORPUS_OUTPUT  results TSV, appended to, one line flushed per curve
-//   CORPUS_B       prime bound handed to RealRepresentationBound
+//   CORPUS_B       climb cap handed to RealRepresentationBound
 //   ENDO_SPEC      path to <repo>/endomorphisms/magma/spec
 //   POLRED_SPEC    path to CHIMP/MagmaPolred/spec (optional if already attached)
 //
@@ -20,7 +20,7 @@
 // chunk. The one hard failure is the gp guard below.
 //
 // Run directly with:
-//   CORPUS_INPUT=... CORPUS_OUTPUT=... CORPUS_B=50 magma -b run_corpus.m
+//   CORPUS_INPUT=... CORPUS_OUTPUT=... CORPUS_B=1024 magma -b run_corpus.m
 // but normally you want run_corpus.sh, which shards and parallelizes.
 
 // ---------------------------------------------------------------- utilities
@@ -86,7 +86,7 @@ if input_path eq "" or output_path eq "" then
 end if;
 
 if B_text eq "" then
-    B_text := "50";
+    B_text := "1024";
 end if;
 B := StringToInteger(B_text);
 if B lt 3 then
@@ -218,5 +218,5 @@ for line in lines do
     ndone +:= 1;
 end for;
 
-printf "run_corpus: %o curves at B = %o -> %o\n", ndone, B, output_path;
+printf "run_corpus: %o curves with cap B = %o -> %o\n", ndone, B, output_path;
 exit 0;

@@ -26,10 +26,10 @@ nonmonotone := [*
 for entry in nonmonotone do
     label, data := Explode(entry);
     C := BuildCurve(data);
-    error if Sort(&cat RealRepresentationBound(C, 50)) ne ["M_2(RR)", "RR"],
-        Sprintf("%o: B = 50 did not produce [M_2(RR), RR]", label);
-    error if Sort(&cat RealRepresentationBound(C, 200)) ne ["CC", "CC", "M_2(RR)"],
-        Sprintf("%o: B = 200 did not produce [CC, CC, M_2(RR)]", label);
-    error if Sort(&cat RealRepresentationBound(C, 400)) ne ["RR", "RR", "RR"],
-        Sprintf("%o: B = 400 did not recover [RR, RR, RR]", label);
+    error if Sort(&cat RealRepresentationBound(C, 32)) ne ["M_2(RR)", "RR"],
+        Sprintf("%o: B = 32 did not produce [M_2(RR), RR]", label);
+    error if Sort(&cat RealRepresentationBound(C, 256)) ne ["CC", "CC", "CC"],
+        Sprintf("%o: B = 256 did not produce [CC, CC, CC]", label);
+    error if Sort(&cat RealRepresentationBound(C, 512)) ne ["RR", "RR", "RR"],
+        Sprintf("%o: B = 512 did not recover [RR, RR, RR]", label);
 end for;

@@ -137,12 +137,12 @@ intrinsic RealRepresentationEmbeds(target::SeqEnum, bound::SeqEnum) -> BoolElt
     return false;
 end intrinsic;
 
-intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 800)
+intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 1024)
     -> SeqEnum, RngIntElt, MonStgElt
-{Climbs B over 10, 20, 50, 100, 200, 400, 800, capped at Bmax (default 800),
- until the flattened bound for C equals the known truth target. Returns
- <bound, B, status>: "sharp" on a match, "exhausted" with the tightest bound
- containing target, "unsound" only if the last rung with a bound missed it}
+{Searches increasing prime bounds, capped at Bmax (default 1024), until the
+ flattened bound for C equals the known truth target. Returns <bound, B,
+ status>: "sharp" on a match, "exhausted" with the tightest bound containing
+ target, "unsound" only if the last rung with a bound missed it}
     sorted := Sort(target);
     best := [];
     bestB := 0;
@@ -152,15 +152,13 @@ intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 800)
     lastbad := false;
     frobs := [];
     prev := 2;
-    // Ends at 800: on a curve that needs them B = 200 costs 0.7 s, 400 1.7 s and
-    // 800 9.5 s, while 1500 costs 112 s for no case we have ever seen need it.
-    for B in [10, 20, 50, 100, 200, 400, 800] do
-        if B gt Bmax then
-            break;
-        end if;
+    B := 8;
+    while B le Bmax do
+        rung := B;
+        B *:= 2;
         // Refolds eta/centre per rung, not accumulating as CLV: a known cost.
-        frobs cat:= [pair[2] : pair in LPolynomials(C, prev, B)];
-        prev := B;
+        frobs cat:= [pair[2] : pair in LPolynomials(C, prev, rung)];
+        prev := rung;
         if #frobs eq 0 then
             continue;
         end if;
@@ -179,22 +177,22 @@ intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 800)
             // legitimately miss the truth. Keep climbing; only the last rung
             // with a bound decides, and never record it as the tightest one.
             bad := bound;
-            badB := B;
+            badB := rung;
             lastbad := true;
             continue;
         end if;
         lastbad := false;
         if bound eq sorted then
-            return bound, B, "sharp";
+            return bound, rung, "sharp";
         end if;
         // Ties go to the larger B, hence le.
         dim := TotalRealDimension(bound);
         if bestdim lt 0 or dim le bestdim then
             best := bound;
-            bestB := B;
+            bestB := rung;
             bestdim := dim;
         end if;
-    end for;
+    end while;
     if lastbad then
         return bad, badB, "unsound";
     end if;

@@ -1,15 +1,15 @@
 # Corpus harness for `RealRepresentationBound`
 
 Thanks for picking this up. The harness answers one question at scale: how often
-is the upper bound computed by
+does the upper-bound search
 
 ```
-RealRepresentationBound(C::Crv, B::RngIntElt) -> SeqEnum
+RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 1024)
 ```
 
-actually *sharp*, measured against known geometric endomorphism data. It runs a
-prepared list of curves through Magma in parallel, one process per chunk, and
-compares the flattened result against the reference multiset.
+return the known geometric endomorphism data sharply? It runs a prepared list
+of curves through Magma in parallel, one process per chunk, and passes the
+reference multiset as the target. `-B` sets `Bmax`, the cap on the search.
 
 Five pieces, in the order you use them:
 
@@ -79,15 +79,15 @@ export PATH="$(dirname "$(sage -sh -c 'command -v gp')"):$PATH"
 ./sample_corpus.py prepared/g2.tsv -o prepared/g2_sample.tsv --seed 0
 
 # 2. run it
-./run_corpus.sh -i prepared/g2.tsv -o results/g2.B50.tsv -B 50 -j 200 -c 400
+./run_corpus.sh -i prepared/g2.tsv -o results/g2.tsv -B 1024 -j 200 -c 50
 
 # 3. report
-./report.py results/g2.B50.tsv --meta prepared/g2.tsv
+./report.py results/g2.tsv --meta prepared/g2.tsv
 ```
 
-`run_corpus.sh --help` lists the flags: `-B` bound, `-j` jobs, `-c` chunk size,
-`-t` per-chunk timeout, `-w` work directory, `--ids` to restrict a pass to a
-list of ids.
+`run_corpus.sh --help` lists the flags: `-B` climb cap, `-j` jobs, `-c` chunk
+size, `-t` per-chunk timeout, `-w` work directory, `--ids` to restrict a pass
+to a list of ids. The default cap is 1024, which runs the full search.
 
 Sizing `-c`: each chunk pays one Magma startup plus one gp round-trip, about a
 second. At 0.35 s/curve for genus 2 a chunk of 200-400 keeps that under 1%, and
@@ -116,11 +116,10 @@ Because it is removed wholesale, the results file must not live inside it.
 `-w run -o run/results.tsv` would have the completing run delete its own
 output, so the script refuses that combination up front with exit **64**.
 
-The pending set is keyed on `(id, B)`, matching the `(id, kind, B)` dedup in
-step 1. So a second pass at a higher `B` may be aimed at an output file that
-already holds the cheap rows: those ids are re-run and the new rows appended,
-rather than the pass reporting "already done, 0 to run" and exiting. Separate
-files per pass work too; `report.py` takes any number of result files.
+Resume is currently unreliable for these escalating runs: result column 3 is
+the rung reached, while the planner compares it with the requested cap. To
+restart or extend a run, supply `--ids` explicitly. Separate result files per
+pass are safe, and `report.py` accepts any number of them.
 
 ### The bound is not monotone in `B`
 
@@ -147,11 +146,11 @@ this note.
 Three genus-3 curves in this corpus show it directly, all three with the true
 answer `RR,RR,RR` (dimension 3):
 
-| id | `B=50` | `B=200` | `B=500` |
+| id | `B=64` | `B=256` | `B=512` |
 | --- | --- | --- | --- |
-| `802816.1` | `RR,M_2(RR)` (5) | `CC,CC,M_2(RR)` (8) | `RR,RR,RR` (3) |
-| `802816.2` | `RR,M_2(RR)` (5) | `CC,CC,M_2(RR)` (8) | `RR,RR,RR` (3) |
-| `3781323.1` | `RR,M_2(RR)` (5) | `CC,CC,M_2(RR)` (8) | `RR,RR,RR` (3) |
+| `802816.1` | `RR,M_2(RR)` (5) | `CC,CC,CC` (6) | `RR,RR,RR` (3) |
+| `802816.2` | `RR,M_2(RR)` (5) | `CC,CC,CC` (6) | `RR,RR,RR` (3) |
+| `3781323.1` | `RR,M_2(RR)` (5) | `CC,CC,CC` (6) | `RR,RR,RR` (3) |
 
 So "the largest `B` you ran" is not a synonym for "the tightest bound you
 have", and `report.py` does not treat it as one; see below.
@@ -167,12 +166,12 @@ actually computed that multiset. Run the whole corpus cheaply, then spend the
 expensive `B` only where it can help:
 
 ```sh
-./run_corpus.sh -i prepared/g2.tsv -o results/g2.B50.tsv  -B 50  -j 200 -c 400
-./report.py results/g2.B50.tsv --meta prepared/g2.tsv --list-nonsharp retry.txt
+./run_corpus.sh -i prepared/g2.tsv -o results/g2.B64.tsv -B 64 -j 200 -c 400
+./report.py results/g2.B64.tsv --meta prepared/g2.tsv --list-nonsharp retry.txt
 
-./run_corpus.sh -i prepared/g2.tsv -o results/g2.B200.tsv -B 200 -j 200 -c 200 \
+./run_corpus.sh -i prepared/g2.tsv -o results/g2.B1024.tsv -B 1024 -j 200 -c 50 \
                 --ids retry.txt
-./report.py results/g2.B50.tsv results/g2.B200.tsv --meta prepared/g2.tsv
+./report.py results/g2.B64.tsv results/g2.B1024.tsv --meta prepared/g2.tsv
 ```
 
 `--list-nonsharp` collects the `over`, `mismatch` and `error` ids by default and

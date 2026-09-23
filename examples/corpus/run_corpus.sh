@@ -2,7 +2,7 @@
 #
 # Shard a prepared corpus TSV across N Magma processes and collect the results.
 #
-#   ./run_corpus.sh -i g2.tsv -o results/g2.B50.tsv -B 50 -j 8
+#   ./run_corpus.sh -i g2.tsv -o results/g2.tsv -B 1024 -j 8
 #
 # Resumable: results are appended one flushed line at a time by run_corpus.m,
 # and every invocation first harvests whatever the previous one left in the
@@ -40,7 +40,7 @@ if [[ "${1:-}" == "--run-chunk" ]]; then
     part="$dir/out.${base#chunk.}.tsv"
     log="$dir/log.${base#chunk.}.txt"
     rc=0
-    CORPUS_INPUT="$chunk" CORPUS_OUTPUT="$part" CORPUS_B="${CORPUS_B:-50}" \
+    CORPUS_INPUT="$chunk" CORPUS_OUTPUT="$part" CORPUS_B="${CORPUS_B:-1024}" \
         timeout --foreground "${CHUNK_TIMEOUT:-3600}" \
         "$MAGMA" -b "$DRIVER" >"$log" 2>&1 || rc=$?
     if [[ $rc -eq 2 ]]; then
@@ -62,7 +62,7 @@ Usage: run_corpus.sh -i INPUT.tsv -o RESULTS.tsv [options]
 
   -i, --input FILE     prepared TSV from prepare_input.py            (required)
   -o, --output FILE    results TSV, created or resumed               (required)
-  -B, --bound N        prime bound for RealRepresentationBound       (50)
+  -B, --bound N        climb cap for RealRepresentationBound          (1024)
   -j, --jobs N         concurrent Magma processes                    (nproc)
   -c, --chunk N        curves per Magma process                      (200)
   -t, --timeout SEC    wall-clock limit per chunk                    (3600)
@@ -76,7 +76,7 @@ Environment: ENDO_SPEC, POLRED_SPEC, MAGMA.
 EOF
 }
 
-INPUT=""; OUTPUT=""; B=50; JOBS="$(nproc 2>/dev/null || echo 4)"
+INPUT=""; OUTPUT=""; B=1024; JOBS="$(nproc 2>/dev/null || echo 4)"
 CHUNK=200; TIMEOUT_S=3600; WORKDIR=""; IDS=""; KEEP_WORK=0
 
 while [[ $# -gt 0 ]]; do

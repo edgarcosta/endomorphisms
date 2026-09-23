@@ -92,13 +92,7 @@ intrinsic EndomorphismAlgebraEtaBound(frob_list::SeqEnum[RngUPolElt] : eta_char0
     return true, "", eta div 2, t, eta_lower;
 end intrinsic;
 
-intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lower::SeqEnum)
-    -> BoolElt, MonStgElt, SeqEnum, RngIntElt
-{The center-bounding step of Sections 7.3-7.4, as
- <success, message, output, total_dim> with output a sequence of
- <ejnj, njdimAj, Lj, RRj>. Fails when a factor has no greatest common subfield,
- since no single field then bounds its center. See also RealRepresentationBound}
-    require #eta_lower gt 0: "eta_lower must not be empty";
+function CenterBounds(eta, t, eta_lower)
     QQT := PolynomialRing(Rationals());
 
     // Step 1: build the canonical multiset of (m, m*deg(h)) shapes from the
@@ -162,6 +156,16 @@ intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lowe
     return true,
            "We have putatively computed eta and t. Under this assumption, we bounded the corresponding centers.",
            output, total_dim;
+end function;
+
+intrinsic EndomorphismAlgebraCenterBounds(eta::RngIntElt, t::RngIntElt, eta_lower::SeqEnum)
+    -> BoolElt, MonStgElt, SeqEnum, RngIntElt
+{The center-bounding step of Sections 7.3-7.4, as
+ <success, message, output, total_dim> with output a sequence of
+ <ejnj, njdimAj, Lj, RRj>. Fails when a factor has no greatest common subfield,
+ since no single field then bounds its center. See also RealRepresentationBound}
+    require #eta_lower gt 0: "eta_lower must not be empty";
+    return CenterBounds(eta, t, eta_lower);
 end intrinsic;
 
 intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_char0 := false)
@@ -175,7 +179,7 @@ intrinsic EndomorphismAlgebraUpperBound(frob_list::SeqEnum[RngUPolElt] : eta_cha
     if not ok then
         return false, msg, 0, 0, [], 0;
     end if;
-    ok2, msg2, output, total_dim := EndomorphismAlgebraCenterBounds(2 * eta_c, t, eta_lower);
+    ok2, msg2, output, total_dim := CenterBounds(2 * eta_c, t, eta_lower);
     if not ok2 then
         return false, msg2, eta_c, t, [], 0;
     end if;
