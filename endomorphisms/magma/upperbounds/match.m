@@ -28,53 +28,96 @@ function SimpleFactorData(tok)
 end function;
 
 // RealRepresentationString cannot always separate type II from type III
-// (utils.m:263). Containment is reported when it holds for either resolution.
+// (utils.m:263). Containment is reported for either resolution.
+// In oneof{...}, alternatives are separated by | and factors by +. An
+// alternative may contain the single factor M_2(RR) or HH.
 function TokenCandidates(tok)
     if tok cmpeq "M_2(RR) or HH" then
-        return ["M_2(RR)", "HH"];
+        return [["M_2(RR)"], ["HH"]];
     end if;
-    return [tok];
+    if #tok ge 9 and tok[1 .. 6] eq "oneof{" and tok[#tok] eq "}" then
+        body := Substring(tok, 7, #tok - 7);
+        alternatives := Split(body, "|");
+        if #alternatives lt 2 or Join(alternatives, "|") ne body then
+            return [];
+        end if;
+        out := [];
+        for alternative in alternatives do
+            tokens := Split(alternative, "+");
+            if #tokens eq 0 or Join(tokens, "+") ne alternative then
+                return [];
+            end if;
+            Append(~out, tokens);
+        end for;
+        return out;
+    end if;
+    return [[tok]];
+end function;
+
+function IsDefiniteToken(tok, candidates)
+    return #candidates eq 1 and #candidates[1] eq 1 and
+           candidates[1][1] eq tok;
 end function;
 
 function IsKnownToken(tok)
-    for c in TokenCandidates(tok) do
-        if not SimpleFactorData(c) then
-            return false;
-        end if;
+    candidates := TokenCandidates(tok);
+    if #candidates eq 0 then
+        return false;
+    end if;
+    if IsDefiniteToken(tok, candidates) then
+        return SimpleFactorData(tok);
+    end if;
+    for alternative in candidates do
+        for candidate in alternative do
+            if not $$(candidate) then
+                return false;
+            end if;
+        end for;
     end for;
     return true;
 end function;
 
-// Every way of replacing each ambiguous token by a definite one.
+// Every way of replacing each ambiguous token by its complete alternative
+// list. An alternative can contain several factors, so replacement splices.
 function Resolutions(items)
-    out := [items];
-    for i in [1 .. #items] do
-        cands := TokenCandidates(items[i]);
-        if #cands eq 1 then
-            continue;
-        end if;
-        next := [];
-        for row in out do
-            for c in cands do
-                r := row;
-                r[i] := c;
-                Append(~next, r);
+    if #items eq 0 then
+        return [[]];
+    end if;
+    tok := items[1];
+    tail := items;
+    Remove(~tail, 1);
+    candidates := TokenCandidates(tok);
+    if IsDefiniteToken(tok, candidates) then
+        return [[tok] cat rest : rest in $$(tail)];
+    end if;
+    out := [];
+    for alternative in candidates do
+        for head in $$(alternative) do
+            for rest in $$(tail) do
+                Append(~out, head cat rest);
             end for;
         end for;
-        out := next;
     end for;
     return out;
 end function;
 
-// Total dim_R; dim_R M_k(D) = k^2 dim_R D. Both candidates behind the
-// ambiguous token have dimension 4, so the resolution chosen does not matter.
+function IsAmbiguousToken(tok)
+    return not IsDefiniteToken(tok, TokenCandidates(tok));
+end function;
+
+// Total dim_R; dim_R M_k(D) = k^2 dim_R D. A possibility token can have
+// differently sized alternatives, so use the largest sound bound.
 function TotalRealDimension(items)
-    total := 0;
-    for tok in Resolutions(items)[1] do
-        _, k, d := SimpleFactorData(tok);
-        total +:= k^2 * d;
+    dimensions := [];
+    for resolution in Resolutions(items) do
+        total := 0;
+        for tok in resolution do
+            _, k, d := SimpleFactorData(tok);
+            total +:= k^2 * d;
+        end for;
+        Append(~dimensions, total);
     end for;
-    return total;
+    return Max(dimensions);
 end function;
 
 // Supports, as index sets, of the solutions in non-negative integers of
@@ -121,8 +164,8 @@ end function;
 
 intrinsic RealRepresentationEmbeds(target::SeqEnum, bound::SeqEnum) -> BoolElt
 {True if prod(target) admits a unital injective R-algebra homomorphism into
- prod(bound), for some resolution of the ambiguous token. Both arguments are
- multisets of the tokens produced by RealRepresentationString}
+ prod(bound), for some resolution of every possibility token. Both arguments
+ are multisets of recognized algebra tokens; CenterBounds may produce oneof}
     for tok in target cat bound do
         require Type(tok) eq MonStgElt and IsKnownToken(tok):
             Sprintf("unknown algebra token %o", tok);
@@ -139,10 +182,10 @@ end intrinsic;
 
 intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 1024)
     -> SeqEnum, RngIntElt, MonStgElt
-{Searches increasing prime bounds, capped at Bmax (default 1024), until the
- flattened bound for C equals the known truth target. Returns <bound, B,
- status>: "sharp" on a match, "exhausted" with the tightest bound containing
- target, "unsound" only if the last rung with a bound missed it}
+{Compares the real-algebra bounds for C below Bmax (default 1024) with the
+ known truth target. Returns <bound, B, status>: "sharp" for a definite exact
+ match, "exhausted" with the tightest bound containing target, and "unsound"
+ when the final available bound misses target}
     sorted := Sort(target);
     best := [];
     bestB := 0;
@@ -182,7 +225,8 @@ intrinsic RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 1024)
             continue;
         end if;
         lastbad := false;
-        if bound eq sorted then
+        if bound eq sorted and
+           not exists{tok : tok in bound | IsAmbiguousToken(tok)} then
             return bound, rung, "sharp";
         end if;
         // Ties go to the larger B, hence le.

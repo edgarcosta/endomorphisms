@@ -46,12 +46,10 @@ FACTOR = {
 
 # Tokens the Magma side cannot always separate. Containment is reported when
 # it holds for any resolution, since the favourable case cannot be ruled out.
-AMBIGUOUS = {"M_2(RR) or HH": ("M_2(RR)", "HH")}
+AMBIGUOUS = {"M_2(RR) or HH": (("M_2(RR)",), ("HH",))}
 
-# Dimension over R: dim_R M_k(D) = k^2 dim_R D. Both candidates behind the
-# ambiguous token have dimension 4, so it needs no resolution here.
+# Dimension over R: dim_R M_k(D) = k^2 dim_R D.
 DIM = dict((tok, k * k * d) for tok, (k, d) in FACTOR.items())
-DIM["M_2(RR) or HH"] = 4
 
 VERDICTS = ("sharp", "over", "under", "mismatch", "error")
 
@@ -62,10 +60,50 @@ def parse_multiset(text):
     return sorted(part for part in (p.strip() for p in text.split(",")) if part)
 
 
+def _token_candidates(tok):
+    """Alternative token lists represented by one possibly ambiguous token."""
+    if tok in AMBIGUOUS:
+        return AMBIGUOUS[tok]
+    if tok.startswith("oneof{") and tok.endswith("}"):
+        body = tok[6:-1]
+        alternatives = body.split("|")
+        if len(alternatives) < 2 or any(not alternative for alternative in alternatives):
+            return ()
+        candidates = tuple(tuple(alternative.split("+"))
+                           for alternative in alternatives)
+        if any(any(not token for token in alternative)
+               for alternative in candidates):
+            return ()
+        return candidates
+    return ((tok,),)
+
+
+def _is_ambiguous(tok):
+    return _token_candidates(tok) != ((tok,),)
+
+
+def _unknown_tokens(items):
+    unknown = []
+    for tok in items:
+        candidates = _token_candidates(tok)
+        if not candidates:
+            unknown.append(tok)
+        elif candidates == ((tok,),):
+            if tok not in DIM:
+                unknown.append(tok)
+        else:
+            for alternative in candidates:
+                unknown.extend(_unknown_tokens(alternative))
+    return unknown
+
+
 def total_dim(items):
-    """Total real dimension, and the tokens that are not in DIM."""
-    unknown = [s for s in items if s not in DIM]
-    return sum(DIM.get(s, 0) for s in items), unknown
+    """Maximum total real dimension over resolutions, plus unknown tokens."""
+    unknown = _unknown_tokens(items)
+    if unknown:
+        return 0, unknown
+    return max(sum(DIM[tok] for tok in resolution)
+               for resolution in _resolutions(items)), []
 
 
 def _support_masks(units, target):
@@ -105,11 +143,18 @@ def _embeds_resolved(exp, obs):
 
 
 def _resolutions(items):
-    """Every way of replacing each ambiguous token by a definite one."""
-    out = [[]]
-    for tok in items:
-        out = [row + [c] for row in out for c in AMBIGUOUS.get(tok, (tok,))]
-    return out
+    """Every way of splicing each ambiguous token's alternative list."""
+    if not items:
+        return [[]]
+    tok = items[0]
+    tail = items[1:]
+    candidates = _token_candidates(tok)
+    if candidates == ((tok,),):
+        return [[tok] + rest for rest in _resolutions(tail)]
+    return [head + rest
+            for alternative in candidates
+            for head in _resolutions(alternative)
+            for rest in _resolutions(tail)]
 
 
 _EMBEDS = {}
@@ -133,7 +178,7 @@ def classify(expected, got, status):
         return "error", []
     exp = parse_multiset(expected)
     obs = parse_multiset(got)
-    if exp == obs:
+    if exp == obs and not any(_is_ambiguous(tok) for tok in obs):
         return "sharp", []
     de, unk_e = total_dim(exp)
     dg, unk_g = total_dim(obs)

@@ -30,6 +30,9 @@ CASES = [
     ("CC,RR", "CC,RR", "ok", "sharp", []),
     ("RR, CC", "CC,RR", "ok", "sharp", []),
     ("M_2(CC)", "M_2(CC)", "ok", "sharp", []),
+    ("M_4(RR)", "M_4(RR)", "ok", "sharp", []),
+    ("M_2(HH)", "M_2(HH)", "ok", "sharp", []),
+    ("M_3(HH)", "M_3(HH)", "ok", "sharp", []),
 
     # under: the documented limitation, quartic CM invisible to prime-field
     # Frobenius. Units are 2 and 2, the targets 1 and 1, so nothing embeds.
@@ -63,6 +66,22 @@ CASES = [
     ("CC,RR", "M_2(RR) or HH", "ok", "mismatch", []),
     # On the expected side: M_2(R) and H both embed in M_2(C), u = 4 = target.
     ("M_2(RR) or HH", "M_2(CC)", "ok", "over", []),
+
+    # A centre possibility token may resolve to a list of several factors.
+    ("CC", "oneof{CC|RR+RR+RR+RR}", "ok", "over", []),
+    ("RR,RR,RR,RR", "oneof{CC|RR+RR+RR+RR}", "ok", "over", []),
+    # Even literal equality with an ambiguous bound is not evidence of sharpness.
+    ("oneof{CC|RR+RR+RR+RR}", "oneof{CC|RR+RR+RR+RR}",
+     "ok", "over", []),
+
+    # Empty alternatives and factors are malformed, even when Split-like
+    # parsers would discard the empty piece.
+    ("CC", "oneof{CC||RR}", "ok", "mismatch", ["oneof{CC||RR}"]),
+    ("CC", "oneof{|CC|RR}", "ok", "mismatch", ["oneof{|CC|RR}"]),
+    ("CC", "oneof{CC|RR|}", "ok", "mismatch", ["oneof{CC|RR|}"]),
+    ("CC", "oneof{CC+|RR}", "ok", "mismatch", ["oneof{CC+|RR}"]),
+    ("CC", "oneof{CC++CC|RR}", "ok", "mismatch", ["oneof{CC++CC|RR}"]),
+    ("CC", "oneof{CC|+RR}", "ok", "mismatch", ["oneof{CC|+RR}"]),
 ]
 
 
@@ -74,6 +93,10 @@ def main():
             failures.append("classify(%r, %r, %r) -> %r, want %r"
                             % (expected, got, status, result,
                                (verdict, unknown)))
+    dim_result = report.total_dim(["oneof{CC|RR+RR+RR+RR}"])
+    if dim_result != (4, []):
+        failures.append("total_dim(disjunction) -> %r, want (4, [])"
+                        % (dim_result,))
     for line in failures:
         print(line)
     return 1 if failures else 0
