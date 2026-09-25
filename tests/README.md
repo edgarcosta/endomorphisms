@@ -1,10 +1,10 @@
 # Upperbounds tests
 
 Thanks for helping check the upperbounds implementation. These tests need a
-licensed Magma installation, PARI/gp on PATH, and the MagmaPolred spec.
+licensed Magma installation and the MagmaPolred spec. PARI/gp is not required.
 
-- `upperbounds/unit.m`: polynomial operations, field intersections, algebra
-  bounds, and curve-level examples.
+- `upperbounds/unit.m`: polynomial operations, algebra bounds, and curve-level
+  examples.
 - `upperbounds/lmfdb.m`: LMFDB examples across real endomorphism algebra types.
 - `upperbounds/regressions.m`: previous bugs, ladder exhaustion, and hard cases.
 - `upperbounds/corpus-cells.m`: the smallest-conductor curve in each of the 27
@@ -24,8 +24,7 @@ The runner also works from any directory when invoked by its path. Names may
 include `.m`. Your PATH and POLRED_SPEC take precedence. If unset, PATH falls
 back to the Sage directory above plus standard system directories, and
 POLRED_SPEC falls back to the spec above. Set either to use another installation.
-Missing gp causes a clear error before any tests run; center-field detection
-needs PARI/gp through Polredabs. An unreadable spec also fails before testing.
+An unreadable MagmaPolred spec fails before testing.
 
 A test passes only with exit status 0 **and zero output bytes**, counting stdout
 and stderr together. Magma errors and dependency skip notices can produce output

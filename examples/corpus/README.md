@@ -117,9 +117,8 @@ The centre step then intersects candidates only over the primes still in
 leave *fewer* primes in the intersection. An intersection over fewer primes is
 larger, so the centers and total dimension can grow.
 
-This is not a bug in the Magma port. The Magma is a faithful translation of the
-Sage, which does the same thing; do not "fix" the intrinsic on the strength of
-this note.
+The eta reset and resulting non-monotonicity are inherited from the Sage
+implementation. Do not change the intrinsic on the strength of this note.
 
 Three genus-3 curves in this corpus show it directly, all three with the true
 answer `RR,RR,RR` (dimension 3):
