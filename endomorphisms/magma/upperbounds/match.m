@@ -28,7 +28,7 @@ function SimpleFactorData(tok)
 end function;
 
 // RealRepresentationString cannot always separate type II from type III
-// (utils.m:263). Containment is reported for either resolution.
+// (utils.m:115-118). Containment is reported for either resolution.
 // In oneof{...}, alternatives are separated by | and factors by +. An
 // alternative may contain the single factor M_2(RR) or HH.
 function TokenCandidates(tok)

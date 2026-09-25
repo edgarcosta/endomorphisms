@@ -17,7 +17,7 @@
 // block-buffers redirected stdout, so printing would not have that property.
 //
 // No asserts and no SetQuitOnError: a single bad curve must not take out the
-// chunk. The one hard failure is the gp guard below.
+// chunk.
 //
 // Run directly with:
 //   CORPUS_INPUT=... CORPUS_OUTPUT=... CORPUS_B=1024 magma -b run_corpus.m
@@ -114,8 +114,7 @@ if not TryAttachSpec(endo_spec) then
     end if;
 end if;
 
-// POLRED_SPEC is optional: Polredabs may already come from MAGMA_USER_SPEC.
-// Either way the guard below decides whether we are allowed to proceed.
+// POLRED_SPEC is optional: MagmaPolred may already come from MAGMA_USER_SPEC.
 if polred_spec ne "" then
     if not TryAttachSpec(polred_spec) then
         printf "run_corpus: cannot attach POLRED_SPEC = %o.\n", polred_spec;
@@ -130,36 +129,6 @@ SetVerbose("EndoFind", 0);
 R<t> := PolynomialRing(Rationals());
 P2<x, y, z> := ProjectiveSpace(Rationals(), 2);
 P2CR := CoordinateRing(P2);
-
-// ------------------------------------------------------------------ gp guard
-//
-// FieldIntersectionMatrix compares centers by set intersection on polredabs'd
-// defining polynomials, so polredabs is the canonical key that makes field
-// equality testable at all. Polredabs shells out to PARI/gp; when gp is
-// missing, Polred catches the failed Pipe, prints a warning and returns a
-// NON-canonical fallback. Results are then silently wrong: the meet loses
-// elements, centers collapse to Q, and e.g. ["RR","CC"] degrades to
-// ["RR","RR"]. So test by round-trip rather than by looking for gp on PATH,
-// and refuse to run at all if it does not hold.
-
-gp_ok := false;
-try
-    gp_ok := (Polredabs(t^2 - 5) eq t^2 - t - 1);
-catch e
-    gp_ok := false;
-end try;
-
-if not gp_ok then
-    print "";
-    print "run_corpus: FATAL - PARI/gp is not usable from Magma.";
-    print "  Polredabs(x^2 - 5) must return x^2 - x - 1.";
-    print "  Without a working gp, Polred falls back to a non-canonical";
-    print "  polynomial, center detection collapses to Q and the computed";
-    print "  bounds are silently wrong (e.g. [RR, CC] degrades to [RR, RR]).";
-    print "  Put a working gp on PATH and re-run; Sage ships one, e.g.";
-    print "    PATH=\"$(dirname \"$(sage -sh -c 'command -v gp')\"):$PATH\"";
-    exit 2;
-end if;
 
 // ------------------------------------------------------------------ the work
 

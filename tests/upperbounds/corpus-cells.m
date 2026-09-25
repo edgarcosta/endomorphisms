@@ -6,7 +6,6 @@
 // The listed curves are the existing cell witnesses, rebased to their exact
 // first sharp rung on the current schedule.
 
-// Requires PARI/gp on PATH for center-field detection via Polredabs.
 // Silent on success. Run from the root via: ./tests/run.sh corpus-cells
 
 AttachSpec("../../endomorphisms/magma/spec");
@@ -16,10 +15,6 @@ SetVerbose("EndoFind", 0);
 
 R<x> := PolynomialRing(Rationals());
 
-if #Pipe("command -v gp || true", "") eq 0 then
-    print "corpus-cells: gp (PARI/gp) not on PATH; skipping.";
-    exit;
-end if;
 
 // <label, stratum, recorded B, expected tokens, f-coeffs, h-coeffs (low to high)>.
 cells := [*

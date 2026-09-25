@@ -21,35 +21,14 @@ Five pieces, in the order you use them:
 | `run_corpus.sh` | shards, parallelizes, resumes, concatenates |
 | `report.py` | aggregates results into a per-stratum sharpness table |
 
-## PARI/gp is mandatory
+## Requirements
 
-This is the one thing that will silently ruin a run, so it comes first.
+The corpus path needs Magma and the endomorphisms package. It does not call
+`Polredabs`, so PARI/gp does not need to be on `PATH`.
 
-`FieldIntersectionMatrix` computes each center by **set intersection on
-polredabs-canonicalized defining polynomials**. Polredabs is what makes field
-equality testable with `eq` at all, and `Polredabs` shells out to PARI/gp. When
-gp is missing, `Polred` catches the failed `Pipe`, prints a warning, and returns
-a non-canonical fallback polynomial. Nothing raises. The meet then loses
-elements, centers collapse to Q, and results degrade quietly: `["RR","CC"]`
-comes back as `["RR","RR"]`.
-
-So both `run_corpus.m` and `run_corpus.sh` refuse to start unless
-
-```
-Polredabs(x^2 - 5) eq x^2 - x - 1
-```
-
-Round-trip, not `command -v gp`: a gp on PATH that Magma cannot actually pipe to
-would pass the second test and fail the first. A failed guard exits **2** and
-writes no results.
-
-Any recent PARI/gp works. If gp is not on the default PATH, Sage ships one:
-
-```sh
-export PATH="$(dirname "$(sage -sh -c 'command -v gp')"):$PATH"
-```
-
-Nothing in the harness hardcodes that location; the caller prepends it.
+The package spec still references MagmaPolred from other modules. Attach its
+spec through `POLRED_SPEC`, or through `MAGMA_USER_SPEC`, even though this
+harness does not exercise those modules.
 
 ## Configuration
 
@@ -68,7 +47,6 @@ On the machine this was developed on, `POLRED_SPEC` is
 
 ```sh
 export POLRED_SPEC=/path/to/CHIMP/MagmaPolred/spec
-export PATH="$(dirname "$(sage -sh -c 'command -v gp')"):$PATH"
 
 # 1. normalize the source data
 ./prepare_input.py g2_nongeneric.csv g2 -o prepared/g2.tsv
@@ -89,10 +67,10 @@ export PATH="$(dirname "$(sage -sh -c 'command -v gp')"):$PATH"
 size, `-t` per-chunk timeout, `-w` work directory, `--ids` to restrict a pass
 to a list of ids. The default cap is 1024, which runs the full search.
 
-Sizing `-c`: each chunk pays one Magma startup plus one gp round-trip, about a
-second. At 0.35 s/curve for genus 2 a chunk of 200-400 keeps that under 1%, and
-smaller chunks give the scheduler more to balance and lose less work to a
-timeout. On a 200-core box, `-j 200 -c 400` is a reasonable starting point.
+Sizing `-c`: each chunk pays one Magma startup. At 0.35 s/curve for genus 2,
+a chunk of 200-400 keeps that overhead under 1%. Smaller chunks give the
+scheduler more to balance and lose less work to a timeout. On a 200-core box,
+`-j 200 -c 400` is a reasonable starting point.
 
 ### Resuming
 
@@ -134,10 +112,10 @@ attain the current minimum, and resets it to `[]` the moment a smaller eta
 turns up (`endomorphisms/magma/upperbounds/UpperBounds.m:68-72`, and the same
 in the Sage original at `endomorphisms/UpperBounds/upper_bounds.py:65-73`,
 which resets on both the smaller-eta and the fewer-factors branch).
-`FieldIntersectionMatrix` then intersects only over the primes still in
+The centre step then intersects candidates only over the primes still in
 `eta_lower`. A larger `B` that finds a new eta-minimizing prime can therefore
-leave *fewer* primes in the intersection, and an intersection over fewer primes
-is larger, so the centers are larger and so is the total dimension.
+leave *fewer* primes in the intersection. An intersection over fewer primes is
+larger, so the centers and total dimension can grow.
 
 This is not a bug in the Magma port. The Magma is a faithful translation of the
 Sage, which does the same thing; do not "fix" the intrinsic on the strength of
@@ -319,6 +297,11 @@ Dimensions over R: `RR` 1, `CC` 2, `HH` 4, `M_2(RR)` 4, `M_2(CC)` 8,
 enough for `over`: `CC,RR` does not embed in `M_2(RR)`, so that pair is a
 `mismatch`.
 
+A centre with several possible real representations uses a token such as
+`oneof{CC|RR+RR}`. `|` separates alternatives and `+` separates factors within
+one alternative. The format contains no commas, so TSV multiset splitting stays
+unambiguous.
+
 `over` and `mismatch` are the ones a larger `B` can move. `under` is not: it
 means the bound missed endomorphisms that are really there.
 
@@ -372,8 +355,7 @@ even though a simple abelian surface with the same real algebra is not.
   cannot wedge a worker. Because results are flushed per line, the chunk resumes
   from where it stopped.
 * A chunk that exits non-zero is logged in the work directory and does not abort
-  the run. Only the gp guard, which is checked once up front by `run_corpus.sh`
-  before any worker starts, stops the whole thing.
+  the run. The up-front package preflight can stop the run before workers start.
 * A dispatcher that could not start the chunks at all is different: the run
   still harvests and reports, keeps the work directory, and then exits **1**,
   so a pass that computed nothing cannot be mistaken for a pass with nothing

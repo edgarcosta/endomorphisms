@@ -9,10 +9,6 @@
 # directory. For escalating runs, restart with --ids: result rows record the
 # rung reached, while the planner below still keys on the requested cap.
 #
-# Requires a working PARI/gp on PATH; see README.md. The preflight below
-# refuses to start without one, because a missing gp does not fail loudly, it
-# silently degrades every answer.
-#
 set -euo pipefail
 
 SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
@@ -43,7 +39,7 @@ if [[ "${1:-}" == "--run-chunk" ]]; then
         timeout --foreground "${CHUNK_TIMEOUT:-3600}" \
         "$MAGMA" -b "$DRIVER" >"$log" 2>&1 || rc=$?
     if [[ $rc -eq 2 ]]; then
-        echo "run_corpus.sh: $base aborted (gp guard or setup); see $log" >&2
+        echo "run_corpus.sh: $base aborted during setup; see $log" >&2
     elif [[ $rc -eq 124 ]]; then
         echo "run_corpus.sh: $base timed out after ${CHUNK_TIMEOUT:-3600}s; partial results kept" >&2
     elif [[ $rc -ne 0 ]]; then
@@ -203,8 +199,7 @@ harvest
 
 # ---------------------------------------------------------------------------
 # Preflight: run the driver over an empty chunk. That exercises the AttachSpec
-# paths and the gp round-trip guard exactly as the workers will, and costs one
-# Magma startup.
+# paths exactly as the workers will, and costs one Magma startup.
 # ---------------------------------------------------------------------------
 printf '%s\n' $'id\tkind\tdata\texpected' > "$WORKDIR/empty.tsv"
 if ! CORPUS_INPUT="$WORKDIR/empty.tsv" CORPUS_OUTPUT="$WORKDIR/preflight.out" \

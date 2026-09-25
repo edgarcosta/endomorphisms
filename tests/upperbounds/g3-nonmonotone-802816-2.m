@@ -6,10 +6,6 @@ AttachSpec(GetEnv("POLRED_SPEC"));
 
 SetVerbose("EndoFind", 0);
 
-if #Pipe("command -v gp || true", "") eq 0 then
-    print "g3-cells: gp (PARI/gp) not on PATH; skipping.";
-    exit;
-end if;
 
 P2<x, y, z> := ProjectiveSpace(Rationals(), 2);
 P2CR := CoordinateRing(P2);

@@ -35,17 +35,13 @@ if [[ ! -r "$TARGET" ]]; then
 fi
 
 # Match tests/run.sh so this test exercises the real Magma driver with the
-# same PARI/gp and Polredabs setup as the upperbounds suite.
+# same package setup as the upperbounds suite.
 if [[ $(declare -p PATH) != "declare -x "* ]]; then
     PATH=/home/sage/sage-10.8/local/bin:/usr/local/bin:/usr/bin:/bin
 fi
 export PATH
 export POLRED_SPEC="${POLRED_SPEC-/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec}"
 
-if ! command -v gp >/dev/null 2>&1; then
-    printf 'PARI/gp is required: add the directory containing gp to PATH.\n' >&2
-    exit 1
-fi
 if ! command -v magma >/dev/null 2>&1; then
     printf 'Magma is required: add the directory containing magma to PATH.\n' >&2
     exit 1

@@ -8,10 +8,6 @@ fi
 export PATH
 export POLRED_SPEC="${POLRED_SPEC-/home/edgarcosta/projects/CHIMP/CHIMP/MagmaPolred/spec}"
 
-if ! command -v gp >/dev/null 2>&1; then
-    printf 'PARI/gp is required: add the directory containing gp to PATH.\n' >&2
-    exit 1
-fi
 if ! command -v magma >/dev/null 2>&1; then
     printf 'Magma is required: add the directory containing magma to PATH.\n' >&2
     exit 1

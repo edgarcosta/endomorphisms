@@ -3,10 +3,6 @@
 // fail on the pre-fix code; one that passes both ways belongs in another suite.
 // New bugs get new cases here, each naming the bug it guards.
 
-// Requires PARI/gp on PATH: the center-field detection (FieldIntersection ->
-// SubfieldsPolynomials -> Polredabs) needs it. If gp is missing we print a
-// notice and exit rather than report spurious failures.
-
 // Silent on success. Run via:
 //   ./tests/run.sh regressions (from the repository root)
 
@@ -17,10 +13,6 @@ SetVerbose("EndoFind", 0);
 
 R<x> := PolynomialRing(Rationals());
 
-if #Pipe("command -v gp || true", "") eq 0 then
-    print "Test-UpperBounds-Regressions: gp (PARI/gp) not on PATH; skipping.";
-    exit;
-end if;
 
 // ----- Bug endomorphisms-6qm (fixed in 88e7375), 1 of 2 -----
 // The escalation returned "unsound" and stopped climbing at the first rung whose

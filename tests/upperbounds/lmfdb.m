@@ -14,14 +14,6 @@
 // contradicted. Status "unsound" means the last rung to produce a bound failed
 // to contain the truth; lower rungs may miss it, the bounds being conditional.
 
-// Requires PARI/gp on PATH: the center-field detection (FieldIntersection ->
-// SubfieldsPolynomials -> Polredabs) needs it, and without it the CM strata
-// collapse (e.g. ["RR","CC"] -> ["RR","RR"]). If gp is not found we print a
-// notice and skip rather than report spurious failures.
-
-// Sage ships a usable gp; e.g. run with
-//   PATH="$(dirname $(sage -sh -c 'command -v gp')):$PATH".
-
 // Silent on success. Set ENDO_TEST_VERBOSE to a non-empty value to print the
 // minimal sharp B per curve.
 
@@ -34,10 +26,6 @@ SetVerbose("EndoFind", 0);
 
 R<x> := PolynomialRing(Rationals());
 
-if #Pipe("command -v gp || true", "") eq 0 then
-    print "Test-UpperBounds-LMFDB: gp (PARI/gp) not on PATH; skipping corpus.";
-    exit;
-end if;
 
 verbose := GetEnv("ENDO_TEST_VERBOSE") ne "";
 
