@@ -3,7 +3,6 @@
 // source curves and truth column come from corpus-cells.m; 3125.a1 documents
 // that a small blind bound can be coarser than the geometric endomorphism algebra.
 //
-// Requires PARI/gp on PATH for center-field detection via Polredabs.
 // Silent on success. Run from the root via: ./tests/run.sh blind
 
 AttachSpec("../../endomorphisms/magma/spec");
@@ -13,10 +12,6 @@ SetVerbose("EndoFind", 0);
 
 R<x> := PolynomialRing(Rationals());
 
-if #Pipe("command -v gp || true", "") eq 0 then
-    print "blind: gp (PARI/gp) not on PATH; skipping.";
-    exit;
-end if;
 
 // <label, B, blind bound, geometric truth, f-coeffs, h-coeffs (low to high)>.
 cases := [*
@@ -63,7 +58,7 @@ procedure test_tuple_28561()
         Sprintf("28561.c1 at B = 8: expected <true, message, 2, 1, output, 4>, got <%o, %o, %o, %o, %o, %o>",
                 ok, msg, eta, t, output, total_dim);
     error if #output ne 1 or #output[1] ne 4 or output[1][1] ne 1 or output[1][2] ne 2 or
-             #output[1][3] ne 2 or Degree(output[1][3][1]) ne 4 or #output[1][3][2] ne 3 or
+             #output[1][3] ne 2 or output[1][3][1] ne 4 or #output[1][3][2] ne 1 or
              output[1][4] ne ["CC", "CC"],
         Sprintf("28561.c1 at B = 8: unexpected output component %o", output);
 end procedure;
@@ -75,7 +70,7 @@ procedure test_tuple_3125()
         Sprintf("3125.a1 at B = 8: expected <true, message, 8, 1, output, 16>, got <%o, %o, %o, %o, %o, %o>",
                 ok, msg, eta, t, output, total_dim);
     error if #output ne 1 or #output[1] ne 4 or output[1][1] ne 4 or output[1][2] ne 2 or
-             #output[1][3] ne 2 or Degree(output[1][3][1]) ne 1 or #output[1][3][2] ne 1 or
+             #output[1][3] ne 2 or output[1][3][1] ne 1 or #output[1][3][2] ne 1 or
              output[1][4] ne ["M_4(RR)"],
         Sprintf("3125.a1 at B = 8: unexpected output component %o", output);
 end procedure;
