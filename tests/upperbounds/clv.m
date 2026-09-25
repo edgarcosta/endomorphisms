@@ -175,7 +175,7 @@ procedure test_center_selection_behaviours()
 end procedure;
 
 // CLV Example 5.6: retaining only the anchor leaves degree 2, while adding
-// p = 37 cuts the centre degree to 1. The malformed genus-4 token is separate.
+// p = 37 cuts the centre degree to 1 and exposes the genus-4 ambiguity.
 procedure test_clv_genus_four_example_degree_and_dimension()
     gs := [1 - 2*x + 19*x^2, 1 + 7*x + 37*x^2];
 
@@ -195,6 +195,8 @@ procedure test_clv_genus_four_example_degree_and_dimension()
     assert ok;
     assert output[1][3][1] eq 1;
     assert total_dim eq 16;
+    assert output[1][4] eq ["oneof{M_4(RR)|M_2(HH)}"];
+    assert RealRepresentationEmbeds(["M_2(HH)"], output[1][4]);
 end procedure;
 
 failures := [];

@@ -31,25 +31,11 @@ Usage:
 
 import argparse
 import collections
+import re
 import sys
 
-# Each simple real endomorphism algebra M_k(D), as (k, dim_R D).
-FACTOR = {
-    "RR": (1, 1),
-    "CC": (1, 2),
-    "HH": (1, 4),
-    "M_2(RR)": (2, 1),
-    "M_2(CC)": (2, 2),
-    "M_3(RR)": (3, 1),
-    "M_3(CC)": (3, 2),
-}
-
-# Tokens the Magma side cannot always separate. Containment is reported when
-# it holds for any resolution, since the favourable case cannot be ruled out.
-AMBIGUOUS = {"M_2(RR) or HH": (("M_2(RR)",), ("HH",))}
-
-# Dimension over R: dim_R M_k(D) = k^2 dim_R D.
-DIM = dict((tok, k * k * d) for tok, (k, d) in FACTOR.items())
+BASE_DIMENSIONS = {"RR": 1, "CC": 2, "HH": 4}
+MATRIX_TOKEN = re.compile(r"M_([1-9][0-9]*)\((RR|CC|HH)\)\Z")
 
 VERDICTS = ("sharp", "over", "under", "mismatch", "error")
 
@@ -60,10 +46,18 @@ def parse_multiset(text):
     return sorted(part for part in (p.strip() for p in text.split(",")) if part)
 
 
+def _factor_data(tok):
+    """A simple real algebra token, as (matrix degree, base dimension)."""
+    if tok in BASE_DIMENSIONS:
+        return 1, BASE_DIMENSIONS[tok]
+    match = MATRIX_TOKEN.fullmatch(tok)
+    if match is None:
+        return None
+    return int(match.group(1)), BASE_DIMENSIONS[match.group(2)]
+
+
 def _token_candidates(tok):
     """Alternative token lists represented by one possibly ambiguous token."""
-    if tok in AMBIGUOUS:
-        return AMBIGUOUS[tok]
     if tok.startswith("oneof{") and tok.endswith("}"):
         body = tok[6:-1]
         alternatives = body.split("|")
@@ -89,7 +83,7 @@ def _unknown_tokens(items):
         if not candidates:
             unknown.append(tok)
         elif candidates == ((tok,),):
-            if tok not in DIM:
+            if _factor_data(tok) is None:
                 unknown.append(tok)
         else:
             for alternative in candidates:
@@ -102,7 +96,7 @@ def total_dim(items):
     unknown = _unknown_tokens(items)
     if unknown:
         return 0, unknown
-    return max(sum(DIM[tok] for tok in resolution)
+    return max(sum(k * k * d for k, d in map(_factor_data, resolution))
                for resolution in _resolutions(items)), []
 
 
@@ -131,10 +125,10 @@ def _embeds_resolved(exp, obs):
     Per factor M_n(E) of obs: sum_i c_i k_i max(dim D_i, dim E) = n dim E,
     then no factor of obs left unhit and no factor of exp left unused.
     """
-    shape = [FACTOR[tok] for tok in exp]
+    shape = [_factor_data(tok) for tok in exp]
     reach = set([0])
     for tok in obs:
-        n, e = FACTOR[tok]
+        n, e = _factor_data(tok)
         masks = _support_masks([k * max(d, e) for k, d in shape], n * e)
         if not masks:
             return False

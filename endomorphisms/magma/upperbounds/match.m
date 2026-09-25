@@ -27,14 +27,10 @@ function SimpleFactorData(tok)
     return true, k, dims[base];
 end function;
 
-// RealRepresentationString cannot always separate type II from type III
-// (utils.m:115-118). Containment is reported for either resolution.
-// In oneof{...}, alternatives are separated by | and factors by +. An
-// alternative may contain the single factor M_2(RR) or HH.
+// RealRepresentationString cannot always separate type II from type III.
+// Containment is reported for either resolution.
+// In oneof{...}, alternatives are separated by | and factors by +.
 function TokenCandidates(tok)
-    if tok cmpeq "M_2(RR) or HH" then
-        return [["M_2(RR)"], ["HH"]];
-    end if;
     if #tok ge 9 and tok[1 .. 6] eq "oneof{" and tok[#tok] eq "}" then
         body := Substring(tok, 7, #tok - 7);
         alternatives := Split(body, "|");

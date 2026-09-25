@@ -291,15 +291,15 @@ comparing):
 | `mismatch` | equal or larger dimension but structurally incomparable |
 | `error` | the driver raised on this curve |
 
-Dimensions over R: `RR` 1, `CC` 2, `HH` 4, `M_2(RR)` 4, `M_2(CC)` 8,
-`M_3(RR)` 9, `M_3(CC)` 18, `M_2(RR) or HH` 4. Greater total dimension is not
-enough for `over`: `CC,RR` does not embed in `M_2(RR)`, so that pair is a
-`mismatch`.
+Dimensions over R: `RR` 1, `CC` 2, `HH` 4, and `M_k(D)` has dimension
+`k^2 dim_R(D)`. Greater total dimension is not enough for `over`: `CC,RR`
+does not embed in `M_2(RR)`, so that pair is a `mismatch`.
 
 A centre with several possible real representations uses a token such as
-`oneof{CC|RR+RR}`. `|` separates alternatives and `+` separates factors within
-one alternative. The format contains no commas, so TSV multiset splitting stays
-unambiguous.
+`oneof{CC|RR+RR}`. The type II/III ambiguity uses the same grammar, for example
+`oneof{M_4(RR)|M_2(HH)}`. `|` separates alternatives and `+` separates factors
+within one alternative. The format contains no commas, so TSV multiset
+splitting stays unambiguous.
 
 `over` and `mismatch` are the ones a larger `B` can move. `under` is not: it
 means the bound missed endomorphisms that are really there.

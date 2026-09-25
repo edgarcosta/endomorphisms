@@ -114,8 +114,10 @@ intrinsic RealRepresentationString(g::RngIntElt, K::FldNum, d::RngIntElt) -> Seq
         n := Degree(K);
         if d mod 2 eq 0 and g mod 2 eq 0 and g gt 3 then
             // Type II/III ambiguity: type III is excluded for g <= 3.
-            KRR := "M_2(RR) or HH";
-            d := d div 2;
+            h := d div 2;
+            H := h eq 1 select "HH" else Sprintf("M_%o(HH)", h);
+            KRR := Sprintf("oneof{M_%o(RR)|%o}", d, H);
+            d := 1;
         end if;
     end if;
     if d gt 1 then
@@ -125,4 +127,3 @@ intrinsic RealRepresentationString(g::RngIntElt, K::FldNum, d::RngIntElt) -> Seq
     end if;
     return [out : i in [1..n]];
 end intrinsic;
-

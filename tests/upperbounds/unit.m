@@ -57,10 +57,14 @@ assert RealRepresentationString(2, K, 1) eq ["RR", "RR"];
 K := NumberField(x^2 - 2);
 assert RealRepresentationString(2, K, 2) eq ["M_2(RR)", "M_2(RR)"];
 
-// Real quadratic, g = 4, d = 2: not CM, d%2 = 0, g%2 = 0, g > 3 =>
-// type II/III ambiguity: "M_2(RR) or HH", d collapses to 1.
+// Real quadratic, g = 4, d = 2: type II/III ambiguity.
 K := NumberField(x^2 - 2);
-assert RealRepresentationString(4, K, 2) eq ["M_2(RR) or HH", "M_2(RR) or HH"];
+assert RealRepresentationString(4, K, 2) eq
+    ["oneof{M_2(RR)|HH}", "oneof{M_2(RR)|HH}"];
+
+// The alternatives use the original d, before the quaternionic degree halves.
+assert RealRepresentationString(4, K, 4) eq
+    ["oneof{M_4(RR)|M_2(HH)}", "oneof{M_4(RR)|M_2(HH)}"];
 
 // ----- LPolynomials -----
 // Port of Sage get_frob_list_HyperellipticCurve, curve-type-agnostic.
@@ -383,7 +387,7 @@ procedure test_upper_bound_zywina_quaternion_genus_10()
     error if Lj[1] ne 1, Sprintf("genus 10: the center is Q, got %o", Lj);
     // The truth is ["HH"]. Zywina states Frobenius polynomials cannot separate the
     // two, so the undecided pair is the sharpest sound answer this method can give.
-    error if RRj ne ["M_2(RR) or HH"],
+    error if RRj ne ["oneof{M_2(RR)|HH}"],
         Sprintf("genus 10: expected the type II/III ambiguity, got %o", RRj);
 end procedure;
 

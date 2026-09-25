@@ -33,6 +33,8 @@ CASES = [
     ("M_4(RR)", "M_4(RR)", "ok", "sharp", []),
     ("M_2(HH)", "M_2(HH)", "ok", "sharp", []),
     ("M_3(HH)", "M_3(HH)", "ok", "sharp", []),
+    ("M_5(RR)", "M_5(RR)", "ok", "sharp", []),
+    ("CC,CC", "M_4(RR)", "ok", "over", []),
 
     # under: the documented limitation, quartic CM invisible to prime-field
     # Frobenius. Units are 2 and 2, the targets 1 and 1, so nothing embeds.
@@ -43,8 +45,8 @@ CASES = [
     ("CC,RR", "CC,RR", "fail", "error", []),
     ("RR", "M_2(RR)", "magma error", "error", []),
 
-    # Unknown tokens keep the old behaviour on either side.
-    ("RR", "M_5(RR)", "ok", "mismatch", ["M_5(RR)"]),
+    # Malformed or unsupported division-algebra tokens remain unknown.
+    ("RR", "M_0(RR)", "ok", "mismatch", ["M_0(RR)"]),
     ("QQ", "M_2(RR)", "ok", "mismatch", ["QQ"]),
 
     # u = 1, so c = 2 fills dim_R R^2 = 2.
@@ -60,12 +62,8 @@ CASES = [
     # Units 2 and 2, target dim_R C^2 = 4, c = (1, 1): the diagonal.
     ("CC,CC", "M_2(CC)", "ok", "over", []),
 
-    # The ambiguous token, on the got side: only the M_2(RR) resolution works.
-    ("RR,RR", "M_2(RR) or HH", "ok", "over", []),
-    # Neither resolution: units (4, 4) into H, units (2, 1) into M_2(R).
-    ("CC,RR", "M_2(RR) or HH", "ok", "mismatch", []),
-    # On the expected side: M_2(R) and H both embed in M_2(C), u = 4 = target.
-    ("M_2(RR) or HH", "M_2(CC)", "ok", "over", []),
+    # The genus-4 ambiguity is a regular possibility token.
+    ("M_2(HH)", "oneof{M_4(RR)|M_2(HH)}", "ok", "over", []),
 
     # A centre possibility token may resolve to a list of several factors.
     ("CC", "oneof{CC|RR+RR+RR+RR}", "ok", "over", []),
@@ -96,6 +94,10 @@ def main():
     dim_result = report.total_dim(["oneof{CC|RR+RR+RR+RR}"])
     if dim_result != (4, []):
         failures.append("total_dim(disjunction) -> %r, want (4, [])"
+                        % (dim_result,))
+    dim_result = report.total_dim(["oneof{M_4(RR)|M_2(HH)}"])
+    if dim_result != (16, []):
+        failures.append("total_dim(genus-4 disjunction) -> %r, want (16, [])"
                         % (dim_result,))
     for line in failures:
         print(line)

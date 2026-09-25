@@ -15,11 +15,11 @@ assert RealRepresentationEmbeds(
 assert not RealRepresentationEmbeds(["HH", "HH"], [possibility]);
 
 // Exact spelling does not make an ambiguous answer sharp. This genus-4 curve
-// genuinely returns the pre-existing type II/III disjunction at B = 8.
+// genuinely returns the type II/III disjunction at B = 8.
 C := HyperellipticCurve(x^9 - 6*x^7 - x^5 - 6*x^3 + x);
 bound, B, status := RealRepresentationBound(
-    C, ["M_2(RR) or HH"] : Bmax := 8);
-assert bound eq ["M_2(RR) or HH"];
+    C, ["HH"] : Bmax := 8);
+assert bound eq ["oneof{M_2(RR)|HH}"];
 assert B eq 8;
 assert status eq "exhausted";
 assert RealRepresentationEmbeds(["HH"], bound);
