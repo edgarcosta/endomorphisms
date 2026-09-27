@@ -143,8 +143,33 @@ function NormicCandidates(M, hp)
     return out;
 end function;
 
+function DefiniteResolutions(tokens)
+    if #tokens eq 0 then
+        return [[]];
+    end if;
+    tok := tokens[1];
+    tail := tokens;
+    Remove(~tail, 1);
+    candidates := [[tok]];
+    if #tok ge 9 and tok[1 .. 6] eq "oneof{" and tok[#tok] eq "}" then
+        body := Substring(tok, 7, #tok - 7);
+        candidates := [Split(alternative, "+")
+                       : alternative in Split(body, "|")];
+    end if;
+    return [head cat rest : head in candidates, rest in $$(tail)];
+end function;
+
 function PossibilityToken(token_lists)
-    encoded := [Join(tokens, "+") : tokens in token_lists];
+    resolutions := [];
+    for tokens in token_lists do
+        for resolution in DefiniteResolutions(tokens) do
+            sorted := Sort(resolution);
+            if sorted notin resolutions then
+                Append(~resolutions, sorted);
+            end if;
+        end for;
+    end for;
+    encoded := [Join(tokens, "+") : tokens in resolutions];
     Sort(~encoded);
     return "oneof{" cat Join(encoded, "|") cat "}";
 end function;

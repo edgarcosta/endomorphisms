@@ -68,6 +68,23 @@ procedure test_astra_counterexample_keeps_all_literal_maxima()
     assert RealRepresentationEmbeds(["CC"], output[1][4]);
     assert RealRepresentationEmbeds(
         ["RR", "RR", "RR", "RR"], output[1][4]);
+
+    eta_lower := [
+        [<2, 16, Reverse(mq)>, <2, 16, Reverse(nq)>],
+        [<2, 16, Reverse(ap)>, <2, 16, Reverse(bp)>]
+    ];
+    ok, _, output, total_dim := EndomorphismAlgebraCenterBounds(
+        64, 2, eta_lower);
+    assert ok and total_dim eq 32;
+    representation := output[1][4];
+    assert #representation eq 1;
+    token := representation[1];
+    flat_center := "oneof{HH+HH+HH+HH|HH+HH+HH+M_2(RR)|" cat
+        "HH+HH+M_2(RR)+M_2(RR)|HH+M_2(RR)+M_2(RR)+M_2(RR)|" cat
+        "M_2(CC)|M_2(RR)+M_2(RR)+M_2(RR)+M_2(RR)}";
+    assert token eq flat_center;
+    assert Index(Substring(token, 7, #token - 7), "oneof{") eq 0;
+    assert RealRepresentationEmbeds(["M_2(CC)"], representation);
 end procedure;
 
 // Enumerating only irreducible factors misses the normic divisor x^4 + 2:

@@ -11,6 +11,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import report
 
+FLAT_CENTER = (
+    "oneof{HH+HH+HH+HH|HH+HH+HH+M_2(RR)|"
+    "HH+HH+M_2(RR)+M_2(RR)|HH+M_2(RR)+M_2(RR)+M_2(RR)|"
+    "M_2(CC)|M_2(RR)+M_2(RR)+M_2(RR)+M_2(RR)}"
+)
+
 # (expected, got, status, verdict, unknown tokens).
 CASES = [
     # The bug: 4 > 3, but C x R has no unital injective map into M_2(R). The
@@ -68,6 +74,7 @@ CASES = [
     # A centre possibility token may resolve to a list of several factors.
     ("CC", "oneof{CC|RR+RR+RR+RR}", "ok", "over", []),
     ("RR,RR,RR,RR", "oneof{CC|RR+RR+RR+RR}", "ok", "over", []),
+    ("M_2(CC)", FLAT_CENTER, "ok", "over", []),
     # Even literal equality with an ambiguous bound is not evidence of sharpness.
     ("oneof{CC|RR+RR+RR+RR}", "oneof{CC|RR+RR+RR+RR}",
      "ok", "over", []),
@@ -98,6 +105,10 @@ def main():
     dim_result = report.total_dim(["oneof{M_4(RR)|M_2(HH)}"])
     if dim_result != (16, []):
         failures.append("total_dim(genus-4 disjunction) -> %r, want (16, [])"
+                        % (dim_result,))
+    dim_result = report.total_dim([FLAT_CENTER])
+    if dim_result != (16, []):
+        failures.append("total_dim(flat centre) -> %r, want (16, [])"
                         % (dim_result,))
     for line in failures:
         print(line)
