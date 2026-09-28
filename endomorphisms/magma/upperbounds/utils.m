@@ -23,12 +23,19 @@ intrinsic PowerCharacteristicPolynomial(f::RngUPolElt, k::RngIntElt) -> RngUPolE
 end intrinsic;
 
 intrinsic AlternatingSquareCharacteristicPolynomial(f::RngUPolElt) -> RngUPolElt
-    {return the characteristic polynomial of the induced linear transformation on the alternating square}
+    {return the characteristic polynomial of the induced linear transformation on the alternating square;
+    constant-term-one inputs produce constant-term-one output, and monic inputs produce monic output, with monic precedence}
     d := Degree(f);
     g := TensorCharacteristicPolynomial(f, f)/PowerCharacteristicPolynomial(f, 2);
     assert IsOne(Denominator(g));
     bool, res := IsSquare(Parent(f)!g);
+    if not bool then
+        bool, res := IsSquare(Parent(f)!(-g));
+    end if;
     assert bool;
+    if not IsMonic(f) and Coefficient(f, 0) eq 1 and Coefficient(res, 0) eq -1 then
+        res := -res;
+    end if;
     assert Degree(res) eq d*(d-1) div 2;
     return res;
 end intrinsic;

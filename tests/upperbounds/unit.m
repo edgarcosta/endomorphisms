@@ -28,7 +28,17 @@ test_alternating_and_symmetric_square_degree_4();
 
 // d = 2: the alternating square is the determinant, a linear factor.
 procedure test_alternating_square_degree_2()
-    assert Degree(AlternatingSquareCharacteristicPolynomial(1 + x + 2*x^2)) eq 1;
+    f := 1 + x + 2*x^2;
+    assert Degree(AlternatingSquareCharacteristicPolynomial(f)) eq 1;
+    assert AlternatingSquareCharacteristicPolynomial(f) eq 1 - 2*x;
+    for g in [1..4] do
+        altsq := AlternatingSquareCharacteristicPolynomial(f^g);
+        assert Coefficient(altsq, 0) eq 1;
+    end for;
+    assert AlternatingSquareCharacteristicPolynomial(x^2 + x + 2) eq x - 2;
+    assert AlternatingSquareCharacteristicPolynomial(x^2 + x + 1) eq x - 1;
+    assert AlternatingSquareCharacteristicPolynomial(x - 2) eq 1;
+    assert AlternatingSquareCharacteristicPolynomial((x-1)*(x-2)*(x-3)) eq (x-2)*(x-3)*(x-6);
 end procedure;
 
 test_alternating_square_degree_2();
