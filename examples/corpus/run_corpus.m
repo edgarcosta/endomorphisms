@@ -89,8 +89,8 @@ if B_text eq "" then
     B_text := "1024";
 end if;
 B := StringToInteger(B_text);
-if B lt 3 then
-    printf "run_corpus: CORPUS_B = %o is too small.\n", B;
+if B lt 8 then
+    printf "run_corpus: CORPUS_B = %o is too small; the first rung is 8.\n", B;
     exit 2;
 end if;
 

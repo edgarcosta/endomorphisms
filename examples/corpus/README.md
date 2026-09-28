@@ -9,7 +9,8 @@ RealRepresentationBound(C::Crv, target::SeqEnum : Bmax := 1024)
 
 return the known geometric endomorphism data sharply? It runs a prepared list
 of curves through Magma in parallel, one process per chunk, and passes the
-reference multiset as the target. `-B` sets `Bmax`, the cap on the search.
+reference multiset as the target. `-B` sets `Bmax`, the cap on the search;
+rungs are 8, 16, ..., the largest power of two <= N.
 
 Five pieces, in the order you use them:
 

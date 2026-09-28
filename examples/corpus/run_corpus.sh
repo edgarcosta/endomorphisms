@@ -57,7 +57,7 @@ Usage: run_corpus.sh -i INPUT.tsv -o RESULTS.tsv [options]
 
   -i, --input FILE     prepared TSV from prepare_input.py            (required)
   -o, --output FILE    results TSV, created or resumed               (required)
-  -B, --bound N        climb cap for RealRepresentationBound          (1024)
+  -B, --bound N        climb cap; rungs are 8, 16, ..., the largest power of two <= N (1024)
   -j, --jobs N         concurrent Magma processes                    (nproc)
   -c, --chunk N        curves per Magma process                      (200)
   -t, --timeout SEC    wall-clock limit per chunk                    (3600)
