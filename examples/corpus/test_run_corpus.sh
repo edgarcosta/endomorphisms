@@ -175,6 +175,29 @@ if [[ -e "$guard_dir/work/output.tsv" ]]; then
 fi
 assert_empty "output guard" "$guard_dir/record"
 
+symlink_guard_dir="$ROOT/symlink-guard"
+mkdir -p "$symlink_guard_dir/work"
+printf 'id\tkind\tdata\texpected\nsymlinked\tg2\t[]\ttruth\n' \
+    > "$symlink_guard_dir/input.tsv"
+printf '%s' "$header" > "$symlink_guard_dir/work/results.tsv"
+ln -s work/results.tsv "$symlink_guard_dir/results.tsv"
+: > "$symlink_guard_dir/record"
+symlink_guard_rc=0
+RUN_CORPUS_FAKE_MAGMA=1 FAKE_STATUS=ok FAKE_RECORD="$symlink_guard_dir/record" \
+    MAGMA="$SELF" "$RUNNER" -i "$symlink_guard_dir/input.tsv" \
+    -o "$symlink_guard_dir/results.tsv" -w "$symlink_guard_dir/work" \
+    -B 64 -j 1 --keep-work > "$symlink_guard_dir/run.log" 2>&1 \
+    || symlink_guard_rc=$?
+if [[ "$symlink_guard_rc" -ne 64 ]]; then
+    fail "symlink output guard: expected exit 64, got $symlink_guard_rc"
+fi
+assert_contents "symlink output guard" "$symlink_guard_dir/work/results.tsv" "$header"
+work_entries="$(find "$symlink_guard_dir/work" -mindepth 1 -maxdepth 1 \
+    -printf '%f\n' | sort)"
+if [[ "$work_entries" != "results.tsv" ]]; then
+    fail "symlink output guard: work directory was modified"
+fi
+
 # This drives both rows through the real Magma driver and the shell harvester.
 # 529.a1 is sharp at B = 8 with [RR, RR]; HH cannot embed in that bound.
 real_dir="$ROOT/real-unsound"

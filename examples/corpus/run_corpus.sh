@@ -102,7 +102,7 @@ mkdir -p "$WORKDIR"
 # The work directory is deleted wholesale when the pass completes, so a results
 # file inside it is unsafe at every exit path; refusing before any work starts
 # is the only check that cannot itself lose data.
-OUTPUT_ABS="$(cd "$(dirname "$OUTPUT")" && pwd -P)/$(basename "$OUTPUT")"
+OUTPUT_ABS="$(readlink -f -- "$OUTPUT" 2>/dev/null || echo "$(cd "$(dirname "$OUTPUT")" && pwd -P)/$(basename "$OUTPUT")")"
 WORKDIR_ABS="$(cd "$WORKDIR" && pwd -P)"
 if [[ "$OUTPUT_ABS" == "${WORKDIR_ABS%/}/"* ]]; then
     echo "run_corpus.sh: --output $OUTPUT lies inside --workdir $WORKDIR," >&2
