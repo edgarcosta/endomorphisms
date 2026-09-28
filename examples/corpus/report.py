@@ -277,9 +277,9 @@ def main(argv=None):
                          "(genus 2: geom_end_alg)")
     ap.add_argument("--list-nonsharp", metavar="FILE",
                     help="write the ids worth re-running at a higher B")
-    ap.add_argument("--nonsharp-verdicts", default="over,mismatch,error",
+    ap.add_argument("--nonsharp-verdicts", default="over,mismatch,unsound,error",
                     help="which verdicts --list-nonsharp collects "
-                         "(default: over,mismatch,error; 'under' is excluded "
+                         "(default: over,mismatch,unsound,error; 'under' is excluded "
                          "because a larger B cannot recover a missed factor)")
     ap.add_argument("--by-id", action="store_true",
                     help="also dump every non-sharp row")

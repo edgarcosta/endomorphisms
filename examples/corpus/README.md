@@ -152,11 +152,11 @@ expensive `B` only where it can help:
 ./report.py results/g2.B64.tsv results/g2.B1024.tsv --meta prepared/g2.tsv
 ```
 
-`--list-nonsharp` collects the `over`, `mismatch` and `error` ids by default and
-deliberately leaves out `under`. An `under` is the prime-field Frobenius
-limitation documented below, not a `B` that was too small; and since the fold
-keeps the smallest-dimension row, a larger-`B` row could not displace an
-`under` one anyway. Cost goes roughly as `B`: measured at genus 2, 0.35 s/curve
+`--list-nonsharp` collects the `over`, `mismatch`, `unsound` and `error` ids by
+default and deliberately leaves out `under`. An `under` is the prime-field
+Frobenius limitation documented below, not a `B` that was too small; and since
+the fold keeps the smallest-dimension row, a larger-`B` row could not displace
+an `under` one anyway. Cost goes roughly as `B`: measured at genus 2, 0.35 s/curve
 at `B=50`, 0.73 s at `B=100`, 2.0 s at `B=200`.
 
 Hand `report.py` both files and it folds each id to one row: the one with the

@@ -6,6 +6,9 @@ Silent on success, exit 0. On failure it prints each bad case and exits 1.
 
 import os
 import sys
+import tempfile
+from contextlib import redirect_stdout
+from io import StringIO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -116,6 +119,18 @@ def main():
     ok = dict(got="M_2(RR)", status="ok", B="8")
     if report.tightness(unsound) >= report.tightness(ok):
         failures.append("unsound B=16 row folded behind ok B=8 row")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        results = os.path.join(tmpdir, "results.tsv")
+        retry = os.path.join(tmpdir, "retry.txt")
+        with open(results, "w") as fh:
+            fh.write("10368.ba1\tg4\t8\tCC,CC\tM_2(RR),RR\t0.01\tunsound\n")
+        with redirect_stdout(StringIO()):
+            rc = report.main([results, "--list-nonsharp", retry])
+        with open(retry) as fh:
+            retry_ids = fh.read()
+        if rc != 0 or retry_ids != "10368.ba1\n":
+            failures.append("default retry ids -> %r, want '10368.ba1\\n'"
+                            % (retry_ids,))
     for line in failures:
         print(line)
     return 1 if failures else 0
