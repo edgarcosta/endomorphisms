@@ -3,6 +3,8 @@
 // exposes some of Honda--Tate theory necessary to produce tight upper bounds
 // For more details see Section 7.2
 
+import "match.m": TokenCandidates;
+
 intrinsic EndomorphismAlgebra(f::RngUPolElt) -> Tup
 {The geometric endomorphism data of the abelian variety with Frobenius
  polynomial f over a finite field: the dimension dim_Q End(Abar), the degree of
@@ -150,12 +152,7 @@ function DefiniteResolutions(tokens)
     tok := tokens[1];
     tail := tokens;
     Remove(~tail, 1);
-    candidates := [[tok]];
-    if #tok ge 9 and tok[1 .. 6] eq "oneof{" and tok[#tok] eq "}" then
-        body := Substring(tok, 7, #tok - 7);
-        candidates := [Split(alternative, "+")
-                       : alternative in Split(body, "|")];
-    end if;
+    candidates := TokenCandidates(tok);
     return [head cat rest : head in candidates, rest in $$(tail)];
 end function;
 
