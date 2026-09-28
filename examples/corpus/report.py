@@ -37,7 +37,7 @@ import sys
 BASE_DIMENSIONS = {"RR": 1, "CC": 2, "HH": 4}
 MATRIX_TOKEN = re.compile(r"M_([1-9][0-9]*)\((RR|CC|HH)\)\Z")
 
-VERDICTS = ("sharp", "over", "under", "mismatch", "error")
+VERDICTS = ("sharp", "over", "under", "mismatch", "unsound", "error")
 
 RESULT_COLUMNS = 7  # id, kind, B, expected, got, cputime, status
 
@@ -168,6 +168,8 @@ def embeds(exp, obs):
 
 
 def classify(expected, got, status):
+    if status == "unsound":
+        return "unsound", []
     if status != "ok":
         return "error", []
     exp = parse_multiset(expected)
@@ -189,6 +191,7 @@ def classify(expected, got, status):
 def tightness(row):
     """Fold key: smaller is a better bound. Sorts (rank, dim, -B).
 
+    An unsound row outranks every ok row so it cannot be hidden by folding.
     Rank first, because two of the three outcomes carry no bound to compare:
     an empty 'got' (RealRepresentationBound returned []) and an 'error' row
     both have dimension 0 and would otherwise win every fold. Only within
@@ -197,7 +200,9 @@ def tightness(row):
     """
     obs = parse_multiset(row["got"])
     dim, unknown = total_dim(obs)
-    if row["status"] != "ok" or unknown:
+    if row["status"] == "unsound":
+        rank = -1
+    elif row["status"] != "ok" or unknown:
         rank = 2
     elif not obs:
         rank = 1

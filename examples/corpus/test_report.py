@@ -51,6 +51,8 @@ CASES = [
     ("CC,RR", "CC,RR", "fail", "error", []),
     ("RR", "M_2(RR)", "magma error", "error", []),
 
+    ("CC,CC", "M_2(RR),RR", "unsound", "unsound", []),
+
     # Malformed or unsupported division-algebra tokens remain unknown.
     ("RR", "M_0(RR)", "ok", "mismatch", ["M_0(RR)"]),
     ("QQ", "M_2(RR)", "ok", "mismatch", ["QQ"]),
@@ -110,6 +112,10 @@ def main():
     if dim_result != (16, []):
         failures.append("total_dim(flat centre) -> %r, want (16, [])"
                         % (dim_result,))
+    unsound = dict(got="M_2(RR),RR", status="unsound", B="16")
+    ok = dict(got="M_2(RR)", status="ok", B="8")
+    if report.tightness(unsound) >= report.tightness(ok):
+        failures.append("unsound B=16 row folded behind ok B=8 row")
     for line in failures:
         print(line)
     return 1 if failures else 0
